@@ -1,0 +1,23 @@
+app = 'CHANGE_ME_OR_ERROR'
+primary_region = 'lhr'
+
+[build]
+  no_retry = true
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_start_machines = true
+  auto_stop_machines = 'stop'
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+
+[[restart]]
+  policy = 'on-failure'
+  retries = 1
+  processes = ['app']

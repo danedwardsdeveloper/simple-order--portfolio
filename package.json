@@ -1,0 +1,38 @@
+{
+  "scripts": {
+    "dev": "next dev --turbo",
+    "build": "next build",
+    "start": "next start",
+    "start:local": "next build && tsx testServer.ts",
+    "lint": "next lint",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md,css,scss}\"",
+    "test": "vitest",
+    "predeploy": "pnpm format && pnpm tsx predeploy/validateDockerfile.ts && pnpm lint && pnpm build",
+    "deploy": "fly deploy"
+  },
+  "dependencies": {
+    "@next/eslint-plugin-next": "^15.1.1",
+    "chalk": "4",
+    "clsx": "^2.1.1",
+    "mongodb": "^6.10.0",
+    "next": "15.1.1",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "sharp": "^0.33.5"
+  },
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^4.3.0",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.17.6",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8",
+    "eslint-config-next": "15.1.1",
+    "express": "^4.21.1",
+    "postcss": "^8.4.48",
+    "tailwindcss": "^3.4.14",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}
