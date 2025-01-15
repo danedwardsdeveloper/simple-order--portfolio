@@ -1,3 +1,23 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']) {
+    @apply p-2 bg-slate-50 rounded border border-slate-200;
+  }
+
+  label {
+    @apply mr-2;
+  }
+
+  h1 {
+    @apply text-2xl font-medium;
+  }
+}
+
+@layer components {
+  .button {
+    @apply p-2 font-medium bg-slate-100 hover:bg-slate-200 active:bg-slate-300 rounded;
+  }
+}
