@@ -8,7 +8,7 @@ import { allUsers } from '@/library/tempData/users'
 import { useUi } from '@/providers/ui'
 
 export default function SignInPage() {
-  const [email, setEmail] = useState('jasmine@kingstonlacy.co.uk')
+  const [email, setEmail] = useState('both@gmail.com')
   const [password, setPassword] = useState('securePassword')
   const [error, setError] = useState('')
   const { setUiSignedIn, setUser } = useUi()
@@ -35,11 +35,18 @@ export default function SignInPage() {
     setUser(matchingUser)
     setUiSignedIn(true)
 
-    if (matchingUser.merchantProfile) {
-      router.push(`/${matchingUser.merchantProfile.slug}`)
-    } else {
-      setError('Sorry something went wrong')
+    if (matchingUser.role === 'merchant' || matchingUser.role === 'both') {
+      if (matchingUser.merchantProfile?.slug) {
+        router.push(`/${matchingUser.merchantProfile.slug}`)
+        return
+      }
     }
+
+    if (matchingUser.role === 'customer') {
+      router.push('/orders')
+      return
+    }
+    setError('Sorry something went wrong')
   }
 
   return (
