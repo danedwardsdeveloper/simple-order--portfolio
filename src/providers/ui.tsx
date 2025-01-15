@@ -9,6 +9,8 @@ interface UiContextType {
   setUiSignedIn: (value: boolean) => void
   user: User | null
   setUser: (user: User | null) => void
+  roleMode: 'merchant' | 'customer'
+  toggleRoleMode: () => void
 }
 
 const UiContext = createContext<UiContextType | undefined>(undefined)
@@ -16,12 +18,19 @@ const UiContext = createContext<UiContextType | undefined>(undefined)
 export function UiProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [uiSignedIn, setUiSignedIn] = useState(false)
+  const [roleMode, setRoleMode] = useState<'merchant' | 'customer'>('customer')
+
+  const toggleRoleMode = () => {
+    setRoleMode(current => (current === 'merchant' ? 'customer' : 'merchant'))
+  }
 
   const value = {
     uiSignedIn,
     setUiSignedIn,
     user,
     setUser,
+    roleMode,
+    toggleRoleMode,
   }
 
   return <UiContext.Provider value={value}>{children}</UiContext.Provider>

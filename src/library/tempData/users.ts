@@ -5,7 +5,7 @@ export interface User {
   password: string
   emailConfirmed: boolean
   businessNameAsCustomer?: string
-  // role: 'merchant' | 'customer' | 'both'
+  role: 'merchant' | 'customer' | 'both'
   merchantProfile?: MerchantProfile
   customers?: { [customerId: string]: CustomerRecord }
 }
@@ -27,8 +27,9 @@ export const pureMerchants: { [key: string]: User } = {
   merchant1: {
     firstName: 'Jane',
     lastName: 'Boodles',
-    email: 'jane@janesbakery.co.uk',
+    email: 'merchant@gmail.com',
     password: 'securePassword',
+    role: 'merchant',
     merchantProfile: {
       businessName: "Jane's Bakery",
       slug: 'janes-bakery',
@@ -42,9 +43,10 @@ export const pureCustomers: { [key: string]: User } = {
   customer1: {
     firstName: 'Jason',
     lastName: 'Ollibolingay',
-    email: 'jason@grand-hotel-salisbury.com',
+    email: 'customer@gmail.com',
     password: 'securePassword',
     emailConfirmed: false,
+    role: 'customer',
   },
 }
 
@@ -52,9 +54,10 @@ export const merchantAndCustomer: { [key: string]: User } = {
   jasmine: {
     firstName: 'Jasmine',
     lastName: 'Barton',
-    email: 'jasmine@kingstonlacy.co.uk',
+    email: 'both@gmail.com',
     password: 'securePassword',
     emailConfirmed: false,
+    role: 'both',
     businessNameAsCustomer: 'Kingston Lacy',
     merchantProfile: {
       businessName: 'Kingston Lacy',
@@ -76,6 +79,18 @@ export const merchantAndCustomer: { [key: string]: User } = {
     },
   },
 }
+
+export const illegalMerchantSlugs = [
+  'account',
+  'orders',
+  'check-out',
+  'webhook',
+  'sign-in',
+  'sign-out',
+  'privacy-policy',
+  'cookies',
+  'thank-you',
+]
 
 export const allMerchants = { ...pureMerchants, ...merchantAndCustomer }
 export const allUsers: { [key: string]: User } = {

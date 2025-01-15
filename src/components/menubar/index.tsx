@@ -1,6 +1,7 @@
 'use client'
 
 import MenuItem, { MenuItemProps } from './MenuItem'
+import RoleModeButton from './RoleModeButton'
 import { useUi } from '@/providers/ui'
 
 const landingMenuItems: MenuItemProps[] = [
@@ -23,12 +24,12 @@ const landingMenuItems: MenuItemProps[] = [
 ]
 
 export default function MenuBar() {
-  const { uiSignedIn, user } = useUi()
+  const { uiSignedIn, user, roleMode } = useUi()
 
   let displayedMenuItems: MenuItemProps[]
-  if (!uiSignedIn || !user?.merchantProfile?.slug) {
+  if (!uiSignedIn || !user) {
     displayedMenuItems = landingMenuItems
-  } else {
+  } else if (user.role === 'merchant' && user.merchantProfile) {
     const merchantSlug = user.merchantProfile?.slug
     displayedMenuItems = [
       {
@@ -48,6 +49,23 @@ export default function MenuBar() {
         href: `/${merchantSlug}/settings`,
       },
     ]
+  } else {
+    displayedMenuItems = [
+      {
+        text: 'Orders',
+        href: `/orders`,
+      },
+      {
+        text: 'Account',
+        href: `/account`,
+      },
+    ]
+  }
+
+  function renderRoleModeButton() {
+    if (user?.role === 'both') {
+      return <RoleModeButton />
+    }
   }
 
   return (
@@ -56,6 +74,7 @@ export default function MenuBar() {
         {displayedMenuItems.map((item, index) => (
           <MenuItem key={index} href={item.href} text={item.text} />
         ))}
+        {renderRoleModeButton()}
       </ul>
     </nav>
   )
