@@ -3,10 +3,10 @@
     "pnpm-lock.yaml",
     ".dockerignore",
     ".gitignore",
-    "Dockerfile"
+    "Dockerfile",
+    ".env.production",
+    ".env.development",
+    ".env.example"
   ],
-  "words": [
-    "Chocolat",
-    "Ollibolingay"
-  ]
+  "words": ["Chocolat", "Ollibolingay"]
 }
