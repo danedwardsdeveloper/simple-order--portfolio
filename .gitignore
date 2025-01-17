@@ -30,4 +30,5 @@ Dockerfile
 *.tsbuildinfo
 next-env.d.ts
 
+drizzle/
 drizzle.config.ts
