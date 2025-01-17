@@ -22,9 +22,12 @@ yarn-debug.log*
 yarn-error.log*
 
 .env*
+!.env.example
 Dockerfile
 
 .vercel
 
 *.tsbuildinfo
 next-env.d.ts
+
+drizzle.config.ts
