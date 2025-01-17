@@ -1,3 +1,3 @@
 import { requireVariable } from './requireVariable'
 
-export const someVariable = requireVariable('SOME_VARIABLE')
+export const databaseUrl = requireVariable('DATABASE_URL')
