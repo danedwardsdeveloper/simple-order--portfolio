@@ -24,7 +24,7 @@ const landingMenuItems: MenuItemProps[] = [
 ]
 
 export default function MenuBar() {
-  const { uiSignedIn, user, roleMode } = useUi()
+  const { uiSignedIn, user } = useUi()
 
   let displayedMenuItems: MenuItemProps[]
   if (!uiSignedIn || !user) {
