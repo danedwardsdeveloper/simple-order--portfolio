@@ -8,9 +8,5 @@
     ".env.development",
     ".env.example"
   ],
-  "words": [
-    "Chocolat",
-    "Ollibolingay",
-    "simpleorder"
-  ]
+  "words": ["simpleorder"]
 }
