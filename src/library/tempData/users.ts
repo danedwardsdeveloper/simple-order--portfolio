@@ -1,13 +1,16 @@
+// cspell:disable-next-line
+const hashed_securePassword = '$2a$10$1swWbPYeNij7jva7mg/GxOc3DtNF.55AsbljPlzf.4yQKMoHaEYJC'
+
 export interface User {
   firstName: string
   lastName: string
   email: string
-  password: string
+  hashedPassword: string
   emailConfirmed: boolean
   businessNameAsCustomer?: string
   role: 'merchant' | 'customer' | 'both'
   merchantProfile?: MerchantProfile
-  customers?: { [customerId: string]: CustomerRecord }
+  customers?: { [customerId: string]: CustomerProfile }
 }
 
 export interface MerchantProfile {
@@ -16,87 +19,83 @@ export interface MerchantProfile {
   subscriptionActive: boolean
 }
 
-export interface CustomerRecord {
+// ToDo. I'm not sure this all this is necessary...
+export interface CustomerProfile {
   firstName: string
   email: string
   emailConfirmed: boolean
   businessName?: string
 }
 
-export const pureMerchants: { [key: string]: User } = {
-  merchant1: {
-    firstName: 'Jane',
-    lastName: 'Boodles',
-    email: 'merchant@gmail.com',
-    password: 'securePassword',
-    role: 'merchant',
-    merchantProfile: {
-      businessName: "Jane's Bakery",
-      slug: 'janes-bakery',
-      subscriptionActive: true,
+export const merchantOnly: User = {
+  firstName: 'Jane',
+  lastName: 'Boodles',
+  email: 'merchant@gmail.com',
+  hashedPassword: hashed_securePassword,
+  role: 'merchant',
+  merchantProfile: {
+    businessName: "Jane's Bakery",
+    slug: 'janes-bakery',
+    subscriptionActive: true,
+  },
+  emailConfirmed: false,
+}
+
+export const customerOnlyOne: User = {
+  firstName: 'Jason',
+  lastName: 'Smith',
+  email: 'customerOne@gmail.com',
+  hashedPassword: hashed_securePassword,
+  emailConfirmed: false,
+  role: 'customer',
+  businessNameAsCustomer: "Jason's Wine Bar",
+}
+
+export const customerOnlyTwo: User = {
+  firstName: 'Customer',
+  lastName: 'Two',
+  email: 'customerTwo@gmail.com',
+  hashedPassword: hashed_securePassword,
+  emailConfirmed: false,
+  role: 'customer',
+  businessNameAsCustomer: "Martin's Jazz Bar",
+}
+
+export const merchantAndCustomer: User = {
+  firstName: 'Jasmine',
+  lastName: 'Barton',
+  email: 'both@gmail.com',
+  hashedPassword: hashed_securePassword,
+  emailConfirmed: false,
+  role: 'both',
+  businessNameAsCustomer: 'Kingston Lacy',
+  merchantProfile: {
+    businessName: 'Kingston Lacy',
+    slug: 'kingston-lacy',
+    subscriptionActive: true,
+  },
+  customers: {
+    customer1: {
+      firstName: customerOnlyOne.firstName,
+      email: customerOnlyOne.email,
+      emailConfirmed: true,
+      businessName: customerOnlyOne.businessNameAsCustomer,
     },
-    emailConfirmed: false,
+    customer2: {
+      firstName: customerOnlyTwo.firstName,
+      email: customerOnlyTwo.email,
+      emailConfirmed: false,
+      businessName: customerOnlyTwo.businessNameAsCustomer,
+    },
   },
 }
 
-export const pureCustomers: { [key: string]: User } = {
-  customer1: {
-    firstName: 'Jason',
-    lastName: 'Ollibolingay',
-    email: 'customer@gmail.com',
-    password: 'securePassword',
-    emailConfirmed: false,
-    role: 'customer',
-  },
+export const users: { [key: string]: User[] } = {
+  merchants: [merchantOnly, merchantAndCustomer],
+  customers: [customerOnlyOne, customerOnlyTwo],
+  both: [merchantOnly, customerOnlyOne, customerOnlyTwo, merchantAndCustomer],
 }
 
-export const merchantAndCustomer: { [key: string]: User } = {
-  jasmine: {
-    firstName: 'Jasmine',
-    lastName: 'Barton',
-    email: 'both@gmail.com',
-    password: 'securePassword',
-    emailConfirmed: false,
-    role: 'both',
-    businessNameAsCustomer: 'Kingston Lacy',
-    merchantProfile: {
-      businessName: 'Kingston Lacy',
-      slug: 'kingston-lacy',
-      subscriptionActive: true,
-    },
-    customers: {
-      customer1: {
-        firstName: pureCustomers.customer1.firstName,
-        email: pureCustomers.customer1.email,
-        emailConfirmed: true,
-      },
-      customer2: {
-        firstName: 'Gerald',
-        email: 'gerald@gmail.com',
-        emailConfirmed: false,
-        businessName: `Gerald's Sex Shop`,
-      },
-    },
-  },
+export function findUserByEmail(email: string): User | null {
+  return users.both.find(user => user.email === email) ?? null
 }
-
-export const illegalMerchantSlugs = [
-  'account',
-  'orders',
-  'check-out',
-  'webhook',
-  'sign-in',
-  'sign-out',
-  'privacy-policy',
-  'cookies',
-  'thank-you',
-]
-
-export const allMerchants = { ...pureMerchants, ...merchantAndCustomer }
-export const allUsers: { [key: string]: User } = {
-  ...pureMerchants,
-  ...pureCustomers,
-  ...merchantAndCustomer,
-}
-
-export const activeUser = merchantAndCustomer
