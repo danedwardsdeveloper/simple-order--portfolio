@@ -3,9 +3,11 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-import { allUsers } from '@/library/tempData/users'
+import logger from '@/library/logger'
+import { users } from '@/library/tempData/users'
 
 import { useUi } from '@/providers/ui'
+import { apiPaths, SignInPOSTbody, SignInPOSTresponse } from '@/types'
 
 export default function SignInPage() {
   const [email, setEmail] = useState('both@gmail.com')
@@ -14,39 +16,38 @@ export default function SignInPage() {
   const { setUiSignedIn, setUser } = useUi()
   const router = useRouter()
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     setError('')
 
-    const matchingUser = Object.values(allUsers).find(
-      user => user.email.toLowerCase() === email.toLowerCase(),
-    )
+    try {
+      const response = await fetch(apiPaths.authentication.signIn, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password } as SignInPOSTbody),
+      })
 
-    if (!matchingUser) {
-      setError('No account found with this email')
-      return
-    }
+      const { message, foundUser } = (await response.json()) satisfies SignInPOSTresponse
 
-    if (matchingUser.password !== password) {
-      setError('Incorrect password')
-      return
-    }
+      if (!response.ok || message !== 'success') {
+        setError('Sorry, something went wrong')
+      }
 
-    setUser(matchingUser)
-    setUiSignedIn(true)
-
-    if (matchingUser.role === 'merchant' || matchingUser.role === 'both') {
-      if (matchingUser.merchantProfile?.slug) {
-        router.push(`/${matchingUser.merchantProfile.slug}`)
+      if (!foundUser) {
+        setError('No account found with this email')
         return
       }
-    }
 
-    if (matchingUser.role === 'customer') {
-      router.push('/orders')
+      setUser(foundUser)
+      setUiSignedIn(true)
+      router.push('/')
       return
+    } catch (error) {
+      logger.error(error)
+      setError('Sorry something went wrong')
     }
-    setError('Sorry something went wrong')
   }
 
   return (
