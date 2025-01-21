@@ -1,17 +1,17 @@
 import { use } from 'react'
 
-import { allMerchants } from '@/library/tempData/users'
+import { MerchantProfile, User, users } from '@/library/tempData/users'
 
 import OrderSummaryPage from './components/OrderSummaryPage'
 
 export async function generateStaticParams() {
-  const merchantSlugs = Object.values(allMerchants)
-    .filter(user => user.merchantProfile?.slug)
+  return users.merchants
+    .filter((user): user is User & { merchantProfile: MerchantProfile } => {
+      return user.merchantProfile !== undefined
+    })
     .map(user => ({
-      'merchant-slug': user.merchantProfile!.slug,
+      slug: user.merchantProfile.slug,
     }))
-
-  return merchantSlugs
 }
 
 type Props = {
@@ -23,7 +23,10 @@ type Props = {
 export default function MerchantPage({ params }: Props) {
   const resolvedParams = use(params)
   const merchantSlug = resolvedParams['merchant-slug']
-  const merchant = Object.values(allMerchants).find(user => user.merchantProfile?.slug === merchantSlug)
+  const merchant = users.merchants.find(
+    (user): user is User & { merchantProfile: MerchantProfile } =>
+      user.merchantProfile !== undefined && user.merchantProfile.slug === merchantSlug,
+  )
 
   if (!merchant) {
     return <div>Merchant not found</div>
