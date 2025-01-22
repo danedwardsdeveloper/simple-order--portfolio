@@ -1,25 +1,30 @@
 // cspell:disable-next-line
 const hashed_securePassword = '$2a$10$1swWbPYeNij7jva7mg/GxOc3DtNF.55AsbljPlzf.4yQKMoHaEYJC'
 
+export type Roles = 'merchant' | 'customer' | 'both'
+export type RoleModes = Extract<Roles, 'merchant' | 'customer'>
+
 export interface User {
+  id: number
   firstName: string
   lastName: string
   email: string
   hashedPassword: string
   emailConfirmed: boolean
   businessNameAsCustomer?: string
-  role: 'merchant' | 'customer' | 'both'
+  role: Roles
   merchantProfile?: MerchantProfile
-  customers?: { [customerId: string]: CustomerProfile }
+  subscriptionStatus: 'paid' | 'trial' | 'customer only' | 'expired'
+  customerIds?: number[]
+  merchantIds?: number[]
+  lastUsedMode?: RoleModes
 }
 
 export interface MerchantProfile {
   businessName: string
   slug: string
-  subscriptionActive: boolean
 }
 
-// ToDo. I'm not sure this all this is necessary...
 export interface CustomerProfile {
   firstName: string
   email: string
@@ -27,21 +32,40 @@ export interface CustomerProfile {
   businessName?: string
 }
 
-export const merchantOnly: User = {
+export const merchantOnlyOne: User = {
+  id: 1,
   firstName: 'Jane',
-  lastName: 'Boodles',
+  lastName: 'Smith',
   email: 'merchant@gmail.com',
   hashedPassword: hashed_securePassword,
   role: 'merchant',
   merchantProfile: {
     businessName: "Jane's Bakery",
     slug: 'janes-bakery',
-    subscriptionActive: true,
   },
+  subscriptionStatus: 'trial',
   emailConfirmed: false,
+  customerIds: [2, 3, 4],
+}
+
+export const merchantOnlyTwo: User = {
+  id: 5,
+  firstName: 'Steve',
+  lastName: 'Philips',
+  email: 'merchantTwo@gmail.com',
+  hashedPassword: hashed_securePassword,
+  role: 'merchant',
+  merchantProfile: {
+    businessName: "Steve's Dairy",
+    slug: 'steves-dairy',
+  },
+  subscriptionStatus: 'trial',
+  emailConfirmed: true,
+  customerIds: [2, 3, 4],
 }
 
 export const customerOnlyOne: User = {
+  id: 2,
   firstName: 'Jason',
   lastName: 'Smith',
   email: 'customerOne@gmail.com',
@@ -49,9 +73,12 @@ export const customerOnlyOne: User = {
   emailConfirmed: false,
   role: 'customer',
   businessNameAsCustomer: "Jason's Wine Bar",
+  subscriptionStatus: 'customer only',
+  merchantIds: [1],
 }
 
 export const customerOnlyTwo: User = {
+  id: 3,
   firstName: 'Customer',
   lastName: 'Two',
   email: 'customerTwo@gmail.com',
@@ -59,9 +86,11 @@ export const customerOnlyTwo: User = {
   emailConfirmed: false,
   role: 'customer',
   businessNameAsCustomer: "Martin's Jazz Bar",
+  subscriptionStatus: 'customer only',
 }
 
 export const merchantAndCustomer: User = {
+  id: 4,
   firstName: 'Jasmine',
   lastName: 'Barton',
   email: 'both@gmail.com',
@@ -69,33 +98,25 @@ export const merchantAndCustomer: User = {
   emailConfirmed: false,
   role: 'both',
   businessNameAsCustomer: 'Kingston Lacy',
+  subscriptionStatus: 'paid',
   merchantProfile: {
     businessName: 'Kingston Lacy',
     slug: 'kingston-lacy',
-    subscriptionActive: true,
   },
-  customers: {
-    customer1: {
-      firstName: customerOnlyOne.firstName,
-      email: customerOnlyOne.email,
-      emailConfirmed: true,
-      businessName: customerOnlyOne.businessNameAsCustomer,
-    },
-    customer2: {
-      firstName: customerOnlyTwo.firstName,
-      email: customerOnlyTwo.email,
-      emailConfirmed: false,
-      businessName: customerOnlyTwo.businessNameAsCustomer,
-    },
-  },
+  merchantIds: [merchantOnlyOne.id, merchantOnlyTwo.id],
+  customerIds: [customerOnlyOne.id, customerOnlyTwo.id],
 }
 
 export const users: { [key: string]: User[] } = {
-  merchants: [merchantOnly, merchantAndCustomer],
+  merchants: [merchantOnlyOne, merchantOnlyTwo, merchantAndCustomer],
   customers: [customerOnlyOne, customerOnlyTwo],
-  both: [merchantOnly, customerOnlyOne, customerOnlyTwo, merchantAndCustomer],
+  all: [merchantOnlyOne, merchantOnlyTwo, customerOnlyOne, customerOnlyTwo, merchantAndCustomer],
 }
 
 export function findUserByEmail(email: string): User | null {
-  return users.both.find(user => user.email === email) ?? null
+  return users.all.find(user => user.email === email) ?? null
+}
+
+export function findUserById(id: number): User | null {
+  return users.all.find(user => user.id === id) ?? null
 }
