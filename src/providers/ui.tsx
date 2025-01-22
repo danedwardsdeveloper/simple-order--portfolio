@@ -10,6 +10,7 @@ interface UiContextType {
   user: User | null
   setUser: (user: User | null) => void
   roleMode: 'merchant' | 'customer'
+  setRoleMode: (value: 'merchant' | 'customer') => void
   toggleRoleMode: () => void
 }
 
@@ -30,6 +31,7 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
     user,
     setUser,
     roleMode,
+    setRoleMode,
     toggleRoleMode,
   }
 
