@@ -4,6 +4,7 @@ import { productionBaseURL } from '@/library/environment/publicVariables'
 
 import MenuBar from '@/components/menubar'
 import Providers from '@/components/Providers'
+import TempoUiControlPanel from '@/components/TempUiControlPanel'
 
 import './styles.tailwind.css'
 
@@ -30,7 +31,10 @@ export default function RootLayout({
       <body>
         <Providers>
           <MenuBar />
-          <div className="max-w-2xl w-full mx-auto my-4">{children}</div>
+          <div className="max-w-4xl w-full mx-auto mt-menubar-offset">
+            <TempoUiControlPanel />
+            {children}
+          </div>
         </Providers>
       </body>
     </html>
