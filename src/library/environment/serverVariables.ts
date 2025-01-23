@@ -1,6 +1,4 @@
 import { requireVariable } from './requireVariable'
 
-export const serverVariables: { [key: string]: string } = {
-  databaseUrl: requireVariable('DATABASE_URL'),
-  jwtSecret: requireVariable('JWT_SECRET'),
-}
+export const databaseUrl = requireVariable('DATABASE_URL')
+export const jwtSecret = requireVariable('JWT_SECRET')

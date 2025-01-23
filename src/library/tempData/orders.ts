@@ -1,4 +1,4 @@
-import { OrderSummaryInterface } from '@/app/[merchant-slug]/components/OrderItem'
+import { OrderSummaryInterface } from '@/app/merchants/[merchant-slug]/components/OrderItem'
 
 import { bakeryItems } from './bakeryItems'
 

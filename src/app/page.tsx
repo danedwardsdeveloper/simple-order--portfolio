@@ -1,11 +1,7 @@
-import { AuthorisationCheck } from '@/components/AuthorisationCheck'
-import Dashboard from '@/components/Dashboard'
-import LandingPage from '@/components/LandingPage'
-
 export default function HomePage() {
   return (
-    <AuthorisationCheck fallback={<LandingPage />}>
-      <Dashboard />
-    </AuthorisationCheck>
+    <div className="w-full min-h-screen bg-blue-100 p-4 rounded-xl">
+      <h1>Landing page</h1>
+    </div>
   )
 }

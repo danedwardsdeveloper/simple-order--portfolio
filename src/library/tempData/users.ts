@@ -1,8 +1,7 @@
-// cspell:disable-next-line
-const hashed_securePassword = '$2a$10$1swWbPYeNij7jva7mg/GxOc3DtNF.55AsbljPlzf.4yQKMoHaEYJC'
+import { Roles } from '@/types'
 
-export type Roles = 'merchant' | 'customer' | 'both'
-export type RoleModes = Extract<Roles, 'merchant' | 'customer'>
+// cspell:disable-next-line
+const temporaryHashedSecurePassword = '$2a$10$1swWbPYeNij7jva7mg/GxOc3DtNF.55AsbljPlzf.4yQKMoHaEYJC'
 
 export interface User {
   id: number
@@ -17,8 +16,10 @@ export interface User {
   subscriptionStatus: 'paid' | 'trial' | 'customer only' | 'expired'
   customerIds?: number[]
   merchantIds?: number[]
-  lastUsedMode?: RoleModes
+  lastUsedModeWasMerchant?: boolean
 }
+
+export type SafeUser = Omit<User, 'hashedPassword'>
 
 export interface MerchantProfile {
   businessName: string
@@ -37,7 +38,7 @@ export const merchantOnlyOne: User = {
   firstName: 'Jane',
   lastName: 'Smith',
   email: 'merchant@gmail.com',
-  hashedPassword: hashed_securePassword,
+  hashedPassword: temporaryHashedSecurePassword,
   role: 'merchant',
   merchantProfile: {
     businessName: "Jane's Bakery",
@@ -53,7 +54,7 @@ export const merchantOnlyTwo: User = {
   firstName: 'Steve',
   lastName: 'Philips',
   email: 'merchantTwo@gmail.com',
-  hashedPassword: hashed_securePassword,
+  hashedPassword: temporaryHashedSecurePassword,
   role: 'merchant',
   merchantProfile: {
     businessName: "Steve's Dairy",
@@ -69,12 +70,12 @@ export const customerOnlyOne: User = {
   firstName: 'Jason',
   lastName: 'Smith',
   email: 'customerOne@gmail.com',
-  hashedPassword: hashed_securePassword,
+  hashedPassword: temporaryHashedSecurePassword,
   emailConfirmed: false,
   role: 'customer',
   businessNameAsCustomer: "Jason's Wine Bar",
   subscriptionStatus: 'customer only',
-  merchantIds: [1],
+  merchantIds: [1, 5],
 }
 
 export const customerOnlyTwo: User = {
@@ -82,7 +83,7 @@ export const customerOnlyTwo: User = {
   firstName: 'Customer',
   lastName: 'Two',
   email: 'customerTwo@gmail.com',
-  hashedPassword: hashed_securePassword,
+  hashedPassword: temporaryHashedSecurePassword,
   emailConfirmed: false,
   role: 'customer',
   businessNameAsCustomer: "Martin's Jazz Bar",
@@ -94,7 +95,7 @@ export const merchantAndCustomer: User = {
   firstName: 'Jasmine',
   lastName: 'Barton',
   email: 'both@gmail.com',
-  hashedPassword: hashed_securePassword,
+  hashedPassword: temporaryHashedSecurePassword,
   emailConfirmed: false,
   role: 'both',
   businessNameAsCustomer: 'Kingston Lacy',
@@ -119,4 +120,9 @@ export function findUserByEmail(email: string): User | null {
 
 export function findUserById(id: number): User | null {
   return users.all.find(user => user.id === id) ?? null
+}
+
+export const createSafeUser = (user: User): SafeUser => {
+  const { hashedPassword, ...safeUser } = user
+  return safeUser
 }
