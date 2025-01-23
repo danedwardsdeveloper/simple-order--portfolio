@@ -1,37 +1,21 @@
-export default function BlogHomePage() {
-  interface ArticleDetails {
-    slug: string
-    displayTitle: string
-  }
+import Link from 'next/link'
 
-  const articleSlugs: ArticleDetails[] = [
-    {
-      slug: 'how-it-works',
-      displayTitle: 'How It Works',
-    },
-    {
-      slug: 'some-article',
-      displayTitle: 'Some article',
-    },
-    {
-      slug: 'another-article',
-      displayTitle: 'Another Article',
-    },
-    {
-      slug: 'yet-another-article',
-      displayTitle: 'Yet Another Article',
-    },
-  ]
+import { articlesData } from './data'
 
+export default function AllArticlesPage() {
   return (
     <>
-      <h1 className="mb-12">Blog</h1>
+      <h1>Articles</h1>
       <div className="grid grid-cols-2 gap-y-24">
-        {articleSlugs.map((article, index) => (
-          <div key={index} className="max-w-sm">
-            <h2 className="text-xl font-medium mb-1">{article.displayTitle}</h2>
-            <span className="text-zinc-500">{`Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.`}</span>
-          </div>
+        {Object.keys(articlesData).map(slug => (
+          <Link
+            key={slug}
+            href={`/articles/${slug}`}
+            className="max-w-sm p-2 hover:bg-blue-50 rounded-lg transition-colors duration-300"
+          >
+            <h2 className="text-xl font-medium mb-1">{articlesData[slug].displayTitle}</h2>
+            <span className="text-zinc-500">{articlesData[slug].content[0]}</span>
+          </Link>
         ))}
       </div>
     </>
