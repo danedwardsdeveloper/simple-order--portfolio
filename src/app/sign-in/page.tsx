@@ -52,7 +52,7 @@ export default function SignInPage() {
 
   return (
     <div className="max-w-md mx-auto mt-8 p-6">
-      <h1 className="text-2xl font-bold mb-6">Sign In</h1>
+      <h1>Sign In</h1>
       {error && <div className="mb-4 p-2 bg-red-50 text-red-600 rounded">{error}</div>}
       <form onSubmit={handleSubmit} className="flex flex-col gap-y-4">
         <div>
@@ -83,7 +83,7 @@ export default function SignInPage() {
           />
         </div>
 
-        <button type="submit" className="button inline-block max-w-sm w-full">
+        <button type="submit" className="button-cta-primary inline-block w-full">
           Sign In
         </button>
       </form>
