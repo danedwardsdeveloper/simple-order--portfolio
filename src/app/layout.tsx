@@ -1,16 +1,17 @@
 import type { Metadata, Viewport } from 'next'
 
 import { productionBaseURL } from '@/library/environment/publicVariables'
+import { websiteCopy } from '@/library/misc/copy'
 
 import MenuBar from '@/components/menubar'
 import Providers from '@/components/Providers'
 import TempoUiControlPanel from '@/components/TempUiControlPanel'
 
-import './styles.tailwind.css'
+import './globals.tailwind.css'
 
 export const metadata: Metadata = {
-  title: `Simple Order`,
-  description: ``,
+  title: websiteCopy.metadata.titles.home41,
+  description: websiteCopy.metadata.descriptions.home138,
   alternates: {
     canonical: productionBaseURL,
   },
