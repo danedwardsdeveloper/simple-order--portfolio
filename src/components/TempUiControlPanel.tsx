@@ -47,7 +47,7 @@ export default function TempoUiControlPanel() {
         <div className="flex gap-x-4">
           <p className="inline-block">
             {'Signed in? '}
-            <span className={uiSignedIn ? 'text-green-500' : 'text-red-500'}>
+            <span className={uiSignedIn ? 'text-green-600' : 'text-red-600'}>
               {uiSignedIn ? 'True' : 'False'}
             </span>
           </p>
