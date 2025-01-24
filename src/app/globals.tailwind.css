@@ -26,4 +26,12 @@
   .button-cta-secondary {
     @apply button bg-white text-zinc-600 hover:text-blue-400 active:text-blue-500 border-blue-200 hover:border-blue-300 active:border-blue-400;
   }
+  input[type='checkbox'] {
+    @apply col-start-1 row-start-1 appearance-none rounded border border-gray-300 bg-white 
+           checked:border-blue-600 checked:bg-blue-600 
+           indeterminate:border-blue-600 indeterminate:bg-blue-600 
+           focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 
+           disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 
+           forced-colors:appearance-auto;
+  }
 }
