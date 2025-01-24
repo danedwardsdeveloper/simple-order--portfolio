@@ -4,7 +4,8 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 import logger from '@/library/logger'
-import { users } from '@/library/tempData/users'
+
+import { CheckboxIcon } from '@/components/Icons'
 
 import { useUi } from '@/providers/ui'
 import { apiPaths, SignInPOSTbody, SignInPOSTresponse } from '@/types'
@@ -12,6 +13,7 @@ import { apiPaths, SignInPOSTbody, SignInPOSTresponse } from '@/types'
 export default function SignInPage() {
   const [email, setEmail] = useState('both@gmail.com')
   const [password, setPassword] = useState('securePassword')
+  const [staySignedIn, setStaySignedIn] = useState(false)
   const [error, setError] = useState('')
   const { setUiSignedIn, setUser } = useUi()
   const router = useRouter()
@@ -26,7 +28,7 @@ export default function SignInPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password } as SignInPOSTbody),
+        body: JSON.stringify({ email, password, staySignedIn } as SignInPOSTbody),
       })
 
       const { message, foundUser } = (await response.json()) satisfies SignInPOSTresponse
@@ -63,6 +65,7 @@ export default function SignInPage() {
             id="email"
             type="email"
             value={email}
+            autoComplete="work email"
             onChange={event => setEmail(event.target.value)}
             required
             className="w-full"
@@ -77,10 +80,29 @@ export default function SignInPage() {
             id="password"
             type="password"
             value={password}
+            autoComplete="current-password"
             onChange={event => setPassword(event.target.value)}
             required
             className="w-full"
           />
+        </div>
+
+        <div className="flex gap-3">
+          <div className="flex h-6 shrink-0 items-center">
+            <div className="group grid size-4 grid-cols-1">
+              <input
+                id="stay-signed-in"
+                name="stay-signed-in"
+                type="checkbox"
+                checked={staySignedIn}
+                onChange={event => setStaySignedIn(event.target.checked)}
+              />
+              <CheckboxIcon />
+            </div>
+          </div>
+          <label htmlFor="stay-signed-in" className="block text-sm/6 text-gray-900">
+            Remember me
+          </label>
         </div>
 
         <button type="submit" className="button-cta-primary inline-block w-full">
