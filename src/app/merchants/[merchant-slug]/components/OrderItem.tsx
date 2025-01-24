@@ -24,7 +24,7 @@ export default function OrderSummary({ orderSummary }: { orderSummary: OrderSumm
         {items.map((item, index) => (
           <li key={index} className="flex justify-between">
             <span>{item.itemDetails.displayName}</span>
-            <span className="text-zinc-500">{item.quantity}</span>
+            <span className="text-zinc-600">{item.quantity}</span>
           </li>
         ))}
       </ul>

@@ -9,7 +9,7 @@ export default function InventoryItem({ displayName, priceInPence }: InventoryIt
   return (
     <div className="flex justify-between">
       <span>{displayName}</span>
-      <span className="text-zinc-500">{formatPrice(priceInPence)}</span>
+      <span className="text-zinc-600">{formatPrice(priceInPence)}</span>
     </div>
   )
 }

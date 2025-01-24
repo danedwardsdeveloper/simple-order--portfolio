@@ -21,7 +21,7 @@ export default function Page() {
             <Link
               key={index}
               href={`/merchants/${merchant?.slug}`}
-              className="block transition-colors duration-300 text-zinc-500 hover:text-blue-400 active:text-blue-500"
+              className="block transition-colors duration-300 text-zinc-600 hover:text-blue-400 active:text-blue-500"
             >
               {merchant?.businessName}
             </Link>
