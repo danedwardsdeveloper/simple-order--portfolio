@@ -27,6 +27,9 @@ export const customerToMerchant = sqliteTable(
     customerProfileId: integer('customer_profile_id')
       .notNull()
       .references(() => users.id),
+    accepted: integer('accepted', { mode: 'boolean' }).notNull().default(false),
+    emailAttempts: integer('email_attempts').notNull().default(0),
+    lastEmailSent: integer('last_email_sent', { mode: 'timestamp' }).notNull(),
   },
   table => [primaryKey({ columns: [table.merchantProfileId, table.customerProfileId] })],
 )
