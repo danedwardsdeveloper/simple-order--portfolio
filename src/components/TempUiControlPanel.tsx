@@ -1,14 +1,14 @@
 'use client'
 
-import { customerOnlyOne, merchantAndCustomer, merchantOnlyOne } from '@/library/tempData/tempUsers'
-
 import { useUi } from '@/providers/ui'
+import { cookieNames } from '@/types'
 
 export default function TempoUiControlPanel() {
   const { uiSignedIn, setUiSignedIn, user, setUser, merchantMode, setMerchantMode } = useUi()
 
   function handleSignOut(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault()
+    document.cookie = `${cookieNames.token}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`
     setUser(null)
     setUiSignedIn(false)
   }
@@ -16,21 +16,17 @@ export default function TempoUiControlPanel() {
   function handleSignInMerchantOnly(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault()
     setMerchantMode(true)
-    setUser(merchantOnlyOne)
     setUiSignedIn(true)
   }
 
   function handleSignInCustomerOnly(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault()
     setMerchantMode(false)
-    setUser(customerOnlyOne)
     setUiSignedIn(true)
   }
 
   function handleSignInBoth(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault()
-    setUser(merchantAndCustomer)
-    setMerchantMode(user?.lastUsedModeWasMerchant || true)
     setMerchantMode(true)
     setUiSignedIn(true)
   }
