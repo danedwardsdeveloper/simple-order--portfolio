@@ -28,11 +28,21 @@ export const customerToMerchant = sqliteTable(
       .notNull()
       .references(() => users.id),
     accepted: integer('accepted', { mode: 'boolean' }).notNull().default(false),
-    emailAttempts: integer('email_attempts').notNull().default(0),
-    lastEmailSent: integer('last_email_sent', { mode: 'timestamp' }).notNull(),
   },
   table => [primaryKey({ columns: [table.merchantProfileId, table.customerProfileId] })],
 )
+
+export const invitations = sqliteTable('invitations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  email: text('email').notNull().unique(),
+  merchantProfileId: integer('merchant_profile_id')
+    .notNull()
+    .references(() => merchantProfiles.id),
+  token: text('token').notNull().unique(),
+  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+  emailAttempts: integer('email_attempts').notNull().default(0),
+  lastEmailSent: integer('last_email_sent', { mode: 'timestamp' }).notNull(),
+})
 
 export const freeTrials = sqliteTable('free_trials', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -45,3 +55,5 @@ export const freeTrials = sqliteTable('free_trials', {
 
 // subscriptions
 // products
+// orders
+// order_items
