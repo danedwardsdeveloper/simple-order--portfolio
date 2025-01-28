@@ -1,3 +1,5 @@
-export default function CreateAccountPage() {
-  return <h1>Start your free trial</h1>
+import { redirect } from 'next/navigation'
+
+export default function CreateAccount() {
+  redirect('/free-trial')
 }
