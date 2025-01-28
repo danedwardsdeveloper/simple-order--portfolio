@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-import { websiteCopy } from '@/library/misc/copy'
+import { websiteCopy } from '@/library/websiteCopy'
 
 import HomePageLink from './HomePageLink'
 import MenuContainer from './MenuContainer'
@@ -17,11 +17,11 @@ export default function SignedOutMenu() {
           <Link
             href="/articles/how-it-works"
             title={websiteCopy.linkDescriptions.howItWorks}
-            className="button-cta-secondary"
+            className="button-secondary"
           >
             How it works
           </Link>
-          <Link href="/free-trial" className="button-cta-primary">
+          <Link href="/free-trial" className="button-primary">
             Start free trial
           </Link>
         </div>
