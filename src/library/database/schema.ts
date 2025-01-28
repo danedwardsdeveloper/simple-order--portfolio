@@ -1,14 +1,44 @@
-import { pgEnum, pgTable, serial, text } from 'drizzle-orm/pg-core'
+import { integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
-export const userRoleEnum = pgEnum('user_role', ['merchant', 'customer', 'both'])
-
-export const drizzleTest = pgTable('drizzle_test', {
-  id: serial('id').primaryKey(),
-  firstName: text('first').notNull(),
+export const users = sqliteTable('users', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  firstName: text('first_name').notNull(),
+  lastName: text('last_name').notNull(),
   email: text('email').notNull().unique(),
+  businessName: text('business_name').notNull().unique(),
   hashedPassword: text('hashed_password').notNull(),
-  role: userRoleEnum('role').notNull().default('customer'),
+  emailConfirmed: integer('email_confirmed', { mode: 'boolean' }).notNull().default(false),
 })
 
-export type DrizzleTest = typeof drizzleTest.$inferSelect
-export type NewDrizzleTest = typeof drizzleTest.$inferInsert
+export const merchantProfiles = sqliteTable('merchant_profiles', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id),
+  slug: text('slug').notNull().unique(),
+})
+
+export const customerToMerchant = sqliteTable(
+  'customer_to_merchant',
+  {
+    merchantProfileId: integer('merchant_profile_id')
+      .notNull()
+      .references(() => merchantProfiles.id),
+    customerProfileId: integer('customer_profile_id')
+      .notNull()
+      .references(() => users.id),
+  },
+  table => [primaryKey({ columns: [table.merchantProfileId, table.customerProfileId] })],
+)
+
+export const freeTrials = sqliteTable('free_trials', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  merchantProfileId: integer('merchant_profile_id')
+    .notNull()
+    .references(() => merchantProfiles.id),
+  startDate: integer('start_date', { mode: 'timestamp' }).notNull(),
+  endDate: integer('end_date', { mode: 'timestamp' }).notNull(),
+})
+
+// subscriptions
+// products
