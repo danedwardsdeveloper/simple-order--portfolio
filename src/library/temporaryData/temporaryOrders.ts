@@ -1,6 +1,6 @@
 import { OrderSummaryInterface } from '@/app/merchants/[merchant-slug]/components/OrderItem'
 
-import { bakeryItems } from './bakeryItems'
+import { bakeryItems } from './temporaryBakeryItems'
 
 export const orders: OrderSummaryInterface[] = [
   {
