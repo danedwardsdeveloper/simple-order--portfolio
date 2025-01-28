@@ -1,4 +1,4 @@
-import { orders } from '@/library/tempData/orders'
+import { orders } from '@/library/temporaryData/temporaryOrders'
 
 import OrderSummary from './OrderItem'
 

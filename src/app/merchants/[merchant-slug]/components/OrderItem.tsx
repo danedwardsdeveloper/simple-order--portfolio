@@ -1,4 +1,4 @@
-import { formatPrice } from '@/library/formatting/formatPrice'
+import { formatPrice } from '@/library/utilities/definitions/formatPrice'
 
 import { OrderItem } from '@/types'
 

@@ -1,4 +1,4 @@
-import { bakeryItems } from '@/library/tempData/bakeryItems'
+import { bakeryItems } from '@/library/temporaryData/temporaryBakeryItems'
 
 import AddItemButton from './components/AddItemButton'
 import InventoryList from './components/InventoryList'

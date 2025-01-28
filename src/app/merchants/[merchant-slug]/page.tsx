@@ -1,6 +1,6 @@
 import { use } from 'react'
 
-import { MerchantProfile, User, users } from '@/library/tempData/tempUsers'
+import { MerchantProfile, User, users } from '@/library/temporaryData/temporaryUsers'
 
 import OrderSummaryPage from './components/OrderSummaryPage'
 
