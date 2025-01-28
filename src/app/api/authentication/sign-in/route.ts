@@ -1,10 +1,19 @@
 import bcrypt from 'bcryptjs'
+import { eq as equals } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { cookieDurations, createCookieWithToken, createSessionCookieWithToken } from '@/library/cookies'
-import { createSafeUser, findUserByEmail } from '@/library/tempData/users'
+import { database } from '@/library/database/configuration'
+import { users } from '@/library/database/schema'
+import { createSafeUser } from '@/library/misc/createSafeUser'
 
-import { authorisationMessages, basicMessages, HttpStatus, SignInPOSTbody, SignInPOSTresponse } from '@/types'
+import {
+  authenticationMessages,
+  basicMessages,
+  HttpStatus,
+  SignInPOSTbody,
+  SignInPOSTresponse,
+} from '@/types'
 
 export async function POST(request: NextRequest): Promise<NextResponse<SignInPOSTresponse>> {
   const { email, password, staySignedIn }: SignInPOSTbody = await request.json()
@@ -20,12 +29,12 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
     )
   }
 
-  const foundUser = findUserByEmail(email)
+  const foundUser = database.select().from(users).where(equals(users.email, email)).get()
 
   if (!foundUser) {
     return NextResponse.json(
       {
-        message: authorisationMessages.userNotFound,
+        message: authenticationMessages.userNotFound,
       },
       {
         status: HttpStatus.http404notFound,
@@ -38,7 +47,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
   if (!isMatch) {
     return NextResponse.json(
       {
-        message: authorisationMessages.invalidCredentials,
+        message: authenticationMessages.invalidCredentials,
       },
       {
         status: HttpStatus.http401unauthorised,
