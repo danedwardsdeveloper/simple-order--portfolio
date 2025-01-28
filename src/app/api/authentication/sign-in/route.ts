@@ -2,14 +2,18 @@ import bcrypt from 'bcryptjs'
 import { eq as equals } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 
-import { cookieDurations, createCookieWithToken, createSessionCookieWithToken } from '@/library/cookies'
 import { database } from '@/library/database/configuration'
 import { users } from '@/library/database/schema'
-import { createSafeUser } from '@/library/misc/createSafeUser'
+import {
+  createCookieWithToken,
+  createSessionCookieWithToken,
+} from '@/library/utilities/definitions/createCookies'
+import { createSafeUser } from '@/library/utilities/definitions/createSafeUser'
 
 import {
   authenticationMessages,
   basicMessages,
+  cookieDurations,
   HttpStatus,
   SignInPOSTbody,
   SignInPOSTresponse,
