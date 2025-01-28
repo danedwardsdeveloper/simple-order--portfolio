@@ -34,3 +34,4 @@ drizzle/
 drizzle.config.ts
 
 /misc
+*.db
