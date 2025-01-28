@@ -1,6 +1,16 @@
-import { SafeUser } from '@/library/tempData/users'
+import { FreeTrial } from './freeTrials'
+import { AuthenticationMessages, BasicMessages } from './responseMessages'
+import { ClientSafeUser, MerchantProfile, NewUser, SafeUser } from './users'
 
-import { AuthorisationMessages, BasicMessages } from './responseMessages'
+export interface CreateAccountPOSTbody extends Omit<NewUser, 'hashedPassword' | 'emailConfirmed'> {
+  password: string
+  staySignedIn: boolean
+}
+
+export interface CreateAccountPOSTresponse {
+  message: BasicMessages | AuthenticationMessages
+  user?: ClientSafeUser
+}
 
 export interface SignInPOSTbody {
   password: string
@@ -9,6 +19,6 @@ export interface SignInPOSTbody {
 }
 
 export interface SignInPOSTresponse {
-  message: BasicMessages | AuthorisationMessages
+  message: BasicMessages | AuthenticationMessages
   foundUser?: SafeUser
 }
