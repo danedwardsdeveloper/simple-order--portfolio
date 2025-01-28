@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 
 import { productionBaseURL } from '@/library/environment/publicVariables'
-import { websiteCopy } from '@/library/misc/copy'
+import { websiteCopy } from '@/library/websiteCopy'
 
 import MenuBar from '@/components/menubar'
 import Providers from '@/components/Providers'
@@ -32,7 +32,7 @@ export default function RootLayout({
       <body>
         <Providers>
           <MenuBar />
-          <div className="max-w-4xl w-full mx-auto mt-menubar-offset">
+          <div className="max-w-4xl w-full mx-auto mt-menubar-offset px-4 lg:px-0">
             <TempoUiControlPanel />
             {children}
           </div>
