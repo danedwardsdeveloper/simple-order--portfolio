@@ -11,8 +11,7 @@ export default function SignedInMenu() {
   const { user, merchantMode } = useUi()
 
   function DashboardLink() {
-    const displayName = user?.merchantProfile?.businessName || user?.businessNameAsCustomer || 'Dashboard'
-    return <MenuItem href="/dashboard" text={displayName} />
+    return <MenuItem href="/dashboard" text={user?.businessName || 'Dashboard'} />
   }
 
   return (
