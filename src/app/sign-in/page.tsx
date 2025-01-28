@@ -11,9 +11,11 @@ import { useUi } from '@/providers/ui'
 import { apiPaths, SignInPOSTbody, SignInPOSTresponse } from '@/types'
 
 export default function SignInPage() {
-  const [email, setEmail] = useState('both@gmail.com')
-  const [password, setPassword] = useState('securePassword')
-  const [staySignedIn, setStaySignedIn] = useState(false)
+  const [formData, setFormData] = useState<SignInPOSTbody>({
+    email: 'both@gmail.com',
+    password: 'securePassword',
+    staySignedIn: false,
+  })
   const [error, setError] = useState('')
   const { setUiSignedIn, setUser } = useUi()
   const router = useRouter()
@@ -28,10 +30,14 @@ export default function SignInPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password, staySignedIn } as SignInPOSTbody),
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          staySignedIn: formData.staySignedIn,
+        } satisfies SignInPOSTbody),
       })
 
-      const { message, foundUser } = (await response.json()) satisfies SignInPOSTresponse
+      const { message, foundUser }: SignInPOSTresponse = await response.json()
 
       if (!response.ok || message !== 'success') {
         setError('Sorry, something went wrong')
@@ -64,9 +70,14 @@ export default function SignInPage() {
           <input
             id="email"
             type="email"
-            value={email}
+            value={formData.email}
             autoComplete="work email"
-            onChange={event => setEmail(event.target.value)}
+            onChange={event =>
+              setFormData(prev => ({
+                ...prev,
+                email: event.target.value,
+              }))
+            }
             required
             className="w-full"
           />
@@ -79,9 +90,14 @@ export default function SignInPage() {
           <input
             id="password"
             type="password"
-            value={password}
+            value={formData.password}
             autoComplete="current-password"
-            onChange={event => setPassword(event.target.value)}
+            onChange={event =>
+              setFormData(prev => ({
+                ...prev,
+                password: event.target.value,
+              }))
+            }
             required
             className="w-full"
           />
@@ -94,18 +110,23 @@ export default function SignInPage() {
                 id="stay-signed-in"
                 name="stay-signed-in"
                 type="checkbox"
-                checked={staySignedIn}
-                onChange={event => setStaySignedIn(event.target.checked)}
+                checked={formData.staySignedIn}
+                onChange={event =>
+                  setFormData(prev => ({
+                    ...prev,
+                    staySignedIn: event.target.checked,
+                  }))
+                }
               />
               <CheckboxIcon />
             </div>
           </div>
           <label htmlFor="stay-signed-in" className="block text-sm/6 text-gray-900">
-            Remember me
+            Stay signed in
           </label>
         </div>
 
-        <button type="submit" className="button-cta-primary inline-block w-full">
+        <button type="submit" className="button-primary inline-block w-full">
           Sign In
         </button>
       </form>
