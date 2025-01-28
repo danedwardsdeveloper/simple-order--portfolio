@@ -7,7 +7,7 @@ export const basicMessages = {
 
 export type BasicMessages = (typeof basicMessages)[keyof typeof basicMessages]
 
-export const authorisationMessages = {
+export const authenticationMessages = {
   invalidCredentials: 'invalid credentials',
   tokenMissing: 'token missing',
   tokenInvalid: 'token invalid',
@@ -18,4 +18,4 @@ export const authorisationMessages = {
   authorisationError: 'authorisation error',
 } as const
 
-export type AuthorisationMessages = (typeof authorisationMessages)[keyof typeof authorisationMessages]
+export type AuthenticationMessages = (typeof authenticationMessages)[keyof typeof authenticationMessages]
