@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 
-import { findUserById } from '@/library/tempData/users'
+import { findUserById } from '@/library/tempData/tempUsers'
 
 import { useUi } from '@/providers/ui'
 

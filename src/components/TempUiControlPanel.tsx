@@ -1,6 +1,6 @@
 'use client'
 
-import { customerOnlyOne, merchantAndCustomer, merchantOnlyOne } from '@/library/tempData/users'
+import { customerOnlyOne, merchantAndCustomer, merchantOnlyOne } from '@/library/tempData/tempUsers'
 
 import { useUi } from '@/providers/ui'
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { findUserById } from '@/library/tempData/users'
+import { findUserById } from '@/library/tempData/tempUsers'
 
 import MenuItem from './MenuItem'
 import { useUi } from '@/providers/ui'
