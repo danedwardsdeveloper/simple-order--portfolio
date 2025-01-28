@@ -7,10 +7,6 @@ export default function RoleModeButton() {
 
   if (!user) return null
 
-  const isBothMerchantAndCustomer = user.role === 'both'
-
-  if (!isBothMerchantAndCustomer) return null
-
   function handleClick(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault()
     toggleMerchantMode()
