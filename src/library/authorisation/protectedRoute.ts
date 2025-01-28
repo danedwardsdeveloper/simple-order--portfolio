@@ -1,14 +1,15 @@
 import jwt from 'jsonwebtoken'
 import { NextRequest, NextResponse } from 'next/server'
 
-import { CookieNames, TokenPayload } from '../cookies'
+import { User } from '../database/schema'
 import { jwtSecret } from '../environment/serverVariables'
 import logger from '../logger'
-import { findUserById, User } from '../tempData/users'
-import { AuthorisationMessages, BasicMessages, HttpStatus } from '@/types'
+import { findUserById } from '../temporaryData/temporaryUsers'
+import { CookieNames, TokenPayload } from '../utilities/definitions/createCookies'
+import { AuthenticationMessages, BasicMessages, HttpStatus } from '@/types'
 
 export default async function protectedRoute<
-  T extends { message: BasicMessages | AuthorisationMessages | string },
+  T extends { message: BasicMessages | AuthenticationMessages | string },
 >(
   request: NextRequest,
   confirmationRequired: 'require confirmation' | 'allow unconfirmed',
