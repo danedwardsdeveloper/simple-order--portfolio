@@ -1,6 +1,5 @@
-import { FreeTrial } from './freeTrials'
 import { AuthenticationMessages, BasicMessages } from './responseMessages'
-import { ClientSafeUser, MerchantProfile, NewUser, SafeUser } from './users'
+import { ClientSafeUser, NewUser, SafeUser } from './users'
 
 export interface CreateAccountPOSTbody extends Omit<NewUser, 'hashedPassword' | 'emailConfirmed'> {
   password: string
