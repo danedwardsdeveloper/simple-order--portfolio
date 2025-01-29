@@ -20,4 +20,4 @@ export const HttpStatus = {
   http502badGateway: 502,
   http503serviceUnavailable: 503,
   http504gatewayTimeout: 504,
-}
+} as const
