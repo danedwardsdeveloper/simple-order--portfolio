@@ -1,24 +1,27 @@
 import bcrypt from 'bcrypt'
+import { eq, or } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 
+import { durationOptions } from '@/library/constants/durations'
 import { database } from '@/library/database/configuration'
-import { freeTrials, merchantProfiles, users } from '@/library/database/schema'
-import logger from '@/library/logger'
-import { createFreeTrialEndTime, createMerchantSlug } from '@/library/utilities'
-import { createSafeUser } from '@/library/utilities'
+import { confirmationTokens, freeTrials, merchantProfiles, users } from '@/library/database/schema'
+import logger, { logUnknownError } from '@/library/logger'
+import { createFreeTrialEndTime, createMerchantSlug, createSafeUser } from '@/library/utilities'
 import {
   createCookieWithToken,
   createSessionCookieWithToken,
 } from '@/library/utilities/definitions/createCookies'
+import { generateConfirmationToken } from '@/library/utilities/generateConfirmationToken'
 
 import {
+  authenticationMessages,
   basicMessages,
   ClientSafeUser,
   cookieDurations,
   CreateAccountPOSTbody,
   CreateAccountPOSTresponse,
   FreeTrial,
-  HttpStatus,
+  httpStatus,
   MerchantProfile,
   User,
 } from '@/types'
@@ -27,55 +30,102 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
   const { firstName, lastName, email, password, businessName, staySignedIn }: CreateAccountPOSTbody =
     await request.json()
 
-  if (!firstName || !lastName || !email || !password || !businessName) {
-    logger.error(
-      `${!firstName ? 'firstName' : !lastName ? 'lastName' : !email ? 'email' : 'password'} missing`,
-    )
+  let missingFieldMessage
+
+  if (!firstName) missingFieldMessage = authenticationMessages.fistNameMissing
+  if (!lastName) missingFieldMessage = authenticationMessages.lastNameMissing
+  if (!email) missingFieldMessage = authenticationMessages.emailMissing
+  if (!password) missingFieldMessage = authenticationMessages.passwordMissing
+  if (!businessName) missingFieldMessage = authenticationMessages.businessNameMissing
+
+  if (missingFieldMessage) {
     return NextResponse.json(
       {
-        message: basicMessages.parametersMissing,
+        message: missingFieldMessage,
       },
       {
-        status: HttpStatus.http400badRequest,
+        status: httpStatus.http400badRequest,
       },
     )
   }
 
-  const saltRounds = 10
-  const hashedPassword = await bcrypt.hash(password, saltRounds)
-
   try {
+    const [existingUser] = await database
+      .select()
+      .from(users)
+      .where(or(eq(users.email, email), eq(users.businessName, businessName)))
+      .limit(1)
+
+    let conflictMessage
+    if (existingUser) {
+      if (existingUser.email === email) conflictMessage = authenticationMessages.emailTaken
+      if (existingUser.businessName === businessName)
+        conflictMessage = authenticationMessages.businessNameTaken
+
+      if (conflictMessage) {
+        return NextResponse.json({ message: conflictMessage }, { status: httpStatus.http409conflict })
+      }
+    }
+
+    const saltRounds = 10
+    const hashedPassword = await bcrypt.hash(password, saltRounds)
+
     const { newUser, newMerchant, newFreeTrial } = await database.transaction(async tx => {
-      const [newUser] = (await tx
-        .insert(users)
-        .values({
-          firstName,
-          lastName,
-          email,
-          hashedPassword,
-          businessName,
-          emailConfirmed: false,
-        })
-        .returning()) as [User]
+      try {
+        const [newUser] = (await tx
+          .insert(users)
+          .values({
+            firstName,
+            lastName,
+            email,
+            hashedPassword,
+            businessName,
+            emailConfirmed: false,
+          })
+          .returning()) as [User]
 
-      const [newMerchant] = (await tx
-        .insert(merchantProfiles)
-        .values({
-          slug: createMerchantSlug(businessName),
+        const baseSlug = createMerchantSlug(businessName)
+        let slug = baseSlug
+
+        for (let attempt = 0; attempt < 5; attempt++) {
+          const existingSlug = await tx
+            .select()
+            .from(merchantProfiles)
+            .where(eq(merchantProfiles.slug, slug))
+            .limit(1)
+
+          if (existingSlug.length === 0) break
+          slug = `${baseSlug}-${attempt + 1}`
+        }
+
+        const [newMerchant] = (await tx
+          .insert(merchantProfiles)
+          .values({
+            slug,
+            userId: newUser.id,
+          })
+          .returning()) as [MerchantProfile]
+
+        const [newFreeTrial] = (await tx
+          .insert(freeTrials)
+          .values({
+            startDate: new Date(),
+            endDate: createFreeTrialEndTime(),
+            merchantProfileId: newMerchant.id,
+          })
+          .returning()) as [FreeTrial]
+
+        await tx.insert(confirmationTokens).values({
           userId: newUser.id,
+          token: generateConfirmationToken(),
+          expiresAt: new Date(Date.now() + durationOptions.twentyFourHoursInMilliseconds),
         })
-        .returning()) as [MerchantProfile]
 
-      const [newFreeTrial] = (await tx
-        .insert(freeTrials)
-        .values({
-          startDate: new Date(),
-          endDate: createFreeTrialEndTime(),
-          merchantProfileId: newMerchant.id,
-        })
-        .returning()) as [FreeTrial]
-
-      return { newUser, newMerchant, newFreeTrial }
+        return { newUser, newMerchant, newFreeTrial }
+      } catch (error) {
+        logger.error('Transaction failed:', error)
+        throw error
+      }
     })
 
     const safeNewUser = createSafeUser(newUser)
@@ -84,37 +134,44 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
       ...safeNewUser,
       merchantDetails: {
         slug: newMerchant.slug,
-        freeTrial: {
-          endDate: new Date(newFreeTrial.endDate),
-        },
+        freeTrial: { endDate: new Date(newFreeTrial.endDate) },
         customersAsMerchant: [],
       },
     }
 
-    logger.info('Transformed user:', JSON.stringify(transformedUser))
-
     const response = NextResponse.json(
-      {
-        message: basicMessages.success,
-        user: transformedUser,
-      },
-      {
-        status: HttpStatus.http200ok,
-      },
+      { message: basicMessages.success, user: transformedUser },
+      { status: httpStatus.http200ok },
     )
 
-    if (staySignedIn) {
-      response.cookies.set(createCookieWithToken(newUser.id, cookieDurations.oneYear))
-    } else {
-      response.cookies.set(createSessionCookieWithToken(newUser.id))
-    }
+    response.cookies.set(
+      staySignedIn
+        ? createCookieWithToken(newUser.id, cookieDurations.oneYear)
+        : createSessionCookieWithToken(newUser.id),
+    )
 
     return response
   } catch (error) {
-    console.error('Error creating user:', error)
+    if (error instanceof Error) {
+      const errorMessage = error.message
+      if (errorMessage.includes('UNIQUE constraint failed')) {
+        let constraintMessage
+        if (errorMessage.includes(users.email.name)) constraintMessage = authenticationMessages.emailTaken
+        if (errorMessage.includes(users.businessName.name))
+          constraintMessage = authenticationMessages.businessNameTaken
+        if (errorMessage.includes(merchantProfiles.slug.name))
+          constraintMessage = authenticationMessages.slugTaken
+
+        if (constraintMessage) {
+          return NextResponse.json({ message: constraintMessage }, { status: httpStatus.http409conflict })
+        }
+      }
+    }
+
+    logUnknownError(error, 'Error creating user')
     return NextResponse.json(
       { message: basicMessages.databaseError },
-      { status: HttpStatus.http500serverError },
+      { status: httpStatus.http500serverError },
     )
   }
 }
