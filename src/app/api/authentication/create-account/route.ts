@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { durationOptions } from '@/library/constants/durations'
 import { database } from '@/library/database/configuration'
 import { confirmationTokens, freeTrials, merchantProfiles, users } from '@/library/database/schema'
-import logger, { logUnknownError } from '@/library/logger'
+import logger, { logUnknownErrorWithLabel } from '@/library/logger'
 import { createFreeTrialEndTime, createMerchantSlug, createSafeUser } from '@/library/utilities'
 import {
   createCookieWithToken,
@@ -39,14 +39,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
   if (!businessName) missingFieldMessage = authenticationMessages.businessNameMissing
 
   if (missingFieldMessage) {
-    return NextResponse.json(
-      {
-        message: missingFieldMessage,
-      },
-      {
-        status: httpStatus.http400badRequest,
-      },
-    )
+    return NextResponse.json({ message: missingFieldMessage }, { status: httpStatus.http400badRequest })
   }
 
   try {
@@ -69,6 +62,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 
     const saltRounds = 10
     const hashedPassword = await bcrypt.hash(password, saltRounds)
+    const emailConfirmationToken = generateConfirmationToken()
 
     const { newUser, newMerchant, newFreeTrial } = await database.transaction(async tx => {
       try {
@@ -117,7 +111,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 
         await tx.insert(confirmationTokens).values({
           userId: newUser.id,
-          token: generateConfirmationToken(),
+          token: emailConfirmationToken,
           expiresAt: new Date(Date.now() + durationOptions.twentyFourHoursInMilliseconds),
         })
 
@@ -138,6 +132,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
         customersAsMerchant: [],
       },
     }
+
+    // Create the front-end link once I've created a front-end page to handle it!
+    // Send email with the link
+
+    logger.info('Confirmation URL: ', emailConfirmationToken)
 
     const response = NextResponse.json(
       { message: basicMessages.success, user: transformedUser },
@@ -168,7 +167,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
       }
     }
 
-    logUnknownError(error, 'Error creating user')
+    logUnknownErrorWithLabel('Error creating user', error)
     return NextResponse.json(
       { message: basicMessages.databaseError },
       { status: httpStatus.http500serverError },
