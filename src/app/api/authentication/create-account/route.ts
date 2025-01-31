@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { durationOptions } from '@/library/constants/durations'
 import { database } from '@/library/database/configuration'
 import { confirmationTokens, freeTrials, merchantProfiles, users } from '@/library/database/schema'
+import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import logger, { logUnknownErrorWithLabel } from '@/library/logger'
 import { createFreeTrialEndTime, createMerchantSlug, createSafeUser } from '@/library/utilities'
 import {
@@ -18,13 +19,13 @@ import {
   basicMessages,
   ClientSafeUser,
   cookieDurations,
-  CreateAccountPOSTbody,
-  CreateAccountPOSTresponse,
   FreeTrial,
   httpStatus,
   MerchantProfile,
   User,
 } from '@/types'
+import { CreateAccountPOSTbody, CreateAccountPOSTresponse } from '@/types/api/authentication/create-account'
+import { ConfirmEmailQueryParameters } from '@/types/api/authentication/email/confirm'
 
 export async function POST(request: NextRequest): Promise<NextResponse<CreateAccountPOSTresponse>> {
   const { firstName, lastName, email, password, businessName, staySignedIn }: CreateAccountPOSTbody =
@@ -133,10 +134,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
       },
     }
 
-    // Create the front-end link once I've created a front-end page to handle it!
+    const confirmationURL = `${dynamicBaseURL}/confirm?${ConfirmEmailQueryParameters.token}=${emailConfirmationToken}`
+
     // Send email with the link
 
-    logger.info('Confirmation URL: ', emailConfirmationToken)
+    logger.info('Confirmation URL: ', confirmationURL)
 
     const response = NextResponse.json(
       { message: basicMessages.success, user: transformedUser },
