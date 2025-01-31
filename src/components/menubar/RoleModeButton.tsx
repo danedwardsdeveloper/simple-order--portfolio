@@ -15,8 +15,7 @@ export default function RoleModeButton() {
   return (
     <button
       onClick={handleClick}
-      className="text-sm text-zinc-500 hover:text-zinc-400 active:text-zinc-300 transition-colors duration-300"
-    >
+      className="text-sm text-zinc-500 hover:text-zinc-400 active:text-zinc-300 transition-colors duration-300">
       {merchantMode ? 'Switch to customer mode' : 'Switch to merchant mode'}
     </button>
   )
