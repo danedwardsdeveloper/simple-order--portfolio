@@ -17,8 +17,7 @@ export default function SignedOutMenu() {
           <Link
             href="/articles/how-it-works"
             title={websiteCopy.linkDescriptions.howItWorks}
-            className="button-secondary"
-          >
+            className="button-secondary">
             How it works
           </Link>
           <Link href="/free-trial" className="button-primary">
