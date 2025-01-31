@@ -5,8 +5,9 @@ import { database } from '@/library/database/configuration'
 import { customerToMerchant, invitations } from '@/library/database/schema'
 import { productionBaseURL } from '@/library/environment/publicVariables'
 import logger from '@/library/logger'
+import { generateConfirmationToken } from '@/library/utilities/generateConfirmationToken'
 
-import { BasicMessages, basicMessages, HttpStatus } from '@/types'
+import { BasicMessages, basicMessages, httpStatus } from '@/types'
 
 export interface InviteCustomerPOSTresponse {
   message:
@@ -38,6 +39,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
         return { status: 'already_customer' }
       }
 
+      // ToDo: don't use SQL
       const [existingInvitation] = await tx
         .select()
         .from(invitations)
@@ -48,13 +50,14 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
         return { status: 'already_invited' }
       }
 
-      const token = crypto.randomUUID()
+      const token = generateConfirmationToken()
       const [newInvitation] = await tx
         .insert(invitations)
         .values({
           email: invitedEmail,
           merchantProfileId: userId,
           token,
+          // ToDo: create global expiration object
           expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
           lastEmailSent: new Date(),
         })
@@ -66,25 +69,25 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
     if (result.status === 'already_customer') {
       return NextResponse.json(
         { message: 'already a confirmed customer of this merchant' },
-        { status: HttpStatus.http400badRequest },
+        { status: httpStatus.http400badRequest },
       )
     }
 
     if (result.status === 'already_invited') {
-      return NextResponse.json({ message: 'already invited' }, { status: HttpStatus.http400badRequest })
+      return NextResponse.json({ message: 'already invited' }, { status: httpStatus.http400badRequest })
     }
 
     if (!result.invitation) {
       return NextResponse.json(
         { message: 'error generating invitation link' },
-        { status: HttpStatus.http501notImplemented },
+        { status: httpStatus.http501notImplemented },
       )
     }
 
     const invitationURL = `${productionBaseURL}/api/authentication/confirm/${result.invitation.token}`
     logger.info('Invitation url: ', invitationURL)
 
-    return NextResponse.json({ message: basicMessages.success }, { status: HttpStatus.http200ok })
+    return NextResponse.json({ message: basicMessages.success }, { status: httpStatus.http200ok })
   } catch (error) {
     logger.error(
       'Error inviting customer: ',
@@ -92,7 +95,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
     )
     return NextResponse.json(
       { message: basicMessages.serverError },
-      { status: HttpStatus.http500serverError },
+      { status: httpStatus.http500serverError },
     )
   }
 }
