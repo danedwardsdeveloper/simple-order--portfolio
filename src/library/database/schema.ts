@@ -16,6 +16,7 @@ export const merchantProfiles = sqliteTable('merchant_profiles', {
     .notNull()
     .references(() => users.id),
   slug: text('slug').notNull().unique(),
+  stripeCustomerId: text('stripe_customer_id'),
 })
 
 export const customerToMerchant = sqliteTable(
@@ -27,7 +28,6 @@ export const customerToMerchant = sqliteTable(
     customerProfileId: integer('customer_profile_id')
       .notNull()
       .references(() => users.id),
-    accepted: integer('accepted', { mode: 'boolean' }).notNull().default(false),
   },
   table => [primaryKey({ columns: [table.merchantProfileId, table.customerProfileId] })],
 )
@@ -44,16 +44,38 @@ export const invitations = sqliteTable('invitations', {
   lastEmailSent: integer('last_email_sent', { mode: 'timestamp' }).notNull(),
 })
 
+export const confirmationTokens = sqliteTable('confirmation_tokens', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id),
+  token: text('token').notNull(),
+  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+  usedAt: integer('used_at', { mode: 'timestamp' }),
+})
+
 export const freeTrials = sqliteTable('free_trials', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   merchantProfileId: integer('merchant_profile_id')
     .notNull()
-    .references(() => merchantProfiles.id),
+    .references(() => merchantProfiles.id)
+    .unique(),
   startDate: integer('start_date', { mode: 'timestamp' }).notNull(),
   endDate: integer('end_date', { mode: 'timestamp' }).notNull(),
 })
 
-// subscriptions
+export const subscriptions = sqliteTable('subscriptions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  merchantProfileId: integer('merchant_profile_id')
+    .notNull()
+    .references(() => merchantProfiles.id),
+  stripeSubscriptionId: text('stripe_subscription_id').notNull().unique(),
+  priceId: text('price_id').notNull(),
+  currentPeriodStart: integer('current_period_start', { mode: 'timestamp' }).notNull(),
+  currentPeriodEnd: integer('current_period_end', { mode: 'timestamp' }).notNull(),
+  cancelledAt: integer('cancelled_at', { mode: 'timestamp' }),
+})
+
 // products
 // orders
 // order_items
