@@ -19,3 +19,7 @@ const logger = {
 } as const
 
 export default logger
+
+export function logUnknownErrorWithLabel(label: string = 'Unknown error: ', error: unknown) {
+  return logger.error(label, error instanceof Error ? error.message : JSON.stringify(error))
+}
