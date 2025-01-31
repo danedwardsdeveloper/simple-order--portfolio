@@ -24,8 +24,3 @@ export type CookieOptions = BaseCookieOptions & {
   value: string
   maxAge?: CookieDurations
 }
-
-export interface TokenPayload {
-  sub: number
-  exp: number
-}
