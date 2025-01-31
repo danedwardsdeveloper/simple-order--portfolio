@@ -52,8 +52,7 @@ export default function TempoUiControlPanel() {
         {uiSignedIn && (
           <button
             onClick={handleSignOut}
-            className="rounded-lg px-2 py-0.5  border-2 transition-colors duration-300 bg-white hover:bg-neutral-100 active:bg-neutral-200  border-blue-300 hover:border-blue-400 active:border-blue-500"
-          >
+            className="rounded-lg px-2 py-0.5  border-2 transition-colors duration-300 bg-white hover:bg-neutral-100 active:bg-neutral-200  border-blue-300 hover:border-blue-400 active:border-blue-500">
             Sign out
           </button>
         )}
@@ -62,20 +61,17 @@ export default function TempoUiControlPanel() {
           <div className="flex gap-x-2">
             <button
               onClick={handleSignInMerchantOnly}
-              className="rounded-lg px-2 py-0.5  border-2 transition-colors duration-300 bg-white hover:bg-neutral-100 active:bg-neutral-200  border-blue-300 hover:border-blue-400 active:border-blue-500"
-            >
+              className="rounded-lg px-2 py-0.5  border-2 transition-colors duration-300 bg-white hover:bg-neutral-100 active:bg-neutral-200  border-blue-300 hover:border-blue-400 active:border-blue-500">
               Sign in merchant only
             </button>
             <button
               onClick={handleSignInCustomerOnly}
-              className="rounded-lg px-2 py-0.5  border-2 transition-colors duration-300 bg-white hover:bg-neutral-100 active:bg-neutral-200  border-blue-300 hover:border-blue-400 active:border-blue-500"
-            >
+              className="rounded-lg px-2 py-0.5  border-2 transition-colors duration-300 bg-white hover:bg-neutral-100 active:bg-neutral-200  border-blue-300 hover:border-blue-400 active:border-blue-500">
               Sign in customer only
             </button>
             <button
               onClick={handleSignInBoth}
-              className="rounded-lg px-2 py-0.5  border-2 transition-colors duration-300 bg-white hover:bg-neutral-100 active:bg-neutral-200  border-blue-300 hover:border-blue-400 active:border-blue-500"
-            >
+              className="rounded-lg px-2 py-0.5  border-2 transition-colors duration-300 bg-white hover:bg-neutral-100 active:bg-neutral-200  border-blue-300 hover:border-blue-400 active:border-blue-500">
               Sign in both
             </button>
           </div>
