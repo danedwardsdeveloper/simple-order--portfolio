@@ -1,14 +1,7 @@
-import jwt from 'jsonwebtoken'
+import jwt, { JwtPayload } from 'jsonwebtoken'
 
 import { jwtSecret } from '../../environment/serverVariables'
-import {
-  BaseCookieOptions,
-  CookieDurations,
-  cookieDurations,
-  cookieNames,
-  CookieOptions,
-  TokenPayload,
-} from '@/types'
+import { BaseCookieOptions, CookieDurations, cookieDurations, cookieNames, CookieOptions } from '@/types'
 
 import { isProduction } from '../../environment/publicVariables'
 
@@ -43,9 +36,9 @@ export function createSessionCookieOptions(tokenValue: string): CookieOptions {
   }
 }
 
-function generateTokenPayload(userId: number, duration: CookieDurations): TokenPayload {
+function generateTokenPayload(userId: number, duration: CookieDurations): JwtPayload {
   return {
-    sub: userId,
+    sub: String(userId),
     exp: Math.floor(Date.now() / 1000) + duration,
   }
 }
