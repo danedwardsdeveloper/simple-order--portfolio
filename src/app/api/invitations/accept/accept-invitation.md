@@ -1,0 +1,21 @@
+# accept-invitation POST
+
+- Takes token from URL
+- If token not in invitations: 400 "Invalid invitation"
+- If token expired: 400 "Expired invitation"
+- Check if email exists in users
+- If registered:
+  - Transaction
+    - Confirm their email if needed
+    - Check relationship doesn't exist
+      - (Delete the invitation and 204 if it does)
+    - Create relationship
+    - Delete invitation
+  - Return 201
+- If not registered:
+  - Return 422 "please provide details"
+  - If details are provided
+    - Create user
+    - Create relationship
+    - Delete invitation
+    - Return 201
