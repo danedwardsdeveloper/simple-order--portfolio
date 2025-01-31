@@ -14,7 +14,7 @@ import {
   authenticationMessages,
   basicMessages,
   cookieDurations,
-  HttpStatus,
+  httpStatus,
   SignInPOSTbody,
   SignInPOSTresponse,
 } from '@/types'
@@ -22,13 +22,17 @@ import {
 export async function POST(request: NextRequest): Promise<NextResponse<SignInPOSTresponse>> {
   const { email, password, staySignedIn }: SignInPOSTbody = await request.json()
 
-  if (!email || !password) {
+  let missingFieldMessage
+  if (!email) missingFieldMessage = authenticationMessages.emailMissing
+  if (!password) missingFieldMessage = authenticationMessages.passwordMissing
+
+  if (missingFieldMessage) {
     return NextResponse.json(
       {
-        message: basicMessages.parametersMissing,
+        message: missingFieldMessage,
       },
       {
-        status: HttpStatus.http400badRequest,
+        status: httpStatus.http400badRequest,
       },
     )
   }
@@ -41,7 +45,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
         message: authenticationMessages.userNotFound,
       },
       {
-        status: HttpStatus.http404notFound,
+        status: httpStatus.http404notFound,
       },
     )
   }
@@ -54,7 +58,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
         message: authenticationMessages.invalidCredentials,
       },
       {
-        status: HttpStatus.http401unauthorised,
+        status: httpStatus.http401unauthorised,
       },
     )
   }
@@ -65,7 +69,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
       foundUser: createSafeUser(foundUser),
     },
     {
-      status: HttpStatus.http200ok,
+      status: httpStatus.http200ok,
     },
   )
 
