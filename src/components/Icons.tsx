@@ -4,8 +4,7 @@ export default function CompanyLogo() {
       viewBox="0 0 512 512"
       xmlns="http://www.w3.org/2000/svg"
       className="w-full h-full"
-      aria-hidden="true"
-    >
+      aria-hidden="true">
       <g>
         <path
           fill="none"
@@ -33,8 +32,7 @@ export function CheckboxIcon() {
     <svg
       fill="none"
       viewBox="0 0 14 14"
-      className="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-[:disabled]:stroke-gray-950/25"
-    >
+      className="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-[:disabled]:stroke-gray-950/25">
       <path
         d="M3 8L6 11L11 3.5"
         strokeWidth={2}

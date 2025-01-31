@@ -11,8 +11,7 @@ export default function AllArticlesPage() {
           <Link
             key={slug}
             href={`/articles/${slug}`}
-            className="max-w-sm p-2 hover:bg-blue-50 rounded-lg transition-colors duration-300"
-          >
+            className="max-w-sm p-2 hover:bg-blue-50 rounded-lg transition-colors duration-300">
             <h2 className="text-xl font-medium mb-1">{articlesData[slug].displayTitle}</h2>
             <span className="text-zinc-600">{articlesData[slug].content[0]}</span>
           </Link>

@@ -20,8 +20,7 @@ export default function Page() {
           return (
             <span
               key={index}
-              className="block transition-colors duration-300 text-zinc-600 hover:text-blue-400 active:text-blue-500"
-            >
+              className="block transition-colors duration-300 text-zinc-600 hover:text-blue-400 active:text-blue-500">
               {merchant?.businessName}
             </span>
           )
