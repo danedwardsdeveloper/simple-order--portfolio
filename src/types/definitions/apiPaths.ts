@@ -4,6 +4,13 @@ export const apiPaths = {
     createAccount: '/api/authentication/create-account',
     signOut: '/api/authentication/sign-out',
     inviteCustomer: '/api/authentication/invite-customer',
-    confirm: '/api/authentication/confirm',
+    email: {
+      confirm: '/api/authentication/email/confirm',
+      resend: '/api/authentication/email/resend',
+    },
+  },
+  invitations: {
+    create: '/api/invitations/create',
+    accept: '/api/invitations/accept',
   },
 } as const
