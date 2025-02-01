@@ -9,7 +9,7 @@
   - On success/ already confirmed
     - Thank you
     - Further CTAs
-- On fail
+- ## On fail
   - Further CTAs
 
 ## States
