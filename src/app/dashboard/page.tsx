@@ -8,7 +8,7 @@ export default function DashboardPage() {
     <>
       <div>
         <h1>Dashboard</h1>
-        {user && <p>{`Welcome ${user?.businessName}`}</p>}
+        {user && <p>{`Welcome ${user.businessName}`}</p>}
       </div>
     </>
   )
