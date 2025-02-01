@@ -4,6 +4,7 @@ export const apiPaths = {
     createAccount: '/api/authentication/create-account',
     signOut: '/api/authentication/sign-out',
     inviteCustomer: '/api/authentication/invite-customer',
+    verifyToken: '/api/authentication/verify-token',
     email: {
       confirm: '/api/authentication/email/confirm',
       resend: '/api/authentication/email/resend',
