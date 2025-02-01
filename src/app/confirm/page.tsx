@@ -23,6 +23,7 @@ export default function Page() {
   useEffect(() => {
     setIsLoading(true)
     const confirmEmail = async () => {
+      // ToDo: Add try catch finally
       const body: ConfirmEmailPOSTbody = {
         token,
       }
