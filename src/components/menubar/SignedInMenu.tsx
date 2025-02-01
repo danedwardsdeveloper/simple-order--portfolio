@@ -5,13 +5,15 @@ import MenuContainer from './MenuContainer'
 import MenuItem from './MenuItem'
 import MerchantLinks from './MerchantLinks'
 import RoleModeButton from './RoleModeButton'
+import { useAuthorisation } from '@/providers/authorisation'
 import { useUi } from '@/providers/ui'
 
 export default function SignedInMenu() {
-  const { user, merchantMode } = useUi()
+  const { clientUser } = useAuthorisation()
+  const { merchantMode } = useUi()
 
   function DashboardLink() {
-    return <MenuItem href="/dashboard" text={user?.businessName || 'Dashboard'} />
+    return <MenuItem href="/dashboard" text={clientUser?.businessName || 'Dashboard'} />
   }
 
   return (

@@ -1,15 +1,19 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 import logger from '@/library/logger'
 
 import { CheckboxIcon } from '@/components/Icons'
 
+import { useAuthorisation } from '@/providers/authorisation'
 import { useUi } from '@/providers/ui'
-import { apiPaths, CreateAccountPOSTbody, CreateAccountPOSTresponse } from '@/types'
+import { apiPaths } from '@/types'
+import { CreateAccountPOSTbody, CreateAccountPOSTresponse } from '@/types/api/authentication/create-account'
 
 export default function CreateAccountPage() {
+  const router = useRouter()
   const [formData, setFormData] = useState<CreateAccountPOSTbody>({
     firstName: '',
     lastName: '',
@@ -20,7 +24,7 @@ export default function CreateAccountPage() {
   })
 
   const [error, setError] = useState('')
-  const { setUiSignedIn, setUser } = useUi()
+  const { setClientUser } = useAuthorisation()
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -49,8 +53,8 @@ export default function CreateAccountPage() {
       }
 
       if (user) {
-        setUser(user)
-        setUiSignedIn(true)
+        setClientUser(user)
+        router.push('/dashboard')
       }
 
       return

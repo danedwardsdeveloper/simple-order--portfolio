@@ -1,25 +1,30 @@
 'use client'
 
 import { SignOutPOSTresponse } from '@/app/api/authentication/sign-out/route'
-import { useUi } from '@/providers/ui'
+import { useAuthorisation } from '@/providers/authorisation'
 import { apiPaths } from '@/types'
 
-export default async function SignOutButton() {
-  const { setUser } = useUi()
-  const router = 
+export default function SignOutButton() {
+  const { setClientUser } = useAuthorisation()
 
-  const response = await fetch(apiPaths.authentication.signOut, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
+  async function handleSignOut() {
+    const response = await fetch(apiPaths.authentication.signOut, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
 
-  if (response.ok) {
-    setUser(null)
-  } else {
-    const { message }: SignOutPOSTresponse = await response.json()
+    if (response.ok) {
+      setClientUser(null)
+    } else {
+      const { message }: SignOutPOSTresponse = await response.json()
+    }
   }
 
-  return <button className="button-secondary">Sign out</button>
+  return (
+    <button onClick={handleSignOut} className="button-secondary">
+      Sign out
+    </button>
+  )
 }

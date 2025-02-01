@@ -2,9 +2,9 @@
 
 import SignedInMenu from './SignedInMenu'
 import SignedOutMenu from './SignedOutMenu'
-import { useUi } from '@/providers/ui'
+import { useAuthorisation } from '@/providers/authorisation'
 
 export default function MenuBar() {
-  const { uiSignedIn } = useUi()
-  return <>{uiSignedIn ? <SignedInMenu /> : <SignedOutMenu />}</>
+  const { clientUser } = useAuthorisation()
+  return <>{clientUser ? <SignedInMenu /> : <SignedOutMenu />}</>
 }
