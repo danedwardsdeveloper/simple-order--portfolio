@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       margin: {
-        'menubar-offset': spacing[20],
+        'menubar-offset': spacing[14],
       },
       zIndex: {
         menubar: zIndex[10],
