@@ -5,7 +5,6 @@ import { websiteCopy } from '@/library/websiteCopy'
 
 import MenuBar from '@/components/menubar'
 import Providers from '@/components/Providers'
-import TempoUiControlPanel from '@/components/TempUiControlPanel'
 
 import './globals.tailwind.css'
 
@@ -32,10 +31,7 @@ export default function RootLayout({
       <body>
         <Providers>
           <MenuBar />
-          <div className="max-w-4xl w-full mx-auto mt-menubar-offset px-4 lg:px-0">
-            <TempoUiControlPanel />
-            {children}
-          </div>
+          <div className="max-w-4xl w-full mx-auto mt-menubar-offset px-4 lg:px-0 pt-8">{children}</div>
         </Providers>
       </body>
     </html>
