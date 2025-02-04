@@ -6,12 +6,9 @@ import { User } from '../database/schema'
 import { jwtSecret } from '../environment/serverVariables'
 import logger from '../logger'
 import { findUserById } from '../temporaryData/temporaryUsers'
-import { CookieNames } from '../utilities/definitions/createCookies'
 import { AuthenticationMessages, BasicMessages, httpStatus } from '@/types'
 
-export default async function protectedRoute<
-  T extends { message: BasicMessages | AuthenticationMessages | string },
->(
+export default async function protectedRoute<T extends { message: BasicMessages | AuthenticationMessages | string }>(
   request: NextRequest,
   confirmationRequired: 'require confirmation' | 'allow unconfirmed',
   handler: (authenticatedSafeUser: User, authenticatedRequest: NextRequest) => Promise<NextResponse<T>>,
