@@ -8,12 +8,11 @@ import logger from '@/library/logger'
 import { CheckboxIcon } from '@/components/Icons'
 
 import { useAuthorisation } from '@/providers/authorisation'
-import { useUi } from '@/providers/ui'
 import { apiPaths } from '@/types'
 import { SignInPOSTbody, SignInPOSTresponse } from '@/types/api/authentication/sign-in'
 
 export default function SignInPage() {
-  const { setClientUser } = useAuthorisation()
+  const { setClientSafeUser } = useAuthorisation()
   const router = useRouter()
   const [formData, setFormData] = useState<SignInPOSTbody>({
     email: 'both@gmail.com',
@@ -50,7 +49,7 @@ export default function SignInPage() {
         return
       }
 
-      setClientUser(foundUser)
+      setClientSafeUser(foundUser)
       router.push('/')
       return
     } catch (error) {

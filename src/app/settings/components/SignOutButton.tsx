@@ -1,11 +1,13 @@
 'use client'
 
-import { SignOutPOSTresponse } from '@/app/api/authentication/sign-out/route'
+import { useRouter } from 'next/navigation'
+
 import { useAuthorisation } from '@/providers/authorisation'
 import { apiPaths } from '@/types'
 
 export default function SignOutButton() {
-  const { setClientUser } = useAuthorisation()
+  const { setClientSafeUser } = useAuthorisation()
+  const router = useRouter()
 
   async function handleSignOut() {
     const response = await fetch(apiPaths.authentication.signOut, {
@@ -16,9 +18,11 @@ export default function SignOutButton() {
     })
 
     if (response.ok) {
-      setClientUser(null)
+      setClientSafeUser(null)
+      // ToDo: Create notification
+      router.push('/')
     } else {
-      const { message }: SignOutPOSTresponse = await response.json()
+      // ToDo
     }
   }
 

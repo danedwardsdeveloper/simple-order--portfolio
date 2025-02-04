@@ -5,6 +5,6 @@ import SignedOutMenu from './SignedOutMenu'
 import { useAuthorisation } from '@/providers/authorisation'
 
 export default function MenuBar() {
-  const { clientUser } = useAuthorisation()
-  return <>{clientUser ? <SignedInMenu /> : <SignedOutMenu />}</>
+  const { clientSafeUser } = useAuthorisation()
+  return <>{clientSafeUser ? <SignedInMenu /> : <SignedOutMenu />}</>
 }

@@ -9,11 +9,11 @@ import { useAuthorisation } from '@/providers/authorisation'
 import { useUi } from '@/providers/ui'
 
 export default function SignedInMenu() {
-  const { clientUser } = useAuthorisation()
+  const { clientSafeUser } = useAuthorisation()
   const { merchantMode } = useUi()
 
   function DashboardLink() {
-    return <MenuItem href="/dashboard" text={clientUser?.businessName || 'Dashboard'} />
+    return <MenuItem href="/dashboard" text={clientSafeUser?.businessName || 'Dashboard'} />
   }
 
   return (

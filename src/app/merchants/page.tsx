@@ -1,13 +1,11 @@
 'use client'
 
-import Link from 'next/link'
-
-import { useUi } from '@/providers/ui'
+import { useAuthorisation } from '@/providers/authorisation'
 
 export default function Page() {
-  const { user } = useUi()
-  if (!user) return null
-  const merchants = user.merchantsAsCustomer?.map(id => id) || []
+  const { clientSafeUser } = useAuthorisation()
+  if (!clientSafeUser) return null
+  const merchants = clientSafeUser.merchantsAsCustomer?.map(id => id) || []
 
   function MerchantsList() {
     if (!merchants || merchants.length === 0) {
@@ -18,9 +16,7 @@ export default function Page() {
       <>
         {merchants.map((merchant, index) => {
           return (
-            <span
-              key={index}
-              className="block transition-colors duration-300 text-zinc-600 hover:text-blue-400 active:text-blue-500">
+            <span key={index} className="block transition-colors duration-300 text-zinc-600 hover:text-blue-400 active:text-blue-500">
               {merchant?.businessName}
             </span>
           )
