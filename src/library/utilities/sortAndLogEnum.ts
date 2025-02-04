@@ -6,6 +6,7 @@ function sortAndLogEnum(enumObject: Record<string, string>, name: string) {
     .map(([key, value]) => `  ${key}: '${value}'`)
     .join(',\n')
 
+  // eslint-disable-next-line no-console
   console.log(`export const ${name} = {\n${entries}\n} as const`)
 }
 
