@@ -1,14 +1,21 @@
 'use client'
 
-import { useUi } from '@/providers/ui'
+import ConfirmEmailMessage from './components/ConfirmEmailMessage'
+import EmptyInventoryMessage from './components/EmptyInventoryLink'
+import InviteCustomerMessage from './components/InviteCustomerMessage'
+
+import { useAuthorisation } from '@/providers/authorisation'
 
 export default function DashboardPage() {
-  const { user } = useUi()
+  const { clientSafeUser } = useAuthorisation()
   return (
     <>
       <div>
         <h1>Dashboard</h1>
-        {user && <p>{`Welcome ${user.businessName}`}</p>}
+        {clientSafeUser && <p>{`Welcome ${clientSafeUser.businessName}`}</p>}
+        <ConfirmEmailMessage />
+        <EmptyInventoryMessage />
+        <InviteCustomerMessage />
       </div>
     </>
   )
