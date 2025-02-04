@@ -4,20 +4,11 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { database } from '@/library/database/configuration'
 import { users } from '@/library/database/schema'
-import {
-  createCookieWithToken,
-  createSessionCookieWithToken,
-} from '@/library/utilities/definitions/createCookies'
 import { createSafeUser } from '@/library/utilities/definitions/createSafeUser'
+import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
 
-import {
-  authenticationMessages,
-  basicMessages,
-  cookieDurations,
-  httpStatus,
-  SignInPOSTbody,
-  SignInPOSTresponse,
-} from '@/types'
+import { authenticationMessages, basicMessages, cookieDurations, httpStatus } from '@/types'
+import { SignInPOSTbody, SignInPOSTresponse } from '@/types/api/authentication/sign-in'
 
 export async function POST(request: NextRequest): Promise<NextResponse<SignInPOSTresponse>> {
   const { email, password, staySignedIn }: SignInPOSTbody = await request.json()
@@ -37,7 +28,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
     )
   }
 
-  const foundUser = database.select().from(users).where(equals(users.email, email)).get()
+  const [foundUser] = await database.select().from(users).where(equals(users.email, email)).limit(1)
 
   if (!foundUser) {
     return NextResponse.json(
