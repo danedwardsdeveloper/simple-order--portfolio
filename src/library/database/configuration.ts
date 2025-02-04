@@ -1,17 +1,21 @@
-import Database from 'better-sqlite3'
-import { drizzle } from 'drizzle-orm/better-sqlite3'
+import { drizzle } from 'drizzle-orm/node-postgres'
+import { Pool } from 'pg'
 
 import logger from '../logger'
 
-const sqlite = new Database('local.db')
+const pool = new Pool({
+  host: 'localhost',
+  port: 5432,
+  database: 'simple_order_dev',
+})
 
-export function testDatabaseConnection() {
+export async function testDatabaseConnection() {
   try {
-    sqlite.prepare('SELECT 1').get()
+    await pool.query('SELECT 1')
     logger.info('Success testing database connection')
   } catch (error) {
     logger.error('Database connection test failed:', error)
   }
 }
 
-export const database = drizzle(sqlite)
+export const database = drizzle(pool)
