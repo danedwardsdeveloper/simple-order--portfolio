@@ -6,19 +6,13 @@ import { useEffect, useState } from 'react'
 import Spinner from '@/components/Spinner'
 
 import { apiPaths } from '@/types'
-import {
-  ConfirmEmailPOSTbody,
-  ConfirmEmailPOSTresponse,
-  ConfirmEmailQueryParameters,
-} from '@/types/api/authentication/email/confirm'
+import { ConfirmEmailPOSTbody, ConfirmEmailPOSTresponse, ConfirmEmailQueryParameters } from '@/types/api/authentication/email/confirm'
 
 export default function Page() {
   const searchParams = useSearchParams()
   const token = searchParams.get(ConfirmEmailQueryParameters.token)
 
   const [message, setMessage] = useState('This is the default message')
-
-  ConfirmEmailQueryParameters
 
   useEffect(() => {
     setIsLoading(true)
@@ -49,7 +43,7 @@ export default function Page() {
     return (
       <div className="flex gap-x-2">
         <Spinner />
-        <p>Loading...</p>
+        <span>Loading...</span>
       </div>
     )
   }
@@ -57,7 +51,7 @@ export default function Page() {
   return (
     <div>
       <h1>{heading}</h1>
-      <p>{isLoading ? <LoadingMessage /> : message}</p>
+      <div>{isLoading ? <LoadingMessage /> : message}</div>
     </div>
   )
 }
