@@ -8,23 +8,32 @@ import logger from '@/library/logger'
 import { CheckboxIcon } from '@/components/Icons'
 
 import { useAuthorisation } from '@/providers/authorisation'
-import { useUi } from '@/providers/ui'
 import { apiPaths } from '@/types'
 import { CreateAccountPOSTbody, CreateAccountPOSTresponse } from '@/types/api/authentication/create-account'
 
+function generateRandomString() {
+  const characters = 'abcdefghijklmnopqrstuvwxyz'
+  let result = ''
+  for (let i = 0; i < 10; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length)
+    result += characters[randomIndex]
+  }
+  return result
+}
+
 export default function CreateAccountPage() {
   const router = useRouter()
+  const { setClientSafeUser } = useAuthorisation()
+  const [error, setError] = useState('')
+  const randomString = generateRandomString()
   const [formData, setFormData] = useState<CreateAccountPOSTbody>({
-    firstName: '',
-    lastName: '',
-    businessName: '',
-    email: 'both@gmail.com',
+    firstName: randomString,
+    lastName: randomString,
+    businessName: randomString,
+    email: `${randomString}@gmail.com`,
     password: 'securePassword',
     staySignedIn: false,
   })
-
-  const [error, setError] = useState('')
-  const { setClientUser } = useAuthorisation()
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -48,12 +57,12 @@ export default function CreateAccountPage() {
 
       const { message, user }: CreateAccountPOSTresponse = await response.json()
 
-      if (!response.ok || message !== 'success') {
-        setError('Sorry, something went wrong')
+      if (!response.ok) {
+        setError(message)
       }
 
       if (user) {
-        setClientUser(user)
+        setClientSafeUser(user)
         router.push('/dashboard')
       }
 
