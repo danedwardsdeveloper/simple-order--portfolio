@@ -2,6 +2,7 @@
 
 ## New user CTAs
 
-- CTA: Confirm your email to start inviting customers <InviteCustomer /> : <ConfirmYourEmail />
-- CTA: Add to your inventory <Link href="/inventory" />
-- CTA: set merchant settings <Link href="/settings" />
+- Please confirm your email <InviteCustomer /> : <ConfirmYourEmail />
+- Add to your inventory <Link href="/inventory" />
+- Update your merchant settings <Link href="/settings" />
+- Invite a customer
