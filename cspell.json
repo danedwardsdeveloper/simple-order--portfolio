@@ -8,5 +8,10 @@
     ".env.development",
     ".env.example"
   ],
-  "words": ["simpleorder", "steves"]
+  "words": [
+    "Bakewell",
+    "simpleorder",
+    "steves",
+    "stoneground"
+  ]
 }
