@@ -1,16 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { database } from '@/library/database/configuration'
-import { logUnknownErrorWithLabel } from '@/library/logger'
-import { checkAuthorisation, extractIdFromRequestCookie } from '@/library/utilities'
+import logger from '@/library/logger'
+import { checkAuthorisation } from '@/library/utilities'
+import { extractIdFromRequestCookie } from '@/library/utilities/server'
 
-import {
-  authenticationMessages,
-  AuthenticationMessages,
-  BasicMessages,
-  basicMessages,
-  httpStatus,
-} from '@/types'
+import { authenticationMessages, AuthenticationMessages, BasicMessages, basicMessages, httpStatus } from '@/types'
 
 export interface InvitationsCreatePOSTresponse {
   message: BasicMessages | AuthenticationMessages
@@ -24,10 +19,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
   const { email }: InvitationsCreatePOSTbody = await request.json()
 
   if (!email) {
-    return NextResponse.json(
-      { message: authenticationMessages.emailMissing },
-      { status: httpStatus.http400badRequest },
-    )
+    return NextResponse.json({ message: authenticationMessages.emailMissing }, { status: httpStatus.http400badRequest })
   }
 
   try {
@@ -52,10 +44,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
 
     return NextResponse.json({ message: basicMessages.success }, { status })
   } catch (error) {
-    logUnknownErrorWithLabel('Failed to create invitation: ', error)
-    return NextResponse.json(
-      { message: basicMessages.serverError },
-      { status: httpStatus.http500serverError },
-    )
+    logger.errorUnknown(error, 'Failed to create invitation: ')
+    return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
   }
 }
