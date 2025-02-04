@@ -31,7 +31,7 @@ export default function AcceptInvitationPage({ params }: { params: { token: stri
         setStatus('error')
         setErrorMessage(data.message)
       }
-    } catch (error) {
+    } catch {
       setStatus('error')
       setErrorMessage('An error occurred while processing your invitation')
     }
@@ -55,7 +55,7 @@ export default function AcceptInvitationPage({ params }: { params: { token: stri
         setStatus('error')
         setErrorMessage(data.message)
       }
-    } catch (error) {
+    } catch {
       setStatus('error')
       setErrorMessage('An error occurred while submitting your details')
     }
