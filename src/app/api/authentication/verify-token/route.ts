@@ -1,19 +1,12 @@
-import { eq } from 'drizzle-orm'
+import { eq as equals } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { database } from '@/library/database/configuration'
 import { users } from '@/library/database/schema'
-import { logUnknownErrorWithLabel } from '@/library/logger'
-import { extractIdFromRequestCookie } from '@/library/utilities'
+import logger from '@/library/logger'
+import { extractIdFromRequestCookie } from '@/library/utilities/server'
 
-import {
-  authenticationMessages,
-  AuthenticationMessages,
-  BasicMessages,
-  basicMessages,
-  ClientSafeUser,
-  httpStatus,
-} from '@/types'
+import { authenticationMessages, AuthenticationMessages, BasicMessages, basicMessages, ClientSafeUser, httpStatus } from '@/types'
 
 export interface VerifyTokenGETresponse {
   message: BasicMessages | AuthenticationMessages
@@ -28,24 +21,17 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
       return NextResponse.json({ message }, { status })
     }
 
-    const user = database.select().from(users).where(eq(users.id, extractedUserId)).get()
+    const [user] = await database.select().from(users).where(equals(users.id, extractedUserId))
 
     if (!user) {
-      return NextResponse.json(
-        { message: authenticationMessages.userNotFound },
-        { status: httpStatus.http401unauthorised },
-      )
+      return NextResponse.json({ message: authenticationMessages.userNotFound }, { status: httpStatus.http401unauthorised })
     }
 
-    // Transform user
-    // Add merchant details, get orders etc.
+    // Add merchant details, get orders etc. and transform user
 
     return NextResponse.json({ message: basicMessages.success, user }, { status: httpStatus.http200ok })
   } catch (error) {
-    logUnknownErrorWithLabel('Unknown authorisation error: ', error)
-    return NextResponse.json(
-      { message: basicMessages.serverError },
-      { status: httpStatus.http500serverError },
-    )
+    logger.errorUnknown(error, 'Unknown authorisation error: ')
+    return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
   }
 }
