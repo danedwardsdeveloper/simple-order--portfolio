@@ -13,6 +13,7 @@ export default {
         menubar: zIndex[10],
         'notification-container': zIndex[20],
         notification: zIndex[30],
+        'splash-screen': zIndex[40],
       },
     },
   },
