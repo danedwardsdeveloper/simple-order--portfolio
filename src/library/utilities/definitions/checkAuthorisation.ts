@@ -1,19 +1,14 @@
-import { eq } from 'drizzle-orm'
-import { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3'
+import { eq as equals } from 'drizzle-orm'
 
 import { users } from '@/library/database/schema'
 
-export function checkAuthorisation(
-  tx: BetterSQLite3Database,
+import { DrizzleTransaction } from '@/types'
+
+export async function checkAuthorisation(
+  tx: DrizzleTransaction,
   userId: number,
-): { userExists: boolean; emailConfirmed: boolean } {
-  const existingUser = tx
-    .select({
-      emailConfirmed: users.emailConfirmed,
-    })
-    .from(users)
-    .where(eq(users.id, userId))
-    .get()
+): Promise<{ userExists: boolean; emailConfirmed: boolean }> {
+  const [existingUser] = await tx.select().from(users).where(equals(users.id, userId)).limit(1)
 
   return {
     userExists: !!existingUser,
