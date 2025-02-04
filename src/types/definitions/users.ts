@@ -32,4 +32,5 @@ export interface ClientSafeUser {
   emailConfirmed: boolean
   merchantDetails?: ClientMerchantDetails
   merchantsAsCustomer?: RelationshipItem[]
+  inventory?: string[] // Todo: Replace with actual data
 }
