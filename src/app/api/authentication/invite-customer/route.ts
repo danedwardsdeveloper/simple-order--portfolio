@@ -5,16 +5,12 @@ import { database } from '@/library/database/configuration'
 import { customerToMerchant, invitations } from '@/library/database/schema'
 import { productionBaseURL } from '@/library/environment/publicVariables'
 import logger from '@/library/logger'
-import { generateConfirmationToken } from '@/library/utilities/generateConfirmationToken'
+import { generateConfirmationToken } from '@/library/utilities/definitions/generateConfirmationToken'
 
 import { BasicMessages, basicMessages, httpStatus } from '@/types'
 
 export interface InviteCustomerPOSTresponse {
-  message:
-    | BasicMessages
-    | 'already a confirmed customer of this merchant'
-    | 'already invited'
-    | 'error generating invitation link'
+  message: BasicMessages | 'already a confirmed customer of this merchant' | 'already invited' | 'error generating invitation link'
 }
 
 export interface InviteCustomerPOSTbody {
@@ -67,10 +63,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
     })
 
     if (result.status === 'already_customer') {
-      return NextResponse.json(
-        { message: 'already a confirmed customer of this merchant' },
-        { status: httpStatus.http400badRequest },
-      )
+      return NextResponse.json({ message: 'already a confirmed customer of this merchant' }, { status: httpStatus.http400badRequest })
     }
 
     if (result.status === 'already_invited') {
@@ -78,10 +71,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
     }
 
     if (!result.invitation) {
-      return NextResponse.json(
-        { message: 'error generating invitation link' },
-        { status: httpStatus.http501notImplemented },
-      )
+      return NextResponse.json({ message: 'error generating invitation link' }, { status: httpStatus.http501notImplemented })
     }
 
     const invitationURL = `${productionBaseURL}/api/authentication/confirm/${result.invitation.token}`
@@ -89,13 +79,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
 
     return NextResponse.json({ message: basicMessages.success }, { status: httpStatus.http200ok })
   } catch (error) {
-    logger.error(
-      'Error inviting customer: ',
-      error instanceof Error ? error.message : `Unknown error: ${JSON.stringify(error)}`,
-    )
-    return NextResponse.json(
-      { message: basicMessages.serverError },
-      { status: httpStatus.http500serverError },
-    )
+    logger.error('Error inviting customer: ', error instanceof Error ? error.message : `Unknown error: ${JSON.stringify(error)}`)
+    return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
   }
 }
