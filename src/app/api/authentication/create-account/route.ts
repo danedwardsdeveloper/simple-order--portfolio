@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt'
-import { eq, or } from 'drizzle-orm'
+import { eq as equals, or } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { durationOptions } from '@/library/constants/durations'
@@ -7,33 +7,19 @@ import { database } from '@/library/database/configuration'
 import { confirmationTokens, freeTrials, merchantProfiles, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import { createNewMerchantEmail } from '@/library/email/templates/newMerchant'
-import { emailRegex } from '@/library/email/utilities/emailRegex'
+import { emailRegex } from '@/library/email/utilities'
 import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import { myPersonalEmail } from '@/library/environment/serverVariables'
 import logger from '@/library/logger'
-import { createFreeTrialEndTime, createMerchantSlug, createSafeUser } from '@/library/utilities'
-import {
-  createCookieWithToken,
-  createSessionCookieWithToken,
-} from '@/library/utilities/definitions/createCookies'
-import { generateConfirmationToken } from '@/library/utilities/generateConfirmationToken'
+import { createFreeTrialEndTime, createMerchantSlug, createSafeUser, generateConfirmationToken } from '@/library/utilities'
+import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
 
-import {
-  authenticationMessages,
-  basicMessages,
-  ClientSafeUser,
-  cookieDurations,
-  FreeTrial,
-  httpStatus,
-  MerchantProfile,
-  User,
-} from '@/types'
+import { authenticationMessages, basicMessages, ClientSafeUser, cookieDurations, FreeTrial, httpStatus } from '@/types'
 import { CreateAccountPOSTbody, CreateAccountPOSTresponse } from '@/types/api/authentication/create-account'
 import { ConfirmEmailQueryParameters } from '@/types/api/authentication/email/confirm'
 
 export async function POST(request: NextRequest): Promise<NextResponse<CreateAccountPOSTresponse>> {
-  const { firstName, lastName, email, password, businessName, staySignedIn }: CreateAccountPOSTbody =
-    await request.json()
+  const { firstName, lastName, email, password, businessName, staySignedIn }: CreateAccountPOSTbody = await request.json()
 
   let missingFieldMessage
 
@@ -48,24 +34,20 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
   }
 
   if (!emailRegex.test(email)) {
-    return NextResponse.json(
-      { message: authenticationMessages.emailInvalid },
-      { status: httpStatus.http400badRequest },
-    )
+    return NextResponse.json({ message: authenticationMessages.emailInvalid }, { status: httpStatus.http400badRequest })
   }
 
   try {
     const [existingUser] = await database
       .select()
       .from(users)
-      .where(or(eq(users.email, email), eq(users.businessName, businessName)))
+      .where(or(equals(users.email, email), equals(users.businessName, businessName)))
       .limit(1)
 
     let conflictMessage
     if (existingUser) {
       if (existingUser.email === email) conflictMessage = authenticationMessages.emailTaken
-      if (existingUser.businessName === businessName)
-        conflictMessage = authenticationMessages.businessNameTaken
+      if (existingUser.businessName === businessName) conflictMessage = authenticationMessages.businessNameTaken
 
       if (conflictMessage) {
         logger.error('There was a conflict')
@@ -94,11 +76,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
         let slug = baseSlug
 
         for (let attempt = 0; attempt < 5; attempt++) {
-          const existingSlug = await tx
-            .select()
-            .from(merchantProfiles)
-            .where(eq(merchantProfiles.slug, slug))
-            .limit(1)
+          const existingSlug = await tx.select().from(merchantProfiles).where(equals(merchantProfiles.slug, slug)).limit(1)
 
           if (existingSlug.length === 0) break
           slug = `${baseSlug}-${attempt + 1}`
@@ -162,15 +140,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
       },
     }
 
-    const response = NextResponse.json(
-      { message: basicMessages.success, user: transformedUser },
-      { status: httpStatus.http200ok },
-    )
+    const response = NextResponse.json({ message: basicMessages.success, user: transformedUser }, { status: httpStatus.http200ok })
 
     response.cookies.set(
-      staySignedIn
-        ? createCookieWithToken(newUser.id, cookieDurations.oneYear)
-        : createSessionCookieWithToken(newUser.id),
+      staySignedIn ? createCookieWithToken(newUser.id, cookieDurations.oneYear) : createSessionCookieWithToken(newUser.id),
     )
 
     return response
@@ -181,28 +154,20 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
       if (errorMessage.includes('duplicate key value violates unique constraint')) {
         let constraintMessage
         if (errorMessage.includes(users.email.name)) constraintMessage = authenticationMessages.emailTaken
-        if (errorMessage.includes(users.businessName.name))
-          constraintMessage = authenticationMessages.businessNameTaken
-        if (errorMessage.includes(merchantProfiles.slug.name))
-          constraintMessage = authenticationMessages.slugTaken
+        if (errorMessage.includes(users.businessName.name)) constraintMessage = authenticationMessages.businessNameTaken
+        if (errorMessage.includes(merchantProfiles.slug.name)) constraintMessage = authenticationMessages.slugTaken
 
         if (constraintMessage) {
           return NextResponse.json({ message: constraintMessage }, { status: httpStatus.http409conflict })
         }
 
         if (errorMessage === 'error sending email') {
-          return NextResponse.json(
-            { message: authenticationMessages.errorSendingEmail },
-            { status: httpStatus.http503serviceUnavailable },
-          )
+          return NextResponse.json({ message: authenticationMessages.errorSendingEmail }, { status: httpStatus.http503serviceUnavailable })
         }
       }
     }
 
     logger.errorUnknown(error, 'Error creating user: ')
-    return NextResponse.json(
-      { message: basicMessages.databaseError },
-      { status: httpStatus.http500serverError },
-    )
+    return NextResponse.json({ message: basicMessages.databaseError }, { status: httpStatus.http500serverError })
   }
 }
