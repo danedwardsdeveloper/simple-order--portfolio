@@ -1,16 +1,17 @@
 import { eq as equals } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 
-import { database } from '@/library/database/configuration'
+import { database } from '@/library/database/connection'
+import { checkMerchantProfile, getInventory } from '@/library/database/operations/operations'
 import { users } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
 
-import { authenticationMessages, AuthenticationMessages, BasicMessages, basicMessages, ClientSafeUser, httpStatus } from '@/types'
+import { authenticationMessages, AuthenticationMessages, BasicMessages, basicMessages, FullClientSafeUser, httpStatus } from '@/types'
 
 export interface VerifyTokenGETresponse {
   message: BasicMessages | AuthenticationMessages
-  user?: ClientSafeUser
+  user?: FullClientSafeUser
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse<VerifyTokenGETresponse>> {
@@ -21,15 +22,48 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
       return NextResponse.json({ message }, { status })
     }
 
-    const [user] = await database.select().from(users).where(equals(users.id, extractedUserId))
+    const [foundUser] = await database
+      .select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        businessName: users.businessName,
+        emailConfirmed: users.emailConfirmed,
+      })
+      .from(users)
+      .where(equals(users.id, extractedUserId))
 
-    if (!user) {
+    if (!foundUser) {
       return NextResponse.json({ message: authenticationMessages.userNotFound }, { status: httpStatus.http401unauthorised })
+    }
+
+    let clientSafeUser: FullClientSafeUser = {
+      ...foundUser,
+    }
+
+    const { merchantProfileExists, slug } = await checkMerchantProfile(extractedUserId)
+    if (merchantProfileExists) {
+      const inventory = await getInventory(extractedUserId)
+
+      if (inventory) {
+        clientSafeUser = {
+          ...foundUser,
+          merchantDetails: {
+            slug,
+            freeTrial: {
+              endDate: new Date(), // ToDo: fix this!
+            },
+            customersAsMerchant: [],
+          },
+          inventory,
+        }
+      }
     }
 
     // Add merchant details, get orders etc. and transform user
 
-    return NextResponse.json({ message: basicMessages.success, user }, { status: httpStatus.http200ok })
+    return NextResponse.json({ message: basicMessages.success, user: clientSafeUser }, { status: httpStatus.http200ok })
   } catch (error) {
     logger.errorUnknown(error, 'Unknown authorisation error: ')
     return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
