@@ -1,15 +1,27 @@
 import { Field, Label, Switch } from '@headlessui/react'
+import clsx from 'clsx'
 
 interface Props {
   enabled: boolean
   setEnabled: (value: boolean) => void
-  label: string
-  secondaryLabel?: string
+  enabledLabel: string
+  disabledLabel: string
 }
 
-export default function ToggleWithLabel({ enabled, setEnabled, label, secondaryLabel }: Props) {
+export default function ToggleWithLabel({ enabled, setEnabled, enabledLabel, disabledLabel }: Props) {
   return (
     <Field className="flex items-center">
+      <Label as="span" className="mr-3 text-sm">
+        <button
+          onClick={() => setEnabled(true)}
+          disabled={!enabled}
+          className={clsx(
+            'text-zinc-500 mr-1 hover:text-zinc-600 active:text-zinc-700 transition-all duration-300 ',
+            !enabled && 'text-zinc-900 cursor-default',
+          )}>
+          {disabledLabel}
+        </button>
+      </Label>
       <Switch
         checked={enabled}
         onChange={setEnabled}
@@ -20,8 +32,15 @@ export default function ToggleWithLabel({ enabled, setEnabled, label, secondaryL
         />
       </Switch>
       <Label as="span" className="ml-3 text-sm">
-        <span className="font-medium text-gray-900 mr-1">{label}</span>
-        <span className="text-gray-500">{secondaryLabel}</span>
+        <button
+          onClick={() => setEnabled(false)}
+          disabled={enabled}
+          className={clsx(
+            ' text-zinc-500 mr-1 hover:text-zinc-600 active:text-zinc-700 transition-all duration-300',
+            enabled ? 'text-zinc-900 cursor-default' : 'cursor-pointer',
+          )}>
+          {enabledLabel}
+        </button>
       </Label>
     </Field>
   )
