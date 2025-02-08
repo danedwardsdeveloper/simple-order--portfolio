@@ -4,22 +4,13 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 import logger from '@/library/logger'
+import { generateRandomString } from '@/library/utilities'
 
 import { CheckboxIcon } from '@/components/Icons'
 
 import { useAuthorisation } from '@/providers/authorisation'
 import { apiPaths } from '@/types'
 import { CreateAccountPOSTbody, CreateAccountPOSTresponse } from '@/types/api/authentication/create-account'
-
-function generateRandomString() {
-  const characters = 'abcdefghijklmnopqrstuvwxyz'
-  let result = ''
-  for (let i = 0; i < 10; i++) {
-    const randomIndex = Math.floor(Math.random() * characters.length)
-    result += characters[randomIndex]
-  }
-  return result
-}
 
 export default function CreateAccountPage() {
   const router = useRouter()
