@@ -1,13 +1,17 @@
 import { customerToMerchant, merchantProfiles, users } from '@/library/database/schema'
 
-export type User = typeof users.$inferSelect
-export type NewUser = Required<Omit<typeof users.$inferInsert, 'id'>>
-export type SafeUser = Omit<User, 'hashedPassword'>
+import { ClientProduct } from './products'
+
+export type BaseUser = typeof users.$inferSelect
+export type NewBaseUser = Required<Omit<typeof users.$inferInsert, 'id'>>
+export type BaseUserWithoutPassword = Omit<BaseUser, 'hashedPassword'>
+export type ClientSafeBaseUser = Omit<BaseUserWithoutPassword, 'id'>
 
 export type MerchantProfile = typeof merchantProfiles.$inferSelect
 export type NewMerchantProfile = typeof merchantProfiles.$inferInsert
+export type ClientSafeMerchantProfile = Pick<MerchantProfile, 'slug'>
 
-export type customerToMerchant = typeof customerToMerchant.$inferSelect
+export type CustomerToMerchant = typeof customerToMerchant.$inferSelect
 export type NewCustomerToMerchant = typeof customerToMerchant.$inferInsert
 
 export interface RelationshipItem {
@@ -23,8 +27,8 @@ export interface ClientMerchantDetails {
   customersAsMerchant: RelationshipItem[]
 }
 
-export interface ClientSafeUser {
-  id: number
+// Rename this FullClientSafeUser
+export interface FullClientSafeUser {
   firstName: string
   lastName: string
   email: string
@@ -32,5 +36,5 @@ export interface ClientSafeUser {
   emailConfirmed: boolean
   merchantDetails?: ClientMerchantDetails
   merchantsAsCustomer?: RelationshipItem[]
-  inventory?: string[] // Todo: Replace with actual data
+  inventory?: ClientProduct[]
 }
