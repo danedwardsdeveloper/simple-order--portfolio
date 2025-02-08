@@ -14,4 +14,8 @@ export const apiPaths = {
     create: '/api/invitations/create',
     accept: '/api/invitations/accept',
   },
+  inventory: {
+    add: '/api/inventory/add',
+    all: '/api/inventory',
+  },
 } as const
