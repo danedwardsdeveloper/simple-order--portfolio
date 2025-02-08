@@ -4,6 +4,7 @@ import { productionBaseURL } from '@/library/environment/publicVariables'
 import { websiteCopy } from '@/library/websiteCopy'
 
 import MenuBar from '@/components/menubar'
+import NotificationsContainer from '@/components/notifications/NotificationContainer'
 import Providers from '@/components/Providers'
 
 import './globals.tailwind.css'
@@ -32,6 +33,7 @@ export default function RootLayout({
         <Providers>
           <MenuBar />
           <div className="max-w-4xl w-full mx-auto mt-menubar-offset px-4 lg:px-0 pt-8 pb-60">{children}</div>
+          <NotificationsContainer />
         </Providers>
       </body>
     </html>
