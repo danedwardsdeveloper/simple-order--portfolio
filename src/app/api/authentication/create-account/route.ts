@@ -1,9 +1,10 @@
 import bcrypt from 'bcrypt'
 import { eq as equals, or } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
+import { v4 as generateConfirmationToken } from 'uuid'
 
 import { durationOptions } from '@/library/constants/durations'
-import { database } from '@/library/database/configuration'
+import { database } from '@/library/database/connection'
 import { confirmationTokens, freeTrials, merchantProfiles, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import { createNewMerchantEmail } from '@/library/email/templates/newMerchant'
@@ -11,10 +12,20 @@ import { emailRegex } from '@/library/email/utilities'
 import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import { myPersonalEmail } from '@/library/environment/serverVariables'
 import logger from '@/library/logger'
-import { createFreeTrialEndTime, createMerchantSlug, createSafeUser, generateConfirmationToken } from '@/library/utilities'
+import { createFreeTrialEndTime, createMerchantSlug } from '@/library/utilities'
 import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
 
-import { authenticationMessages, basicMessages, ClientSafeUser, cookieDurations, FreeTrial, httpStatus } from '@/types'
+import {
+  authenticationMessages,
+  BaseUser,
+  BaseUserWithoutPassword,
+  basicMessages,
+  ClientSafeBaseUser,
+  cookieDurations,
+  FreeTrial,
+  FullClientSafeUser,
+  httpStatus,
+} from '@/types'
 import { CreateAccountPOSTbody, CreateAccountPOSTresponse } from '@/types/api/authentication/create-account'
 import { ConfirmEmailQueryParameters } from '@/types/api/authentication/email/confirm'
 
@@ -60,17 +71,25 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 
     const { newUser, newMerchant, newFreeTrial } = await database.transaction(async tx => {
       try {
-        const [newUser] = await tx
+        // ToDo: Type this properly with a separate values object first
+        const [newUser] = (await tx
           .insert(users)
           .values({
             firstName,
             lastName,
-            email,
+            email: email.toLowerCase(),
             hashedPassword,
             businessName,
             emailConfirmed: false,
           })
-          .returning()
+          .returning({
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+            businessName: users.businessName,
+            emailConfirmed: users.emailConfirmed,
+          })) as BaseUserWithoutPassword[]
 
         const baseSlug = createMerchantSlug(businessName)
         let slug = baseSlug
@@ -110,7 +129,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
         const confirmationURL = `${dynamicBaseURL}/confirm?${ConfirmEmailQueryParameters.token}=${emailConfirmationToken}`
 
         const emailResponse = await sendEmail({
-          to: myPersonalEmail,
+          to: myPersonalEmail, // ToDo: send actual emails one day soon!
           ...createNewMerchantEmail({
             recipientName: firstName,
             confirmationURL,
@@ -129,10 +148,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
       }
     })
 
-    const safeNewUser = createSafeUser(newUser)
+    const { id, ...clientSafeBaseUser } = newUser as BaseUser
 
-    const transformedUser: ClientSafeUser = {
-      ...safeNewUser,
+    const transformedUser: FullClientSafeUser = {
+      ...clientSafeBaseUser,
       merchantDetails: {
         slug: newMerchant.slug,
         freeTrial: { endDate: new Date(newFreeTrial.endDate) },
