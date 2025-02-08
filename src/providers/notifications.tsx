@@ -49,7 +49,7 @@ const exampleNotifications: NotificationInterface[] = [
 ]
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
-  const [notifications, setNotifications] = useState<NotificationInterface[] | null>(exampleNotifications)
+  const [notifications, setNotifications] = useState<NotificationInterface[] | null>(null)
 
   function createNotification({ title, message, level }: NewNotification): void {
     const id = Date.now()
