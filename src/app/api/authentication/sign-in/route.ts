@@ -2,9 +2,8 @@ import bcrypt from 'bcryptjs'
 import { eq as equals } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 
-import { database } from '@/library/database/configuration'
+import { database } from '@/library/database/connection'
 import { users } from '@/library/database/schema'
-import { createSafeUser } from '@/library/utilities/definitions/createSafeUser'
 import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
 
 import { authenticationMessages, basicMessages, cookieDurations, httpStatus } from '@/types'
@@ -28,6 +27,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
     )
   }
 
+  // ToDo! Create safe found user function. Really important!
   const [foundUser] = await database.select().from(users).where(equals(users.email, email)).limit(1)
 
   if (!foundUser) {
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
   const response = NextResponse.json(
     {
       message: basicMessages.success,
-      foundUser: createSafeUser(foundUser),
+      foundUser,
     },
     {
       status: httpStatus.http200ok,
