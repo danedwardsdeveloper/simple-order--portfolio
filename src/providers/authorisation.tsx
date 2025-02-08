@@ -7,29 +7,34 @@ import logger from '@/library/logger'
 import SplashScreen from '@/components/SplashScreen'
 
 import { VerifyTokenGETresponse } from '@/app/api/authentication/verify-token/route'
-import { apiPaths, ClientSafeUser } from '@/types'
+import { apiPaths, FullClientSafeUser } from '@/types'
 
 interface AuthorisationContextType {
-  clientSafeUser: ClientSafeUser | null
-  setClientSafeUser: React.Dispatch<React.SetStateAction<ClientSafeUser | null>>
+  clientSafeUser: FullClientSafeUser | null
+  setClientSafeUser: React.Dispatch<React.SetStateAction<FullClientSafeUser | null>>
   isLoading: boolean
+  temporaryHardCodedDefaultVAT: number
 }
 
 const AuthorisationContext = createContext<AuthorisationContextType>({
   clientSafeUser: null,
   setClientSafeUser: () => {},
   isLoading: true,
+  temporaryHardCodedDefaultVAT: 20,
 })
 
+// ToDo: This is a mess
 export const AuthorisationProvider = ({ children }: { children: ReactNode }) => {
-  const [clientSafeUser, setClientSafeUser] = useState<ClientSafeUser | null>(null)
+  const [clientSafeUser, setClientSafeUser] = useState<FullClientSafeUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const temporaryHardCodedDefaultVAT = 20
 
   useEffect(() => {
-    const checkAuthorisation = async () => {
+    const checkServerAuthorisation = async () => {
       try {
         const response = await fetch(apiPaths.authentication.verifyToken, { credentials: 'include' })
         if (response.ok) {
+          // ToDo: Sort this logic out, as it returns 200 if there's no cookie (new user)
           const { user }: VerifyTokenGETresponse = await response.json()
           if (user) setClientSafeUser(user)
         }
@@ -40,11 +45,24 @@ export const AuthorisationProvider = ({ children }: { children: ReactNode }) => 
         setIsLoading(false)
       }
     }
-    checkAuthorisation()
+    checkServerAuthorisation()
   }, [])
 
+  type UserStateKey = keyof FullClientSafeUser
+
+  function updateUserState<K extends UserStateKey>(
+    currentUser: FullClientSafeUser,
+    key: K,
+    newData: FullClientSafeUser[K],
+  ): FullClientSafeUser {
+    return {
+      ...currentUser,
+      [key]: newData,
+    }
+  }
+
   return (
-    <AuthorisationContext.Provider value={{ clientSafeUser, setClientSafeUser, isLoading }}>
+    <AuthorisationContext.Provider value={{ clientSafeUser, setClientSafeUser, isLoading, temporaryHardCodedDefaultVAT }}>
       <SplashScreen show={isLoading} />
       {children}
     </AuthorisationContext.Provider>
