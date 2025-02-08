@@ -1,21 +1,26 @@
-# accept-invitation POST
+# Invitations/Accept POST
 
-- Takes token from URL
-- If token not in invitations: 400 "Invalid invitation"
-- If token expired: 400 "Expired invitation"
-- Check if email exists in users
+This route can create an account but it's quite different, as this account will be for a customer. Also, they may already have an account, in which case it's much simpler.
+
+- Validate & sanitise the new account details in the body, if provided
+- Get the token from URL
+- Check the token format is valid
+- Check token is in invitations table (Return token expired on invalid)
+- Check token is in date
+- Delete the expired row if found
+- Check email exists in users
+- Check relationship doesn't exist (Delete the invitation, and return 200 'relationship exists' if it does)
 - If registered:
-  - Transaction
-    - Confirm their email if needed
-    - Check relationship doesn't exist
-      - (Delete the invitation and 204 if it does)
-    - Create relationship
-    - Delete invitation
+  - Transaction: change user table emailConfirmed to true if not already
+    - Transaction: Create the relationship
+    - Transaction: Delete invitation
   - Return 201
 - If not registered:
-  - Return 422 "please provide details"
+  - If no additional details provided, return 422 'please provide details'
   - If details are provided
-    - Create user
-    - Create relationship
-    - Delete invitation
+    - Transaction: Create user with emailConfirmed=true
+    - Transaction: Create relationship
+    - Transaction: Delete invitation
+    - Transaction: Send welcome email?
+    - Create the sign-in cookie
     - Return 201
