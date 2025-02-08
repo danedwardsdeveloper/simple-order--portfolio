@@ -3,26 +3,28 @@
 import clsx from 'clsx'
 import { useState } from 'react'
 
-import { Product } from '@/library/database/schema'
 import { formatPrice } from '@/library/utilities'
 
+import { useAuthorisation } from '@/providers/authorisation'
 import { useUi } from '@/providers/ui'
+import { ClientProduct } from '@/types'
 
 interface Props {
-  product: Product
+  product: ClientProduct
   zebraStripe: boolean
 }
 
 export default function InventoryCard({ product, zebraStripe }: Props) {
   const [isBeingEdited, setIsBeingEdited] = useState(false)
   const { includeVat } = useUi()
+  const { temporaryHardCodedDefaultVAT } = useAuthorisation()
 
-  function calculateDisplayPrice(basePrice: number, vat: number = 0): string {
-    if (includeVat) {
-      return formatPrice(basePrice * (1 + vat / 100))
-    } else {
-      return formatPrice(basePrice)
-    }
+  const vatInteger = product.customVat ?? temporaryHardCodedDefaultVAT
+
+  function DisplayPrice(): string {
+    if (!includeVat) return formatPrice(product.priceInMinorUnits)
+    const vatMultiplier = 1 + vatInteger / 100
+    return formatPrice(product.priceInMinorUnits * vatMultiplier)
   }
 
   if (isBeingEdited) {
@@ -38,15 +40,14 @@ export default function InventoryCard({ product, zebraStripe }: Props) {
 
   return (
     <li className={clsx('flex flex-col gap-y-2 w-full p-3 rounded-xl', zebraStripe ? 'bg-blue-50' : 'bg-zinc-50')}>
-      <div className="flex gap-x-4 items-center">
-        <h3 className="text-xl font-medium mb-1">{product.name}</h3>
-        <span className="text-zinc-400">{product.sku}</span>
-      </div>
+      <h3 className="text-xl font-medium mb-1">{product.name}</h3>
       <p className="text-zinc-700 max-w-prose">{product.description}</p>
       <div className="flex justify-between items-center">
         <div className="flex gap-x-1 items-center">
-          <span className="text-lg">{calculateDisplayPrice(product.priceInMinorUnits, product.customVat)}</span>
-          <span className="text-zinc-500 text-sm">{includeVat && `Including ${product.customVat}% VAT`}</span>
+          <span className="text-lg">
+            <DisplayPrice />
+          </span>
+          <span className="text-zinc-500 text-sm">{includeVat && `Including ${vatInteger}% VAT`}</span>
         </div>
         <button className="link" onClick={() => setIsBeingEdited(true)}>
           Edit
