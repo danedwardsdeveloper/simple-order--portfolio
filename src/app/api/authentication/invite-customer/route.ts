@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 
-import { database } from '@/library/database/configuration'
+import { database } from '@/library/database/connection'
 import { customerToMerchant, invitations } from '@/library/database/schema'
 import { productionBaseURL } from '@/library/environment/publicVariables'
 import logger from '@/library/logger'

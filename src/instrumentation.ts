@@ -1,4 +1,4 @@
-import { testDatabaseConnection } from './library/database/configuration'
+import { testDatabaseConnection } from './library/database/connection'
 
 export async function register() {
   testDatabaseConnection()

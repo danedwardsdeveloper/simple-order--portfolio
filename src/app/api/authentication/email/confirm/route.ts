@@ -1,7 +1,7 @@
 import { eq as equals } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 
-import { database } from '@/library/database/configuration'
+import { database } from '@/library/database/connection'
 import { confirmationTokens, users } from '@/library/database/schema'
 import logger from '@/library/logger'
 
