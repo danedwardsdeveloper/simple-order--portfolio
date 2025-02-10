@@ -35,3 +35,12 @@ export const authenticationMessages = {
 } as const
 
 export type AuthenticationMessages = (typeof authenticationMessages)[keyof typeof authenticationMessages]
+
+export const illegalCharactersMessages = {
+  firstName: 'firstName contains illegal characters',
+  lastName: 'lastName contains illegal characters',
+  password: 'password contains illegal characters',
+  businessName: 'businessName contains illegal characters',
+} as const
+
+export type IllegalCharactersMessages = (typeof illegalCharactersMessages)[keyof typeof illegalCharactersMessages]
