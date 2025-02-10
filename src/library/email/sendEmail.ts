@@ -4,17 +4,7 @@ import { myPersonalEmail } from '@/library/environment/serverVariables'
 import logger from '@/library/logger'
 
 import emailClient from './client'
-
-export interface SendEmailBody {
-  to?: string
-  subject: string
-  textVersion: string
-  htmlVersion: string
-}
-
-interface SendEmailResponse {
-  success: boolean
-}
+import { SendEmailBody, SendEmailResponse } from '@/types'
 
 export const sendEmail = async ({ to = myPersonalEmail, subject, htmlVersion, textVersion }: SendEmailBody): Promise<SendEmailResponse> => {
   const messageData: MailgunMessageData = {
