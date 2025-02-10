@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
+import { dataTestIdNames } from '@/library/constants/dataTestId'
 import logger from '@/library/logger'
 import { generateRandomString } from '@/library/utilities'
 
@@ -17,13 +18,14 @@ export default function CreateAccountPage() {
   const { setClientSafeUser } = useAuthorisation()
   const [error, setError] = useState('')
   const randomString = generateRandomString()
+  const preFillFormForManualTesting = false
   const [formData, setFormData] = useState<CreateAccountPOSTbody>({
-    firstName: randomString,
-    lastName: randomString,
-    businessName: randomString,
-    email: `${randomString}@gmail.com`,
-    password: 'securePassword',
-    staySignedIn: false,
+    firstName: preFillFormForManualTesting ? randomString : '',
+    lastName: preFillFormForManualTesting ? randomString : '',
+    businessName: preFillFormForManualTesting ? randomString : '',
+    email: preFillFormForManualTesting ? `${randomString}@gmail.com` : '',
+    password: preFillFormForManualTesting ? randomString : '',
+    staySignedIn: preFillFormForManualTesting,
   })
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -74,6 +76,7 @@ export default function CreateAccountPage() {
             First name
           </label>
           <input
+            data-test-id={dataTestIdNames.createAccountFirstNameInput}
             id="firstName"
             type="text"
             value={formData.firstName}
@@ -93,6 +96,7 @@ export default function CreateAccountPage() {
             Last name
           </label>
           <input
+            data-test-id={dataTestIdNames.createAccountLastNameInput}
             id="lastName"
             type="text"
             value={formData.lastName}
@@ -112,6 +116,7 @@ export default function CreateAccountPage() {
             Business name
           </label>
           <input
+            data-test-id={dataTestIdNames.createAccountBusinessNameInput}
             id="businessName"
             type="text"
             value={formData.businessName}
@@ -126,11 +131,13 @@ export default function CreateAccountPage() {
             className="w-full"
           />
         </div>
+        {/* ToDo: add honeypot */}
         <div>
           <label htmlFor="email" className="block mb-1">
             Email
           </label>
           <input
+            data-test-id={dataTestIdNames.createAccountEmailInput}
             id="email"
             type="email"
             value={formData.email}
@@ -145,12 +152,12 @@ export default function CreateAccountPage() {
             className="w-full"
           />
         </div>
-
         <div>
           <label htmlFor="password" className="block mb-1">
             Password
           </label>
           <input
+            data-test-id={dataTestIdNames.createAccountPasswordInput}
             id="password"
             type="password"
             value={formData.password}
@@ -165,11 +172,11 @@ export default function CreateAccountPage() {
             className="w-full"
           />
         </div>
-
         <div className="flex gap-3">
           <div className="flex h-6 shrink-0 items-center">
             <div className="group grid size-4 grid-cols-1">
               <input
+                data-test-id={dataTestIdNames.createAccountStaySignedInCheckbox}
                 id="stay-signed-in"
                 name="stay-signed-in"
                 type="checkbox"
@@ -188,8 +195,7 @@ export default function CreateAccountPage() {
             Stay signed in
           </label>
         </div>
-
-        <button type="submit" className="button-primary inline-block w-full">
+        <button data-test-id={dataTestIdNames.createAccountSubmitButton} type="submit" className="button-primary inline-block w-full">
           Start free trial
         </button>
       </form>
