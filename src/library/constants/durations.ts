@@ -7,7 +7,7 @@ export const durationOptions = {
 export const durationSettings = {
   staySignedInCookie: durationOptions.oneYearInSeconds,
   confirmEmailExpiry: durationOptions.twentyFourHoursInMilliseconds,
-  confirmInvitationExpiry: durationOptions.oneWeekInMilliseconds,
+  acceptInvitationExpiry: durationOptions.oneWeekInMilliseconds,
 } as const
 
 /*
