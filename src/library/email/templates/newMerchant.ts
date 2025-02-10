@@ -1,20 +1,12 @@
 import { createParagraph } from '../utilities'
-
-interface NewMerchantEmailResponse {
-  subject: string
-  htmlVersion: string
-  textVersion: string
-}
+import { EmailTemplate } from '@/types'
 
 interface NewMerchantEmailProps {
   recipientName: string
   confirmationURL: string
 }
 
-export function createNewMerchantEmail({
-  recipientName,
-  confirmationURL,
-}: NewMerchantEmailProps): NewMerchantEmailResponse {
+export function createNewMerchantEmail({ recipientName, confirmationURL }: NewMerchantEmailProps): EmailTemplate {
   const greeting = `Hello ${recipientName}`
   const intro = 'Thank you for choosing Simple Order. Please confirm your email by clicking the link below.'
   const link = `<a href="${confirmationURL}">Confirm your email</a>`
