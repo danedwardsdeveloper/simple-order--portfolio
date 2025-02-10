@@ -2,6 +2,7 @@ import { customerToMerchant, merchantProfiles, users } from '@/library/database/
 
 import { ClientProduct } from './products'
 
+// Rename this DangerousBaseUser
 export type BaseUser = typeof users.$inferSelect
 export type NewBaseUser = Required<Omit<typeof users.$inferInsert, 'id'>>
 export type BaseUserWithoutPassword = Omit<BaseUser, 'hashedPassword'>
@@ -19,15 +20,22 @@ export interface RelationshipItem {
   businessName: string
 }
 
+// Change to BrowserMerchantDetails
 export interface ClientMerchantDetails {
   slug: string
+  // This needs work...
   freeTrial: {
     endDate: Date
   }
   customersAsMerchant: RelationshipItem[]
 }
 
-// Rename this FullClientSafeUser
+export interface BrowserSafeInvitationRecord {
+  obfuscatedEmail: string
+  expirationDate: Date
+}
+
+// Change to FullBrowserSafeUser
 export interface FullClientSafeUser {
   firstName: string
   lastName: string
@@ -37,4 +45,6 @@ export interface FullClientSafeUser {
   merchantDetails?: ClientMerchantDetails
   merchantsAsCustomer?: RelationshipItem[]
   inventory?: ClientProduct[]
+  acceptedCustomersAsMerchant?: RelationshipItem[]
+  pendingCustomersAsMerchant?: BrowserSafeInvitationRecord[]
 }
