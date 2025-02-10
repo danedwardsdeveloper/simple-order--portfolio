@@ -1,5 +1,7 @@
 export * from './definitions/createMerchantSlug'
 export * from './definitions/formatPrice'
+export * from './definitions/formatDate'
 export * from './definitions/createFreeTrialEndTime'
 export * from './definitions/containsIllegalCharacters'
 export * from './definitions/generateRandomString'
+export * from './definitions/obfuscateEmail'
