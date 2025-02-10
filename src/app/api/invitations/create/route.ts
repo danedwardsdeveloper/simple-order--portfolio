@@ -1,16 +1,21 @@
-import { addDays } from 'date-fns'
-import { and, eq as equals } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
+import urlJoin from 'url-join'
+import { v4 as generateConfirmationToken } from 'uuid'
 
+import { durationSettings } from '@/library/constants/durations'
+import { isTestEmail } from '@/library/constants/testUsers'
 import { database } from '@/library/database/connection'
-import { checkActiveSubscriptionOrTrial } from '@/library/database/operations'
-import { checkUser } from '@/library/database/operations/operations'
-import { customerToMerchant, invitations, users } from '@/library/database/schema'
+import { checkActiveSubscriptionOrTrial, checkUserExists } from '@/library/database/operations'
+import { customerToMerchant, invitations, testEmailInbox, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
+import { createExistingUserInvitation } from '@/library/email/templates/invitations/existingUser'
+import { createNewUserInvitation } from '@/library/email/templates/invitations/newUser'
 import { emailRegex } from '@/library/email/utilities'
 import { dynamicBaseURL, isProduction } from '@/library/environment/publicVariables'
 import { myPersonalEmail } from '@/library/environment/serverVariables'
 import logger from '@/library/logger'
+import { obfuscateEmail } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
 
 import {
@@ -19,133 +24,200 @@ import {
   BaseUser,
   BasicMessages,
   basicMessages,
+  BrowserSafeInvitationRecord,
   CustomerToMerchant,
   httpStatus,
   Invitation,
   InvitationInsert,
 } from '@/types'
-import { ConfirmEmailQueryParameters } from '@/types/api/authentication/email/confirm'
+import { TestEmailInsert } from '@/types/definitions/testEmailInbox'
 
-export interface InvitationsCreatePOSTresponse {
-  message: BasicMessages | AuthenticationMessages | 'existing relationship' | 'already invited' | 'transaction error'
+export interface InviteCustomerPOSTresponse {
+  message: BasicMessages | AuthenticationMessages | string // ToDo: make this strict
+  browserSafeInvitationRecord?: BrowserSafeInvitationRecord
 }
 
-export interface InvitationsCreatePOSTbody {
-  email: string
+export interface InviteCustomerPOSTbody {
+  invitedEmail: string
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse<InvitationsCreatePOSTresponse>> {
+export async function POST(request: NextRequest): Promise<NextResponse<InviteCustomerPOSTresponse>> {
   try {
-    const { email }: InvitationsCreatePOSTbody = await request.json()
+    const { invitedEmail }: InviteCustomerPOSTbody = await request.json()
 
-    // 1. Check email has been provided
-    if (!email) {
-      return NextResponse.json({ message: authenticationMessages.emailMissing }, { status: httpStatus.http400badRequest })
+    // 1. Check the email has been provided
+    if (!invitedEmail) {
+      return NextResponse.json({ message: 'email missing' }, { status: 400 })
     }
 
-    //2. Check email format is correct
-    const normalisedInviteeEmail = email.toLowerCase().trim()
-    if (!emailRegex.test(normalisedInviteeEmail)) {
-      return NextResponse.json({ message: authenticationMessages.emailInvalid }, { status: httpStatus.http400badRequest })
+    // 2. Normalise email
+    const normalisedInvitedEmail = invitedEmail.trim().toLowerCase()
+
+    // 3. Check email format
+    if (!emailRegex.test(normalisedInvitedEmail)) {
+      return NextResponse.json({ message: 'invalid email' }, { status: 400 })
     }
 
-    // 3. Check user is signed in
+    // 4. Check for valid token
     const { extractedUserId, status, message } = extractIdFromRequestCookie(request)
     if (!extractedUserId) {
       return NextResponse.json({ message }, { status })
     }
 
-    const { userExists, emailConfirmed, cachedTrialExpired, businessName } = await checkUser(extractedUserId)
-    if (!userExists) {
+    // 5. Check user exists and emailConfirmed
+    const { userExists, existingUser } = await checkUserExists(extractedUserId)
+
+    if (!userExists || !existingUser) {
       return NextResponse.json({ message: authenticationMessages.userNotFound }, { status: httpStatus.http401unauthorised })
     }
 
-    // 4. Check user has confirmed their email
-    if (!emailConfirmed) {
+    if (!existingUser.emailConfirmed) {
       return NextResponse.json({ message: authenticationMessages.emailNotConfirmed }, { status: httpStatus.http401unauthorised })
     }
 
-    //5 Check for active trial/subscription
-    const { validSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(extractedUserId, cachedTrialExpired)
+    if (existingUser.email === normalisedInvitedEmail) {
+      return NextResponse.json({ message: 'attempted to invite self' }, { status: 400 })
+    }
+
+    // 6. Check user has an active subscription or trial
+    const { validSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(extractedUserId, existingUser.cachedTrialExpired)
     if (!validSubscriptionOrTrial) {
       return NextResponse.json({ message: authenticationMessages.noActiveTrialSubscription }, { status: httpStatus.http401unauthorised })
     }
 
-    // 6. Check if the invitee has a user row
-    const [alreadyInvitedUser]: BaseUser[] = await database.select().from(users).where(equals(users.email, normalisedInviteeEmail)).limit(1)
-    // 7. If they do, check `customer_relationships` for a relationship using their userId retrieved from the previous step
-    if (alreadyInvitedUser) {
-      // ToDo: I'm not completely sure this does what I think it does!
+    // 7. Check if invitee already has an account
+    const [inviteeAlreadyHasAccount]: BaseUser[] = await database
+      .select()
+      .from(users)
+      .where(eq(users.email, normalisedInvitedEmail))
+      .limit(1)
+
+    if (inviteeAlreadyHasAccount) {
+      // 8. If so, look for an existing relationship
       const [existingRelationship]: CustomerToMerchant[] = await database
         .select()
         .from(customerToMerchant)
-        .where(equals(customerToMerchant.merchantProfileId, alreadyInvitedUser.id))
+        .where(
+          and(
+            eq(customerToMerchant.merchantProfileId, extractedUserId),
+            eq(customerToMerchant.customerProfileId, inviteeAlreadyHasAccount.id),
+          ),
+        )
       if (existingRelationship) {
-        return NextResponse.json({ message: 'existing relationship' }, { status: httpStatus.http409conflict })
+        return NextResponse.json({ message: 'relationship exists' }, { status: httpStatus.http202accepted })
       }
     }
 
-    // 8. Check `invitations` for existing invitation
+    // 9. Check for an existing invitation
     const [existingInvitation]: Invitation[] = await database
       .select()
       .from(invitations)
-      .where(and(equals(invitations.email, normalisedInviteeEmail), equals(invitations.merchantProfileId, extractedUserId)))
-      .limit(1)
+      .where(and(eq(invitations.merchantProfileId, extractedUserId), eq(invitations.email, normalisedInvitedEmail)))
+
+    let expiredInvitation: Invitation | null
     if (existingInvitation) {
-      return NextResponse.json({ message: 'already invited' }, { status: httpStatus.http409conflict })
+      // 10. Check existing invitation expiry
+      expiredInvitation = existingInvitation.expiresAt < new Date() ? existingInvitation : null
+      if (!expiredInvitation) {
+        // An in-date invitation already exists, so early return to prevent merchants from spamming potential customers
+        return NextResponse.json({ message: 'in-date invitation exists' }, { status: 400 })
+      }
     }
 
-    // Enhancement for later: handle email resends
+    let transactionErrorMessage: string | null
+    let transactionErrorCode: number | null
 
-    let transactionErrorMessage
-    let transactionErrorCode: number | null = httpStatus.http503serviceUnavailable
+    const newInvitationExpiryDate = new Date(Date.now() + durationSettings.acceptInvitationExpiry)
 
     await database.transaction(async tx => {
-      // 10.  Transaction: create new invitation row
+      transactionErrorCode = httpStatus.http503serviceUnavailable
+
+      if (expiredInvitation) {
+        transactionErrorMessage = 'error deleting expired invitation'
+        // 8. Transaction: Delete expired invitation if it exists
+        tx.delete(invitations).where(and(eq(invitations.merchantProfileId, extractedUserId), eq(invitations.email, normalisedInvitedEmail)))
+      }
+
+      // 9. Transaction: create a new invitation row
       const invitationInsert: InvitationInsert = {
-        email: normalisedInviteeEmail,
+        email: normalisedInvitedEmail,
         merchantProfileId: extractedUserId,
-        expiresAt: addDays(new Date(), 7),
+        token: generateConfirmationToken(),
+        expiresAt: newInvitationExpiryDate,
         lastEmailSent: new Date(),
-        emailAttempts: 1,
+      }
+      transactionErrorMessage = 'error creating new invitation'
+      const [newInvitation]: Invitation[] = await tx.insert(invitations).values(invitationInsert).returning()
+
+      // Remember this is a link to the front-end, which then passes the token to the server!
+      const invitationURL = urlJoin(dynamicBaseURL, `accept-invitation?token=${newInvitation.token}`)
+
+      // 10. Generate the invitation link
+      logger.info('Invitation url: ', invitationURL)
+
+      const testEmail = isTestEmail(normalisedInvitedEmail)
+
+      if (testEmail) {
+        // 10. Transaction: if a test, record the email in test_email_inbox
+        const testEmailValues: TestEmailInsert = {
+          id: 1,
+          content: invitationURL,
+        }
+        transactionErrorMessage = 'error saving link in test_email_inbox'
+        const [testEmailRow]: TestEmailInsert[] = await tx
+          .insert(testEmailInbox)
+          .values(testEmailValues)
+          .onConflictDoUpdate({
+            target: testEmailInbox.id,
+            set: {
+              content: testEmailValues.content,
+            },
+          })
+          .returning()
+        if (!testEmailRow) tx.rollback()
       }
 
-      transactionErrorMessage = 'error creating invitation'
-      const [createdInvitation]: Invitation[] = await database.insert(invitations).values(invitationInsert).returning()
+      if (!testEmail) {
+        // 11. Transaction: send the invitation email if it isn't a test address
+        transactionErrorMessage = authenticationMessages.errorSendingEmail
+        const emailTemplate = inviteeAlreadyHasAccount
+          ? createExistingUserInvitation({
+              recipientEmail: normalisedInvitedEmail,
+              merchantBusinessName: existingUser.businessName,
+              invitationURL,
+              expiryDate: newInvitationExpiryDate,
+            })
+          : createNewUserInvitation({
+              recipientEmail: normalisedInvitedEmail,
+              merchantBusinessName: existingUser.businessName,
+              invitationURL,
+              expiryDate: newInvitationExpiryDate,
+            })
 
-      // ToDo: Make the front-end actually work then make a link, not a url
-      const acceptanceLink = `${dynamicBaseURL}/accept-invitation?${ConfirmEmailQueryParameters.token}=${createdInvitation.token}`
-
-      // ToDo: style this properly
-      const htmlVersion = `${businessName} has invited you to join Simple Order as their customer. Click this link to accept: ${acceptanceLink}`
-      const textVersion = htmlVersion
-
-      // 11. Transaction: send confirmation email
-      transactionErrorMessage = 'error sending email'
-      const emailSentSuccessfully = await sendEmail({
-        to: isProduction ? normalisedInviteeEmail : myPersonalEmail,
-        subject: 'Invitation',
-        htmlVersion,
-        textVersion,
-      })
-
-      if (!emailSentSuccessfully) {
-        tx.rollback()
+        const sendEmailResponse = await sendEmail({
+          to: isProduction ? normalisedInvitedEmail : myPersonalEmail,
+          ...emailTemplate,
+        })
+        if (!sendEmailResponse.success) tx.rollback()
       }
-      transactionErrorMessage = null
-      transactionErrorCode = null
     })
 
+    transactionErrorMessage = null
+    transactionErrorCode = null
+
     if (transactionErrorMessage || transactionErrorCode) {
-      return NextResponse.json(
-        { message: transactionErrorMessage || 'transaction error' },
-        { status: transactionErrorCode || httpStatus.http503serviceUnavailable },
-      )
+      return NextResponse.json({ message: transactionErrorMessage || 'unknown transaction error' }, { status: transactionErrorCode || 503 })
     }
 
-    return NextResponse.json({ message: basicMessages.success }, { status })
+    // 12. Return browser-safe details
+    const browserSafeInvitationRecord: BrowserSafeInvitationRecord = {
+      obfuscatedEmail: obfuscateEmail(normalisedInvitedEmail),
+      expirationDate: newInvitationExpiryDate,
+    }
+
+    return NextResponse.json({ message: basicMessages.success, browserSafeInvitationRecord }, { status: httpStatus.http200ok })
   } catch (error) {
-    logger.errorUnknown(error, 'Failed to create invitation: ')
+    logger.errorUnknown(error)
     return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
   }
 }
