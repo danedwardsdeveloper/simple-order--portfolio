@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { checkDatabaseAuthorisation, checkMerchantProfile, getInventory } from '@/library/database/operations/operations'
+import { checkMerchantProfileExists, checkUserExists, getInventory } from '@/library/database/operations'
 import logger from '@/library/logger'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
 
@@ -19,12 +19,12 @@ export async function GET(request: NextRequest): Promise<NextResponse<InventoryG
       return NextResponse.json({ message }, { status })
     }
 
-    const { userExists } = await checkDatabaseAuthorisation(extractedUserId)
+    const { userExists } = await checkUserExists(extractedUserId)
     if (!userExists) {
       return NextResponse.json({ message: authenticationMessages.userNotFound }, { status: httpStatus.http401unauthorised })
     }
 
-    const { merchantProfileExists } = await checkMerchantProfile(extractedUserId)
+    const { merchantProfileExists } = await checkMerchantProfileExists(extractedUserId)
     if (!merchantProfileExists) {
       return NextResponse.json({ message: authenticationMessages.merchantMissing }, { status: httpStatus.http401unauthorised })
     }
