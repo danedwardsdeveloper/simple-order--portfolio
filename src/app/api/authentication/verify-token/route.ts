@@ -2,7 +2,7 @@ import { eq as equals } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { database } from '@/library/database/connection'
-import { checkMerchantProfile, getInventory } from '@/library/database/operations/operations'
+import { checkMerchantProfileExists, getInventory } from '@/library/database/operations'
 import { users } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
       ...foundUser,
     }
 
-    const { merchantProfileExists, slug } = await checkMerchantProfile(extractedUserId)
+    const { merchantProfileExists, slug } = await checkMerchantProfileExists(extractedUserId)
     if (merchantProfileExists) {
       const inventory = await getInventory(extractedUserId)
 
