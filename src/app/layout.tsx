@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 
+import { websiteCopy } from '@/library/constants/websiteCopy'
 import { productionBaseURL } from '@/library/environment/publicVariables'
-import { websiteCopy } from '@/library/websiteCopy'
 
 import MenuBar from '@/components/menubar'
 import NotificationsContainer from '@/components/notifications/NotificationContainer'
