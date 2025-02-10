@@ -9,7 +9,8 @@
     "start:local": "next build && tsx testServer.ts",
     "lint": "next lint",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md,css,scss}\"",
-    "test": "vitest --reporter=verbose",
+    "test": "vitest",
+    "test-verbose": "vitest --reporter=verbose",
     "predeploy": "pnpm format && pnpm lint && pnpm build",
     "deploy": "fly deploy"
   },
@@ -31,6 +32,7 @@
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "slugify": "^1.6.6",
+    "url-join": "^5.0.0",
     "uuid": "^11.0.5"
   },
   "devDependencies": {
@@ -44,6 +46,7 @@
     "@types/pg": "^8.11.10",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
+    "@types/url-join": "^4.0.3",
     "autoprefixer": "^10.4.20",
     "chalk": "^4.1.2",
     "concurrently": "^9.1.2",
