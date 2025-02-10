@@ -3,6 +3,8 @@
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
+import { dataTestIdNames } from '@/library/constants/dataTestId'
+
 import Spinner from '@/components/Spinner'
 
 import { apiPaths } from '@/types'
@@ -51,7 +53,7 @@ export default function Page() {
   return (
     <div>
       <h1>{heading}</h1>
-      <div>{isLoading ? <LoadingMessage /> : message}</div>
+      <div data-test-id={dataTestIdNames.emailConfirmationFeedback}>{isLoading ? <LoadingMessage /> : message}</div>
     </div>
   )
 }
