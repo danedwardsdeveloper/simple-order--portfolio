@@ -111,5 +111,10 @@ export const products = pgTable(
   ],
 )
 
+export const testEmailInbox = pgTable('test_email_inbox', {
+  id: integer('id').primaryKey().notNull(),
+  content: text('content').notNull(),
+})
+
 // orders
 // order_items
