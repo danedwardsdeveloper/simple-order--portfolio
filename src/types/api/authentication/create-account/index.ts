@@ -1,12 +1,12 @@
-import { AuthenticationMessages, BasicMessages } from '@/types/definitions/responseMessages'
-import { ClientSafeUser, NewUser } from '@/types/definitions/users'
+import { AuthenticationMessages, BasicMessages, IllegalCharactersMessages } from '@/types/definitions/responseMessages'
+import { FullClientSafeUser, NewBaseUser } from '@/types/definitions/users'
 
-export interface CreateAccountPOSTbody extends Omit<NewUser, 'hashedPassword' | 'emailConfirmed'> {
+export interface CreateAccountPOSTbody extends Omit<NewBaseUser, 'hashedPassword' | 'emailConfirmed' | 'cachedTrialExpired'> {
   password: string
   staySignedIn: boolean
 }
 
 export interface CreateAccountPOSTresponse {
-  message: BasicMessages | AuthenticationMessages
-  user?: ClientSafeUser
+  message: BasicMessages | AuthenticationMessages | IllegalCharactersMessages
+  user?: FullClientSafeUser
 }
