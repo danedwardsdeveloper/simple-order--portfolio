@@ -1,14 +1,34 @@
-# Accounts & Invitations E2E Test Sequence Flow
+# Accounts & Invitations E2E Test Sequence Flows
 
-1. John signs up
-2. John confirms his email
-3. John invites Susie as a customer
-4. Susie accepts & confirms her email by clicking the link
-5. Susie is prompted to make a new account and does so
-6. John invites my existing account as a customer
-7. I click the link to accept
-8. Susie starts a free trial as a merchant too
-9. Susie also invites me as a customer
+## Basic sign-up
+
+1. ~~Delete merchant@gmail.com from the database~~
+2. ~~Merchant fills out form~~
+3. Account creation notification
+4. ~~Merchant is redirected to /dashboard~~
+5. ~~It says 'Please confirm your email'~~
+6. MenuBar says 'Test Merchant'
+7. ~~Click the email link~~
+8. Notification says 'Email confirmed'
+9. Go to dashboard
+10. Go to /account
+11. Click delete account
+12. Notification says 'Account deleted'
+13. Redirected to homepage
+14. Check cookie has been deleted
+15. Check database for entries
+
+## Invitation sequence
+
+15. Merchant signs up
+16. Merchant confirms their email
+17. Merchant invites Both as a customer
+18. Both accepts & confirms their email by clicking the link
+19. Both is prompted to make a new account and does so
+20. Merchant invites my existing account as a customer
+21. I click the link to accept
+22. Both starts a free trial as a merchant too
+23. Both also invites me as a customer
 
 ## Straightforward sign up flow with no edge cases
 
