@@ -3,6 +3,7 @@
 ## Current Task
 
 1. Get customer invitations working
+2. Prevent sign-in from returning dangerous information!
 
 ## MVP
 
