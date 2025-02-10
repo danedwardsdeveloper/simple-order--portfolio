@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { serviceConstraints } from '@/library/constants/serviceConstraints'
 import { database } from '@/library/database/connection'
-import { checkActiveSubscriptionOrTrial, checkDatabaseAuthorisation, checkMerchantProfile } from '@/library/database/operations/operations'
+import { checkActiveSubscriptionOrTrial } from '@/library/database/operations'
+import { checkMerchantProfile, checkUser } from '@/library/database/operations'
 import { products } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { containsIllegalCharacters } from '@/library/utilities'
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Inventory
     return NextResponse.json({ message }, { status })
   }
 
-  const { userExists } = await checkDatabaseAuthorisation(extractedUserId)
+  const { userExists } = await checkUser(extractedUserId)
   if (!userExists) {
     return NextResponse.json({ message: authenticationMessages.userNotFound }, { status: httpStatus.http401unauthorised })
   }
