@@ -19,6 +19,7 @@ import { obfuscateEmail } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
 
 import {
+  apiPaths,
   authenticationMessages,
   AuthenticationMessages,
   BaseUser,
@@ -149,10 +150,14 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
       transactionErrorMessage = 'error creating new invitation'
       const [newInvitation]: Invitation[] = await tx.insert(invitations).values(invitationInsert).returning()
 
-      // Remember this is a link to the front-end, which then passes the token to the server!
-      const invitationURL = urlJoin(dynamicBaseURL, `accept-invitation?token=${newInvitation.token}`)
+      // 10. Generate the invitation link.
+      const invitationURL = urlJoin(
+        dynamicBaseURL,
+        // Remember this is a link to the front-end, which then passes the token to the server
+        'accept-invitation',
+        newInvitation.token,
+      )
 
-      // 10. Generate the invitation link
       logger.info('Invitation url: ', invitationURL)
 
       const testEmail = isTestEmail(normalisedInvitedEmail)
