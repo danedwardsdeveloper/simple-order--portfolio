@@ -2,7 +2,6 @@ import { and, eq, gt } from 'drizzle-orm'
 
 import { freeTrials, merchantProfiles, products, subscriptions, users } from '@/library/database/schema'
 
-import logger from '../logger'
 import { database } from './connection'
 import { BaseUser, ClientProduct } from '@/types'
 
@@ -20,7 +19,6 @@ export async function checkUserExists(userId: number): Promise<CheckUserExistsRe
   const [existingUser]: BaseUser[] = await database.select().from(users).where(eq(users.id, userId)).limit(1)
 
   if (!existingUser) return { userExists: false }
-  logger.debug('checkUserExists result: ', JSON.stringify(existingUser))
 
   return {
     userExists: true,
