@@ -1,6 +1,6 @@
 'use client'
 
-import { useSearchParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import urlJoin from 'url-join'
 
@@ -9,8 +9,8 @@ import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import { apiPaths } from '@/types'
 
 export default function AcceptInvitationPage() {
-  const searchParams = useSearchParams()
-  const token = searchParams.get('token')
+  const { token } = useParams<{ token: string }>()
+  const url = urlJoin(dynamicBaseURL, apiPaths.invitations.accept, token)
 
   const [status, setStatus] = useState<'checking' | 'needsDetails' | 'success' | 'error'>('checking')
   const [errorMessage, setErrorMessage] = useState('')
@@ -28,11 +28,11 @@ export default function AcceptInvitationPage() {
   const checkInvitation = async () => {
     if (!token) return null
     try {
-      const response = await fetch(urlJoin(dynamicBaseURL, apiPaths.invitations.accept, token), {
+      const response = await fetch(url, {
         method: 'POST',
       })
 
-      if (response.status === 201) {
+      if (response.status === 201 || response.status === 200) {
         setStatus('success')
       } else if (response.status === 422) {
         setStatus('needsDetails')
@@ -52,13 +52,13 @@ export default function AcceptInvitationPage() {
     setStatus('checking')
 
     try {
-      const response = await fetch(`${apiPaths.invitations.accept}${token}`, {
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       })
 
-      if (response.status === 201) {
+      if (response.status === 201 || response.status === 200) {
         setStatus('success')
       } else {
         const data = await response.json()
