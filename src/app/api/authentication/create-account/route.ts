@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { v4 as generateConfirmationToken } from 'uuid'
 
 import { durationOptions } from '@/library/constants/durations'
-import { isTestEmail } from '@/library/constants/testUsers'
+import { checkIsTestEmail } from '@/library/constants/testUsers'
 import { database } from '@/library/database/connection'
 import { confirmationTokens, freeTrials, merchantProfiles, testEmailInbox, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
@@ -27,8 +27,6 @@ import {
   httpStatus,
   illegalCharactersMessages,
   NewBaseUser,
-  NewFreeTrial,
-  NewMerchantProfile,
 } from '@/types'
 import { CreateAccountPOSTbody, CreateAccountPOSTresponse } from '@/types/api/authentication/create-account'
 import { ConfirmEmailQueryParameters } from '@/types/api/authentication/email/confirm'
@@ -152,7 +150,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
         content: confirmationURL,
       }
 
-      if (isTestEmail(normalisedEmail)) {
+      const isTestEmail = checkIsTestEmail(normalisedEmail)
+
+      if (isTestEmail) {
         // ToDo: Make this into a reusable function. I tried but it's complicated...
         await tx
           .insert(testEmailInbox)
