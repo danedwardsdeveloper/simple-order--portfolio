@@ -1,12 +1,13 @@
 import bcrypt from 'bcryptjs'
 import { eq as equals } from 'drizzle-orm'
+import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { database } from '@/library/database/connection'
 import { users } from '@/library/database/schema'
 import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
 
-import { authenticationMessages, basicMessages, cookieDurations, httpStatus } from '@/types'
+import { authenticationMessages, BaseUser, basicMessages, cookieDurations, httpStatus } from '@/types'
 import { SignInPOSTbody, SignInPOSTresponse } from '@/types/api/authentication/sign-in'
 
 export async function POST(request: NextRequest): Promise<NextResponse<SignInPOSTresponse>> {
@@ -28,47 +29,24 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
   }
 
   // ToDo! Create safe found user function. Really important!
-  const [foundUser] = await database.select().from(users).where(equals(users.email, email)).limit(1)
+  const [foundUser]: BaseUser[] = await database.select().from(users).where(equals(users.email, email)).limit(1)
 
   if (!foundUser) {
-    return NextResponse.json(
-      {
-        message: authenticationMessages.userNotFound,
-      },
-      {
-        status: httpStatus.http404notFound,
-      },
-    )
+    return NextResponse.json({ message: authenticationMessages.userNotFound }, { status: httpStatus.http404notFound })
   }
 
   const isMatch = await bcrypt.compare(password, foundUser.hashedPassword)
 
   if (!isMatch) {
-    return NextResponse.json(
-      {
-        message: authenticationMessages.invalidCredentials,
-      },
-      {
-        status: httpStatus.http401unauthorised,
-      },
-    )
+    return NextResponse.json({ message: authenticationMessages.invalidCredentials }, { status: httpStatus.http401unauthorised })
   }
 
-  const response = NextResponse.json(
-    {
-      message: basicMessages.success,
-      foundUser,
-    },
-    {
-      status: httpStatus.http200ok,
-    },
-  )
-
+  const cookieStore = await cookies()
   if (staySignedIn) {
-    response.cookies.set(createCookieWithToken(foundUser.id, cookieDurations.oneYear))
+    cookieStore.set(createCookieWithToken(foundUser.id, cookieDurations.oneYear))
   } else {
-    response.cookies.set(createSessionCookieWithToken(foundUser.id))
+    cookieStore.set(createSessionCookieWithToken(foundUser.id))
   }
 
-  return response
+  return NextResponse.json({ message: basicMessages.success, foundUser }, { status: httpStatus.http200ok })
 }
