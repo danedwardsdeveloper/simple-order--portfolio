@@ -2,6 +2,8 @@
 
 import { useRouter } from 'next/navigation'
 
+import { dataTestIdNames } from '@/library/constants/dataTestId'
+
 import { useAuthorisation } from '@/providers/authorisation'
 import { apiPaths } from '@/types'
 
@@ -27,7 +29,7 @@ export default function SignOutButton() {
   }
 
   return (
-    <button onClick={handleSignOut} className="button-secondary">
+    <button data-test-id={dataTestIdNames.account.signOutButton} onClick={handleSignOut} className="button-secondary">
       Sign out
     </button>
   )

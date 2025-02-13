@@ -8,4 +8,25 @@ export const dataTestIdNames = {
   createAccountSubmitButton: 'create-account-submit-button',
   pleaseConfirmYourEmailMessage: 'please-confirm-your-email-message',
   emailConfirmationFeedback: 'email-confirmation-feedback',
+  emailConfirmation: {
+    loading: 'confirm-page-loading-message',
+    default: 'confirm-page-default-message',
+    response: 'confirm-page-response-message',
+  },
+  signIn: {
+    emailInput: 'sign-in-email-input',
+    passwordInput: 'sign-in-password-input',
+    staySignedInCheckbox: 'sign-in-stay-signed-in-checkbox',
+    submitButton: 'sign-in-submit-button',
+  },
+  invite: {
+    form: 'invite-customer-form',
+    emailInput: 'invite-customer-email-input',
+    submitButton: 'invite-customer-submit-button',
+    response: 'invite-customer-response-message',
+    loading: 'invite-customer-loading-message',
+  },
+  account: {
+    signOutButton: 'sign-out-button',
+  },
 } as const

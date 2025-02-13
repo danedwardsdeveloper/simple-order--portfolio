@@ -4,7 +4,7 @@ import urlJoin from 'url-join'
 import { v4 as generateConfirmationToken } from 'uuid'
 
 import { durationSettings } from '@/library/constants/durations'
-import { isTestEmail } from '@/library/constants/testUsers'
+import { checkIsTestEmail } from '@/library/constants/testUsers'
 import { database } from '@/library/database/connection'
 import { checkActiveSubscriptionOrTrial, checkUserExists } from '@/library/database/operations'
 import { customerToMerchant, invitations, testEmailInbox, users } from '@/library/database/schema'
@@ -19,7 +19,6 @@ import { obfuscateEmail } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
 
 import {
-  apiPaths,
   authenticationMessages,
   AuthenticationMessages,
   BaseUser,
@@ -68,9 +67,14 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
     // 5. Check user exists and emailConfirmed
     const { userExists, existingUser } = await checkUserExists(extractedUserId)
 
+    logger.debug('User exists:', userExists)
+    logger.debug('Existing user details:', existingUser)
+
     if (!userExists || !existingUser) {
       return NextResponse.json({ message: authenticationMessages.userNotFound }, { status: httpStatus.http401unauthorised })
     }
+
+    logger.debug('Email is confirmed: ', !existingUser.emailConfirmed)
 
     if (!existingUser.emailConfirmed) {
       return NextResponse.json({ message: authenticationMessages.emailNotConfirmed }, { status: httpStatus.http401unauthorised })
@@ -82,6 +86,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
 
     // 6. Check user has an active subscription or trial
     const { validSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(extractedUserId, existingUser.cachedTrialExpired)
+
+    logger.debug('Valid subscription or trial: ', validSubscriptionOrTrial)
+
     if (!validSubscriptionOrTrial) {
       return NextResponse.json({ message: authenticationMessages.noActiveTrialSubscription }, { status: httpStatus.http401unauthorised })
     }
@@ -99,10 +106,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
         .select()
         .from(customerToMerchant)
         .where(
-          and(
-            eq(customerToMerchant.merchantProfileId, extractedUserId),
-            eq(customerToMerchant.customerProfileId, inviteeAlreadyHasAccount.id),
-          ),
+          and(eq(customerToMerchant.merchantUserId, extractedUserId), eq(customerToMerchant.customerUserId, inviteeAlreadyHasAccount.id)),
         )
       if (existingRelationship) {
         return NextResponse.json({ message: 'relationship exists' }, { status: httpStatus.http202accepted })
@@ -113,7 +117,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
     const [existingInvitation]: Invitation[] = await database
       .select()
       .from(invitations)
-      .where(and(eq(invitations.merchantProfileId, extractedUserId), eq(invitations.email, normalisedInvitedEmail)))
+      .where(and(eq(invitations.userId, extractedUserId), eq(invitations.email, normalisedInvitedEmail)))
 
     let expiredInvitation: Invitation | null
     if (existingInvitation) {
@@ -136,16 +140,17 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
       if (expiredInvitation) {
         transactionErrorMessage = 'error deleting expired invitation'
         // 8. Transaction: Delete expired invitation if it exists
-        tx.delete(invitations).where(and(eq(invitations.merchantProfileId, extractedUserId), eq(invitations.email, normalisedInvitedEmail)))
+        tx.delete(invitations).where(and(eq(invitations.userId, extractedUserId), eq(invitations.email, normalisedInvitedEmail)))
       }
 
       // 9. Transaction: create a new invitation row
       const invitationInsert: InvitationInsert = {
         email: normalisedInvitedEmail,
-        merchantProfileId: extractedUserId,
+        userId: extractedUserId,
         token: generateConfirmationToken(),
         expiresAt: newInvitationExpiryDate,
         lastEmailSent: new Date(),
+        emailAttempts: 1,
       }
       transactionErrorMessage = 'error creating new invitation'
       const [newInvitation]: Invitation[] = await tx.insert(invitations).values(invitationInsert).returning()
@@ -160,9 +165,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
 
       logger.info('Invitation url: ', invitationURL)
 
-      const testEmail = isTestEmail(normalisedInvitedEmail)
+      const isTestEmail = checkIsTestEmail(normalisedInvitedEmail)
 
-      if (testEmail) {
+      if (isTestEmail) {
         // 10. Transaction: if a test, record the email in test_email_inbox
         const testEmailValues: TestEmailInsert = {
           id: 1,
@@ -182,7 +187,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
         if (!testEmailRow) tx.rollback()
       }
 
-      if (!testEmail) {
+      if (!isTestEmail) {
         // 11. Transaction: send the invitation email if it isn't a test address
         transactionErrorMessage = authenticationMessages.errorSendingEmail
         const emailTemplate = inviteeAlreadyHasAccount
@@ -199,11 +204,12 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
               expiryDate: newInvitationExpiryDate,
             })
 
-        const sendEmailResponse = await sendEmail({
+        // Urgent ToDo: prevent this from sending emails during tests
+        const sentEmailSuccessfully = await sendEmail({
           to: isProduction ? normalisedInvitedEmail : myPersonalEmail,
           ...emailTemplate,
         })
-        if (!sendEmailResponse.success) tx.rollback()
+        if (!sentEmailSuccessfully) tx.rollback()
       }
     })
 
@@ -219,6 +225,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
       obfuscatedEmail: obfuscateEmail(normalisedInvitedEmail),
       expirationDate: newInvitationExpiryDate,
     }
+
+    // ToDo: add cookies otherwise you end up signed in as the person who invited instead
 
     return NextResponse.json({ message: basicMessages.success, browserSafeInvitationRecord }, { status: httpStatus.http200ok })
   } catch (error) {

@@ -28,7 +28,7 @@ export default function CreateAccountPage() {
     staySignedIn: preFillFormForManualTesting,
   })
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
     setError('')
 
@@ -38,17 +38,11 @@ export default function CreateAccountPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          password: formData.password,
-          staySignedIn: formData.staySignedIn,
-          businessName: formData.businessName,
-        } satisfies CreateAccountPOSTbody),
+        body: JSON.stringify(formData),
       })
 
       const { message, user }: CreateAccountPOSTresponse = await response.json()
+      logger.debug(message, user)
 
       if (!response.ok) {
         setError(message)

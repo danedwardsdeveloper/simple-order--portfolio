@@ -4,9 +4,9 @@ import { myPersonalEmail } from '@/library/environment/serverVariables'
 import logger from '@/library/logger'
 
 import emailClient from './client'
-import { SendEmailBody, SendEmailResponse } from '@/types'
+import { SendEmailBody } from '@/types'
 
-export const sendEmail = async ({ to = myPersonalEmail, subject, htmlVersion, textVersion }: SendEmailBody): Promise<SendEmailResponse> => {
+export const sendEmail = async ({ to = myPersonalEmail, subject, htmlVersion, textVersion }: SendEmailBody): Promise<boolean> => {
   const messageData: MailgunMessageData = {
     from: 'Simple Order <noreply@simpleorder.co.uk>',
     to,
@@ -18,10 +18,10 @@ export const sendEmail = async ({ to = myPersonalEmail, subject, htmlVersion, te
 
   if (response.status === 200) {
     logger.info(`Sent email to ${to}`)
-    return { success: true }
+    return true
   } else {
     logger.errorUnknown(response.message, 'Error sending email')
-    return { success: false }
+    return false
   }
 }
 

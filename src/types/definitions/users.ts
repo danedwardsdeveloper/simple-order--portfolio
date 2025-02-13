@@ -7,13 +7,18 @@ export type BaseUser = typeof users.$inferSelect
 export type NewBaseUser = Required<Omit<typeof users.$inferInsert, 'id'>>
 export type BaseUserWithoutPassword = Omit<BaseUser, 'hashedPassword'>
 export type ClientSafeBaseUser = Omit<BaseUserWithoutPassword, 'id'>
+export type NewBaseUserBrowserInput = Omit<NewBaseUser, 'hashedPassword' | 'cachedTrialExpired' | 'emailConfirmed'> & {
+  password: string
+  staySignedIn: boolean
+}
+export type InvitedCustomerBrowserInput = Omit<NewBaseUserBrowserInput, 'email'>
 
 export type MerchantProfile = typeof merchantProfiles.$inferSelect
 export type NewMerchantProfile = typeof merchantProfiles.$inferInsert
 export type ClientSafeMerchantProfile = Pick<MerchantProfile, 'slug'>
 
+// Junction table where insert & return type are identical
 export type CustomerToMerchant = typeof customerToMerchant.$inferSelect
-export type NewCustomerToMerchant = typeof customerToMerchant.$inferInsert
 
 export interface RelationshipItem {
   id: number

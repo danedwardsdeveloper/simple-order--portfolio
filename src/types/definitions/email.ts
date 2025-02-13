@@ -5,10 +5,6 @@ export interface SendEmailBody {
   htmlVersion: string
 }
 
-export interface SendEmailResponse {
-  success: boolean
-}
-
 export interface EmailTemplate {
   subject: string
   htmlVersion: string

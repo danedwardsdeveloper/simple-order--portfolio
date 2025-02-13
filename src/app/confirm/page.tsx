@@ -13,47 +13,48 @@ import { ConfirmEmailPOSTbody, ConfirmEmailPOSTresponse, ConfirmEmailQueryParame
 export default function Page() {
   const searchParams = useSearchParams()
   const token = searchParams.get(ConfirmEmailQueryParameters.token)
-
-  const [message, setMessage] = useState('This is the default message')
+  const [isLoading, setIsLoading] = useState(true)
+  const [message, setMessage] = useState<string | null>(null)
 
   useEffect(() => {
-    setIsLoading(true)
     const confirmEmail = async () => {
-      // ToDo: Add try catch finally
-      const body: ConfirmEmailPOSTbody = {
-        token,
+      try {
+        const body: ConfirmEmailPOSTbody = { token }
+        const response = await fetch(apiPaths.authentication.email.confirm, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        })
+        const data: ConfirmEmailPOSTresponse = await response.json()
+        setMessage(data.message)
+      } catch (error) {
+        setMessage('An error occurred while confirming your email')
+      } finally {
+        setIsLoading(false)
       }
-      const response = await fetch(apiPaths.authentication.email.confirm, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      })
-      const { message }: ConfirmEmailPOSTresponse = await response.json()
-      setMessage(message)
-      setIsLoading(false)
     }
 
-    confirmEmail()
+    if (token) {
+      confirmEmail()
+    }
   }, [token])
-
-  const [isLoading, setIsLoading] = useState(false)
-  const heading = 'Confirm your email'
-
-  function LoadingMessage() {
-    return (
-      <div className="flex gap-x-2">
-        <Spinner />
-        <span>Loading...</span>
-      </div>
-    )
-  }
 
   return (
     <div>
-      <h1>{heading}</h1>
-      <div data-test-id={dataTestIdNames.emailConfirmationFeedback}>{isLoading ? <LoadingMessage /> : message}</div>
+      <h1>Confirm your email</h1>
+
+      {isLoading && (
+        <div data-test-id={dataTestIdNames.emailConfirmation.loading} className="flex gap-x-2">
+          <Spinner />
+          <span>Confirming your email...</span>
+        </div>
+      )}
+
+      {!isLoading && !message && (
+        <div data-test-id={dataTestIdNames.emailConfirmation.default}>Please wait while we confirm your email address</div>
+      )}
+
+      {!isLoading && message && <div data-test-id={dataTestIdNames.emailConfirmation.response}>{message}</div>}
     </div>
   )
 }

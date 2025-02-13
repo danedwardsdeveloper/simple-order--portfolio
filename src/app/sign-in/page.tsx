@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
+import { dataTestIdNames } from '@/library/constants/dataTestId'
+import { testPasswords, testUsers } from '@/library/constants/testUsers'
 import logger from '@/library/logger'
 
 import { CheckboxIcon } from '@/components/Icons'
@@ -14,9 +16,10 @@ import { SignInPOSTbody, SignInPOSTresponse } from '@/types/api/authentication/s
 export default function SignInPage() {
   const { setClientSafeUser } = useAuthorisation()
   const router = useRouter()
+  const preFillForConvenience = false
   const [formData, setFormData] = useState<SignInPOSTbody>({
-    email: 'both@gmail.com',
-    password: 'securePassword',
+    email: preFillForConvenience ? testUsers.permanentTestUser.email : '',
+    password: preFillForConvenience ? testPasswords.good : '',
     staySignedIn: false,
   })
   const [error, setError] = useState('')
@@ -50,7 +53,7 @@ export default function SignInPage() {
       }
 
       setClientSafeUser(foundUser)
-      router.push('/')
+      router.push('/dashboard')
       return
     } catch (error) {
       logger.error(error)
@@ -68,6 +71,7 @@ export default function SignInPage() {
             Email
           </label>
           <input
+            data-test-id={dataTestIdNames.signIn.emailInput}
             id="email"
             type="email"
             value={formData.email}
@@ -88,6 +92,7 @@ export default function SignInPage() {
             Password
           </label>
           <input
+            data-test-id={dataTestIdNames.signIn.passwordInput}
             id="password"
             type="password"
             value={formData.password}
@@ -107,6 +112,7 @@ export default function SignInPage() {
           <div className="flex h-6 shrink-0 items-center">
             <div className="group grid size-4 grid-cols-1">
               <input
+                data-test-id={dataTestIdNames.signIn.staySignedInCheckbox}
                 id="stay-signed-in"
                 name="stay-signed-in"
                 type="checkbox"
@@ -126,7 +132,7 @@ export default function SignInPage() {
           </label>
         </div>
 
-        <button type="submit" className="button-primary inline-block w-full">
+        <button data-test-id={dataTestIdNames.signIn.submitButton} type="submit" className="button-primary inline-block w-full">
           Sign In
         </button>
       </form>

@@ -20,13 +20,19 @@ export const testUsers = {
     firstName: 'Susan',
     lastName: 'Poodle',
     email: 'susanpoodle@gmail.com',
-    businessName: `Susan's Spicey Sauces`,
+    businessName: `Susan's Spicey Sausages`,
+  },
+  permanentTestUser: {
+    firstName: 'Permanent',
+    lastName: 'Test User',
+    email: 'permanenttestuser@gmail.com',
+    businessName: 'Permanent Business',
   },
 }
 
-export function isTestEmail(email: string): boolean {
+export function checkIsTestEmail(email: string): boolean {
   const normalizedEmail = email.trim().toLowerCase()
-  return [testUsers.customerOnly.email, testUsers.merchantOnly.email, testUsers.both.email]
+  return [testUsers.customerOnly.email, testUsers.merchantOnly.email, testUsers.both.email, testUsers.permanentTestUser.email]
     .map(email => email.toLowerCase())
     .includes(normalizedEmail)
 }

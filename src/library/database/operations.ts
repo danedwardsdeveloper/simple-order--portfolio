@@ -3,7 +3,7 @@ import { and, eq, gt } from 'drizzle-orm'
 import { freeTrials, merchantProfiles, products, subscriptions, users } from '@/library/database/schema'
 
 import { database } from './connection'
-import { BaseUser, ClientProduct } from '@/types'
+import { BaseUser, ClientProduct, Subscription } from '@/types'
 
 interface CheckUserExistsResponse {
   userExists: boolean
@@ -63,8 +63,9 @@ async function checkActiveSubscription(userId: number): Promise<boolean> {
   const [validSubscription] = await database
     .select()
     .from(subscriptions)
-    .where(and(gt(subscriptions.currentPeriodEnd, new Date()), eq(subscriptions.merchantProfileId, userId)))
+    .where(and(gt(subscriptions.currentPeriodEnd, new Date()), eq(subscriptions.userId, userId)))
     .limit(1)
+
   if (validSubscription) return true
   return false
 }
@@ -84,7 +85,7 @@ export async function checkActiveSubscriptionOrTrial(
   const [validFreeTrial] = await database
     .select()
     .from(freeTrials)
-    .where(and(gt(freeTrials.endDate, new Date()), eq(freeTrials.merchantProfileId, userId)))
+    .where(and(gt(freeTrials.endDate, new Date()), eq(freeTrials.userId, userId)))
     .limit(1)
   if (validFreeTrial) return { validSubscriptionOrTrial: true }
 

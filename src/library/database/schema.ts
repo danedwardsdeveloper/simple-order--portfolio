@@ -26,22 +26,24 @@ export const merchantProfiles = pgTable('merchant_profiles', {
 export const customerToMerchant = pgTable(
   'customer_to_merchant',
   {
-    merchantProfileId: integer('merchant_profile_id')
+    merchantUserId: integer('merchant_user_id')
       .notNull()
-      .references(() => merchantProfiles.id),
-    customerProfileId: integer('customer_profile_id')
+      .references(() => users.id),
+    customerUserId: integer('customer_user_id')
       .notNull()
       .references(() => users.id),
   },
-  table => [primaryKey({ columns: [table.merchantProfileId, table.customerProfileId] })],
+  table => [primaryKey({ columns: [table.merchantUserId, table.customerUserId] })],
 )
 
 export const invitations = pgTable('invitations', {
   id: serial('id').primaryKey(),
   email: text('email').notNull().unique(),
-  merchantProfileId: integer('merchant_profile_id')
+
+  // think about changing this as it's not clear whom it applies to
+  userId: integer('user_id')
     .notNull()
-    .references(() => merchantProfiles.id),
+    .references(() => users.id),
   token: uuid('token').notNull().unique().defaultRandom(),
   expiresAt: timestamp('expires_at').notNull(),
   emailAttempts: integer('email_attempts').notNull().default(0),
@@ -60,9 +62,9 @@ export const confirmationTokens = pgTable('confirmation_tokens', {
 
 export const freeTrials = pgTable('free_trials', {
   id: serial('id').primaryKey(),
-  merchantProfileId: integer('merchant_profile_id')
+  userId: integer('user_id')
     .notNull()
-    .references(() => merchantProfiles.id)
+    .references(() => users.id)
     .unique(),
   startDate: timestamp('start_date').notNull(),
   endDate: timestamp('end_date').notNull(),
@@ -70,9 +72,9 @@ export const freeTrials = pgTable('free_trials', {
 
 export const subscriptions = pgTable('subscriptions', {
   id: integer('id').primaryKey(),
-  merchantProfileId: integer('merchant_profile_id')
+  userId: integer('user_id')
     .notNull()
-    .references(() => merchantProfiles.id),
+    .references(() => users.id),
   stripeSubscriptionId: text('stripe_subscription_id').notNull().unique(),
   priceId: text('price_id').notNull(),
   currentPeriodStart: timestamp('current_period_start').notNull(),
