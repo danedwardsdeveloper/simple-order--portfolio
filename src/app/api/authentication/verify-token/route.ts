@@ -1,4 +1,5 @@
 import { eq as equals } from 'drizzle-orm'
+import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { database } from '@/library/database/connection'
@@ -7,7 +8,15 @@ import { users } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
 
-import { authenticationMessages, AuthenticationMessages, BasicMessages, basicMessages, FullClientSafeUser, httpStatus } from '@/types'
+import {
+  authenticationMessages,
+  AuthenticationMessages,
+  BasicMessages,
+  basicMessages,
+  cookieNames,
+  FullClientSafeUser,
+  httpStatus,
+} from '@/types'
 
 export interface VerifyTokenGETresponse {
   message: BasicMessages | AuthenticationMessages
@@ -62,6 +71,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
     }
 
     // Add merchant details, get orders etc. and transform user
+
+    logger.debug('Full browser-safe user: ', JSON.stringify(clientSafeUser))
 
     return NextResponse.json({ message: basicMessages.success, user: clientSafeUser }, { status: httpStatus.http200ok })
   } catch (error) {
