@@ -27,6 +27,7 @@ import {
   httpStatus,
   illegalCharactersMessages,
   NewBaseUser,
+  NewFreeTrial,
 } from '@/types'
 import { CreateAccountPOSTbody, CreateAccountPOSTresponse } from '@/types/api/authentication/create-account'
 import { ConfirmEmailQueryParameters } from '@/types/api/authentication/email/confirm'
@@ -107,6 +108,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
         cachedTrialExpired: users.cachedTrialExpired,
       })
 
+      logger.debug('New user: ', JSON.stringify(newUser))
+
       const baseSlug = createMerchantSlug(businessName)
       let slug = baseSlug
 
@@ -125,14 +128,18 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
         })
         .returning()
 
-      const [newFreeTrial] = (await tx
-        .insert(freeTrials)
-        .values({
-          startDate: new Date(),
-          endDate: createFreeTrialEndTime(),
-          merchantProfileId: newMerchant.id,
-        })
-        .returning()) as [FreeTrial]
+      logger.debug('New merchant profile: ', JSON.stringify(newMerchant))
+
+      // The free trial is linked to the merchantId, not the userId! This is because not all users are merchants
+      const freeTrialInsert: NewFreeTrial = {
+        startDate: new Date(),
+        endDate: createFreeTrialEndTime(),
+        userId: newUser.id,
+      }
+
+      const [newFreeTrial]: FreeTrial[] = await tx.insert(freeTrials).values(freeTrialInsert).returning()
+
+      logger.debug('New free trial: ', JSON.stringify(newFreeTrial))
 
       const emailConfirmationToken = generateConfirmationToken()
 
@@ -166,17 +173,18 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
       } else {
         // ToDo: style actual email
         transactionErrorMessage = authenticationMessages.errorSendingEmail
-        const emailResponse = await sendEmail({
+        const emailSentSuccessfully = await sendEmail({
           to: isProduction ? email : myPersonalEmail,
           ...createNewMerchantEmail({
             recipientName: firstName,
             confirmationURL,
           }),
         })
-        if (!emailResponse.success) tx.rollback()
+        if (!emailSentSuccessfully) tx.rollback()
       }
       transactionErrorMessage = null
       transactionErrorStatusCode = null
+
       return { newUser, newMerchant, newFreeTrial }
     })
 
