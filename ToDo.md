@@ -2,8 +2,7 @@
 
 ## Current Task
 
-1. Get customer invitations working
-2. Prevent sign-in from returning dangerous information!
+Get good path for inviting brand new customers working
 
 ## MVP
 
@@ -11,6 +10,7 @@
 
 ## Refinements (Even if they're really important!)
 
+- Prevent sign-in from returning dangerous information!
 - Sanitise business names but allow apostrophes
 - Style notification items
 - Resend confirmation emails (invite customer, merchant sign-up)
