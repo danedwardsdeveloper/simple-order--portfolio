@@ -4,7 +4,7 @@
 
 @layer base {
   input:not([type='checkbox']):not([type='radio']):not([type='range']) {
-    @apply p-2 bg-slate-50 rounded border-2 border-blue-100;
+    @apply p-2 bg-slate-50 rounded border-2 border-blue-100 outline-offset-4 focus-visible:outline-yellow-300;
   }
 
   label {
@@ -23,15 +23,15 @@
     @apply col-start-1 row-start-1 appearance-none rounded border border-gray-300 bg-white 
            checked:border-blue-600 checked:bg-blue-600 
            indeterminate:border-blue-600 indeterminate:bg-blue-600 
-           focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 
+           focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-300 
            disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 
-           forced-colors:appearance-auto;
+           forced-colors:appearance-auto outline-offset-4;
   }
 }
 
 @layer components {
   .button {
-    @apply rounded-lg px-3 py-1 font-medium text-sm border-2  transition-all duration-300;
+    @apply rounded-lg px-3 py-1 font-medium text-sm border-2  transition-all duration-300 outline-offset-4 focus-visible:outline-yellow-300;
   }
   .button-primary {
     @apply button bg-blue-600 hover:bg-blue-500 active:bg-blue-400 text-white border-blue-700 hover:border-blue-600 active:border-blue-500;
