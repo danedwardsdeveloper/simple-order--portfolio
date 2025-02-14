@@ -4,7 +4,7 @@ _Work in progress_
 
 An order management website for wholesalers and their customers so they can reduce costs, save time, and eliminate phone call confusion.
 
-[Photo!]
+![Simple Order desktop landing page screenshot](https://raw.githubusercontent.com/danedwardsdeveloper/simple-order/main/misc/github-read-me-mockup.webp)
 
 # Technology
 
@@ -14,4 +14,4 @@ An order management website for wholesalers and their customers so they can redu
 - Tailwind CSS
 - Testing with Vitest & Puppeteer
 
-Please see my `developer website write-up` for more details.
+Please see my [developer website write-up](http://danedwardsdeveloper.com/projects/simple-order) for more details.
