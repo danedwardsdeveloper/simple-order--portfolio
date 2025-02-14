@@ -23,7 +23,6 @@ yarn-error.log*
 
 .env*
 !.env.example
-Dockerfile
 
 .vercel
 
@@ -34,4 +33,3 @@ drizzle/
 drizzle.config.ts
 
 /misc
-*.db
