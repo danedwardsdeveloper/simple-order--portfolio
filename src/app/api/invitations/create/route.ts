@@ -4,16 +4,14 @@ import urlJoin from 'url-join'
 import { v4 as generateConfirmationToken } from 'uuid'
 
 import { durationSettings } from '@/library/constants/durations'
-import { checkIsTestEmail } from '@/library/constants/testUsers'
 import { database } from '@/library/database/connection'
 import { checkActiveSubscriptionOrTrial, checkUserExists } from '@/library/database/operations'
-import { customerToMerchant, invitations, testEmailInbox, users } from '@/library/database/schema'
+import { customerToMerchant, invitations, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import { createExistingUserInvitation } from '@/library/email/templates/invitations/existingUser'
 import { createNewUserInvitation } from '@/library/email/templates/invitations/newUser'
 import { emailRegex } from '@/library/email/utilities'
-import { dynamicBaseURL, isProduction } from '@/library/environment/publicVariables'
-import { myPersonalEmail } from '@/library/environment/serverVariables'
+import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import logger from '@/library/logger'
 import { obfuscateEmail } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
@@ -30,7 +28,6 @@ import {
   Invitation,
   InvitationInsert,
 } from '@/types'
-import { TestEmailInsert } from '@/types/definitions/testEmailInbox'
 
 export interface InviteCustomerPOSTresponse {
   message: BasicMessages | AuthenticationMessages | string // ToDo: make this strict
@@ -74,7 +71,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
       return NextResponse.json({ message: authenticationMessages.userNotFound }, { status: httpStatus.http401unauthorised })
     }
 
-    logger.debug('Email is confirmed: ', !existingUser.emailConfirmed)
+    logger.debug('Email is confirmed: ', existingUser.emailConfirmed)
 
     if (!existingUser.emailConfirmed) {
       return NextResponse.json({ message: authenticationMessages.emailNotConfirmed }, { status: httpStatus.http401unauthorised })
@@ -165,52 +162,27 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
 
       logger.info('Invitation url: ', invitationURL)
 
-      const isTestEmail = checkIsTestEmail(normalisedInvitedEmail)
-
-      if (isTestEmail) {
-        // 10. Transaction: if a test, record the email in test_email_inbox
-        const testEmailValues: TestEmailInsert = {
-          id: 1,
-          content: invitationURL,
-        }
-        transactionErrorMessage = 'error saving link in test_email_inbox'
-        const [testEmailRow]: TestEmailInsert[] = await tx
-          .insert(testEmailInbox)
-          .values(testEmailValues)
-          .onConflictDoUpdate({
-            target: testEmailInbox.id,
-            set: {
-              content: testEmailValues.content,
-            },
+      // 11. Transaction: send the invitation email if it isn't a test address
+      transactionErrorMessage = authenticationMessages.errorSendingEmail
+      const dynamicEmailTemplate = inviteeAlreadyHasAccount
+        ? createExistingUserInvitation({
+            recipientEmail: normalisedInvitedEmail,
+            merchantBusinessName: existingUser.businessName,
+            invitationURL,
+            expiryDate: newInvitationExpiryDate,
           })
-          .returning()
-        if (!testEmailRow) tx.rollback()
-      }
+        : createNewUserInvitation({
+            recipientEmail: normalisedInvitedEmail,
+            merchantBusinessName: existingUser.businessName,
+            invitationURL,
+            expiryDate: newInvitationExpiryDate,
+          })
 
-      if (!isTestEmail) {
-        // 11. Transaction: send the invitation email if it isn't a test address
-        transactionErrorMessage = authenticationMessages.errorSendingEmail
-        const emailTemplate = inviteeAlreadyHasAccount
-          ? createExistingUserInvitation({
-              recipientEmail: normalisedInvitedEmail,
-              merchantBusinessName: existingUser.businessName,
-              invitationURL,
-              expiryDate: newInvitationExpiryDate,
-            })
-          : createNewUserInvitation({
-              recipientEmail: normalisedInvitedEmail,
-              merchantBusinessName: existingUser.businessName,
-              invitationURL,
-              expiryDate: newInvitationExpiryDate,
-            })
-
-        // Urgent ToDo: prevent this from sending emails during tests
-        const sentEmailSuccessfully = await sendEmail({
-          to: isProduction ? normalisedInvitedEmail : myPersonalEmail,
-          ...emailTemplate,
-        })
-        if (!sentEmailSuccessfully) tx.rollback()
-      }
+      const sentEmailSuccessfully = await sendEmail({
+        recipientEmail: normalisedInvitedEmail,
+        ...dynamicEmailTemplate,
+      })
+      if (!sentEmailSuccessfully) tx.rollback()
     })
 
     transactionErrorMessage = null
