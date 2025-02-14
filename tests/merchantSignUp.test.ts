@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 import { Browser, launch, Page } from 'puppeteer'
 import { afterAll, beforeAll, describe, expect, it, test } from 'vitest'
 
@@ -90,9 +90,22 @@ describe('Create Account Form', async () => {
   })
 
   test('click the test_email_inbox invitation link', async () => {
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    const [emailRow] = await database.select().from(testEmailInbox).where(eq(testEmailInbox.id, 1))
-    await page.goto(emailRow.content)
+    const recentEmails = await database.select().from(testEmailInbox).orderBy(desc(testEmailInbox.id)).limit(3)
+
+    const confirmLinkRegex = /http:\/\/[^\s<>"]+\/confirm\?token=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g
+
+    let invitationLink: string | undefined
+    for (const email of recentEmails) {
+      const matches = email.content.match(confirmLinkRegex)
+      if (matches) {
+        invitationLink = matches[0]
+        break
+      }
+    }
+
+    expect(invitationLink).toBeDefined()
+    await page.goto(invitationLink!)
+
     const confirmationMessage = await getElements.byTestId(dataTestIdNames.emailConfirmation.response)
     expect(confirmationMessage).toBeDefined()
     const successMessage = await confirmationMessage?.evaluate(element => element.textContent)
@@ -114,5 +127,21 @@ describe('Create Account Form', async () => {
     await page.goto(`${developmentBaseURL}/customers`)
     const inviteCustomerForm = await getElements.byTestId(dataTestIdNames.invite.form)
     expect(inviteCustomerForm).toBeDefined()
+  })
+
+  test.skip('Fill out and submit the invitation form', async () => {
+    //
+  })
+
+  test.skip('Displays a success message', async () => {
+    //
+  })
+
+  test.skip('An invitation now exists in the database', async () => {
+    //
+  })
+
+  test.skip('Click the link from test_email_inbox', async () => {
+    //
   })
 })
