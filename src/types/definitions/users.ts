@@ -2,20 +2,18 @@ import { customerToMerchant, merchantProfiles, users } from '@/library/database/
 
 import { ClientProduct } from './products'
 
-// Rename this DangerousBaseUser
-export type BaseUser = typeof users.$inferSelect
-export type NewBaseUser = Required<Omit<typeof users.$inferInsert, 'id'>>
-export type BaseUserWithoutPassword = Omit<BaseUser, 'hashedPassword'>
-export type ClientSafeBaseUser = Omit<BaseUserWithoutPassword, 'id'>
-export type NewBaseUserBrowserInput = Omit<NewBaseUser, 'hashedPassword' | 'cachedTrialExpired' | 'emailConfirmed'> & {
+export type DangerousBaseUser = typeof users.$inferSelect
+export type BaseUserInsertValues = Required<Omit<typeof users.$inferInsert, 'id'>>
+export type BaseBrowserSafeUser = Omit<DangerousBaseUser, 'id' | 'hashedPassword'>
+export type BaseUserBrowserInputValues = Omit<BaseUserInsertValues, 'hashedPassword' | 'cachedTrialExpired' | 'emailConfirmed'> & {
   password: string
   staySignedIn: boolean
 }
-export type InvitedCustomerBrowserInput = Omit<NewBaseUserBrowserInput, 'email'>
+export type InvitedCustomerBrowserInputValues = Omit<BaseUserBrowserInputValues, 'email'>
 
 export type MerchantProfile = typeof merchantProfiles.$inferSelect
-export type NewMerchantProfile = typeof merchantProfiles.$inferInsert
-export type ClientSafeMerchantProfile = Pick<MerchantProfile, 'slug'>
+export type MerchantProfileInsertValues = typeof merchantProfiles.$inferInsert
+export type BrowserSafeMerchantProfile = Pick<MerchantProfile, 'slug'>
 
 // Junction table where insert & return type are identical
 export type CustomerToMerchant = typeof customerToMerchant.$inferSelect
@@ -40,8 +38,7 @@ export interface BrowserSafeInvitationRecord {
   expirationDate: Date
 }
 
-// Change to FullBrowserSafeUser
-export interface FullClientSafeUser {
+export interface FullBrowserSafeUser {
   firstName: string
   lastName: string
   email: string
