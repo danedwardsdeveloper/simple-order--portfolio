@@ -1,5 +1,5 @@
 export interface SendEmailBody {
-  to?: string
+  recipientEmail: string
   subject: string
   textVersion: string
   htmlVersion: string
