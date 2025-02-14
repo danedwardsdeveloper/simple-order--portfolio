@@ -4,34 +4,30 @@ import { NextRequest, NextResponse } from 'next/server'
 import { v4 as generateConfirmationToken } from 'uuid'
 
 import { durationOptions } from '@/library/constants/durations'
-import { checkIsTestEmail } from '@/library/constants/testUsers'
 import { database } from '@/library/database/connection'
-import { confirmationTokens, freeTrials, merchantProfiles, testEmailInbox, users } from '@/library/database/schema'
+import { confirmationTokens, freeTrials, merchantProfiles, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import { createNewMerchantEmail } from '@/library/email/templates/newMerchant'
 import { emailRegex } from '@/library/email/utilities'
-import { dynamicBaseURL, isProduction } from '@/library/environment/publicVariables'
-import { myPersonalEmail } from '@/library/environment/serverVariables'
+import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import logger from '@/library/logger'
 import { containsIllegalCharacters, createFreeTrialEndTime, createMerchantSlug } from '@/library/utilities'
+import { sanitiseDangerousBaseUser } from '@/library/utilities/definitions/sanitiseUser'
 import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
 
 import {
   authenticationMessages,
-  BaseUser,
-  BaseUserWithoutPassword,
+  BaseUserInsertValues,
   basicMessages,
   cookieDurations,
+  DangerousBaseUser,
   FreeTrial,
-  FullClientSafeUser,
+  FullBrowserSafeUser,
   httpStatus,
   illegalCharactersMessages,
-  NewBaseUser,
   NewFreeTrial,
 } from '@/types'
 import { CreateAccountPOSTbody, CreateAccountPOSTresponse } from '@/types/api/authentication/create-account'
-import { ConfirmEmailQueryParameters } from '@/types/api/authentication/email/confirm'
-import { TestEmailInsert } from '@/types/definitions/testEmailInbox'
 
 export async function POST(request: NextRequest): Promise<NextResponse<CreateAccountPOSTresponse>> {
   const { firstName, lastName, email, password, businessName, staySignedIn }: CreateAccountPOSTbody = await request.json()
@@ -69,14 +65,15 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
       .where(or(eq(users.email, normalisedEmail), eq(users.businessName, businessName)))
       .limit(1)
 
-    let conflictMessage
     if (existingUser) {
-      if (existingUser.email === normalisedEmail) conflictMessage = authenticationMessages.emailTaken
-      if (existingUser.businessName === businessName) conflictMessage = authenticationMessages.businessNameTaken
+      if (existingUser.email === normalisedEmail) {
+        logger.debug('Existing user email: ', existingUser.email)
+        logger.debug('normalisedEmail: ', normalisedEmail)
+        return NextResponse.json({ message: authenticationMessages.emailTaken }, { status: httpStatus.http409conflict })
+      }
 
-      if (conflictMessage) {
-        logger.error('There was a conflict')
-        return NextResponse.json({ message: conflictMessage }, { status: httpStatus.http409conflict })
+      if (existingUser.businessName === businessName) {
+        return NextResponse.json({ message: authenticationMessages.businessNameTaken }, { status: httpStatus.http409conflict })
       }
     }
 
@@ -88,7 +85,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
     let transactionErrorStatusCode: number | null = httpStatus.http503serviceUnavailable
 
     const { newUser, newMerchant, newFreeTrial } = await database.transaction(async tx => {
-      const newUserInsert: NewBaseUser = {
+      const newUserInsertValues: BaseUserInsertValues = {
         firstName,
         lastName,
         email: normalisedEmail,
@@ -98,15 +95,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
         cachedTrialExpired: false,
       }
 
-      const [newUser]: BaseUserWithoutPassword[] = await tx.insert(users).values(newUserInsert).returning({
-        id: users.id,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        email: users.email,
-        businessName: users.businessName,
-        emailConfirmed: users.emailConfirmed,
-        cachedTrialExpired: users.cachedTrialExpired,
-      })
+      const [newUser]: DangerousBaseUser[] = await tx.insert(users).values(newUserInsertValues).returning()
 
       logger.debug('New user: ', JSON.stringify(newUser))
 
@@ -149,39 +138,21 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
         expiresAt: new Date(Date.now() + durationOptions.twentyFourHoursInMilliseconds),
       })
 
-      const confirmationURL = `${dynamicBaseURL}/confirm?${ConfirmEmailQueryParameters.token}=${emailConfirmationToken}`
+      const confirmationURL = `${dynamicBaseURL}/confirm?token=${emailConfirmationToken}`
       logger.info('Confirmation URL: ', confirmationURL)
 
-      const testEmailValues: TestEmailInsert = {
-        id: 1,
-        content: confirmationURL,
-      }
+      // ToDo: style actual email
+      transactionErrorMessage = authenticationMessages.errorSendingEmail
+      const emailSentSuccessfully = await sendEmail({
+        recipientEmail: email,
+        ...createNewMerchantEmail({
+          recipientName: firstName,
+          confirmationURL,
+        }),
+      })
 
-      const isTestEmail = checkIsTestEmail(normalisedEmail)
+      if (!emailSentSuccessfully) tx.rollback()
 
-      if (isTestEmail) {
-        // ToDo: Make this into a reusable function. I tried but it's complicated...
-        await tx
-          .insert(testEmailInbox)
-          .values(testEmailValues)
-          .onConflictDoUpdate({
-            target: testEmailInbox.id,
-            set: {
-              content: confirmationURL,
-            },
-          })
-      } else {
-        // ToDo: style actual email
-        transactionErrorMessage = authenticationMessages.errorSendingEmail
-        const emailSentSuccessfully = await sendEmail({
-          to: isProduction ? email : myPersonalEmail,
-          ...createNewMerchantEmail({
-            recipientName: firstName,
-            confirmationURL,
-          }),
-        })
-        if (!emailSentSuccessfully) tx.rollback()
-      }
       transactionErrorMessage = null
       transactionErrorStatusCode = null
 
@@ -193,10 +164,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
       return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http503serviceUnavailable })
     }
 
-    const { id, ...clientSafeBaseUser } = newUser as BaseUser
+    const sanitisedBaseUser = sanitiseDangerousBaseUser(newUser)
 
-    const transformedUser: FullClientSafeUser = {
-      ...clientSafeBaseUser,
+    const transformedUser: FullBrowserSafeUser = {
+      ...sanitisedBaseUser,
       merchantDetails: {
         slug: newMerchant.slug,
         freeTrial: { endDate: new Date(newFreeTrial.endDate) },
@@ -212,25 +183,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 
     return response
   } catch (error) {
-    if (error instanceof Error) {
-      const errorMessage = error.message
-
-      if (errorMessage.includes('duplicate key value violates unique constraint')) {
-        let constraintMessage
-        if (errorMessage.includes(users.email.name)) constraintMessage = authenticationMessages.emailTaken
-        if (errorMessage.includes(users.businessName.name)) constraintMessage = authenticationMessages.businessNameTaken
-        if (errorMessage.includes(merchantProfiles.slug.name)) constraintMessage = authenticationMessages.slugTaken
-
-        if (constraintMessage) {
-          return NextResponse.json({ message: constraintMessage }, { status: httpStatus.http409conflict })
-        }
-
-        if (errorMessage === 'error sending email') {
-          return NextResponse.json({ message: authenticationMessages.errorSendingEmail }, { status: httpStatus.http503serviceUnavailable })
-        }
-      }
-    }
-
     logger.errorUnknown(error, 'Error creating user: ')
     return NextResponse.json({ message: basicMessages.databaseError }, { status: httpStatus.http500serverError })
   }
