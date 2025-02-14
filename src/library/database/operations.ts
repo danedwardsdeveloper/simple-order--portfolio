@@ -3,7 +3,7 @@ import { and, eq, gt } from 'drizzle-orm'
 import { freeTrials, merchantProfiles, products, subscriptions, users } from '@/library/database/schema'
 
 import { database } from './connection'
-import { BaseUser, ClientProduct, Subscription } from '@/types'
+import { BaseUser, ClientProduct } from '@/types'
 
 interface CheckUserExistsResponse {
   userExists: boolean
