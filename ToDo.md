@@ -2,7 +2,7 @@
 
 ## Current Task
 
-Get good path for inviting brand new customers working
+- Get `verify-token` to return the invited customers details
 
 ## MVP
 
