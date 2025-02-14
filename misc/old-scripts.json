@@ -1,0 +1,22 @@
+{
+  "scripts": {
+    "db-start": "fly machine start 185e1d0b416e98 -a simple-order-db",
+    "db-stop": "fly machine stop 185e1d0b416e98 -a simple-order-db",
+    "list-db": "fly machine list -a simple-order-db",
+    "proxy": "fly proxy 5432 -a simple-order-db",
+    "dev-without-db": "next dev --turbo",
+    "connect-db-proxy": "pnpm db-start && pnpm proxy",
+    "dev": "concurrently --prefix none --raw \"pnpm run -s connect-db-proxy\" \"pnpm run -s dev-without-db\"",
+    "build": "next build",
+    "generate": "drizzle-kit generate",
+    "push": "drizzle-kit push",
+    "studio": "npx drizzle-kit studio",
+    "start": "next start",
+    "start:local": "next build && tsx testServer.ts",
+    "lint": "next lint",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md,css,scss}\"",
+    "test": "vitest",
+    "predeploy": "pnpm format && pnpm tsx predeploy/validateDockerfile.ts && pnpm lint && pnpm build",
+    "deploy": "fly deploy"
+  }
+}
