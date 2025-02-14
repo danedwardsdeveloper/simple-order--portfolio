@@ -8,11 +8,11 @@ import { dataTestIdNames } from '@/library/constants/dataTestId'
 import Spinner from '@/components/Spinner'
 
 import { apiPaths } from '@/types'
-import { ConfirmEmailPOSTbody, ConfirmEmailPOSTresponse, ConfirmEmailQueryParameters } from '@/types/api/authentication/email/confirm'
+import { ConfirmEmailPOSTbody, ConfirmEmailPOSTresponse } from '@/types/api/authentication/email/confirm'
 
 export default function Page() {
   const searchParams = useSearchParams()
-  const token = searchParams.get(ConfirmEmailQueryParameters.token)
+  const token = searchParams.get('token')
   const [isLoading, setIsLoading] = useState(true)
   const [message, setMessage] = useState<string | null>(null)
 
@@ -27,7 +27,7 @@ export default function Page() {
         })
         const data: ConfirmEmailPOSTresponse = await response.json()
         setMessage(data.message)
-      } catch (error) {
+      } catch {
         setMessage('An error occurred while confirming your email')
       } finally {
         setIsLoading(false)
