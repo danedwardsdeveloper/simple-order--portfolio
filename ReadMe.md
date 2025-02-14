@@ -1,10 +1,8 @@
 # Simple Order
 
-_Work in progress_
+An order management website for wholesalers and their customers so they can reduce costs, save time, and eliminate phone call confusion. Work in progress.
 
-An order management website for wholesalers and their customers so they can reduce costs, save time, and eliminate phone call confusion.
-
-![Simple Order desktop landing page screenshot](https://raw.githubusercontent.com/danedwardsdeveloper/simple-order/main/misc/github-read-me-mockup.webp)
+![Simple Order desktop landing page screenshot](https://raw.githubusercontent.com/danedwardsdeveloper/simple-order/refs/heads/main/misc/github-readme-mockup.webp)
 
 # Technology
 
