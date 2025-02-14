@@ -122,28 +122,17 @@ export async function POST(
 
             transactionErrorMessage = 'transaction error sending welcome email'
 
-            // Don't send actual emails! Important of the testing framework will go crazy
+            // Important ToD: Don't send actual emails! Important of the testing framework will go crazy
 
-            const isTestEmail = checkIsTestEmail(foundEmail)
-            let handledEmailSuccessfully: boolean = false
+            const emailSuccess = await sendEmail({
+              recipientEmail: foundEmail,
+              subject: 'Thank you for using Simple Order',
+              htmlVersion: emailContent,
+              textVersion: emailContent,
+            })
 
-            if (isTestEmail) {
-              logger.info('Bypassing actual email sending as test email detected')
-              handledEmailSuccessfully = true
-            }
-
-            if (!isTestEmail) {
-              const emailSuccess = await sendEmail({
-                to: isProduction ? foundEmail : myPersonalEmail,
-                subject: 'Thank you for using Simple Order',
-                htmlVersion: emailContent,
-                textVersion: emailContent,
-              })
-
-              if (!emailSuccess) {
-                tx.rollback()
-              }
-              handledEmailSuccessfully = true
+            if (!emailSuccess) {
+              tx.rollback()
             }
 
             transactionErrorMessage = null
@@ -174,7 +163,7 @@ export async function POST(
     }
     return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
   } catch (error) {
-    logger.errorUnknown(error)
+    logger.errorUnknown(error, 'api/invitations/accept/[token] error')
     return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
   }
 }
