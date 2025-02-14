@@ -1,5 +1,4 @@
 import { eq as equals } from 'drizzle-orm'
-import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { database } from '@/library/database/connection'
@@ -11,16 +10,16 @@ import { extractIdFromRequestCookie } from '@/library/utilities/server'
 import {
   authenticationMessages,
   AuthenticationMessages,
+  BaseBrowserSafeUser,
   BasicMessages,
   basicMessages,
-  cookieNames,
-  FullClientSafeUser,
+  FullBrowserSafeUser,
   httpStatus,
 } from '@/types'
 
 export interface VerifyTokenGETresponse {
   message: BasicMessages | AuthenticationMessages
-  user?: FullClientSafeUser
+  user?: FullBrowserSafeUser
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse<VerifyTokenGETresponse>> {
@@ -31,14 +30,14 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
       return NextResponse.json({ message }, { status })
     }
 
-    const [foundUser] = await database
+    const [foundUser]: BaseBrowserSafeUser[] = await database
       .select({
-        id: users.id,
         firstName: users.firstName,
         lastName: users.lastName,
         email: users.email,
         businessName: users.businessName,
         emailConfirmed: users.emailConfirmed,
+        cachedTrialExpired: users.cachedTrialExpired,
       })
       .from(users)
       .where(equals(users.id, extractedUserId))
@@ -47,7 +46,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
       return NextResponse.json({ message: authenticationMessages.userNotFound }, { status: httpStatus.http401unauthorised })
     }
 
-    let clientSafeUser: FullClientSafeUser = {
+    let clientSafeUser: FullBrowserSafeUser = {
       ...foundUser,
     }
 
