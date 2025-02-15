@@ -6,9 +6,10 @@ An order management website for wholesalers and their customers so they can redu
 
 # Technology
 
-- Next.js App Router (the full-stack framework built on top of React), deployed with Fly.io
-- PostgreSQL, deployed with Neon
-- Drizzle query builder
+- Next.js App Router (the full-stack framework built on top of React) deployed with Fly.io
+- PostgreSQL deployed with Neon
+- Drizzle type-safe SQL query builder
+- Mailgun email service
 - Tailwind CSS
 - Testing with Vitest & Puppeteer
 
