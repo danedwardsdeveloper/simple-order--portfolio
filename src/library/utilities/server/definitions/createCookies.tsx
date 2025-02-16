@@ -1,14 +1,10 @@
-import jwt, { type JwtPayload } from 'jsonwebtoken';
+import jwt, { type JwtPayload } from 'jsonwebtoken'
 
-import { isProduction } from '@/library/environment/publicVariables';
-import { jwtSecret } from '@/library/environment/serverVariables';
+import { isProduction } from '@/library/environment/publicVariables'
+import { jwtSecret } from '@/library/environment/serverVariables'
 
-import { cookieDurations, cookieNames } from '@/library/constants/cookies';
-import type {
-	BaseCookieOptions,
-	CookieDurations,
-	CookieOptions,
-} from '@/types';
+import { cookieDurations, cookieNames } from '@/library/constants/cookies'
+import type { BaseCookieOptions, CookieDurations, CookieOptions } from '@/types'
 
 const baseCookieOptions: BaseCookieOptions = {
 	name: cookieNames.token,
@@ -16,12 +12,9 @@ const baseCookieOptions: BaseCookieOptions = {
 	secure: isProduction,
 	sameSite: 'strict',
 	path: '/',
-} as const;
+} as const
 
-export function createCookieOptions(
-	tokenValue: string,
-	duration: CookieDurations
-): CookieOptions {
+export function createCookieOptions(tokenValue: string, duration: CookieDurations): CookieOptions {
 	return {
 		name: cookieNames.token,
 		value: tokenValue,
@@ -30,7 +23,7 @@ export function createCookieOptions(
 		sameSite: 'strict',
 		path: '/',
 		maxAge: duration,
-	};
+	}
 }
 
 export function createSessionCookieOptions(tokenValue: string): CookieOptions {
@@ -41,41 +34,35 @@ export function createSessionCookieOptions(tokenValue: string): CookieOptions {
 		secure: isProduction,
 		sameSite: 'strict',
 		path: '/',
-	};
+	}
 }
 
-function generateTokenPayload(
-	userId: number,
-	duration: CookieDurations
-): JwtPayload {
+function generateTokenPayload(userId: number, duration: CookieDurations): JwtPayload {
 	return {
 		sub: String(userId),
 		exp: Math.floor(Date.now() / 1000) + duration,
-	};
+	}
 }
 
-export function createCookieWithToken(
-	userId: number,
-	duration: CookieDurations
-): CookieOptions {
-	const payload = generateTokenPayload(userId, duration);
-	const token = jwt.sign(payload, jwtSecret);
+export function createCookieWithToken(userId: number, duration: CookieDurations): CookieOptions {
+	const payload = generateTokenPayload(userId, duration)
+	const token = jwt.sign(payload, jwtSecret)
 
 	return {
 		...baseCookieOptions,
 		value: token,
 		maxAge: duration,
-	};
+	}
 }
 
 export function createSessionCookieWithToken(userId: number): CookieOptions {
-	const payload = generateTokenPayload(userId, cookieDurations.twoHours);
-	const token = jwt.sign(payload, jwtSecret);
+	const payload = generateTokenPayload(userId, cookieDurations.twoHours)
+	const token = jwt.sign(payload, jwtSecret)
 
 	return {
 		...baseCookieOptions,
 		value: token,
-	};
+	}
 }
 
 export function createDeleteCookie(): CookieOptions {
@@ -83,7 +70,7 @@ export function createDeleteCookie(): CookieOptions {
 		...baseCookieOptions,
 		value: '',
 		maxAge: cookieDurations.zero,
-	};
+	}
 }
 
 // Usage

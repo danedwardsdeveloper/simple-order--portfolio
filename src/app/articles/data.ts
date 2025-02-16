@@ -1,6 +1,6 @@
 interface ArticleDetails {
-	displayTitle: string;
-	paragraphs: { id: number; content: string }[];
+	displayTitle: string
+	paragraphs: { id: number; content: string }[]
 }
 
 export const articlesData: Record<string, ArticleDetails> = {
@@ -64,4 +64,4 @@ export const articlesData: Record<string, ArticleDetails> = {
 			},
 		],
 	},
-};
+}

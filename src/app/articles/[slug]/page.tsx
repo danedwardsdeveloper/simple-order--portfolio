@@ -1,20 +1,20 @@
-import PageContainer from '@/components/PageContainer';
-import BreadCrumbs from '../BreadCrumbs';
-import { articlesData } from '../data';
+import PageContainer from '@/components/PageContainer'
+import BreadCrumbs from '../BreadCrumbs'
+import { articlesData } from '../data'
 
 export function generateStaticParams() {
-	return Object.keys(articlesData).map((slug) => ({ slug }));
+	return Object.keys(articlesData).map((slug) => ({ slug }))
 }
 
 export default async function Page({
 	params,
 }: {
-	params: Promise<{ slug: string }>;
+	params: Promise<{ slug: string }>
 }) {
-	const { slug } = await params;
-	const article = articlesData[slug];
+	const { slug } = await params
+	const article = articlesData[slug]
 
-	if (!article) return null;
+	if (!article) return null
 
 	return (
 		<PageContainer>
@@ -26,5 +26,5 @@ export default async function Page({
 				))}
 			</div>
 		</PageContainer>
-	);
+	)
 }
