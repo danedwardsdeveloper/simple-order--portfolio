@@ -1,9 +1,9 @@
 export interface Item {
-  displayName: string
-  priceInPence: number
+	displayName: string
+	priceInPence: number
 }
 
 export interface OrderItem {
-  itemDetails: Item
-  quantity: number
+	itemDetails: Item
+	quantity: number
 }

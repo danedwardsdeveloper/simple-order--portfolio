@@ -1,10 +1,10 @@
-import { NextConfig } from 'next'
+import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
-  images: {
-    formats: ['image/webp'],
-  },
+	output: 'standalone',
+	images: {
+		formats: ['image/webp'],
+	},
 }
 
 export default nextConfig

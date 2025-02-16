@@ -1,21 +1,22 @@
 {
-  "ignorePaths": [
-    "pnpm-lock.yaml",
-    ".dockerignore",
-    ".gitignore",
-    "Dockerfile",
-    ".env.production",
-    ".env.development",
-    ".env.example"
-  ],
-  "words": [
-    "Agromberis",
-    "Bakewell",
-    "Pompamonterson",
-    "Pompermonterson",
-    "resends",
-    "simpleorder",
-    "steves",
-    "stoneground"
-  ]
+	"ignorePaths": [
+		"pnpm-lock.yaml",
+		".dockerignore",
+		".gitignore",
+		"Dockerfile",
+		".env.production",
+		".env.development",
+		".env.example"
+	],
+	"words": [
+		"Agromberis",
+		"Bakewell",
+		"Mondacoup",
+		"Pompamonterson",
+		"Pompermonterson",
+		"resends",
+		"simpleorder",
+		"steves",
+		"stoneground"
+	]
 }

@@ -1,12 +1,12 @@
 export interface SendEmailBody {
-  recipientEmail: string
-  subject: string
-  textVersion: string
-  htmlVersion: string
+	recipientEmail: string
+	subject: string
+	textVersion: string
+	htmlVersion: string
 }
 
 export interface EmailTemplate {
-  subject: string
-  htmlVersion: string
-  textVersion: string
+	subject: string
+	htmlVersion: string
+	textVersion: string
 }

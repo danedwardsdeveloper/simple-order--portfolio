@@ -1,4 +1,4 @@
-import { products } from '@/library/database/schema'
+import type { products } from '@/library/database/schema'
 
 export type Product = typeof products.$inferSelect
 export type NewProduct = typeof products.$inferInsert

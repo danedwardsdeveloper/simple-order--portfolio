@@ -1,38 +1,38 @@
 [
-  {
-    "name": "Eccles Cakes",
-    "description": "Flaky pastry filled with spiced currants, pack of 4",
-    "priceInMinorUnits": 350
-  },
-  {
-    "name": "Chelsea Bun",
-    "description": "Spiral sweet bun with currants, sultanas and mixed peel, topped with sticky glaze",
-    "priceInMinorUnits": 275
-  },
-  {
-    "name": "Wholemeal Bloomer",
-    "description": "Traditional bloomer loaf made with stoneground wholemeal flour",
-    "priceInMinorUnits": 295
-  },
-  {
-    "name": "Sausage Roll",
-    "description": "Buttery puff pastry filled with seasoned Gloucestershire pork",
-    "priceInMinorUnits": 325,
-    "customVat": 20
-  },
-  {
-    "name": "Lemon Drizzle",
-    "description": "Light sponge cake with lemon zest, soaked in tangy lemon syrup",
-    "priceInMinorUnits": 350
-  },
-  {
-    "name": "Fruit Scones",
-    "description": "Light and fluffy sultana scones, pack of 2",
-    "priceInMinorUnits": 275
-  },
-  {
-    "name": "Bakewell Tart",
-    "description": "Sweet shortcrust pastry filled with raspberry jam, frangipane, and topped with flaked almonds",
-    "priceInMinorUnits": 375
-  }
+	{
+		"name": "Eccles Cakes",
+		"description": "Flaky pastry filled with spiced currants, pack of 4",
+		"priceInMinorUnits": 350
+	},
+	{
+		"name": "Chelsea Bun",
+		"description": "Spiral sweet bun with currants, sultanas and mixed peel, topped with sticky glaze",
+		"priceInMinorUnits": 275
+	},
+	{
+		"name": "Wholemeal Bloomer",
+		"description": "Traditional bloomer loaf made with stoneground wholemeal flour",
+		"priceInMinorUnits": 295
+	},
+	{
+		"name": "Sausage Roll",
+		"description": "Buttery puff pastry filled with seasoned Gloucestershire pork",
+		"priceInMinorUnits": 325,
+		"customVat": 20
+	},
+	{
+		"name": "Lemon Drizzle",
+		"description": "Light sponge cake with lemon zest, soaked in tangy lemon syrup",
+		"priceInMinorUnits": 350
+	},
+	{
+		"name": "Fruit Scones",
+		"description": "Light and fluffy sultana scones, pack of 2",
+		"priceInMinorUnits": 275
+	},
+	{
+		"name": "Bakewell Tart",
+		"description": "Sweet shortcrust pastry filled with raspberry jam, frangipane, and topped with flaked almonds",
+		"priceInMinorUnits": 375
+	}
 ]

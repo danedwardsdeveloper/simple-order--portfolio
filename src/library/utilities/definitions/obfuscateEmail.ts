@@ -1,27 +1,27 @@
 export function obfuscateEmail(email: string) {
-  if (!email || typeof email !== 'string') {
-    throw new Error('Invalid email provided')
-  }
+	if (!email || typeof email !== 'string') {
+		throw new Error('Invalid email provided')
+	}
 
-  const [localPart, domain] = email.split('@')
+	const [localPart, domain] = email.split('@')
 
-  if (!domain) {
-    throw new Error('Invalid email format')
-  }
+	if (!domain) {
+		throw new Error('Invalid email format')
+	}
 
-  const obfuscatedLocal =
-    localPart.length < 6 ? `${localPart.slice(0, 1)}${'*'.repeat(localPart.length - 1)}` : `${localPart.slice(0, -5)}${'*'.repeat(5)}`
+	const obfuscatedLocal =
+		localPart.length < 6 ? `${localPart.slice(0, 1)}${'*'.repeat(localPart.length - 1)}` : `${localPart.slice(0, -5)}${'*'.repeat(5)}`
 
-  const domainParts = domain.split('.')
+	const domainParts = domain.split('.')
 
-  const obfuscatedDomain = domainParts
-    .map((part, index) => {
-      if (index === domainParts.length - 1) {
-        return part
-      }
-      return `${part.charAt(0)}${'*'.repeat(Math.max(part.length - 1, 2))}`
-    })
-    .join('.')
+	const obfuscatedDomain = domainParts
+		.map((part, index) => {
+			if (index === domainParts.length - 1) {
+				return part
+			}
+			return `${part.charAt(0)}${'*'.repeat(Math.max(part.length - 1, 2))}`
+		})
+		.join('.')
 
-  return `${obfuscatedLocal}@${obfuscatedDomain}`
+	return `${obfuscatedLocal}@${obfuscatedDomain}`
 }

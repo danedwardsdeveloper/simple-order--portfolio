@@ -1,13 +1,13 @@
 export const durationOptions = {
-  oneYearInSeconds: 365 * 24 * 60 * 60,
-  twentyFourHoursInMilliseconds: 24 * 60 * 60 * 1000,
-  oneWeekInMilliseconds: 7 * 24 * 60 * 60 * 1000,
+	oneYearInSeconds: 365 * 24 * 60 * 60,
+	twentyFourHoursInMilliseconds: 24 * 60 * 60 * 1000,
+	oneWeekInMilliseconds: 7 * 24 * 60 * 60 * 1000,
 } as const
 
 export const durationSettings = {
-  staySignedInCookie: durationOptions.oneYearInSeconds,
-  confirmEmailExpiry: durationOptions.twentyFourHoursInMilliseconds,
-  acceptInvitationExpiry: durationOptions.oneWeekInMilliseconds,
+	staySignedInCookie: durationOptions.oneYearInSeconds,
+	confirmEmailExpiry: durationOptions.twentyFourHoursInMilliseconds,
+	acceptInvitationExpiry: durationOptions.oneWeekInMilliseconds,
 } as const
 
 /*
