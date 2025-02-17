@@ -26,7 +26,6 @@ export default function AcceptInvitationPage() {
 		staySignedIn: false,
 	})
 
-	// eslint-disable-next-line react-hooks/exhaustive-deps
 	useEffect(() => {
 		checkInvitation()
 	}, [])
@@ -196,7 +195,7 @@ export default function AcceptInvitationPage() {
 				</div>
 
 				<button type="submit" className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-					Complete Registration
+					Create account
 				</button>
 			</form>
 		</div>
