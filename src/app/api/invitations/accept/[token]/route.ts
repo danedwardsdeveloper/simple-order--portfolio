@@ -1,4 +1,4 @@
-import { authenticationMessages, basicMessages, cookieDurations, httpStatus } from '@/library/constants'
+import { apiPaths, authenticationMessages, basicMessages, cookieDurations, cookieNames, httpStatus } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { customerToMerchant, invitations, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
@@ -6,6 +6,7 @@ import logger from '@/library/logger'
 import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
 import type {
 	AuthenticationMessages,
+	BaseBrowserSafeUser,
 	BaseUserInsertValues,
 	BasicMessages,
 	CustomerToMerchant,
@@ -23,12 +24,19 @@ export type InvitationsAcceptPOSTbody = InvitedCustomerBrowserInputValues
 
 export interface InvitationsAcceptPOSTresponse {
 	message: BasicMessages | AuthenticationMessages | string // ToDo: make strict
+	createdUser?: BaseBrowserSafeUser
+	senderBusinessName?: string
 }
 
 export async function POST(
 	request: NextRequest,
 	{ params }: { params: Promise<{ token: string }> },
 ): Promise<NextResponse<InvitationsAcceptPOSTresponse>> {
+	const cookieStore = await cookies()
+
+	let transactionErrorMessage = null
+	let transactionErrorCode = null
+
 	try {
 		const { firstName, lastName, businessName, password, staySignedIn }: InvitationsAcceptPOSTbody = await request.json()
 		logger.debug(firstName, lastName, businessName, password, staySignedIn)
@@ -38,6 +46,7 @@ export async function POST(
 
 		// Reject requests that have some but not all fields
 		if (partialDetailsProvided) {
+			logger.info('Not enough details provided to create new account')
 			return NextResponse.json({ message: 'missing fields' }, { status: httpStatus.http400badRequest })
 		}
 
@@ -54,113 +63,125 @@ export async function POST(
 		const [foundInvitation]: Invitation[] = await database.select().from(invitations).where(eq(invitations.token, token)).limit(1)
 
 		if (!foundInvitation) {
-			return NextResponse.json({ message: 'invitation not found' }, { status: 400 })
+			return NextResponse.json({ message: 'invitation not found' }, { status: httpStatus.http400badRequest })
 		}
 
-		const foundEmail = foundInvitation.email
+		const recipientEmail = foundInvitation.email
 
-		const [existingUser]: DangerousBaseUser[] = await database.select().from(users).where(eq(users.email, foundEmail))
+		const [existingUser]: DangerousBaseUser[] = await database.select().from(users).where(eq(users.email, recipientEmail))
+
+		const [senderDetails]: DangerousBaseUser[] = await database.select().from(users).where(eq(users.id, foundInvitation.senderUserId))
+
+		const senderBusinessName = senderDetails.businessName
 
 		if (existingUser) {
-			//   - Transaction: change user table emailConfirmed to true if not already
-			//   - Transaction: Create the relationship
-			//   - Transaction: Delete invitation
-			// - Return 201
-		}
+			await database.transaction(async (tx) => {
+				// Transaction: Create the relationship
+				transactionErrorMessage = 'transaction error creating customerToMerchant'
+				const newRelationshipInsert: CustomerToMerchant = {
+					merchantUserId: foundInvitation.senderUserId,
+					customerUserId: existingUser.id,
+				}
+				await tx.insert(customerToMerchant).values(newRelationshipInsert).returning()
 
-		if (!existingUser) {
-			// If no details provided, ask for details
-			if (!allDetailsProvided) {
-				return NextResponse.json({ message: 'please provide details' }, { status: httpStatus.http422unprocessableContent })
+				// Transaction: change user table emailConfirmed to true if not already
+				transactionErrorMessage = 'transaction error ensuring emailConfirmed on existing user is set to true'
+				await tx.update(users).set({ emailConfirmed: true }).where(eq(users.id, existingUser.id))
+
+				// Transaction: Delete invitation
+				transactionErrorMessage = 'error '
+				transactionErrorCode = null
+				await tx.delete(invitations).where(and(eq(invitations.senderUserId, foundInvitation.senderUserId), eq(invitations.token, token)))
+
+				transactionErrorMessage = null
+				transactionErrorCode = null
+			})
+
+			// Create cookie if it wasn't provided
+			const existingTokenCookie = cookieStore.get(cookieNames.token)
+			if (!existingTokenCookie) {
+				cookieStore.set(createSessionCookieWithToken(existingUser.id))
 			}
 
-			if (allDetailsProvided) {
-				let transactionErrorMessage: string | null = 'transaction error creating new user'
-				let transactionErrorCode: number | null = httpStatus.http503serviceUnavailable
+			// - Return 201 with merchant details
+			return NextResponse.json({ message: basicMessages.success, senderBusinessName }, { status: httpStatus.http201created })
+		}
 
-				const { createdUser, createdRelationship } = await database.transaction(async (tx) => {
-					try {
-						// Transaction: Create user with emailConfirmed=true
-						const saltRounds = 10
-						const hashedPassword = await bcrypt.hash(password, saltRounds)
+		if (!existingUser && !allDetailsProvided) {
+			logger.info('Existing user not found & no details provided to create new account')
+			return NextResponse.json({ message: 'please provide details' }, { status: httpStatus.http422unprocessableContent })
+		}
 
-						const newUserInsert: BaseUserInsertValues = {
-							email: foundEmail,
-							firstName,
-							lastName,
-							businessName,
-							hashedPassword,
-							emailConfirmed: true,
-							cachedTrialExpired: false,
-						}
-						const [createdUser]: DangerousBaseUser[] = await tx.insert(users).values(newUserInsert).returning()
+		if (!existingUser && allDetailsProvided) {
+			const { createdUser } = await database.transaction(async (tx) => {
+				// Transaction: Create user with emailConfirmed=true
+				const saltRounds = 10
+				const hashedPassword = await bcrypt.hash(password, saltRounds)
 
-						// Transaction: Create relationship
-						transactionErrorMessage = 'transaction error creating customerToMerchant'
-						const newRelationshipInsert: CustomerToMerchant = {
-							merchantUserId: foundInvitation.userId,
-							customerUserId: createdUser.id,
-						}
-						const [createdRelationship]: CustomerToMerchant[] = await tx
-							.insert(customerToMerchant)
-							.values(newRelationshipInsert)
-							.returning()
+				const newUserInsertValues: BaseUserInsertValues = {
+					email: recipientEmail,
+					firstName,
+					lastName,
+					businessName,
+					hashedPassword,
+					emailConfirmed: true,
+					cachedTrialExpired: false,
+				}
 
-						// Transaction: Delete invitation
-						transactionErrorMessage = 'transaction error deleting invitation'
-						await tx.delete(invitations).where(and(eq(invitations.userId, foundInvitation.userId), eq(invitations.token, token)))
+				transactionErrorMessage = 'transaction error creating new user'
+				transactionErrorCode = httpStatus.http503serviceUnavailable
 
-						// Transaction: Send welcome email
-						const emailContent = `Hello ${createdUser.firstName}, thank you for signing up to Simple Order.` // ToDo: write a much better email
+				// Create new user
+				const [createdUser]: DangerousBaseUser[] = await tx.insert(users).values(newUserInsertValues).returning()
 
-						transactionErrorMessage = 'transaction error sending welcome email'
+				// Create relationship
+				transactionErrorMessage = 'transaction error creating customerToMerchant'
+				const newRelationshipInsert: CustomerToMerchant = {
+					merchantUserId: foundInvitation.senderUserId,
+					customerUserId: createdUser.id,
+				}
+				await tx.insert(customerToMerchant).values(newRelationshipInsert).returning()
 
-						// Important ToD: Don't send actual emails! Important of the testing framework will go crazy
+				// Transaction: Delete invitation
+				transactionErrorMessage = 'transaction error deleting invitation'
+				await tx.delete(invitations).where(and(eq(invitations.senderUserId, foundInvitation.senderUserId), eq(invitations.token, token)))
 
-						const emailSuccess = await sendEmail({
-							recipientEmail: foundEmail,
-							subject: 'Thank you for using Simple Order',
-							htmlVersion: emailContent,
-							textVersion: emailContent,
-						})
+				// Transaction: Send welcome email
+				const emailContent = `Hello ${createdUser.firstName}, thank you for signing up to Simple Order.` // ToDo: write a much better email
 
-						if (!emailSuccess) {
-							tx.rollback()
-						}
-
-						transactionErrorMessage = null
-						transactionErrorCode = null
-						return { createdUser, createdRelationship }
-					} catch (error) {
-						logger.error('Transaction error', error)
-						return { createdUser: null, createdRelationship: null }
-					}
+				transactionErrorMessage = 'transaction error sending welcome email'
+				const emailSuccess = await sendEmail({
+					recipientEmail,
+					subject: 'Thank you for using Simple Order',
+					htmlVersion: emailContent,
+					textVersion: emailContent,
 				})
 
-				if (transactionErrorMessage || transactionErrorCode || !createdUser || !createdRelationship) {
-					return NextResponse.json(
-						{
-							message: transactionErrorMessage || 'unknown transaction error',
-						},
-						{
-							status: transactionErrorCode || httpStatus.http503serviceUnavailable,
-						},
-					)
+				if (!emailSuccess) {
+					tx.rollback()
 				}
 
-				const cookieStore = await cookies()
-				if (staySignedIn) {
-					cookieStore.set(createCookieWithToken(createdUser.id, cookieDurations.oneYear))
-				} else {
-					cookieStore.set(createSessionCookieWithToken(createdUser.id))
-				}
+				transactionErrorMessage = null
+				transactionErrorCode = null
+				return { createdUser }
+			})
 
-				return NextResponse.json({ message: basicMessages.success, createdUser }, { status: httpStatus.http200ok })
+			if (staySignedIn) {
+				cookieStore.set(createCookieWithToken(createdUser.id, cookieDurations.oneYear))
+			} else {
+				cookieStore.set(createSessionCookieWithToken(createdUser.id))
 			}
+
+			return NextResponse.json({ message: basicMessages.success, createdUser, senderBusinessName }, { status: httpStatus.http200ok })
 		}
+
+		// Neither new nor existing users should reach this return
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
 	} catch (error) {
-		logger.error('api/invitations/accept/[token] error', error)
-		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
+		logger.error(`${apiPaths.invitations.accept}/[token] error`, error)
+		return NextResponse.json(
+			{ message: transactionErrorMessage || basicMessages.serverError },
+			{ status: transactionErrorCode || httpStatus.http500serverError },
+		)
 	}
 }
