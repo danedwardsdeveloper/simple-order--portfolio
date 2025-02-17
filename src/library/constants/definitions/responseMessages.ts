@@ -1,6 +1,7 @@
 export const basicMessages = {
 	databaseError: 'database error',
 	parametersMissing: 'parameters missing',
+	unknownTransactionError: 'unknown transaction error',
 	serverError: 'server error',
 	success: 'success',
 } as const
