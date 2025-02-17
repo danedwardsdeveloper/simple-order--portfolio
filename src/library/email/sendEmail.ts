@@ -23,7 +23,7 @@ export const sendEmail = async ({ recipientEmail, subject, htmlVersion, textVers
 
 		// Don't actually send emails except to myself
 		if (!(recipientEmail.trim().toLowerCase() === myPersonalEmail)) {
-			logger.info(`Intercepted email to ${recipientEmail}`)
+			logger.info(`Intercepted email to ${recipientEmail}. No email sent`)
 			return true
 		}
 
