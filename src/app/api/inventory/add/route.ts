@@ -2,7 +2,6 @@ import { and, eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { serviceConstraints } from '@/library/constants/serviceConstraints';
-import { database } from '@/library/database/connection';
 import { checkActiveSubscriptionOrTrial } from '@/library/database/operations';
 import {
 	checkMerchantProfileExists,
@@ -14,26 +13,21 @@ import { containsIllegalCharacters } from '@/library/utilities';
 import { extractIdFromRequestCookie } from '@/library/utilities/server';
 
 import { apiPaths } from '@/library/constants/apiPaths';
+import { httpStatus } from '@/library/constants/httpStatus';
 import {
-	type AuthenticationMessages,
-	type BasicMessages,
-	type ClientProduct,
-	type NewProduct,
-	type Product,
 	authenticationMessages,
 	basicMessages,
-	httpStatus,
+} from '@/library/constants/responseMessages';
+import { database } from '@/library/database/connection';
+import type {
+	AuthenticationMessages,
+	BasicMessages,
+	ClientProduct,
+	NewProduct,
+	Product,
 } from '@/types';
 
-export type InventoryAddPOSTbody = Pick<
-	NewProduct,
-	'name' | 'priceInMinorUnits'
->;
-
-const newProduct: InventoryAddPOSTbody = {
-	name: '',
-	priceInMinorUnits: 0,
-};
+export type InventoryAddPOSTbody = Omit<NewProduct, 'id' | 'merchantProfileId'>;
 
 export interface InventoryAddPOSTresponse {
 	message:
@@ -69,24 +63,29 @@ export async function POST(
 
 	if (!name) {
 		badRequestMessage = 'name missing';
-	} else if (containsIllegalCharacters(name)) {
+	}
+
+	if (containsIllegalCharacters(name)) {
 		badRequestMessage = 'name contains illegal characters';
 	}
 
 	if (!priceInMinorUnits) {
 		badRequestMessage = 'priceInMinorUnits missing';
-	} else if (Number.isNaN(priceInMinorUnits)) {
+	}
+
+	if (Number.isNaN(priceInMinorUnits)) {
 		badRequestMessage = 'priceInMinorUnits not a number';
-	} else if (
-		priceInMinorUnits > serviceConstraints.maximumProductValueInMinorUnits
-	) {
+	}
+
+	if (priceInMinorUnits > serviceConstraints.maximumProductValueInMinorUnits) {
 		badRequestMessage = 'priceInMinorUnits too high';
 	}
 
 	if (description) {
 		if (containsIllegalCharacters(description)) {
 			badRequestMessage = 'description contains illegal characters';
-		} else if (
+		}
+		if (
 			description.length >
 			serviceConstraints.maximumProductDescriptionCharacters
 		) {
@@ -97,11 +96,14 @@ export async function POST(
 	if (customVat) {
 		if (Number.isNaN(customVat)) {
 			badRequestMessage = 'customVat not a number';
-		} else if (customVat > serviceConstraints.highestVat) {
+		}
+		if (customVat > serviceConstraints.highestVat) {
 			badRequestMessage = 'customVat too high';
-		} else if (customVat < 0) {
+		}
+		if (customVat < 0) {
 			badRequestMessage = 'customVat is negative';
-		} else if (customVat % 1 !== 0) {
+		}
+		if (customVat % 1 !== 0) {
 			badRequestMessage = 'customVat is a decimal';
 		}
 	}
@@ -113,124 +115,104 @@ export async function POST(
 		);
 	}
 
-	const { extractedUserId, status, message } =
-		extractIdFromRequestCookie(request);
-
-	if (!extractedUserId) {
-		return NextResponse.json({ message }, { status });
-	}
-
-	const { userExists } = await checkUserExists(extractedUserId);
-	if (!userExists) {
-		return NextResponse.json(
-			{ message: authenticationMessages.userNotFound },
-			{ status: httpStatus.http401unauthorised }
-		);
-	}
-
-	const { merchantProfileExists } = await checkMerchantProfileExists(
-		extractedUserId
-	);
-	if (!merchantProfileExists) {
-		return NextResponse.json(
-			{ message: authenticationMessages.merchantMissing },
-			{ status: httpStatus.http401unauthorised }
-		);
-	}
-
-	const { validSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(
-		extractedUserId
-	);
-	if (!validSubscriptionOrTrial) {
-		return NextResponse.json(
-			{ message: authenticationMessages.noActiveTrialSubscription },
-			{ status: httpStatus.http401unauthorised }
-		);
-	}
-
-	let transactionFailureMessage: string | null = null;
-	let transactionFailureStatus: number | null = null;
-	let product: Product | null = null;
-
 	try {
-		// ToDo: remove this unnecessary transaction
-		await database.transaction(async (tx) => {
-			const existingProducts = await tx
-				.select()
-				.from(products)
-				.where(eq(products.merchantProfileId, extractedUserId));
-			if (existingProducts.length >= serviceConstraints.maximumProducts) {
-				transactionFailureMessage = 'too many products';
-				transactionFailureStatus = httpStatus.http400badRequest;
-			}
+		const { extractedUserId, status, message } =
+			extractIdFromRequestCookie(request);
 
-			const [existingProduct] = await tx
-				.select()
-				.from(products)
-				.where(
-					and(
-						eq(products.merchantProfileId, extractedUserId),
-						eq(products.name, name)
-					)
-				)
-				.limit(1);
+		if (!extractedUserId) {
+			return NextResponse.json({ message }, { status });
+		}
 
-			if (existingProduct) {
-				transactionFailureMessage = 'product name exists';
-				transactionFailureStatus = httpStatus.http400badRequest;
-				return;
-			}
-
-			const newProduct: NewProduct = {
-				name,
-				merchantProfileId: extractedUserId,
-				priceInMinorUnits,
-				description,
-				customVat,
-			};
-
-			const [addedProduct]: Product[] = await tx
-				.insert(products)
-				.values(newProduct)
-				.returning();
-
-			if (addedProduct) {
-				logger.info('Added product: ', JSON.stringify(addedProduct));
-				product = addedProduct;
-			} else {
-				// unknown database error
-			}
-		});
-
-		if (transactionFailureMessage || transactionFailureStatus) {
+		const { userExists } = await checkUserExists(extractedUserId);
+		if (!userExists) {
 			return NextResponse.json(
-				{
-					message:
-						transactionFailureMessage || basicMessages.databaseError,
-				},
-				{
-					status:
-						transactionFailureStatus ||
-						httpStatus.http503serviceUnavailable,
-				}
+				{ message: authenticationMessages.userNotFound },
+				{ status: httpStatus.http401unauthorised }
 			);
 		}
 
-		if (!product) {
-			return NextResponse.json({ message: 'server error' }, { status: 500 });
+		const { merchantProfileExists } = await checkMerchantProfileExists(
+			extractedUserId
+		);
+		if (!merchantProfileExists) {
+			return NextResponse.json(
+				{ message: authenticationMessages.merchantMissing },
+				{ status: httpStatus.http401unauthorised }
+			);
 		}
 
+		const { validSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(
+			extractedUserId
+		);
+		if (!validSubscriptionOrTrial) {
+			return NextResponse.json(
+				{ message: authenticationMessages.noActiveTrialSubscription },
+				{ status: httpStatus.http401unauthorised }
+			);
+		}
+
+		const existingProducts = await database
+			.select()
+			.from(products)
+			.where(eq(products.merchantProfileId, extractedUserId));
+		if (existingProducts.length >= serviceConstraints.maximumProducts) {
+			return NextResponse.json(
+				{ message: 'too many products' },
+				{ status: httpStatus.http400badRequest }
+			);
+		}
+
+		const [existingProduct] = await database
+			.select()
+			.from(products)
+			.where(
+				and(
+					eq(products.merchantProfileId, extractedUserId),
+					eq(products.name, name)
+				)
+			)
+			.limit(1);
+
+		if (existingProduct) {
+			return NextResponse.json(
+				{ message: 'product name exists' },
+				{ status: httpStatus.http400badRequest }
+			);
+		}
+
+		const newProduct: NewProduct = {
+			name,
+			merchantProfileId: extractedUserId,
+			priceInMinorUnits,
+			description,
+			customVat,
+		};
+
+		logger.debug('Did the code get this far?');
+		const [addedProduct]: Product[] = await database
+			.insert(products)
+			.values(newProduct)
+			.returning();
+
+		if (!addedProduct) {
+			logger.error(`Couldn't add product`);
+			return NextResponse.json(
+				{ message: basicMessages.serverError },
+				{ status: httpStatus.http500serverError }
+			);
+		}
+
+		logger.info('Added product: ', JSON.stringify(addedProduct));
+
 		return NextResponse.json(
-			{ message: basicMessages.success, product },
+			{ message: basicMessages.success, product: addedProduct },
 			{ status: httpStatus.http200ok }
 		);
 	} catch (error) {
 		logger.error(`${apiPaths.inventory.add}`, error);
-		// Name conflict error
-
 		return NextResponse.json(
-			{ message: transactionFailureMessage || basicMessages.serverError },
-			{ status: transactionFailureStatus || httpStatus.http500serverError }
+			{ message: basicMessages.serverError },
+			{ status: httpStatus.http500serverError }
 		);
 	}
 }

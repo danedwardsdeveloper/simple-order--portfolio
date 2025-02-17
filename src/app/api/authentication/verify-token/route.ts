@@ -1,33 +1,39 @@
-import { eq as equals } from 'drizzle-orm'
-import { type NextRequest, NextResponse } from 'next/server'
-
-import { database } from '@/library/database/connection'
-import { checkMerchantProfileExists, getInventory } from '@/library/database/operations'
-import { users } from '@/library/database/schema'
-import logger from '@/library/logger'
-import { extractIdFromRequestCookie } from '@/library/utilities/server'
-
+import { httpStatus } from '@/library/constants/httpStatus';
 import {
-	type AuthenticationMessages,
-	type BaseBrowserSafeUser,
-	type BasicMessages,
-	type FullBrowserSafeUser,
 	authenticationMessages,
 	basicMessages,
-	httpStatus,
-} from '@/types'
+} from '@/library/constants/responseMessages';
+import { database } from '@/library/database/connection';
+import {
+	checkMerchantProfileExists,
+	getInventory,
+} from '@/library/database/operations';
+import { users } from '@/library/database/schema';
+import logger from '@/library/logger';
+import { extractIdFromRequestCookie } from '@/library/utilities/server';
+import type {
+	AuthenticationMessages,
+	BaseBrowserSafeUser,
+	BasicMessages,
+	FullBrowserSafeUser,
+} from '@/types';
+import { eq } from 'drizzle-orm';
+import { type NextRequest, NextResponse } from 'next/server';
 
 export interface VerifyTokenGETresponse {
-	message: BasicMessages | AuthenticationMessages
-	user?: FullBrowserSafeUser
+	message: BasicMessages | AuthenticationMessages;
+	fullBrowserSafeUser?: FullBrowserSafeUser;
 }
 
-export async function GET(request: NextRequest): Promise<NextResponse<VerifyTokenGETresponse>> {
+export async function GET(
+	request: NextRequest
+): Promise<NextResponse<VerifyTokenGETresponse>> {
 	try {
-		const { extractedUserId, status, message } = extractIdFromRequestCookie(request)
+		const { extractedUserId, status, message } =
+			extractIdFromRequestCookie(request);
 
 		if (!extractedUserId) {
-			return NextResponse.json({ message }, { status })
+			return NextResponse.json({ message }, { status });
 		}
 
 		const [foundUser]: BaseBrowserSafeUser[] = await database
@@ -40,22 +46,27 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 				cachedTrialExpired: users.cachedTrialExpired,
 			})
 			.from(users)
-			.where(equals(users.id, extractedUserId))
+			.where(eq(users.id, extractedUserId));
 
 		if (!foundUser) {
-			return NextResponse.json({ message: authenticationMessages.userNotFound }, { status: httpStatus.http401unauthorised })
+			return NextResponse.json(
+				{ message: authenticationMessages.userNotFound },
+				{ status: httpStatus.http401unauthorised }
+			);
 		}
 
-		let clientSafeUser: FullBrowserSafeUser = {
+		let fullBrowserSafeUser: FullBrowserSafeUser = {
 			...foundUser,
-		}
+		};
 
-		const { merchantProfileExists, slug } = await checkMerchantProfileExists(extractedUserId)
+		const { merchantProfileExists, slug } = await checkMerchantProfileExists(
+			extractedUserId
+		);
 		if (merchantProfileExists) {
-			const inventory = await getInventory(extractedUserId)
+			const inventory = await getInventory(extractedUserId);
 
 			if (inventory) {
-				clientSafeUser = {
+				fullBrowserSafeUser = {
 					...foundUser,
 					merchantDetails: {
 						slug,
@@ -65,17 +76,26 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 						customersAsMerchant: [],
 					},
 					inventory,
-				}
+				};
 			}
 		}
 
 		// Add merchant details, get orders etc. and transform user
 
-		logger.debug('Full browser-safe user: ', JSON.stringify(clientSafeUser))
+		logger.debug(
+			'Full browser-safe user: ',
+			JSON.stringify(fullBrowserSafeUser)
+		);
 
-		return NextResponse.json({ message: basicMessages.success, user: clientSafeUser }, { status: httpStatus.http200ok })
+		return NextResponse.json(
+			{ message: basicMessages.success, fullBrowserSafeUser },
+			{ status: httpStatus.http200ok }
+		);
 	} catch (error) {
-		logger.errorUnknown(error, 'Unknown authorisation error: ')
-		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
+		logger.error('Unknown authorisation error: ', error);
+		return NextResponse.json(
+			{ message: basicMessages.serverError },
+			{ status: httpStatus.http500serverError }
+		);
 	}
 }
