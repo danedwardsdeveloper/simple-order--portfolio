@@ -1,5 +1,3 @@
-import { eq, or } from 'drizzle-orm'
-
 import { database } from '@/library/database/connection'
 import {
 	confirmationTokens,
@@ -11,6 +9,7 @@ import {
 	subscriptions,
 	users,
 } from '@/library/database/schema'
+import { eq, or } from 'drizzle-orm'
 
 export async function deleteUserSequence(email: string) {
 	const [userToDelete] = await database.select().from(users).where(eq(users.email, email))
