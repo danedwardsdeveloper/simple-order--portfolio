@@ -1,4 +1,4 @@
-import { authenticationMessages, basicMessages, httpStatus } from '@/library/constants'
+import { apiPaths, authenticationMessages, basicMessages, httpStatus } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkMerchantProfileExists, getInventory } from '@/library/database/operations'
 import { invitations, users } from '@/library/database/schema'
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 			return NextResponse.json({ message }, { status })
 		}
 
-		const [foundUser]: BaseBrowserSafeUser[] = await database
+		const [foundBaseUser]: BaseBrowserSafeUser[] = await database
 			.select({
 				firstName: users.firstName,
 				lastName: users.lastName,
@@ -33,26 +33,29 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 			.from(users)
 			.where(eq(users.id, extractedUserId))
 
-		if (!foundUser) {
+		if (!foundBaseUser) {
 			return NextResponse.json({ message: authenticationMessages.userNotFound }, { status: httpStatus.http401unauthorised })
 		}
 
-		let fullBrowserSafeUser: FullBrowserSafeUser = {
-			...foundUser,
-		}
+		let fullBrowserSafeUser: FullBrowserSafeUser = foundBaseUser
+
+		logger.debug('Full browser-safe user: ', fullBrowserSafeUser)
 
 		const { merchantProfileExists, slug } = await checkMerchantProfileExists(extractedUserId)
 
-		if (merchantProfileExists) {
+		if (merchantProfileExists && slug) {
 			const inventory = await getInventory(extractedUserId)
 
-			const pendingInvitations: Invitation[] = await database.select().from(invitations).where(eq(invitations.userId, extractedUserId))
+			const pendingInvitations: Invitation[] = await database
+				.select()
+				.from(invitations)
+				.where(eq(invitations.senderUserId, extractedUserId))
 
 			logger.debug('Pending invitations: ', pendingInvitations)
 
 			if (inventory) {
 				fullBrowserSafeUser = {
-					...foundUser,
+					...foundBaseUser,
 					merchantDetails: {
 						slug,
 						freeTrial: {
@@ -71,7 +74,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 
 		return NextResponse.json({ message: basicMessages.success, fullBrowserSafeUser }, { status: httpStatus.http200ok })
 	} catch (error) {
-		logger.error('Unknown authorisation error: ', error)
+		logger.error(`${apiPaths.authentication.verifyToken} error: `, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
 	}
 }
