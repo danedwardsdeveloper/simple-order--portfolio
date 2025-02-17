@@ -34,7 +34,7 @@ export async function deleteUserSequence(email: string) {
 
 		// Delete references to userId in other tables
 		await database.delete(subscriptions).where(eq(subscriptions.userId, userToDelete.id))
-		await database.delete(invitations).where(eq(invitations.userId, userToDelete.id))
+		await database.delete(invitations).where(eq(invitations.senderUserId, userToDelete.id))
 		await database.delete(freeTrials).where(eq(freeTrials.userId, userToDelete.id))
 		await database.delete(confirmationTokens).where(eq(confirmationTokens.userId, userToDelete.id))
 
