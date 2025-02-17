@@ -21,4 +21,4 @@ export const httpStatus = {
 	http502badGateway: 502,
 	http503serviceUnavailable: 503,
 	http504gatewayTimeout: 504,
-} as const;
+} as const

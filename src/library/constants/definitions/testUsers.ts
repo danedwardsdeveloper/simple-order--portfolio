@@ -4,6 +4,12 @@ export const testPasswords = {
 }
 
 export const testUsers = {
+	permanentTestUser: {
+		firstName: 'Permanent',
+		lastName: 'Test User',
+		email: 'permanenttestuser@gmail.com',
+		businessName: 'Permanent Business',
+	},
 	customerOnly: {
 		firstName: 'Jane',
 		lastName: 'Pompermonterson',
@@ -21,12 +27,6 @@ export const testUsers = {
 		lastName: 'Poodle',
 		email: 'susanpoodle@gmail.com',
 		businessName: `Susan's Spicey Sausages`,
-	},
-	permanentTestUser: {
-		firstName: 'Permanent',
-		lastName: 'Test User',
-		email: 'permanenttestuser@gmail.com',
-		businessName: 'Permanent Business',
 	},
 }
 

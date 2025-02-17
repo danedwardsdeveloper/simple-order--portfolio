@@ -3,7 +3,7 @@ export const basicMessages = {
 	parametersMissing: 'parameters missing',
 	serverError: 'server error',
 	success: 'success',
-} as const;
+} as const
 
 export const authenticationMessages = {
 	alreadyConfirmed: 'already confirmed',
@@ -30,11 +30,11 @@ export const authenticationMessages = {
 	tokenUsed: 'token used',
 	unauthorised: 'unauthorised',
 	userNotFound: 'user not found',
-} as const;
+} as const
 
 export const illegalCharactersMessages = {
 	firstName: 'firstName contains illegal characters',
 	lastName: 'lastName contains illegal characters',
 	password: 'password contains illegal characters',
 	businessName: 'businessName contains illegal characters',
-} as const;
+} as const
