@@ -31,7 +31,7 @@ export async function checkUserExists(userId: number): Promise<CheckUserExistsRe
 	}
 }
 
-export async function checkMerchantProfileExists(userId: number): Promise<{ merchantProfileExists: boolean; slug: string }> {
+export async function checkMerchantProfileExists(userId: number): Promise<{ merchantProfileExists: boolean; slug: string | undefined }> {
 	const [merchantProfile] = await database
 		.select({ slug: merchantProfiles.slug })
 		.from(merchantProfiles)
@@ -39,8 +39,8 @@ export async function checkMerchantProfileExists(userId: number): Promise<{ merc
 		.limit(1)
 
 	return {
-		merchantProfileExists: !!merchantProfile,
-		slug: merchantProfile.slug,
+		merchantProfileExists: Boolean(merchantProfile),
+		slug: merchantProfile ? merchantProfile.slug : undefined,
 	}
 }
 
