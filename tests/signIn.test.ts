@@ -1,21 +1,20 @@
-import { type Browser, type Page, launch } from 'puppeteer'
-import { afterAll, beforeAll, describe, expect, test } from 'vitest'
-
+import { cookieNames } from '@/library/constants'
 import { dataTestIdNames } from '@/library/constants/definitions/dataTestId'
 import { testPasswords, testUsers } from '@/library/constants/definitions/testUsers'
 import { developmentBaseURL, isProduction } from '@/library/environment/publicVariables'
-
-import { cookieNames } from '@/types'
-import { getElements } from './utilities/getElements'
+import { type Browser, type Cookie, type Page, launch } from 'puppeteer'
+import { afterAll, beforeAll, describe, expect, test } from 'vitest'
+import { getElementByTestId, initializePage } from './utilities/getElements'
 
 describe('Sign in', () => {
 	let browser: Browser
 	let page: Page
+	let token: Cookie | undefined
 
 	beforeAll(async () => {
 		browser = await launch()
 		page = await browser.newPage()
-		getElements.initialise(page)
+		initializePage(page)
 		await page.goto(`${developmentBaseURL}/sign-in`)
 	})
 
@@ -28,37 +27,46 @@ describe('Sign in', () => {
 	//   expect(someValue).toBe(true)
 	// })
 
-	test('signs in with the test user', async () => {
-		const emailInput = await getElements.byTestId(dataTestIdNames.signIn.emailInput)
+	test('fills in and submits the sign-in form', async () => {
+		const emailInput = await getElementByTestId(dataTestIdNames.signIn.emailInput)
 		expect(emailInput).toBeDefined()
 		await emailInput?.type(testUsers.permanentTestUser.email)
 
-		const passwordInput = await getElements.byTestId(dataTestIdNames.signIn.passwordInput)
+		const passwordInput = await getElementByTestId(dataTestIdNames.signIn.passwordInput)
 		expect(passwordInput).toBeDefined()
 		await passwordInput?.type(testPasswords.good)
 
-		const staySignedInCheckbox = await getElements.byTestId(dataTestIdNames.signIn.staySignedInCheckbox)
+		const staySignedInCheckbox = await getElementByTestId(dataTestIdNames.signIn.staySignedInCheckbox)
 		expect(staySignedInCheckbox).toBeDefined()
 		await staySignedInCheckbox?.click()
 
-		const submitButton = await getElements.byTestId(dataTestIdNames.signIn.submitButton)
+		const submitButton = await getElementByTestId(dataTestIdNames.signIn.submitButton)
 		expect(submitButton).toBeDefined()
 
 		await submitButton?.click()
+	})
 
+	test('navigates to the dashboard', async () => {
 		await page.waitForNavigation()
 		expect(page.url()).toContain('/dashboard')
+	})
 
+	test('token cookie has been set', async () => {
 		const cookies = await browser.cookies()
-		const token = cookies.find((cookie) => cookie.name === cookieNames.token)
+		token = cookies.find((cookie) => cookie.name === cookieNames.token)
 
 		expect(token).toBeDefined()
 		expect(token?.secure).toBe(isProduction)
 		expect(token?.httpOnly).toBe(true)
 		expect(token?.sameSite).toBe('Strict')
 		expect(token?.session).toBe(false)
+	})
 
+	test('token expires in one year', async () => {
 		const oneYearInSeconds = 365 * 24 * 60 * 60
+		if (!token?.expires) {
+			throw new Error(`Token missing, or token missing 'expires' property`)
+		}
 		const tokenExpiry = token?.expires - Math.floor(Date.now() / 1000)
 		expect(tokenExpiry).toBeCloseTo(oneYearInSeconds, -2) // Allow ~100 seconds difference
 	})
@@ -70,7 +78,7 @@ describe('Sign in', () => {
 
 	test('signs out with the test user', async () => {
 		await page.goto(`${developmentBaseURL}/settings`)
-		const signOutButton = await getElements.byTestId(dataTestIdNames.account.signOutButton)
+		const signOutButton = await getElementByTestId(dataTestIdNames.account.signOutButton)
 		expect(signOutButton).toBeDefined()
 
 		await Promise.all([page.waitForNavigation(), signOutButton?.click()])

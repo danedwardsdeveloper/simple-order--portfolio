@@ -10,7 +10,7 @@ import { developmentBaseURL } from '@/library/environment/publicVariables'
 
 import type { DangerousBaseUser, FreeTrial, MerchantProfile } from '@/types'
 import { deleteUserSequence } from './utilities/deleteUserSequence'
-import { getElements } from './utilities/getElements'
+import { getElementByTestId, initializePage } from './utilities/getElements'
 
 const susanPoodle = testUsers.both
 
@@ -26,7 +26,7 @@ describe('Create Account Form', async () => {
 		deleteUserSequence(susanPoodle.email)
 		browser = await launch()
 		page = await browser.newPage()
-		getElements.initialise(page)
+		initializePage(page)
 		await page.goto(`${developmentBaseURL}/free-trial`)
 	})
 
@@ -36,13 +36,13 @@ describe('Create Account Form', async () => {
 	})
 
 	test('fill and submit the create account form', async () => {
-		const firstNameInput = await getElements.byTestId(dataTestIdNames.createAccountFirstNameInput)
-		const lastNameInput = await getElements.byTestId(dataTestIdNames.createAccountLastNameInput)
-		const businessNameInput = await getElements.byTestId(dataTestIdNames.createAccountBusinessNameInput)
-		const emailInput = await getElements.byTestId(dataTestIdNames.createAccountEmailInput)
-		const passwordInput = await getElements.byTestId(dataTestIdNames.createAccountPasswordInput)
-		const staySignedInCheckbox = await getElements.byTestId(dataTestIdNames.createAccountStaySignedInCheckbox)
-		const submitButton = await getElements.byTestId(dataTestIdNames.createAccountSubmitButton)
+		const firstNameInput = await getElementByTestId(dataTestIdNames.createAccountFirstNameInput)
+		const lastNameInput = await getElementByTestId(dataTestIdNames.createAccountLastNameInput)
+		const businessNameInput = await getElementByTestId(dataTestIdNames.createAccountBusinessNameInput)
+		const emailInput = await getElementByTestId(dataTestIdNames.createAccountEmailInput)
+		const passwordInput = await getElementByTestId(dataTestIdNames.createAccountPasswordInput)
+		const staySignedInCheckbox = await getElementByTestId(dataTestIdNames.createAccountStaySignedInCheckbox)
+		const submitButton = await getElementByTestId(dataTestIdNames.createAccountSubmitButton)
 
 		await firstNameInput?.type('Susan')
 		await lastNameInput?.type('Poodle')
@@ -80,7 +80,7 @@ describe('Create Account Form', async () => {
 	})
 
 	test('ask the user to confirm their email', async () => {
-		const message = await getElements.byTestId(dataTestIdNames.pleaseConfirmYourEmailMessage)
+		const message = await getElementByTestId(dataTestIdNames.pleaseConfirmYourEmailMessage)
 		expect(message).toBeDefined()
 		const text = await message?.evaluate((element) => element.textContent)
 		expect(text).toContain(susanPoodle.email)
@@ -112,7 +112,7 @@ describe('Create Account Form', async () => {
 		}
 		await page.goto(invitationLink)
 
-		const confirmationMessage = await getElements.byTestId(dataTestIdNames.emailConfirmation.response)
+		const confirmationMessage = await getElementByTestId(dataTestIdNames.emailConfirmation.response)
 		expect(confirmationMessage).toBeDefined()
 		const successMessage = await confirmationMessage?.evaluate((element) => element.textContent)
 		expect(successMessage).toContain('success')
@@ -125,13 +125,13 @@ describe('Create Account Form', async () => {
 
 	test('message asking to confirm email should be gone', async () => {
 		await page.goto(`${developmentBaseURL}/dashboard`)
-		const message = await getElements.byTestId(dataTestIdNames.pleaseConfirmYourEmailMessage)
+		const message = await getElementByTestId(dataTestIdNames.pleaseConfirmYourEmailMessage)
 		expect(message).toBeNull()
 	})
 
 	test('A form should be present at /customers', async () => {
 		await page.goto(`${developmentBaseURL}/customers`)
-		const inviteCustomerForm = await getElements.byTestId(dataTestIdNames.invite.form)
+		const inviteCustomerForm = await getElementByTestId(dataTestIdNames.invite.form)
 		expect(inviteCustomerForm).toBeDefined()
 	})
 
