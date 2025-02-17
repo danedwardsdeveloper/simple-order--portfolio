@@ -6,7 +6,7 @@ import { testPasswords, testUsers } from '@/library/constants/definitions/testUs
 import { developmentBaseURL } from '@/library/environment/publicVariables'
 
 import { deleteUserSequence } from './utilities/deleteUserSequence'
-import { getElements } from './utilities/getElements'
+import { getElementByTestId, initializePage } from './utilities/getElements'
 
 const bothUser = testUsers.both
 
@@ -18,7 +18,7 @@ describe('Create Account Form', () => {
 		deleteUserSequence(bothUser.email)
 		browser = await launch()
 		page = await browser.newPage()
-		getElements.initialise(page)
+		initializePage(page)
 		await page.goto(`${developmentBaseURL}/free-trial`)
 	})
 
@@ -33,13 +33,13 @@ describe('Create Account Form', () => {
 	})
 
 	test('can fill out and submit the form', async () => {
-		const firstNameInput = await getElements.byTestId(dataTestIdNames.createAccountFirstNameInput)
-		const lastNameInput = await getElements.byTestId(dataTestIdNames.createAccountLastNameInput)
-		const businessNameInput = await getElements.byTestId(dataTestIdNames.createAccountBusinessNameInput)
-		const emailInput = await getElements.byTestId(dataTestIdNames.createAccountEmailInput)
-		const passwordInput = await getElements.byTestId(dataTestIdNames.createAccountPasswordInput)
-		const staySignedInCheckbox = await getElements.byTestId(dataTestIdNames.createAccountStaySignedInCheckbox)
-		const submitButton = await getElements.byTestId(dataTestIdNames.createAccountSubmitButton)
+		const firstNameInput = await getElementByTestId(dataTestIdNames.createAccountFirstNameInput)
+		const lastNameInput = await getElementByTestId(dataTestIdNames.createAccountLastNameInput)
+		const businessNameInput = await getElementByTestId(dataTestIdNames.createAccountBusinessNameInput)
+		const emailInput = await getElementByTestId(dataTestIdNames.createAccountEmailInput)
+		const passwordInput = await getElementByTestId(dataTestIdNames.createAccountPasswordInput)
+		const staySignedInCheckbox = await getElementByTestId(dataTestIdNames.createAccountStaySignedInCheckbox)
+		const submitButton = await getElementByTestId(dataTestIdNames.createAccountSubmitButton)
 
 		await firstNameInput?.type(bothUser.firstName)
 		await lastNameInput?.type(bothUser.lastName)
