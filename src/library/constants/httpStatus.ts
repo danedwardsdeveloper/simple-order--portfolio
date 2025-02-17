@@ -4,7 +4,6 @@ export const httpStatus = {
 	http202accepted: 202,
 	http204noContent: 204,
 	http206partialContent: 206,
-	http422unprocessableContent: 422,
 
 	http400badRequest: 400,
 	http401unauthorised: 401,
@@ -14,6 +13,7 @@ export const httpStatus = {
 	http409conflict: 409,
 	http410gone: 410,
 	http415unsupportedMediaType: 415,
+	http422unprocessableContent: 422,
 	http429tooManyRequests: 429,
 
 	http500serverError: 500,
@@ -21,4 +21,4 @@ export const httpStatus = {
 	http502badGateway: 502,
 	http503serviceUnavailable: 503,
 	http504gatewayTimeout: 504,
-} as const
+} as const;
