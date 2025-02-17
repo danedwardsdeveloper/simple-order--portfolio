@@ -1,33 +1,21 @@
-import { and, eq } from 'drizzle-orm';
-import { type NextRequest, NextResponse } from 'next/server';
+import { and, eq } from 'drizzle-orm'
+import { type NextRequest, NextResponse } from 'next/server'
 
-import { serviceConstraints } from '@/library/constants/serviceConstraints';
-import { checkActiveSubscriptionOrTrial } from '@/library/database/operations';
-import {
-	checkMerchantProfileExists,
-	checkUserExists,
-} from '@/library/database/operations';
-import { products } from '@/library/database/schema';
-import logger from '@/library/logger';
-import { containsIllegalCharacters } from '@/library/utilities';
-import { extractIdFromRequestCookie } from '@/library/utilities/server';
+import { serviceConstraints } from '@/library/constants/definitions/serviceConstraints'
+import { checkActiveSubscriptionOrTrial } from '@/library/database/operations'
+import { checkMerchantProfileExists, checkUserExists } from '@/library/database/operations'
+import { products } from '@/library/database/schema'
+import logger from '@/library/logger'
+import { containsIllegalCharacters } from '@/library/utilities'
+import { extractIdFromRequestCookie } from '@/library/utilities/server'
 
-import { apiPaths } from '@/library/constants/apiPaths';
-import { httpStatus } from '@/library/constants/httpStatus';
-import {
-	authenticationMessages,
-	basicMessages,
-} from '@/library/constants/responseMessages';
-import { database } from '@/library/database/connection';
-import type {
-	AuthenticationMessages,
-	BasicMessages,
-	ClientProduct,
-	NewProduct,
-	Product,
-} from '@/types';
+import { apiPaths } from '@/library/constants/definitions/apiPaths'
+import { httpStatus } from '@/library/constants/definitions/httpStatus'
+import { authenticationMessages, basicMessages } from '@/library/constants/definitions/responseMessages'
+import { database } from '@/library/database/connection'
+import type { AuthenticationMessages, BasicMessages, ClientProduct, NewProduct, Product } from '@/types'
 
-export type InventoryAddPOSTbody = Omit<NewProduct, 'id' | 'merchantProfileId'>;
+export type InventoryAddPOSTbody = Omit<NewProduct, 'id' | 'merchantProfileId'>
 
 export interface InventoryAddPOSTresponse {
 	message:
@@ -45,139 +33,98 @@ export interface InventoryAddPOSTresponse {
 		| 'description contains illegal characters'
 		| 'description too long'
 		| 'too many products'
-		| 'product name exists';
-	product?: ClientProduct;
+		| 'product name exists'
+	product?: ClientProduct
 }
 
-export async function POST(
-	request: NextRequest
-): Promise<NextResponse<InventoryAddPOSTresponse>> {
-	const {
-		name,
-		priceInMinorUnits,
-		customVat,
-		description,
-	}: InventoryAddPOSTbody = await request.json();
+export async function POST(request: NextRequest): Promise<NextResponse<InventoryAddPOSTresponse>> {
+	const { name, priceInMinorUnits, customVat, description }: InventoryAddPOSTbody = await request.json()
 
-	let badRequestMessage: InventoryAddPOSTresponse['message'] | undefined;
+	let badRequestMessage: InventoryAddPOSTresponse['message'] | undefined
 
 	if (!name) {
-		badRequestMessage = 'name missing';
+		badRequestMessage = 'name missing'
 	}
 
 	if (containsIllegalCharacters(name)) {
-		badRequestMessage = 'name contains illegal characters';
+		badRequestMessage = 'name contains illegal characters'
 	}
 
 	if (!priceInMinorUnits) {
-		badRequestMessage = 'priceInMinorUnits missing';
+		badRequestMessage = 'priceInMinorUnits missing'
 	}
 
 	if (Number.isNaN(priceInMinorUnits)) {
-		badRequestMessage = 'priceInMinorUnits not a number';
+		badRequestMessage = 'priceInMinorUnits not a number'
 	}
 
 	if (priceInMinorUnits > serviceConstraints.maximumProductValueInMinorUnits) {
-		badRequestMessage = 'priceInMinorUnits too high';
+		badRequestMessage = 'priceInMinorUnits too high'
 	}
 
 	if (description) {
 		if (containsIllegalCharacters(description)) {
-			badRequestMessage = 'description contains illegal characters';
+			badRequestMessage = 'description contains illegal characters'
 		}
-		if (
-			description.length >
-			serviceConstraints.maximumProductDescriptionCharacters
-		) {
-			badRequestMessage = 'description too long';
+		if (description.length > serviceConstraints.maximumProductDescriptionCharacters) {
+			badRequestMessage = 'description too long'
 		}
 	}
 
 	if (customVat) {
 		if (Number.isNaN(customVat)) {
-			badRequestMessage = 'customVat not a number';
+			badRequestMessage = 'customVat not a number'
 		}
 		if (customVat > serviceConstraints.highestVat) {
-			badRequestMessage = 'customVat too high';
+			badRequestMessage = 'customVat too high'
 		}
 		if (customVat < 0) {
-			badRequestMessage = 'customVat is negative';
+			badRequestMessage = 'customVat is negative'
 		}
 		if (customVat % 1 !== 0) {
-			badRequestMessage = 'customVat is a decimal';
+			badRequestMessage = 'customVat is a decimal'
 		}
 	}
 
 	if (badRequestMessage) {
-		return NextResponse.json(
-			{ message: badRequestMessage },
-			{ status: httpStatus.http400badRequest }
-		);
+		return NextResponse.json({ message: badRequestMessage }, { status: httpStatus.http400badRequest })
 	}
 
 	try {
-		const { extractedUserId, status, message } =
-			extractIdFromRequestCookie(request);
+		const { extractedUserId, status, message } = extractIdFromRequestCookie(request)
 
 		if (!extractedUserId) {
-			return NextResponse.json({ message }, { status });
+			return NextResponse.json({ message }, { status })
 		}
 
-		const { userExists } = await checkUserExists(extractedUserId);
+		const { userExists } = await checkUserExists(extractedUserId)
 		if (!userExists) {
-			return NextResponse.json(
-				{ message: authenticationMessages.userNotFound },
-				{ status: httpStatus.http401unauthorised }
-			);
+			return NextResponse.json({ message: authenticationMessages.userNotFound }, { status: httpStatus.http401unauthorised })
 		}
 
-		const { merchantProfileExists } = await checkMerchantProfileExists(
-			extractedUserId
-		);
+		const { merchantProfileExists } = await checkMerchantProfileExists(extractedUserId)
 		if (!merchantProfileExists) {
-			return NextResponse.json(
-				{ message: authenticationMessages.merchantMissing },
-				{ status: httpStatus.http401unauthorised }
-			);
+			return NextResponse.json({ message: authenticationMessages.merchantMissing }, { status: httpStatus.http401unauthorised })
 		}
 
-		const { validSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(
-			extractedUserId
-		);
+		const { validSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(extractedUserId)
 		if (!validSubscriptionOrTrial) {
-			return NextResponse.json(
-				{ message: authenticationMessages.noActiveTrialSubscription },
-				{ status: httpStatus.http401unauthorised }
-			);
+			return NextResponse.json({ message: authenticationMessages.noActiveTrialSubscription }, { status: httpStatus.http401unauthorised })
 		}
 
-		const existingProducts = await database
-			.select()
-			.from(products)
-			.where(eq(products.merchantProfileId, extractedUserId));
+		const existingProducts = await database.select().from(products).where(eq(products.merchantProfileId, extractedUserId))
 		if (existingProducts.length >= serviceConstraints.maximumProducts) {
-			return NextResponse.json(
-				{ message: 'too many products' },
-				{ status: httpStatus.http400badRequest }
-			);
+			return NextResponse.json({ message: 'too many products' }, { status: httpStatus.http400badRequest })
 		}
 
 		const [existingProduct] = await database
 			.select()
 			.from(products)
-			.where(
-				and(
-					eq(products.merchantProfileId, extractedUserId),
-					eq(products.name, name)
-				)
-			)
-			.limit(1);
+			.where(and(eq(products.merchantProfileId, extractedUserId), eq(products.name, name)))
+			.limit(1)
 
 		if (existingProduct) {
-			return NextResponse.json(
-				{ message: 'product name exists' },
-				{ status: httpStatus.http400badRequest }
-			);
+			return NextResponse.json({ message: 'product name exists' }, { status: httpStatus.http400badRequest })
 		}
 
 		const newProduct: NewProduct = {
@@ -186,33 +133,21 @@ export async function POST(
 			priceInMinorUnits,
 			description,
 			customVat,
-		};
-
-		logger.debug('Did the code get this far?');
-		const [addedProduct]: Product[] = await database
-			.insert(products)
-			.values(newProduct)
-			.returning();
-
-		if (!addedProduct) {
-			logger.error(`Couldn't add product`);
-			return NextResponse.json(
-				{ message: basicMessages.serverError },
-				{ status: httpStatus.http500serverError }
-			);
 		}
 
-		logger.info('Added product: ', JSON.stringify(addedProduct));
+		logger.debug('Did the code get this far?')
+		const [addedProduct]: Product[] = await database.insert(products).values(newProduct).returning()
 
-		return NextResponse.json(
-			{ message: basicMessages.success, product: addedProduct },
-			{ status: httpStatus.http200ok }
-		);
+		if (!addedProduct) {
+			logger.error(`Couldn't add product`)
+			return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
+		}
+
+		logger.info('Added product: ', JSON.stringify(addedProduct))
+
+		return NextResponse.json({ message: basicMessages.success, product: addedProduct }, { status: httpStatus.http200ok })
 	} catch (error) {
-		logger.error(`${apiPaths.inventory.add}`, error);
-		return NextResponse.json(
-			{ message: basicMessages.serverError },
-			{ status: httpStatus.http500serverError }
-		);
+		logger.error(`${apiPaths.inventory.add}`, error)
+		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
 	}
 }

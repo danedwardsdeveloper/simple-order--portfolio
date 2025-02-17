@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
-import { websiteCopy } from '@/library/constants/websiteCopy'
+import { websiteCopy } from '@/library/constants/definitions/websiteCopy'
 
 import heroImage from './simple-order-wholesale-order-management-software-website.jpg'
 
@@ -29,6 +29,7 @@ export default function HeroSection() {
 						</div>
 					</div>
 					<Image
+						priority
 						alt={websiteCopy.extras.selfContainedDescription}
 						src={heroImage}
 						className="mt-10 aspect-[6/5] w-full max-w-lg rounded-2xl object-cover sm:mt-16 lg:mt-0 lg:max-w-none xl:row-span-2 xl:row-end-2"

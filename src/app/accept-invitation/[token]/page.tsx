@@ -10,7 +10,7 @@ import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import { CheckboxIcon } from '@/components/Icons'
 
 import type { InvitationsAcceptPOSTbody } from '@/app/api/invitations/accept/[token]/route'
-import { apiPaths } from '@/types'
+import { apiPaths } from '@/library/constants/definitions/apiPaths'
 
 export default function AcceptInvitationPage() {
 	const { token } = useParams<{ token: string }>()
@@ -26,6 +26,7 @@ export default function AcceptInvitationPage() {
 		staySignedIn: false,
 	})
 
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	useEffect(() => {
 		checkInvitation()
 	}, [])

@@ -1,18 +1,19 @@
 import type { ElementHandle, Page } from 'puppeteer'
 
-export class getElements {
-	private static page: Page
+let browserPage: Page
 
-	static initialise(page: Page) {
-		getElements.page = page
-	}
+export const initializePage = (newPage: Page) => {
+	browserPage = newPage
+}
 
-	static async byTestId(testId: string): Promise<ElementHandle | null> {
-		return await getElements.page.$(`[data-test-id="${testId}"]`)
+export const getElementByTestId = async (testId: string): Promise<ElementHandle | null> => {
+	if (!browserPage) {
+		throw new Error('Page not initialized. Import and call initializePage from test/utilities/getElements first.')
 	}
+	return await browserPage.$(`[data-test-id="${testId}"]`)
+}
 
-	static async exists(testId: string): Promise<boolean> {
-		const element = await getElements.byTestId(testId)
-		return element !== null
-	}
+export const elementExists = async (testId: string): Promise<boolean> => {
+	const element = await getElementByTestId(testId)
+	return element !== null
 }

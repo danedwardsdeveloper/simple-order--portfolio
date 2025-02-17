@@ -3,14 +3,14 @@
 import { useRouter } from 'next/navigation'
 import { type FormEvent, useState } from 'react'
 
-import { dataTestIdNames } from '@/library/constants/dataTestId'
-import { testPasswords, testUsers } from '@/library/constants/testUsers'
+import { dataTestIdNames } from '@/library/constants/definitions/dataTestId'
+import { testPasswords, testUsers } from '@/library/constants/definitions/testUsers'
 import logger from '@/library/logger'
 
 import { CheckboxIcon } from '@/components/Icons'
 
 import PageContainer from '@/components/PageContainer'
-import { apiPaths } from '@/library/constants/apiPaths'
+import { apiPaths } from '@/library/constants/definitions/apiPaths'
 import { useAuthorisation } from '@/providers/authorisation'
 import type { SignInPOSTbody, SignInPOSTresponse } from '@/types/api/authentication/sign-in'
 
@@ -42,18 +42,18 @@ export default function SignInPage() {
 				} satisfies SignInPOSTbody),
 			})
 
-			const { message, foundUser }: SignInPOSTresponse = await response.json()
+			const { message, baseBrowserSafeUser }: SignInPOSTresponse = await response.json()
 
 			if (!response.ok || message !== 'success') {
 				setError('Sorry, something went wrong')
 			}
 
-			if (!foundUser) {
+			if (!baseBrowserSafeUser) {
 				setError('No account found with this email')
 				return
 			}
 
-			setClientSafeUser(foundUser)
+			setClientSafeUser(baseBrowserSafeUser)
 			router.push('/dashboard')
 			return
 		} catch (error) {

@@ -1,4 +1,4 @@
-import { dataTestIdNames } from '@/library/constants/dataTestId'
+import { dataTestIdNames } from '@/library/constants/definitions/dataTestId'
 
 import { useAuthorisation } from '@/providers/authorisation'
 

@@ -13,6 +13,7 @@ export default function ToggleWithLabel({ enabled, setEnabled, enabledLabel, dis
 		<Field className="flex items-center">
 			<Label as="span" className="mr-3 text-sm">
 				<button
+					type="button"
 					onClick={() => setEnabled(true)}
 					disabled={!enabled}
 					className={clsx(
@@ -35,6 +36,7 @@ export default function ToggleWithLabel({ enabled, setEnabled, enabledLabel, dis
 			</Switch>
 			<Label as="span" className="ml-3 text-sm">
 				<button
+					type="button"
 					onClick={() => setEnabled(false)}
 					disabled={enabled}
 					className={clsx(

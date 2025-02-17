@@ -8,7 +8,14 @@ export default function Spinner({
 	classes?: string
 }) {
 	return (
-		<svg className={clsx('h-7 w-7 animate-spin', colour, classes)} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+		<svg
+			className={clsx('h-7 w-7 animate-spin', colour, classes)}
+			xmlns="http://www.w3.org/2000/svg"
+			fill="none"
+			viewBox="0 0 24 24"
+			role="img"
+		>
+			<title>Loading spinner</title>
 			<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
 			<path
 				className="opacity-75"

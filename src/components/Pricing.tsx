@@ -1,4 +1,5 @@
 import { CheckIcon } from '@heroicons/react/20/solid'
+import Link from 'next/link'
 
 const includedFeatures = ['Private forum access', 'Member resources', 'Entry to annual conference', 'Official member t-shirt']
 
@@ -16,8 +17,7 @@ export default function Pricing() {
 					<div className="p-8 sm:p-10 lg:flex-auto">
 						<h3 className="text-3xl font-semibold tracking-tight text-gray-900">Lifetime membership</h3>
 						<p className="mt-6 text-base/7 text-gray-600">
-							Lorem ipsum dolor sit amet consect etur adipisicing elit. Itaque amet indis perferendis blanditiis repellendus etur quidem
-							assumenda.
+							Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 						</p>
 						<div className="mt-10 flex items-center gap-x-4">
 							<h4 className="flex-none text-sm/6 font-semibold text-indigo-600">What’s included</h4>
@@ -40,12 +40,12 @@ export default function Pricing() {
 									<span className="text-5xl font-semibold tracking-tight text-gray-900">$349</span>
 									<span className="text-sm/6 font-semibold tracking-wide text-gray-600">USD</span>
 								</p>
-								<a
-									href="#"
+								<Link
+									href="/free-trial"
 									className="mt-10 block w-full rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
 								>
 									Get access
-								</a>
+								</Link>
 								<p className="mt-6 text-xs/5 text-gray-600">Invoices and receipts available for easy company reimbursement</p>
 							</div>
 						</div>

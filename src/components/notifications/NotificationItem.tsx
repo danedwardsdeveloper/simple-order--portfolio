@@ -1,12 +1,10 @@
 'use client'
-
+import type { NotificationInterface, NotificationLevels } from '@/types'
 import { Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/20/solid'
 import { CheckCircleIcon, ExclamationCircleIcon, ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 import type { ComponentType, SVGProps } from 'react'
-
-import type { NotificationInterface, NotificationLevels } from '@/providers/notifications'
 
 interface Props {
 	notification: NotificationInterface
@@ -32,28 +30,28 @@ export default function NotificationItem({ notification, onClose }: Props) {
 		}
 	> = {
 		error: {
-			title: 'text-red-50',
-			message: 'text-red-200',
-			background: 'ring-red-900 bg-red-800',
-			icon: 'text-red-200',
+			title: 'text-red-600',
+			message: 'text-red-500',
+			background: 'ring-red-300 bg-white',
+			icon: 'text-red-600',
 		},
 		warning: {
-			title: 'text-orange-50',
-			message: 'text-orange-200',
-			background: 'ring-orange-900 bg-orange-800',
-			icon: 'text-orange-200',
+			title: 'text-orange-600',
+			message: 'text-orange-500',
+			background: 'ring-orange-300 bg-white',
+			icon: 'text-orange-600',
 		},
 		info: {
-			title: 'text-indigo-50',
-			message: 'text-indigo-200',
-			background: 'ring-indigo-900 bg-indigo-800',
-			icon: 'text-indigo-200',
+			title: 'text-blue-600',
+			message: 'text-indigo-500',
+			background: 'ring-indigo-300 bg-white',
+			icon: 'text-indigo-600',
 		},
 		success: {
-			title: 'text-green-50',
-			message: 'text-green-200',
-			background: 'ring-green-900 bg-green-800',
-			icon: 'text-green-200',
+			title: 'text-green-600',
+			message: 'text-green-500',
+			background: 'ring-green-300 bg-white',
+			icon: 'text-green-600',
 		},
 	}
 
@@ -70,15 +68,15 @@ export default function NotificationItem({ notification, onClose }: Props) {
 						<div className="shrink-0">
 							<Icon aria-hidden="true" className={clsx('size-6', colourStyles[notification.level].icon)} />
 						</div>
-						<div className="ml-3 w-0 flex-1 pt-0.5">
-							<p className={clsx('text-sm font-medium text-red-50', colourStyles[notification.level].title)}>{notification.title}</p>
+						<div className="ml-3 w-0 flex-1">
+							<p className={clsx('text-sm font-semibold', colourStyles[notification.level].title)}>{notification.title}</p>
 							<p className={clsx('mt-1 text-sm', colourStyles[notification.level].message)}>{notification.message}</p>
 						</div>
 						<div className="ml-4 flex shrink-0">
 							<button
 								type="button"
 								onClick={() => onClose(notification.id)}
-								className="inline-flex rounded-md text-slate-300 hover:text-slate-400 active:bg-slate-500 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+								className="inline-flex rounded-md text-slate-300 hover:text-slate-400 active:text-slate-500 hover:bg-slate-100 active:bg-slate-200 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
 							>
 								<span className="sr-only">Close</span>
 								<XMarkIcon aria-hidden="true" className="size-5" />

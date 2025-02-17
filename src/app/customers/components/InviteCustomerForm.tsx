@@ -1,39 +1,31 @@
-'use client';
+'use client'
 
-import { type ChangeEvent, type FormEvent, useState } from 'react';
+import { type ChangeEvent, type FormEvent, useState } from 'react'
 
-import { dataTestIdNames } from '@/library/constants/dataTestId';
-import logger from '@/library/logger';
+import { dataTestIdNames } from '@/library/constants/definitions/dataTestId'
+import logger from '@/library/logger'
 
-import type {
-	InviteCustomerPOSTbody,
-	InviteCustomerPOSTresponse,
-} from '@/app/api/invitations/create/route';
-import { apiPaths } from '@/library/constants/apiPaths';
-import { useAuthorisation } from '@/providers/authorisation';
+import type { InviteCustomerPOSTbody, InviteCustomerPOSTresponse } from '@/app/api/invitations/create/route'
+import { apiPaths } from '@/library/constants/definitions/apiPaths'
+import { useAuthorisation } from '@/providers/authorisation'
 
 export default function InviteCustomerForm() {
-	const { clientSafeUser } = useAuthorisation();
-	const [loading, setLoading] = useState(false);
-	const [responseMessage, setResponseMessage] = useState('');
-	const [invitedEmail, setInvitedEmail] = useState('');
+	const { clientSafeUser } = useAuthorisation()
+	const [loading, setLoading] = useState(false)
+	const [responseMessage, setResponseMessage] = useState('')
+	const [invitedEmail, setInvitedEmail] = useState('')
 
-	if (
-		!clientSafeUser ||
-		!clientSafeUser.merchantDetails ||
-		!clientSafeUser.emailConfirmed
-	)
-		return null;
+	if (!clientSafeUser || !clientSafeUser.merchantDetails || !clientSafeUser.emailConfirmed) return null
 
 	async function handleSubmit(event: FormEvent) {
-		event.preventDefault();
-		setResponseMessage('');
-		setLoading(true);
+		event.preventDefault()
+		setResponseMessage('')
+		setLoading(true)
 
 		try {
 			const body: InviteCustomerPOSTbody = {
 				invitedEmail,
-			};
+			}
 
 			const response = await fetch(apiPaths.invitations.create, {
 				method: 'POST',
@@ -41,16 +33,10 @@ export default function InviteCustomerForm() {
 					'Content-Type': 'application/json',
 				},
 				body: JSON.stringify(body),
-			});
-			const {
-				message,
-				browserSafeInvitationRecord,
-			}: InviteCustomerPOSTresponse = await response.json();
+			})
+			const { message, browserSafeInvitationRecord }: InviteCustomerPOSTresponse = await response.json()
 
-			logger.debug(
-				'Browser-safe invitation record: ',
-				JSON.stringify(browserSafeInvitationRecord)
-			);
+			logger.debug('Browser-safe invitation record: ', JSON.stringify(browserSafeInvitationRecord))
 
 			// Figure out how to add the invitation record to the state...
 			// if(browserSafeInvitationRecord) {
@@ -59,43 +45,30 @@ export default function InviteCustomerForm() {
 			//     pendingCustomersAsMerchant: [browserSafeInvitationRecord],
 			//   })
 			// }
-			setInvitedEmail('');
-			setResponseMessage(message);
+			setInvitedEmail('')
+			setResponseMessage(message)
 		} catch (error) {
-			logger.error('Error sending new invitation fetch request', error);
-			setResponseMessage('Unknown error');
+			logger.error('Error sending new invitation fetch request', error)
+			setResponseMessage('Unknown error')
 		} finally {
-			setLoading(false);
+			setLoading(false)
 		}
 	}
 
 	function handleEmailChange(event: ChangeEvent<HTMLInputElement>) {
-		setInvitedEmail(event.target.value);
+		setInvitedEmail(event.target.value)
 	}
 
 	function ResponseMessage() {
 		if (loading) {
-			return (
-				<p data-test-id={dataTestIdNames.invite.loading}>
-					Sending invitation...
-				</p>
-			);
+			return <p data-test-id={dataTestIdNames.invite.loading}>Sending invitation...</p>
 		}
-		return (
-			responseMessage && (
-				<p data-test-id={dataTestIdNames.invite.response}>
-					{responseMessage}
-				</p>
-			)
-		);
+		return responseMessage && <p data-test-id={dataTestIdNames.invite.response}>{responseMessage}</p>
 	}
 
 	return (
 		<div data-test-id={dataTestIdNames.invite.form}>
-			<form
-				onSubmit={handleSubmit}
-				className="flex flex-col gap-y-4 max-w-sm p-3 border-2 my-4 rounded-xl border-blue-300 "
-			>
+			<form onSubmit={handleSubmit} className="flex flex-col gap-y-4 max-w-sm p-3 border-2 my-4 rounded-xl border-blue-300 ">
 				<h2>Invite a customer</h2>
 				<div className="flex flex-col mb-4">
 					<label htmlFor="invitedEmail" className="mb-1">
@@ -122,5 +95,5 @@ export default function InviteCustomerForm() {
 				<ResponseMessage />
 			</form>
 		</div>
-	);
+	)
 }

@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import urlJoin from 'url-join'
 import { v4 as generateConfirmationToken } from 'uuid'
 
-import { durationSettings } from '@/library/constants/durations'
+import { durationSettings } from '@/library/constants/definitions/durations'
 import { database } from '@/library/database/connection'
 import { checkActiveSubscriptionOrTrial, checkUserExists } from '@/library/database/operations'
 import { customerToMerchant, invitations, users } from '@/library/database/schema'
@@ -16,17 +16,17 @@ import logger from '@/library/logger'
 import { obfuscateEmail } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
 
-import {
-	type AuthenticationMessages,
-	type BaseUser,
-	type BasicMessages,
-	type BrowserSafeInvitationRecord,
-	type CustomerToMerchant,
-	type Invitation,
-	type InvitationInsert,
-	authenticationMessages,
-	basicMessages,
-	httpStatus,
+import { apiPaths } from '@/library/constants/definitions/apiPaths'
+import { httpStatus } from '@/library/constants/definitions/httpStatus'
+import { authenticationMessages, basicMessages } from '@/library/constants/definitions/responseMessages'
+import type {
+	AuthenticationMessages,
+	BasicMessages,
+	BrowserSafeInvitationRecord,
+	CustomerToMerchant,
+	DangerousBaseUser,
+	Invitation,
+	InvitationInsert,
 } from '@/types'
 
 export interface InviteCustomerPOSTresponse {
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
 		}
 
 		// 7. Check if invitee already has an account
-		const [inviteeAlreadyHasAccount]: BaseUser[] = await database
+		const [inviteeAlreadyHasAccount]: DangerousBaseUser[] = await database
 			.select()
 			.from(users)
 			.where(eq(users.email, normalisedInvitedEmail))
@@ -198,11 +198,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
 			expirationDate: newInvitationExpiryDate,
 		}
 
-		// ToDo: add cookies otherwise you end up signed in as the person who invited instead
-
 		return NextResponse.json({ message: basicMessages.success, browserSafeInvitationRecord }, { status: httpStatus.http200ok })
 	} catch (error) {
-		logger.errorUnknown(error)
+		logger.error(`${apiPaths.invitations.create} error: `, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
 	}
 }

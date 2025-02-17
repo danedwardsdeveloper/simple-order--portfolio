@@ -1,13 +1,7 @@
-import type {
-	authenticationMessages,
-	basicMessages,
-	illegalCharactersMessages,
-} from '@/library/constants/responseMessages';
+import type { authenticationMessages, basicMessages, illegalCharactersMessages } from '@/library/constants/definitions/responseMessages'
 
-export type BasicMessages = (typeof basicMessages)[keyof typeof basicMessages];
+export type BasicMessages = (typeof basicMessages)[keyof typeof basicMessages]
 
-export type AuthenticationMessages =
-	(typeof authenticationMessages)[keyof typeof authenticationMessages];
+export type AuthenticationMessages = (typeof authenticationMessages)[keyof typeof authenticationMessages]
 
-export type IllegalCharactersMessages =
-	(typeof illegalCharactersMessages)[keyof typeof illegalCharactersMessages];
+export type IllegalCharactersMessages = (typeof illegalCharactersMessages)[keyof typeof illegalCharactersMessages]

@@ -4,7 +4,7 @@ import { myPersonalEmail } from '@/library/environment/serverVariables'
 import logger from '@/library/logger'
 
 import type { SendEmailBody } from '@/types'
-import type { TestEmail, TestEmailInsert } from '@/types/definitions/testEmailInbox'
+import type { TestEmail, TestEmailInsertValues } from '@/types/definitions/testEmailInbox'
 import { database } from '../database/connection'
 import { testEmailInbox } from '../database/schema'
 import emailClient from './client'
@@ -12,7 +12,7 @@ import emailClient from './client'
 export const sendEmail = async ({ recipientEmail, subject, htmlVersion, textVersion }: SendEmailBody): Promise<boolean> => {
 	try {
 		// 1. Add all emails to test_email_inbox
-		const newTestEmailInboxValues: TestEmailInsert = {
+		const newTestEmailInboxValues: TestEmailInsertValues = {
 			content: `${htmlVersion}\n\n\n${textVersion}`,
 		}
 		const [addedToTestEmailInbox]: TestEmail[] = await database.insert(testEmailInbox).values(newTestEmailInboxValues).returning()
@@ -41,10 +41,10 @@ export const sendEmail = async ({ recipientEmail, subject, htmlVersion, textVers
 			logger.info(`Sent email to ${recipientEmail}`)
 			return true
 		}
-		logger.errorUnknown(response.message, 'Error sending email')
+		logger.error('Error sending email', response.message)
 		return false
 	} catch (error) {
-		logger.errorUnknown(error, 'Error sending email')
+		logger.error('Error sending email', error)
 		return false
 	}
 }

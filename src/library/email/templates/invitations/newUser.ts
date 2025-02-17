@@ -1,4 +1,4 @@
-import { websiteCopy } from '@/library/constants/websiteCopy'
+import { websiteCopy } from '@/library/constants/definitions/websiteCopy'
 import { bareDomain, productionBaseURL } from '@/library/environment/publicVariables'
 import { formatTimeAndDate } from '@/library/utilities'
 

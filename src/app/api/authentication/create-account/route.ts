@@ -3,7 +3,7 @@ import { eq, or } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 import { v4 as generateConfirmationToken } from 'uuid'
 
-import { durationOptions } from '@/library/constants/durations'
+import { durationOptions } from '@/library/constants/definitions/durations'
 import { database } from '@/library/database/connection'
 import { confirmationTokens, freeTrials, merchantProfiles, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
@@ -15,19 +15,17 @@ import { containsIllegalCharacters, createFreeTrialEndTime, createMerchantSlug }
 import { sanitiseDangerousBaseUser } from '@/library/utilities/definitions/sanitiseUser'
 import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
 
-import {
-	type AuthenticationMessages,
-	type BaseUserInsertValues,
-	type DangerousBaseUser,
-	type FreeTrial,
-	type FullBrowserSafeUser,
-	type IllegalCharactersMessages,
-	type NewFreeTrial,
-	authenticationMessages,
-	basicMessages,
-	cookieDurations,
-	httpStatus,
-	illegalCharactersMessages,
+import { cookieDurations } from '@/library/constants/definitions/cookies'
+import { httpStatus } from '@/library/constants/definitions/httpStatus'
+import { authenticationMessages, basicMessages, illegalCharactersMessages } from '@/library/constants/definitions/responseMessages'
+import type {
+	AuthenticationMessages,
+	BaseUserInsertValues,
+	DangerousBaseUser,
+	FreeTrial,
+	FullBrowserSafeUser,
+	IllegalCharactersMessages,
+	NewFreeTrial,
 } from '@/types'
 import type { CreateAccountPOSTbody, CreateAccountPOSTresponse } from '@/types/api/authentication/create-account'
 

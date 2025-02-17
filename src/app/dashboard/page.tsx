@@ -17,11 +17,11 @@ export default function DashboardPage() {
 	}
 
 	const emailConfirmed = clientSafeUser.emailConfirmed
-	const hasCustomers =
+	const hasConfirmedCustomers =
 		Array.isArray(clientSafeUser.merchantDetails?.customersAsMerchant) && clientSafeUser.merchantDetails?.customersAsMerchant.length > 0
 
 	function NoCustomersMessage() {
-		if (hasCustomers) return null
+		if (hasConfirmedCustomers) return null
 		if (emailConfirmed) {
 			return (
 				<div className="max-w-prose p-3 my-4 border-2 rounded-xl border-blue-300">
@@ -40,13 +40,11 @@ export default function DashboardPage() {
 
 	return (
 		<>
-			<div>
-				<h1>Dashboard</h1>
-				{clientSafeUser && <p>{`Welcome ${clientSafeUser.businessName}`}</p>}
-				<ConfirmEmailMessage />
-				<EmptyInventoryMessage />
-				{merchantMode && <NoCustomersMessage />}
-			</div>
+			<h1>Dashboard</h1>
+			{clientSafeUser && <p>{`Welcome ${clientSafeUser.businessName}`}</p>}
+			<ConfirmEmailMessage />
+			<EmptyInventoryMessage />
+			{merchantMode && <NoCustomersMessage />}
 		</>
 	)
 }

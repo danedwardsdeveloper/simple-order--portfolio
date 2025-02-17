@@ -1,17 +1,6 @@
 'use client'
-
+import type { NewNotification, NotificationInterface } from '@/types'
 import { type ReactNode, createContext, useCallback, useContext, useState } from 'react'
-
-export type NotificationLevels = 'success' | 'info' | 'warning' | 'error'
-
-export interface NotificationInterface {
-	id: number
-	title: string
-	message: string
-	level: NotificationLevels
-}
-
-export type NewNotification = Pick<NotificationInterface, 'message' | 'title' | 'level'>
 
 interface NotificationsContextType {
 	createNotification: ({ title, message }: NewNotification) => void
@@ -20,33 +9,6 @@ interface NotificationsContextType {
 }
 
 const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined)
-
-const _exampleNotifications: NotificationInterface[] = [
-	{
-		id: 0,
-		title: 'Success',
-		message: `You've won a prize!`,
-		level: 'success',
-	},
-	{
-		id: 1,
-		title: 'Information',
-		message: 'French people are French',
-		level: 'info',
-	},
-	{
-		id: 2,
-		title: 'Warning',
-		message: 'Your bank account has been hacked! Send me £1,000 to fix it',
-		level: 'warning',
-	},
-	{
-		id: 3,
-		title: 'Error',
-		message: 'You will die in seven days',
-		level: 'error',
-	},
-]
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
 	const [notifications, setNotifications] = useState<NotificationInterface[] | null>(null)

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 
-import { type BasicMessages, basicMessages, cookieNames, httpStatus } from '@/types'
+import { basicMessages, cookieNames, httpStatus } from '@/library/constants'
+import type { BasicMessages } from '@/types'
 
 export interface SignOutPOSTresponse {
 	message: BasicMessages | 'error deleting cookie'

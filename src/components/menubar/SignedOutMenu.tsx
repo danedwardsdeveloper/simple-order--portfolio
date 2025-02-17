@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-import { websiteCopy } from '@/library/constants/websiteCopy'
+import { websiteCopy } from '@/library/constants/definitions/websiteCopy'
 
 import HomePageLink from './HomePageLink'
 import MenuItem from './MenuItem'

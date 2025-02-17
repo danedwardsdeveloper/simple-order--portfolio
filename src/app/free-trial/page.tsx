@@ -3,14 +3,14 @@
 import { useRouter } from 'next/navigation'
 import { type FormEvent, useState } from 'react'
 
-import { dataTestIdNames } from '@/library/constants/dataTestId'
+import { dataTestIdNames } from '@/library/constants/definitions/dataTestId'
 import logger from '@/library/logger'
 import { generateRandomString } from '@/library/utilities'
 
 import { CheckboxIcon } from '@/components/Icons'
 
 import PageContainer from '@/components/PageContainer'
-import { apiPaths } from '@/library/constants/apiPaths'
+import { apiPaths } from '@/library/constants/definitions/apiPaths'
 import { useAuthorisation } from '@/providers/authorisation'
 import type { CreateAccountPOSTbody, CreateAccountPOSTresponse } from '@/types/api/authentication/create-account'
 

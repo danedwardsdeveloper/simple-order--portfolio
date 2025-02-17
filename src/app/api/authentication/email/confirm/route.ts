@@ -1,12 +1,15 @@
-import { eq as equals } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
 import { database } from '@/library/database/connection'
 import { confirmationTokens, users } from '@/library/database/schema'
 import logger from '@/library/logger'
 
-import { authenticationMessages, basicMessages, httpStatus } from '@/types'
+import { httpStatus } from '@/library/constants/definitions/httpStatus'
+import { authenticationMessages, basicMessages } from '@/library/constants/definitions/responseMessages'
+import type { DangerousBaseUser } from '@/types'
 import type { ConfirmEmailPOSTbody, ConfirmEmailPOSTresponse } from '@/types/api/authentication/email/confirm'
+import type { ConfirmationToken } from '@/types/definitions/confirmationTokens'
 
 export async function POST(request: NextRequest): Promise<NextResponse<ConfirmEmailPOSTresponse>> {
 	const { token }: ConfirmEmailPOSTbody = await request.json()
@@ -15,11 +18,16 @@ export async function POST(request: NextRequest): Promise<NextResponse<ConfirmEm
 		return NextResponse.json({ message: authenticationMessages.confirmationTokenMissing }, { status: httpStatus.http401unauthorised })
 	}
 
-	let transactionFailureMessage
-	let transactionFailureStatus
+	// ToDo: remove unnecessary stages from this transaction and catch errors properly
+	let transactionFailureMessage = null
+	let transactionFailureStatus = null
 	try {
 		const result = await database.transaction(async (tx) => {
-			const [confirmationToken] = await tx.select().from(confirmationTokens).where(equals(confirmationTokens.token, token)).limit(1)
+			const [confirmationToken]: ConfirmationToken[] = await tx
+				.select()
+				.from(confirmationTokens)
+				.where(eq(confirmationTokens.token, token))
+				.limit(1)
 
 			if (!confirmationToken) {
 				transactionFailureMessage = authenticationMessages.tokenInvalid
@@ -28,7 +36,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ConfirmEm
 			}
 
 			if (confirmationToken.usedAt) {
-				const [user] = await tx.select().from(users).where(equals(users.id, confirmationToken.userId)).limit(1)
+				const [user]: DangerousBaseUser[] = await tx.select().from(users).where(eq(users.id, confirmationToken.userId)).limit(1)
 
 				if (user?.emailConfirmed) {
 					transactionFailureMessage = authenticationMessages.alreadyConfirmed
@@ -46,7 +54,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ConfirmEm
 				throw new Error()
 			}
 
-			const [user] = await tx.select().from(users).where(equals(users.id, confirmationToken.userId)).limit(1)
+			const [user] = await tx.select().from(users).where(eq(users.id, confirmationToken.userId)).limit(1)
 
 			if (!user) {
 				transactionFailureMessage = authenticationMessages.userNotFound
@@ -54,9 +62,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<ConfirmEm
 				throw new Error()
 			}
 
-			await tx.update(users).set({ emailConfirmed: true }).where(equals(users.id, user.id))
+			await tx.update(users).set({ emailConfirmed: true }).where(eq(users.id, user.id))
 
-			await tx.update(confirmationTokens).set({ usedAt: new Date() }).where(equals(confirmationTokens.id, confirmationToken.id))
+			await tx.update(confirmationTokens).set({ usedAt: new Date() }).where(eq(confirmationTokens.id, confirmationToken.id))
 			return true
 		})
 
@@ -71,7 +79,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ConfirmEm
 			return NextResponse.json({ message: transactionFailureMessage }, { status: transactionFailureStatus })
 		}
 
-		logger.errorUnknown(error, 'Transaction failed: ')
+		logger.error('Transaction failed: ', error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
 	}
 }

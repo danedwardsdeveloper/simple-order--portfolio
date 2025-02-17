@@ -3,7 +3,7 @@ import jwt, { type JwtPayload } from 'jsonwebtoken'
 import { isProduction } from '@/library/environment/publicVariables'
 import { jwtSecret } from '@/library/environment/serverVariables'
 
-import { cookieDurations, cookieNames } from '@/library/constants/cookies'
+import { cookieDurations, cookieNames } from '@/library/constants/definitions/cookies'
 import type { BaseCookieOptions, CookieDurations, CookieOptions } from '@/types'
 
 const baseCookieOptions: BaseCookieOptions = {

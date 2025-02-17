@@ -1,16 +1,13 @@
 'use client'
-
-import { useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
-
-import { dataTestIdNames } from '@/library/constants/dataTestId'
-
 import Spinner from '@/components/Spinner'
-
-import { apiPaths } from '@/types'
+import { apiPaths } from '@/library/constants'
+import { dataTestIdNames } from '@/library/constants/definitions/dataTestId'
 import type { ConfirmEmailPOSTbody, ConfirmEmailPOSTresponse } from '@/types/api/authentication/email/confirm'
+import { useSearchParams } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
 
-export default function Page() {
+// The suspense wrapper is a requirement of useSearchParams
+function ConfirmEmailMessage() {
 	const searchParams = useSearchParams()
 	const token = searchParams.get('token')
 	const [isLoading, setIsLoading] = useState(true)
@@ -38,11 +35,8 @@ export default function Page() {
 			confirmEmail()
 		}
 	}, [token])
-
 	return (
-		<div>
-			<h1>Confirm your email</h1>
-
+		<>
 			{isLoading && (
 				<div data-test-id={dataTestIdNames.emailConfirmation.loading} className="flex gap-x-2">
 					<Spinner />
@@ -55,6 +49,18 @@ export default function Page() {
 			)}
 
 			{!isLoading && message && <div data-test-id={dataTestIdNames.emailConfirmation.response}>{message}</div>}
+		</>
+	)
+}
+
+export default function Page() {
+	return (
+		<div>
+			<h1>Confirm your email</h1>
+			{/* The suspense wrapper is a requirement of useSearchParams */}
+			<Suspense fallback={<Spinner />}>
+				<ConfirmEmailMessage />
+			</Suspense>
 		</div>
 	)
 }

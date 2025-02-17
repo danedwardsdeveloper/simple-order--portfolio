@@ -1,8 +1,8 @@
 import { type Browser, type Page, launch } from 'puppeteer'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 
-import { dataTestIdNames } from '@/library/constants/dataTestId'
-import { testPasswords, testUsers } from '@/library/constants/testUsers'
+import { dataTestIdNames } from '@/library/constants/definitions/dataTestId'
+import { testPasswords, testUsers } from '@/library/constants/definitions/testUsers'
 import { developmentBaseURL, isProduction } from '@/library/environment/publicVariables'
 
 import { cookieNames } from '@/types'

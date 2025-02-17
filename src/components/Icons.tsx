@@ -26,10 +26,12 @@ export default function CompanyLogo() {
 export function CheckboxIcon() {
 	return (
 		<svg
+			aria-hidden="true"
 			fill="none"
 			viewBox="0 0 14 14"
 			className="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-[:disabled]:stroke-gray-950/25"
 		>
+			<title>Simple order Logo</title>
 			<path
 				d="M3 8L6 11L11 3.5"
 				strokeWidth={2}

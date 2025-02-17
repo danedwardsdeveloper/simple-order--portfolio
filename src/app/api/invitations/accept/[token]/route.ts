@@ -1,26 +1,23 @@
+import { authenticationMessages, basicMessages, cookieDurations, httpStatus } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { customerToMerchant, invitations, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import logger from '@/library/logger'
 import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
+import type {
+	AuthenticationMessages,
+	BaseUserInsertValues,
+	BasicMessages,
+	CustomerToMerchant,
+	DangerousBaseUser,
+	Invitation,
+	InvitedCustomerBrowserInputValues,
+} from '@/types'
 import bcrypt from 'bcryptjs'
 import { and, eq } from 'drizzle-orm'
+import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
 import { validate } from 'uuid'
-
-import { cookieDurations } from '@/library/constants/cookies'
-import {
-	type AuthenticationMessages,
-	type BaseUserInsertValues,
-	type BasicMessages,
-	type CustomerToMerchant,
-	type DangerousBaseUser,
-	type Invitation,
-	type InvitedCustomerBrowserInputValues,
-	authenticationMessages,
-	basicMessages,
-	httpStatus,
-} from '@/types'
 
 export type InvitationsAcceptPOSTbody = InvitedCustomerBrowserInputValues
 
@@ -150,15 +147,15 @@ export async function POST(
 						},
 					)
 				}
-				const response = NextResponse.json({ message: basicMessages.success, createdUser }, { status: httpStatus.http200ok })
 
+				const cookieStore = await cookies()
 				if (staySignedIn) {
-					response.cookies.set(createCookieWithToken(createdUser.id, cookieDurations.oneYear))
+					cookieStore.set(createCookieWithToken(createdUser.id, cookieDurations.oneYear))
 				} else {
-					response.cookies.set(createSessionCookieWithToken(createdUser.id))
+					cookieStore.set(createSessionCookieWithToken(createdUser.id))
 				}
 
-				return response
+				return NextResponse.json({ message: basicMessages.success, createdUser }, { status: httpStatus.http200ok })
 			}
 		}
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })

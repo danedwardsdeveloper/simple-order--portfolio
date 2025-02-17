@@ -1,81 +1,62 @@
-import bcrypt from 'bcryptjs';
-import { eq as equals } from 'drizzle-orm';
-import { cookies } from 'next/headers';
-import { type NextRequest, NextResponse } from 'next/server';
+import bcrypt from 'bcryptjs'
+import { eq as equals } from 'drizzle-orm'
+import { cookies } from 'next/headers'
+import { type NextRequest, NextResponse } from 'next/server'
 
-import { database } from '@/library/database/connection';
-import { users } from '@/library/database/schema';
-import {
-	createCookieWithToken,
-	createSessionCookieWithToken,
-} from '@/library/utilities/server';
+import { database } from '@/library/database/connection'
+import { users } from '@/library/database/schema'
+import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
 
-import { cookieDurations } from '@/library/constants/cookies';
-import { httpStatus } from '@/library/constants/httpStatus';
-import {
-	authenticationMessages,
-	basicMessages,
-} from '@/library/constants/responseMessages';
-import type { AuthenticationMessages, DangerousBaseUser } from '@/types';
-import type {
-	SignInPOSTbody,
-	SignInPOSTresponse,
-} from '@/types/api/authentication/sign-in';
+import { cookieDurations } from '@/library/constants/definitions/cookies'
+import { httpStatus } from '@/library/constants/definitions/httpStatus'
+import { authenticationMessages, basicMessages } from '@/library/constants/definitions/responseMessages'
+import { emailRegex } from '@/library/email/utilities'
+import logger from '@/library/logger'
+import { sanitiseDangerousBaseUser } from '@/library/utilities/definitions/sanitiseUser'
+import type { AuthenticationMessages, DangerousBaseUser } from '@/types'
+import type { SignInPOSTbody, SignInPOSTresponse } from '@/types/api/authentication/sign-in'
 
-export async function POST(
-	request: NextRequest
-): Promise<NextResponse<SignInPOSTresponse>> {
-	const { email, password, staySignedIn }: SignInPOSTbody =
-		await request.json();
+export async function POST(request: NextRequest): Promise<NextResponse<SignInPOSTresponse>> {
+	const { email, password, staySignedIn }: SignInPOSTbody = await request.json()
 
-	let missingFieldMessage: AuthenticationMessages | null = null;
-	if (!email) missingFieldMessage = authenticationMessages.emailMissing;
-	if (!password) missingFieldMessage = authenticationMessages.passwordMissing;
+	let missingFieldMessage: AuthenticationMessages | null = null
+	if (!email) missingFieldMessage = authenticationMessages.emailMissing
+	if (!password) missingFieldMessage = authenticationMessages.passwordMissing
 
 	if (missingFieldMessage) {
-		return NextResponse.json(
-			{ message: missingFieldMessage },
-			{ status: httpStatus.http400badRequest }
-		);
+		return NextResponse.json({ message: missingFieldMessage }, { status: httpStatus.http400badRequest })
 	}
 
-	// ToDo! Create safe found user function. Really important!
-	const [foundUser]: DangerousBaseUser[] = await database
-		.select()
-		.from(users)
-		.where(equals(users.email, email))
-		.limit(1);
+	const normalisedEmail = email.toLowerCase().trim()
+	if (!emailRegex.test(normalisedEmail)) {
+		return NextResponse.json({ message: authenticationMessages.emailInvalid }, { status: httpStatus.http400badRequest })
+	}
+
+	const [foundUser]: DangerousBaseUser[] = await database.select().from(users).where(equals(users.email, email)).limit(1)
+
+	logger.debug('Found user: ', foundUser)
 
 	if (!foundUser) {
-		return NextResponse.json(
-			{ message: authenticationMessages.userNotFound },
-			{ status: httpStatus.http404notFound }
-		);
+		logger.debug(`User with email ${email} not found`)
+		return NextResponse.json({ message: authenticationMessages.userNotFound }, { status: httpStatus.http404notFound })
 	}
 
-	const isMatch = await bcrypt.compare(password, foundUser.hashedPassword);
+	const isMatch = await bcrypt.compare(password, foundUser.hashedPassword)
 
 	if (!isMatch) {
-		return NextResponse.json(
-			{ message: authenticationMessages.invalidCredentials },
-			{ status: httpStatus.http401unauthorised }
-		);
+		logger.debug(`Passwords didn't match`)
+		return NextResponse.json({ message: authenticationMessages.invalidCredentials }, { status: httpStatus.http401unauthorised })
 	}
 
-	const { hashedPassword, id, ...baseBrowserSafeUser } = foundUser;
+	const baseBrowserSafeUser = sanitiseDangerousBaseUser(foundUser)
 
-	const cookieStore = await cookies();
+	const cookieStore = await cookies()
 	if (staySignedIn) {
-		cookieStore.set(
-			createCookieWithToken(foundUser.id, cookieDurations.oneYear)
-		);
+		cookieStore.set(createCookieWithToken(foundUser.id, cookieDurations.oneYear))
 	} else {
-		cookieStore.set(createSessionCookieWithToken(foundUser.id));
+		cookieStore.set(createSessionCookieWithToken(foundUser.id))
 	}
 
 	// ToDo: Somehow get the full user info. Maybe recycle verify-token
-	return NextResponse.json(
-		{ message: basicMessages.success, baseBrowserSafeUser },
-		{ status: httpStatus.http200ok }
-	);
+	return NextResponse.json({ message: basicMessages.success, baseBrowserSafeUser }, { status: httpStatus.http200ok })
 }
