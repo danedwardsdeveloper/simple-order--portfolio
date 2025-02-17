@@ -25,7 +25,14 @@ import urlJoin from 'url-join'
 import { v4 as generateConfirmationToken } from 'uuid'
 
 export interface InviteCustomerPOSTresponse {
-	message: BasicMessages | AuthenticationMessages | string // ToDo: make this strict
+	message:
+		| BasicMessages
+		| AuthenticationMessages
+		| 'invitedEmail missing'
+		| 'invalid email'
+		| 'attempted to invite self'
+		| 'relationship exists'
+		| 'in-date invitation exists'
 	browserSafeInvitationRecord?: BrowserSafeInvitationRecord
 }
 
@@ -39,7 +46,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
 
 		// 1. Check the email has been provided
 		if (!invitedEmail) {
-			return NextResponse.json({ message: 'email missing' }, { status: 400 })
+			return NextResponse.json({ message: 'invitedEmail missing' }, { status: 400 })
 		}
 
 		// 2. Normalise email
@@ -109,7 +116,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
 		const [existingInvitation]: Invitation[] = await database
 			.select()
 			.from(invitations)
-			.where(and(eq(invitations.userId, extractedUserId), eq(invitations.email, normalisedInvitedEmail)))
+			.where(and(eq(invitations.senderUserId, extractedUserId), eq(invitations.email, normalisedInvitedEmail)))
 
 		let expiredInvitation: Invitation | null
 		if (existingInvitation) {
@@ -121,24 +128,24 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
 			}
 		}
 
-		let transactionErrorMessage: string | null
-		let transactionErrorCode: number | null
+		let transactionErrorMessage = undefined
+		let transactionErrorCode: number | undefined = httpStatus.http503serviceUnavailable
 
 		const newInvitationExpiryDate = new Date(Date.now() + durationSettings.acceptInvitationExpiry)
 
+		logger.debug('About to start transaction')
 		await database.transaction(async (tx) => {
-			transactionErrorCode = httpStatus.http503serviceUnavailable
-
+			logger.debug('Inside transaction')
 			if (expiredInvitation) {
 				transactionErrorMessage = 'error deleting expired invitation'
 				// 8. Transaction: Delete expired invitation if it exists
-				tx.delete(invitations).where(and(eq(invitations.userId, extractedUserId), eq(invitations.email, normalisedInvitedEmail)))
+				tx.delete(invitations).where(and(eq(invitations.senderUserId, extractedUserId), eq(invitations.email, normalisedInvitedEmail)))
 			}
 
 			// 9. Transaction: create a new invitation row
 			const invitationInsert: InvitationInsert = {
 				email: normalisedInvitedEmail,
-				userId: extractedUserId,
+				senderUserId: extractedUserId,
 				token: generateConfirmationToken(),
 				expiresAt: newInvitationExpiryDate,
 				lastEmailSent: new Date(),
@@ -178,10 +185,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
 				...dynamicEmailTemplate,
 			})
 			if (!sentEmailSuccessfully) tx.rollback()
+			transactionErrorMessage = undefined
+			transactionErrorCode = undefined
 		})
-
-		transactionErrorMessage = null
-		transactionErrorCode = null
 
 		if (transactionErrorMessage || transactionErrorCode) {
 			return NextResponse.json({ message: transactionErrorMessage || 'unknown transaction error' }, { status: transactionErrorCode || 503 })
