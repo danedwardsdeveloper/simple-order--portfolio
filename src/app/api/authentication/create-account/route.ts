@@ -1,9 +1,11 @@
-import bcrypt from 'bcryptjs'
-import { eq, or } from 'drizzle-orm'
-import { type NextRequest, NextResponse } from 'next/server'
-import { v4 as generateConfirmationToken } from 'uuid'
-
-import { durationOptions } from '@/library/constants/definitions/durations'
+import {
+	authenticationMessages,
+	basicMessages,
+	cookieDurations,
+	durationOptions,
+	httpStatus,
+	illegalCharactersMessages,
+} from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { confirmationTokens, freeTrials, merchantProfiles, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
@@ -12,12 +14,8 @@ import { emailRegex } from '@/library/email/utilities'
 import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import logger from '@/library/logger'
 import { containsIllegalCharacters, createFreeTrialEndTime, createMerchantSlug } from '@/library/utilities'
-import { sanitiseDangerousBaseUser } from '@/library/utilities/definitions/sanitiseUser'
+import { sanitiseDangerousBaseUser } from '@/library/utilities'
 import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
-
-import { cookieDurations } from '@/library/constants/definitions/cookies'
-import { httpStatus } from '@/library/constants/definitions/httpStatus'
-import { authenticationMessages, basicMessages, illegalCharactersMessages } from '@/library/constants/definitions/responseMessages'
 import type {
 	AuthenticationMessages,
 	BaseUserInsertValues,
@@ -28,6 +26,10 @@ import type {
 	NewFreeTrial,
 } from '@/types'
 import type { CreateAccountPOSTbody, CreateAccountPOSTresponse } from '@/types/api/authentication/create-account'
+import bcrypt from 'bcryptjs'
+import { eq, or } from 'drizzle-orm'
+import { type NextRequest, NextResponse } from 'next/server'
+import { v4 as generateConfirmationToken } from 'uuid'
 
 export async function POST(request: NextRequest): Promise<NextResponse<CreateAccountPOSTresponse>> {
 	const { firstName, lastName, email, password, businessName, staySignedIn }: CreateAccountPOSTbody = await request.json()

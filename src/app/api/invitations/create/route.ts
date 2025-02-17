@@ -1,9 +1,4 @@
-import { and, eq } from 'drizzle-orm'
-import { type NextRequest, NextResponse } from 'next/server'
-import urlJoin from 'url-join'
-import { v4 as generateConfirmationToken } from 'uuid'
-
-import { durationSettings } from '@/library/constants/definitions/durations'
+import { apiPaths, authenticationMessages, basicMessages, durationSettings, httpStatus } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkActiveSubscriptionOrTrial, checkUserExists } from '@/library/database/operations'
 import { customerToMerchant, invitations, users } from '@/library/database/schema'
@@ -15,10 +10,6 @@ import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import logger from '@/library/logger'
 import { obfuscateEmail } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-
-import { apiPaths } from '@/library/constants/definitions/apiPaths'
-import { httpStatus } from '@/library/constants/definitions/httpStatus'
-import { authenticationMessages, basicMessages } from '@/library/constants/definitions/responseMessages'
 import type {
 	AuthenticationMessages,
 	BasicMessages,
@@ -28,6 +19,10 @@ import type {
 	Invitation,
 	InvitationInsert,
 } from '@/types'
+import { and, eq } from 'drizzle-orm'
+import { type NextRequest, NextResponse } from 'next/server'
+import urlJoin from 'url-join'
+import { v4 as generateConfirmationToken } from 'uuid'
 
 export interface InviteCustomerPOSTresponse {
 	message: BasicMessages | AuthenticationMessages | string // ToDo: make this strict

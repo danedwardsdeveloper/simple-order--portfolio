@@ -10,7 +10,7 @@ import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import { CheckboxIcon } from '@/components/Icons'
 
 import type { InvitationsAcceptPOSTbody } from '@/app/api/invitations/accept/[token]/route'
-import { apiPaths } from '@/library/constants/definitions/apiPaths'
+import { apiPaths } from '@/library/constants'
 
 export default function AcceptInvitationPage() {
 	const { token } = useParams<{ token: string }>()

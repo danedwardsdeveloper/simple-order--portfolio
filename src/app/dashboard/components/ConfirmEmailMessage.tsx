@@ -1,5 +1,4 @@
-import { dataTestIdNames } from '@/library/constants/definitions/dataTestId'
-
+import { dataTestIdNames } from '@/library/constants'
 import { useAuthorisation } from '@/providers/authorisation'
 
 export default function ConfirmEmailMessage() {

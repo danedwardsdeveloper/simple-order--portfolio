@@ -1,7 +1,5 @@
 'use client'
-
-import { apiPaths } from '@/library/constants/definitions/apiPaths'
-import { dataTestIdNames } from '@/library/constants/definitions/dataTestId'
+import { apiPaths, dataTestIdNames } from '@/library/constants'
 import { useAuthorisation } from '@/providers/authorisation'
 import { useRouter } from 'next/navigation'
 

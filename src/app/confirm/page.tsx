@@ -1,7 +1,6 @@
 'use client'
 import Spinner from '@/components/Spinner'
-import { apiPaths } from '@/library/constants'
-import { dataTestIdNames } from '@/library/constants/definitions/dataTestId'
+import { apiPaths, dataTestIdNames } from '@/library/constants'
 import type { ConfirmEmailPOSTbody, ConfirmEmailPOSTresponse } from '@/types/api/authentication/email/confirm'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'

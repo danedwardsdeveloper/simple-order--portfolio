@@ -1,19 +1,14 @@
-import { and, eq } from 'drizzle-orm'
-import { type NextRequest, NextResponse } from 'next/server'
-
-import { serviceConstraints } from '@/library/constants/definitions/serviceConstraints'
+import { apiPaths, authenticationMessages, basicMessages, httpStatus, serviceConstraints } from '@/library/constants'
+import { database } from '@/library/database/connection'
 import { checkActiveSubscriptionOrTrial } from '@/library/database/operations'
 import { checkMerchantProfileExists, checkUserExists } from '@/library/database/operations'
 import { products } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { containsIllegalCharacters } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-
-import { apiPaths } from '@/library/constants/definitions/apiPaths'
-import { httpStatus } from '@/library/constants/definitions/httpStatus'
-import { authenticationMessages, basicMessages } from '@/library/constants/definitions/responseMessages'
-import { database } from '@/library/database/connection'
 import type { AuthenticationMessages, BasicMessages, ClientProduct, NewProduct, Product } from '@/types'
+import { and, eq } from 'drizzle-orm'
+import { type NextRequest, NextResponse } from 'next/server'
 
 export type InventoryAddPOSTbody = Omit<NewProduct, 'id' | 'merchantProfileId'>
 

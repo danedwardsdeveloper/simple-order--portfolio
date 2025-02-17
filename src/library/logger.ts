@@ -1,4 +1,5 @@
-import { type LogLevel, logLevels } from '@/types/definitions/logLevel'
+import type { LogLevel } from '@/types'
+import { logLevels } from './constants'
 import { browserLogLevel, serverLogLevel } from './environment/publicVariables'
 
 const isServer = typeof window === 'undefined'

@@ -1,7 +1,6 @@
-import { websiteCopy } from '@/library/constants/definitions/websiteCopy'
+import { websiteCopy } from '@/library/constants'
 import { bareDomain, productionBaseURL } from '@/library/environment/publicVariables'
 import { formatTimeAndDate } from '@/library/utilities'
-
 import type { EmailTemplate } from '@/types'
 import { createParagraph } from '../../utilities'
 

@@ -1,18 +1,13 @@
 'use client'
-
-import { useRouter } from 'next/navigation'
-import { type FormEvent, useState } from 'react'
-
-import { dataTestIdNames } from '@/library/constants/definitions/dataTestId'
+import { CheckboxIcon } from '@/components/Icons'
+import PageContainer from '@/components/PageContainer'
+import { apiPaths, dataTestIdNames } from '@/library/constants'
 import logger from '@/library/logger'
 import { generateRandomString } from '@/library/utilities'
-
-import { CheckboxIcon } from '@/components/Icons'
-
-import PageContainer from '@/components/PageContainer'
-import { apiPaths } from '@/library/constants/definitions/apiPaths'
 import { useAuthorisation } from '@/providers/authorisation'
 import type { CreateAccountPOSTbody, CreateAccountPOSTresponse } from '@/types/api/authentication/create-account'
+import { useRouter } from 'next/navigation'
+import { type FormEvent, useState } from 'react'
 
 export default function CreateAccountPage() {
 	const router = useRouter()

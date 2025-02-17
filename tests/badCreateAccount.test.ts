@@ -1,10 +1,7 @@
+import { dataTestIdNames, testPasswords, testUsers } from '@/library/constants'
+import { developmentBaseURL } from '@/library/environment/publicVariables'
 import { type Browser, type Page, launch } from 'puppeteer'
 import { afterAll, beforeAll, describe, expect, it, test } from 'vitest'
-
-import { dataTestIdNames } from '@/library/constants/definitions/dataTestId'
-import { testPasswords, testUsers } from '@/library/constants/definitions/testUsers'
-import { developmentBaseURL } from '@/library/environment/publicVariables'
-
 import { deleteUserSequence } from './utilities/deleteUserSequence'
 import { getElementByTestId, initializePage } from './utilities/getElements'
 

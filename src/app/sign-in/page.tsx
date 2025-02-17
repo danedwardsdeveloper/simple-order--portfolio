@@ -1,18 +1,12 @@
 'use client'
-
-import { useRouter } from 'next/navigation'
-import { type FormEvent, useState } from 'react'
-
-import { dataTestIdNames } from '@/library/constants/definitions/dataTestId'
-import { testPasswords, testUsers } from '@/library/constants/definitions/testUsers'
-import logger from '@/library/logger'
-
 import { CheckboxIcon } from '@/components/Icons'
-
 import PageContainer from '@/components/PageContainer'
-import { apiPaths } from '@/library/constants/definitions/apiPaths'
+import { apiPaths, dataTestIdNames, testPasswords, testUsers } from '@/library/constants'
+import logger from '@/library/logger'
 import { useAuthorisation } from '@/providers/authorisation'
 import type { SignInPOSTbody, SignInPOSTresponse } from '@/types/api/authentication/sign-in'
+import { useRouter } from 'next/navigation'
+import { type FormEvent, useState } from 'react'
 
 export default function SignInPage() {
 	const { setClientSafeUser } = useAuthorisation()

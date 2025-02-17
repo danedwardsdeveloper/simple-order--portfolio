@@ -1,6 +1,4 @@
-import { cookieNames } from '@/library/constants'
-import { dataTestIdNames } from '@/library/constants/definitions/dataTestId'
-import { testPasswords, testUsers } from '@/library/constants/definitions/testUsers'
+import { cookieNames, dataTestIdNames, testPasswords, testUsers } from '@/library/constants'
 import { developmentBaseURL, isProduction } from '@/library/environment/publicVariables'
 import { type Browser, type Cookie, type Page, launch } from 'puppeteer'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'

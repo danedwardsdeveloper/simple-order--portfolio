@@ -1,13 +1,9 @@
-import { type NextRequest, NextResponse } from 'next/server'
-
+import { apiPaths, authenticationMessages, basicMessages, httpStatus } from '@/library/constants'
 import { checkMerchantProfileExists, checkUserExists, getInventory } from '@/library/database/operations'
 import logger from '@/library/logger'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-
-import { apiPaths } from '@/library/constants/definitions/apiPaths'
-import { httpStatus } from '@/library/constants/definitions/httpStatus'
-import { authenticationMessages, basicMessages } from '@/library/constants/definitions/responseMessages'
 import type { AuthenticationMessages, BasicMessages, ClientProduct } from '@/types'
+import { type NextRequest, NextResponse } from 'next/server'
 
 export interface InventoryGETresponse {
 	message: BasicMessages | AuthenticationMessages

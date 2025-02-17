@@ -1,7 +1,6 @@
 import { sql } from 'drizzle-orm'
 import { boolean, check, integer, pgTable, primaryKey, serial, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core'
-
-import { serviceConstraints } from '../constants/definitions/serviceConstraints'
+import { serviceConstraints } from '../constants'
 
 export const users = pgTable('users', {
 	id: serial('id').primaryKey(),

@@ -1,5 +1,4 @@
-import { httpStatus } from '@/library/constants/definitions/httpStatus'
-import { authenticationMessages, basicMessages } from '@/library/constants/definitions/responseMessages'
+import { authenticationMessages, basicMessages, httpStatus } from '@/library/constants'
 import { jwtSecret } from '@/library/environment/serverVariables'
 import logger from '@/library/logger'
 import type { AuthenticationMessages, BasicMessages, CookieNames } from '@/types'

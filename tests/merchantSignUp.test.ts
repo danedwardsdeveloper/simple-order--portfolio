@@ -1,14 +1,11 @@
-import { desc, eq } from 'drizzle-orm'
-import { type Browser, type Page, launch } from 'puppeteer'
-import { afterAll, beforeAll, describe, expect, test } from 'vitest'
-
-import { dataTestIdNames } from '@/library/constants/definitions/dataTestId'
-import { testUsers } from '@/library/constants/definitions/testUsers'
+import { dataTestIdNames, testUsers } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { freeTrials, merchantProfiles, testEmailInbox, users } from '@/library/database/schema'
 import { developmentBaseURL } from '@/library/environment/publicVariables'
-
 import type { DangerousBaseUser, FreeTrial, MerchantProfile } from '@/types'
+import { desc, eq } from 'drizzle-orm'
+import { type Browser, type Page, launch } from 'puppeteer'
+import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { deleteUserSequence } from './utilities/deleteUserSequence'
 import { getElementByTestId, initializePage } from './utilities/getElements'
 

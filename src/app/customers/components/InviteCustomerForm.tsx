@@ -1,13 +1,9 @@
 'use client'
-
-import { type ChangeEvent, type FormEvent, useState } from 'react'
-
-import { dataTestIdNames } from '@/library/constants/definitions/dataTestId'
-import logger from '@/library/logger'
-
 import type { InviteCustomerPOSTbody, InviteCustomerPOSTresponse } from '@/app/api/invitations/create/route'
-import { apiPaths } from '@/library/constants/definitions/apiPaths'
+import { apiPaths, dataTestIdNames } from '@/library/constants'
+import logger from '@/library/logger'
 import { useAuthorisation } from '@/providers/authorisation'
+import { type ChangeEvent, type FormEvent, useState } from 'react'
 
 export default function InviteCustomerForm() {
 	const { clientSafeUser } = useAuthorisation()

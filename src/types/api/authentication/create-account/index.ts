@@ -1,5 +1,4 @@
-import type { AuthenticationMessages, BasicMessages, IllegalCharactersMessages } from '@/types/definitions/responseMessages'
-import type { BaseUserInsertValues, FullBrowserSafeUser } from '@/types/definitions/users'
+import type { AuthenticationMessages, BaseUserInsertValues, BasicMessages, FullBrowserSafeUser, IllegalCharactersMessages } from '@/types'
 
 export interface CreateAccountPOSTbody extends Omit<BaseUserInsertValues, 'hashedPassword' | 'emailConfirmed' | 'cachedTrialExpired'> {
 	password: string

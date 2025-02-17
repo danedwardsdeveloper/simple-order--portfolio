@@ -1,15 +1,11 @@
 'use client'
-
-import { type FormEvent, useState } from 'react'
-
-import { serviceConstraints } from '@/library/constants/definitions/serviceConstraints'
-import { generateRandomString } from '@/library/utilities'
-
 import type { InventoryAddPOSTbody, InventoryAddPOSTresponse } from '@/app/api/inventory/add/route'
-import { apiPaths } from '@/library/constants/definitions/apiPaths'
+import { apiPaths, serviceConstraints } from '@/library/constants'
+import { generateRandomString } from '@/library/utilities'
 import { useAuthorisation } from '@/providers/authorisation'
 import { useNotifications } from '@/providers/notifications'
 import type { ClientProduct, NewNotification, NewProduct } from '@/types'
+import { type FormEvent, useState } from 'react'
 
 type FormData = Omit<NewProduct, 'merchantProfileId'>
 

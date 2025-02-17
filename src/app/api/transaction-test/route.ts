@@ -1,4 +1,4 @@
-import { httpStatus } from '@/library/constants/definitions/httpStatus'
+import { httpStatus } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { testEmailInbox } from '@/library/database/schema'
 import logger from '@/library/logger'

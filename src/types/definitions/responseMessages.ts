@@ -1,4 +1,4 @@
-import type { authenticationMessages, basicMessages, illegalCharactersMessages } from '@/library/constants/definitions/responseMessages'
+import type { authenticationMessages, basicMessages, illegalCharactersMessages } from '@/library/constants'
 
 export type BasicMessages = (typeof basicMessages)[keyof typeof basicMessages]
 

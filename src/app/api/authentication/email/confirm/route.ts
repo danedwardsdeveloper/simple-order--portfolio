@@ -1,15 +1,11 @@
-import { eq } from 'drizzle-orm'
-import { type NextRequest, NextResponse } from 'next/server'
-
+import { authenticationMessages, basicMessages, httpStatus } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { confirmationTokens, users } from '@/library/database/schema'
 import logger from '@/library/logger'
-
-import { httpStatus } from '@/library/constants/definitions/httpStatus'
-import { authenticationMessages, basicMessages } from '@/library/constants/definitions/responseMessages'
-import type { DangerousBaseUser } from '@/types'
+import type { ConfirmationToken, DangerousBaseUser } from '@/types'
 import type { ConfirmEmailPOSTbody, ConfirmEmailPOSTresponse } from '@/types/api/authentication/email/confirm'
-import type { ConfirmationToken } from '@/types/definitions/confirmationTokens'
+import { eq } from 'drizzle-orm'
+import { type NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest): Promise<NextResponse<ConfirmEmailPOSTresponse>> {
 	const { token }: ConfirmEmailPOSTbody = await request.json()

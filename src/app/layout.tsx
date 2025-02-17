@@ -1,7 +1,7 @@
 import Providers from '@/components/Providers'
 import MenuBar from '@/components/menubar'
 import NotificationsContainer from '@/components/notifications/NotificationContainer'
-import { websiteCopy } from '@/library/constants/definitions/websiteCopy'
+import { websiteCopy } from '@/library/constants'
 import { productionBaseURL } from '@/library/environment/publicVariables'
 import type { Metadata, Viewport } from 'next'
 import './globals.tailwind.css'

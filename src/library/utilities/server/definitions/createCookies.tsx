@@ -1,10 +1,8 @@
-import jwt, { type JwtPayload } from 'jsonwebtoken'
-
+import { cookieDurations, cookieNames } from '@/library/constants'
 import { isProduction } from '@/library/environment/publicVariables'
 import { jwtSecret } from '@/library/environment/serverVariables'
-
-import { cookieDurations, cookieNames } from '@/library/constants/definitions/cookies'
 import type { BaseCookieOptions, CookieDurations, CookieOptions } from '@/types'
+import jwt, { type JwtPayload } from 'jsonwebtoken'
 
 const baseCookieOptions: BaseCookieOptions = {
 	name: cookieNames.token,

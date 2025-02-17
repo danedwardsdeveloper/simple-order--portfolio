@@ -1,5 +1,4 @@
-import { httpStatus } from '@/library/constants/definitions/httpStatus'
-import { authenticationMessages, basicMessages } from '@/library/constants/definitions/responseMessages'
+import { authenticationMessages, basicMessages, httpStatus } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkMerchantProfileExists, getInventory } from '@/library/database/operations'
 import { invitations, users } from '@/library/database/schema'

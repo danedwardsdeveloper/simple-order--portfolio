@@ -1,8 +1,6 @@
+import { websiteCopy } from '@/library/constants'
 import Image from 'next/image'
 import Link from 'next/link'
-
-import { websiteCopy } from '@/library/constants/definitions/websiteCopy'
-
 import heroImage from './simple-order-wholesale-order-management-software-website.jpg'
 
 export default function HeroSection() {

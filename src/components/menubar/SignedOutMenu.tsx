@@ -1,7 +1,5 @@
+import { websiteCopy } from '@/library/constants'
 import Link from 'next/link'
-
-import { websiteCopy } from '@/library/constants/definitions/websiteCopy'
-
 import HomePageLink from './HomePageLink'
 import MenuItem from './MenuItem'
 

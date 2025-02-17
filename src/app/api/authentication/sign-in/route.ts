@@ -1,20 +1,16 @@
-import bcrypt from 'bcryptjs'
-import { eq as equals } from 'drizzle-orm'
-import { cookies } from 'next/headers'
-import { type NextRequest, NextResponse } from 'next/server'
-
+import { authenticationMessages, basicMessages, cookieDurations, httpStatus } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { users } from '@/library/database/schema'
-import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
-
-import { cookieDurations } from '@/library/constants/definitions/cookies'
-import { httpStatus } from '@/library/constants/definitions/httpStatus'
-import { authenticationMessages, basicMessages } from '@/library/constants/definitions/responseMessages'
 import { emailRegex } from '@/library/email/utilities'
 import logger from '@/library/logger'
-import { sanitiseDangerousBaseUser } from '@/library/utilities/definitions/sanitiseUser'
+import { sanitiseDangerousBaseUser } from '@/library/utilities'
+import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
 import type { AuthenticationMessages, DangerousBaseUser } from '@/types'
 import type { SignInPOSTbody, SignInPOSTresponse } from '@/types/api/authentication/sign-in'
+import bcrypt from 'bcryptjs'
+import { eq } from 'drizzle-orm'
+import { cookies } from 'next/headers'
+import { type NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest): Promise<NextResponse<SignInPOSTresponse>> {
 	const { email, password, staySignedIn }: SignInPOSTbody = await request.json()
@@ -32,7 +28,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
 		return NextResponse.json({ message: authenticationMessages.emailInvalid }, { status: httpStatus.http400badRequest })
 	}
 
-	const [foundUser]: DangerousBaseUser[] = await database.select().from(users).where(equals(users.email, email)).limit(1)
+	const [foundUser]: DangerousBaseUser[] = await database.select().from(users).where(eq(users.email, email)).limit(1)
 
 	logger.debug('Found user: ', foundUser)
 
