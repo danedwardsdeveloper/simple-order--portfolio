@@ -38,9 +38,7 @@ export const customerToMerchant = pgTable(
 export const invitations = pgTable('invitations', {
 	id: serial('id').primaryKey(),
 	email: text('email').notNull().unique(),
-
-	// think about changing this as it's not clear whom it applies to
-	userId: integer('user_id')
+	senderUserId: integer('sender_user_id')
 		.notNull()
 		.references(() => users.id),
 	token: uuid('token').notNull().unique().defaultRandom(),
