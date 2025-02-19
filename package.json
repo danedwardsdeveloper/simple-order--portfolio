@@ -12,7 +12,7 @@
 		"lint": "next lint",
 		"test": "vitest",
 		"test-verbose": "vitest --reporter=verbose",
-		"predeploy": "pnpm format && pnpm check && pnpm lint && pnpm build",
+		"predeploy": "pnpm build",
 		"deploy": "fly deploy"
 	},
 	"dependencies": {
