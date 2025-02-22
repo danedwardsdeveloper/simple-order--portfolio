@@ -1,7 +1,5 @@
 import type { customerToMerchant, merchantProfiles, users } from '@/library/database/schema'
 
-import type { ClientProduct } from './products'
-
 export type DangerousBaseUser = typeof users.$inferSelect
 export type BaseUserInsertValues = Required<Omit<typeof users.$inferInsert, 'id'>>
 export type BaseBrowserSafeUser = Omit<DangerousBaseUser, 'id' | 'hashedPassword'>
@@ -11,9 +9,12 @@ export type BaseUserBrowserInputValues = Omit<BaseUserInsertValues, 'hashedPassw
 }
 export type InvitedCustomerBrowserInputValues = Omit<BaseUserBrowserInputValues, 'email'>
 
-export type MerchantProfile = typeof merchantProfiles.$inferSelect
+export type DangerousMerchantProfile = typeof merchantProfiles.$inferSelect
 export type MerchantProfileInsertValues = typeof merchantProfiles.$inferInsert
-export type BrowserSafeMerchantProfile = Pick<MerchantProfile, 'slug'>
+export interface BrowserSafeMerchantProfile {
+	slug: string
+	businessName: string
+}
 
 // Junction table where insert & return type are identical
 export type CustomerToMerchant = typeof customerToMerchant.$inferSelect
@@ -46,7 +47,6 @@ export interface FullBrowserSafeUser {
 	emailConfirmed: boolean
 	merchantDetails?: ClientMerchantDetails
 	merchantsAsCustomer?: RelationshipItem[]
-	inventory?: ClientProduct[]
 	acceptedCustomersAsMerchant?: RelationshipItem[]
 	pendingCustomersAsMerchant?: BrowserSafeInvitationRecord[]
 }
