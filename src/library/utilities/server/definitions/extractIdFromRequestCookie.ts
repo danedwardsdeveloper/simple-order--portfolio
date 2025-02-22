@@ -1,25 +1,28 @@
-import { authenticationMessages, basicMessages, httpStatus } from '@/library/constants'
+import { basicMessages, cookieNames, httpStatus, tokenMessages } from '@/library/constants'
 import { jwtSecret } from '@/library/environment/serverVariables'
 import logger from '@/library/logger'
-import type { AuthenticationMessages, BasicMessages, CookieNames } from '@/types'
+import type { TokenMessages } from '@/types'
 import jwt, { JsonWebTokenError, type JwtPayload, TokenExpiredError } from 'jsonwebtoken'
+import { cookies } from 'next/headers'
 import type { NextRequest } from 'next/server'
 
-export function extractIdFromRequestCookie(request: NextRequest): {
+export async function extractIdFromRequestCookie(_request: NextRequest): Promise<{
 	extractedUserId?: number
-	message: BasicMessages | AuthenticationMessages
+	message: TokenMessages | typeof basicMessages.success
 	status: number
-} {
-	const accessToken = request.cookies.get('token' as CookieNames)?.value
+}> {
+	const cookieStore = await cookies()
+	const accessToken = cookieStore.get(cookieNames.token)
+
 	if (!accessToken) {
 		return {
-			message: authenticationMessages.tokenMissing,
+			message: tokenMessages.tokenMissing,
 			status: httpStatus.http200ok,
 		}
 	}
 
 	try {
-		const { sub } = jwt.verify(accessToken, jwtSecret) as JwtPayload
+		const { sub } = jwt.verify(accessToken.value, jwtSecret) as JwtPayload
 		if (!sub) {
 			throw new JsonWebTokenError('Missing sub claim')
 		}
@@ -37,20 +40,20 @@ export function extractIdFromRequestCookie(request: NextRequest): {
 	} catch (error) {
 		if (error instanceof TokenExpiredError) {
 			return {
-				message: authenticationMessages.tokenExpired,
+				message: tokenMessages.tokenExpired,
 				status: httpStatus.http401unauthorised,
 			}
 		}
 		if (error instanceof JsonWebTokenError) {
 			logger.error('JSON web token error: ', error)
 			return {
-				message: authenticationMessages.tokenInvalid,
+				message: tokenMessages.tokenInvalid,
 				status: httpStatus.http401unauthorised,
 			}
 		}
-		logger.error('Unexpected error while verifying token: ', error)
+		logger.error('extractIdFromRequestCookie error: ', error)
 		return {
-			message: authenticationMessages.tokenInvalid,
+			message: tokenMessages.tokenInvalid,
 			status: httpStatus.http401unauthorised,
 		}
 	}
