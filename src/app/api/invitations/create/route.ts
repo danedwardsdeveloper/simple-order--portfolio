@@ -6,9 +6,9 @@ import { sendEmail } from '@/library/email/sendEmail'
 import { createExistingUserInvitation } from '@/library/email/templates/invitations/existingUser'
 import { createNewUserInvitation } from '@/library/email/templates/invitations/newUser'
 import { emailRegex } from '@/library/email/utilities'
-import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import logger from '@/library/logger'
 import { obfuscateEmail } from '@/library/utilities'
+import { createInvitationURL } from '@/library/utilities/definitions/createInvitationURL'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
 import type {
 	AuthenticationMessages,
@@ -21,7 +21,6 @@ import type {
 } from '@/types'
 import { and, eq } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
-import urlJoin from 'url-join'
 import { v4 as generateConfirmationToken } from 'uuid'
 
 export interface InviteCustomerPOSTresponse {
@@ -58,7 +57,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
 		}
 
 		// 4. Check for valid token
-		const { extractedUserId, status, message } = extractIdFromRequestCookie(request)
+		const { extractedUserId, status, message } = await extractIdFromRequestCookie(request)
 		if (!extractedUserId) {
 			return NextResponse.json({ message }, { status })
 		}
@@ -124,6 +123,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
 			expiredInvitation = existingInvitation.expiresAt < new Date() ? existingInvitation : null
 			if (!expiredInvitation) {
 				// An in-date invitation already exists, so early return to prevent merchants from spamming potential customers
+				const existingInvitationURL = createInvitationURL(existingInvitation.token)
+				logger.info('In-date invitation: ', existingInvitationURL)
+
 				return NextResponse.json({ message: 'in-date invitation exists' }, { status: 400 })
 			}
 		}
@@ -154,14 +156,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
 			transactionErrorMessage = 'error creating new invitation'
 			const [newInvitation]: Invitation[] = await tx.insert(invitations).values(invitationInsert).returning()
 
-			// 10. Generate the invitation link.
-			const invitationURL = urlJoin(
-				dynamicBaseURL,
-				// Remember this is a link to the front-end, which then passes the token to the server
-				'accept-invitation',
-				newInvitation.token,
-			)
-
+			// 10. Generate the invitation link
+			const invitationURL = createInvitationURL(newInvitation.token)
 			logger.info('Invitation url: ', invitationURL)
 
 			// 11. Transaction: send the invitation email if it isn't a test address

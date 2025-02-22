@@ -1,27 +1,26 @@
+import { apiPaths, basicMessages, cookieNames, httpStatus, tokenMessages } from '@/library/constants'
+import logger from '@/library/logger'
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
-import { basicMessages, cookieNames, httpStatus } from '@/library/constants'
-import type { BasicMessages } from '@/types'
-
 export interface SignOutPOSTresponse {
-	message: BasicMessages | 'error deleting cookie'
+	message: typeof basicMessages.success | typeof basicMessages.serverError | typeof tokenMessages.tokenMissing
 }
 
 export async function POST(): Promise<NextResponse<SignOutPOSTresponse>> {
-	const response = NextResponse.json(
-		{ message: basicMessages.success },
-		{
-			status: httpStatus.http200ok,
-		},
-	)
+	try {
+		const cookieStore = await cookies()
+		const tokenCookie = cookieStore.get(cookieNames.token)
 
-	response.cookies.delete(cookieNames.token)
+		if (!tokenCookie) {
+			return NextResponse.json({ message: tokenMessages.tokenMissing }, { status: httpStatus.http400badRequest })
+		}
 
-	const verifyDeletion = response.cookies.get(cookieNames.token)
+		cookieStore.delete(cookieNames.token)
 
-	if (verifyDeletion?.value) {
-		return NextResponse.json({ message: 'error deleting cookie' }, { status: httpStatus.http500serverError })
+		return NextResponse.json({ message: basicMessages.success }, { status: httpStatus.http200ok })
+	} catch (error) {
+		logger.error(`${apiPaths.authentication.signOut} error: `, error)
+		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
 	}
-
-	return response
 }

@@ -1,14 +1,14 @@
-import { authenticationMessages, basicMessages, cookieDurations, httpStatus } from '@/library/constants'
+import { apiPaths, authenticationMessages, basicMessages, cookieDurations, httpStatus } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { users } from '@/library/database/schema'
+import { products, users } from '@/library/database/schema'
 import { emailRegex } from '@/library/email/utilities'
 import logger from '@/library/logger'
 import { sanitiseDangerousBaseUser } from '@/library/utilities'
 import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
-import type { AuthenticationMessages, DangerousBaseUser } from '@/types'
+import type { AuthenticationMessages, BrowserSafeProduct, DangerousBaseUser, FullBrowserSafeUser } from '@/types'
 import type { SignInPOSTbody, SignInPOSTresponse } from '@/types/api/authentication/sign-in'
 import bcrypt from 'bcryptjs'
-import { eq } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm'
 import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -30,12 +30,12 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
 
 	const [foundUser]: DangerousBaseUser[] = await database.select().from(users).where(eq(users.email, email)).limit(1)
 
-	logger.debug('Found user: ', foundUser)
-
 	if (!foundUser) {
 		logger.debug(`User with email ${email} not found`)
 		return NextResponse.json({ message: authenticationMessages.userNotFound }, { status: httpStatus.http404notFound })
 	}
+
+	logger.info('Found user: ', foundUser)
 
 	const isMatch = await bcrypt.compare(password, foundUser.hashedPassword)
 
@@ -46,6 +46,22 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
 
 	const baseBrowserSafeUser = sanitiseDangerousBaseUser(foundUser)
 
+	const inventory: BrowserSafeProduct[] = await database
+		.select()
+		.from(products)
+		.where(and(eq(products.ownerId, foundUser.id), isNull(products.deletedAt)))
+
+	if (!inventory) {
+		logger.error(`${apiPaths.authentication.signIn} inventory not found`)
+	}
+
+	const fullBrowserSafeUser: FullBrowserSafeUser = {
+		...baseBrowserSafeUser,
+		inventory,
+	}
+
+	logger.debug('Full browser-safe user: ', fullBrowserSafeUser)
+
 	const cookieStore = await cookies()
 	if (staySignedIn) {
 		cookieStore.set(createCookieWithToken(foundUser.id, cookieDurations.oneYear))
@@ -54,5 +70,5 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
 	}
 
 	// ToDo: Somehow get the full user info. Maybe recycle verify-token
-	return NextResponse.json({ message: basicMessages.success, baseBrowserSafeUser }, { status: httpStatus.http200ok })
+	return NextResponse.json({ message: basicMessages.success, fullBrowserSafeUser }, { status: httpStatus.http200ok })
 }
