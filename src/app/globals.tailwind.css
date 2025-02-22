@@ -40,6 +40,15 @@
 		@apply button border-2 bg-white text-zinc-700  hover:text-blue-500 active:text-blue-400  border-blue-600 hover:border-blue-500 active:border-blue-400;
 	}
 	.link {
-		@apply text-zinc-500 hover:text-zinc-600 active:text-zinc-700 transition-all duration-300;
+		@apply transition-all duration-300 text-zinc-600;
+	}
+	.link-primary {
+		@apply link hover:text-blue-600 active:text-blue-700
+	}
+	.link-secondary {
+		@apply link hover:text-zinc-700 active:text-zinc-800
+	}
+	.link-danger {
+		@apply link hover:text-red-600 active:text-red-700
 	}
 }
