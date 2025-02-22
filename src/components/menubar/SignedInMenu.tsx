@@ -3,7 +3,6 @@
 import { useUi } from '@/providers/ui'
 import HomePageLink from './HomePageLink'
 import MenuItem from './MenuItem'
-import RoleModeButton from './RoleModeButton'
 
 export default function SignedInMenu() {
 	const { merchantMode } = useUi()
@@ -33,7 +32,6 @@ export default function SignedInMenu() {
 					<DashboardLink />
 				</div>
 				<div className="flex h-full items-center gap-x-6">
-					<RoleModeButton />
 					<MenuItem href="/orders" text="Orders" />
 					{merchantMode ? <MerchantModeLinks /> : <CustomerModeLinks />}
 					<MenuItem href="/settings" text="Settings" />
