@@ -5,9 +5,9 @@ import Link from 'next/link'
 import { useAuthorisation } from '@/providers/authorisation'
 
 export default function EmptyInventoryMessage() {
-	const { clientSafeUser } = useAuthorisation()
+	const { inventory } = useAuthorisation()
 
-	if (!clientSafeUser || clientSafeUser.inventory) return null
+	if (!inventory) return null
 
 	return (
 		<div className="max-w-prose p-3 my-4 border-2 rounded-xl border-blue-300 ">
