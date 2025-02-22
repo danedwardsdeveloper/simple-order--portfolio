@@ -1,13 +1,11 @@
 'use client'
-import type { InventoryAddPOSTbody, InventoryAddPOSTresponse } from '@/app/api/inventory/add/route'
-import { apiPaths, serviceConstraints } from '@/library/constants'
+import type { InventoryAddPOSTbody, InventoryAddPOSTresponse } from '@/app/api/inventory/admin/add/route'
+import { serviceConstraints } from '@/library/constants'
 import { generateRandomString } from '@/library/utilities'
 import { useAuthorisation } from '@/providers/authorisation'
 import { useNotifications } from '@/providers/notifications'
-import type { ClientProduct, NewNotification, NewProduct } from '@/types'
+import type { BrowserSafeMerchantProduct, NewNotification } from '@/types'
 import { type FormEvent, useState } from 'react'
-
-type FormData = Omit<NewProduct, 'merchantProfileId'>
 
 const formFields = {
 	name: {
@@ -33,9 +31,9 @@ const formFields = {
 } as const
 
 export default function AddInventoryForm() {
-	const { clientSafeUser, setClientSafeUser } = useAuthorisation()
+	const { browserSafeUser, setBrowserSafeUser } = useAuthorisation()
 	const temporaryRandomString = generateRandomString()
-	const [formData, setFormData] = useState<FormData>({
+	const [formData, setFormData] = useState<InventoryAddPOSTbody>({
 		name: temporaryRandomString,
 		description: temporaryRandomString,
 		priceInMinorUnits: Math.floor(Math.random() * serviceConstraints.maximumProductValueInMinorUnits + 1),
@@ -47,12 +45,12 @@ export default function AddInventoryForm() {
 	async function handleSubmit(event: FormEvent) {
 		event.preventDefault()
 		setErrorMessage('')
-		if (!clientSafeUser) {
+		if (!browserSafeUser) {
 			setErrorMessage('Not signed in')
 			return
 		}
 
-		const response = await fetch(apiPaths.inventory.add, {
+		const response = await fetch('ToDo!', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -65,14 +63,14 @@ export default function AddInventoryForm() {
 		const { message, product }: InventoryAddPOSTresponse = await response.json()
 
 		if (response.ok) {
-			setClientSafeUser((prev) => {
+			setBrowserSafeUser((prev) => {
 				if (!prev) {
 					setErrorMessage('User session error')
 					return null
 				}
 				return {
 					...prev,
-					inventory: [...(prev.inventory ?? []), product] as ClientProduct[],
+					inventory: [...(prev.inventory ?? []), product] as BrowserSafeMerchantProduct[],
 				}
 			})
 
@@ -94,6 +92,8 @@ export default function AddInventoryForm() {
 			setErrorMessage(message)
 		}
 	}
+
+	// Enhancement ToDo: add illegal punctuation warning
 
 	return (
 		<form onSubmit={handleSubmit} className="p-4 border-2 border-zinc-200 rounded-xl flex flex-col gap-y-4 max-w-xl -mx-3">
