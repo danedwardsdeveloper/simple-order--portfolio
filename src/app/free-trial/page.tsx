@@ -11,7 +11,7 @@ import { type FormEvent, useState } from 'react'
 
 export default function CreateAccountPage() {
 	const router = useRouter()
-	const { setClientSafeUser } = useAuthorisation()
+	const { setFullBrowserSafeUser } = useAuthorisation()
 	const [error, setError] = useState('')
 	const randomString = generateRandomString()
 	const preFillFormForManualTesting = false
@@ -45,7 +45,7 @@ export default function CreateAccountPage() {
 			}
 
 			if (user) {
-				setClientSafeUser(user)
+				setFullBrowserSafeUser(user)
 				router.push('/dashboard')
 			}
 
