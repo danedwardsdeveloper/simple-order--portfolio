@@ -1,5 +1,5 @@
-import { sql } from 'drizzle-orm'
-import { boolean, check, integer, pgTable, primaryKey, serial, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core'
+import { relations, sql } from 'drizzle-orm'
+import { boolean, check, integer, pgEnum, pgTable, primaryKey, serial, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core'
 import { serviceConstraints } from '../constants'
 
 export const users = pgTable('users', {
@@ -79,11 +79,13 @@ export const subscriptions = pgTable('subscriptions', {
 	cancelledAt: timestamp('cancelled_at'),
 })
 
+// ToDo: create index on deletedAt
+// Enhancement ToDo: add cutoff date to expire products
 export const products = pgTable(
 	'products',
 	{
 		id: serial('id').primaryKey(),
-		merchantProfileId: integer('merchant_profile_id')
+		ownerId: integer('owner_id')
 			.notNull()
 			.references(() => users.id),
 		name: text('name').notNull(),
@@ -92,9 +94,10 @@ export const products = pgTable(
 		customVat: integer('custom_vat'),
 		createdAt: timestamp('created_at').notNull().defaultNow(),
 		updatedAt: timestamp('updated_at').notNull().defaultNow(),
+		deletedAt: timestamp('deleted_at'),
 	},
 	(table) => [
-		unique().on(table.merchantProfileId, table.name),
+		unique().on(table.ownerId, table.name),
 		check(
 			'price_check',
 			sql`${table.priceInMinorUnits} >= 0 AND ${table.priceInMinorUnits} <= ${sql.raw(
@@ -119,5 +122,40 @@ export const testEmailInbox = pgTable('test_email_inbox', {
 	content: text('content').notNull(),
 })
 
-// orders
-// order_items
+export const orderStatusEnum = pgEnum('order_status', ['pending', 'processing', 'completed', 'cancelled'])
+
+export const orders = pgTable('orders', {
+	id: serial('id').primaryKey(),
+	customerId: integer('customer_id')
+		.notNull()
+		.references(() => users.id),
+	merchantId: integer('merchant_id')
+		.notNull()
+		.references(() => users.id),
+	status: orderStatusEnum('status').notNull().default('pending'),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export const orderItems = pgTable('order_items', {
+	id: serial('id').primaryKey(),
+	orderId: integer('order_id')
+		.notNull()
+		.references(() => orders.id),
+	productId: integer('product_id').notNull(),
+	quantity: integer('quantity').notNull(),
+	priceInMinorUnitsWithoutVat: integer('price_in_minor_units_without_vat').notNull(),
+	vat: integer('vat').notNull(),
+	subtotal: integer('subtotal').notNull(),
+})
+
+export const ordersRelations = relations(orders, ({ many }) => ({
+	items: many(orderItems),
+}))
+
+export const orderItemsRelations = relations(orderItems, ({ one }) => ({
+	order: one(orders, {
+		fields: [orderItems.orderId],
+		references: [orders.id],
+	}),
+}))
