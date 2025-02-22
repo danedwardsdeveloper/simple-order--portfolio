@@ -1,11 +1,11 @@
 'use client'
+import type { SignOutPOSTresponse } from '@/app/api/authentication/sign-out/route'
 import { apiPaths, dataTestIdNames } from '@/library/constants'
+import logger from '@/library/logger'
 import { useAuthorisation } from '@/providers/authorisation'
-import { useRouter } from 'next/navigation'
 
 export default function SignOutButton() {
-	const { setClientSafeUser } = useAuthorisation()
-	const router = useRouter()
+	const { setBrowserSafeUser } = useAuthorisation()
 
 	async function handleSignOut() {
 		const response = await fetch(apiPaths.authentication.signOut, {
@@ -15,17 +15,22 @@ export default function SignOutButton() {
 			},
 		})
 
-		if (response.ok) {
-			setClientSafeUser(null)
-			// ToDo: Create notification
-			router.push('/')
+		const { message }: SignOutPOSTresponse = await response.json()
+
+		if (message === 'success') {
+			setBrowserSafeUser(null)
 		} else {
-			// ToDo
+			logger.error('Error signing out: ', message)
 		}
 	}
 
 	return (
-		<button type="button" data-test-id={dataTestIdNames.account.signOutButton} onClick={handleSignOut} className="button-secondary">
+		<button
+			type="button"
+			data-test-id={dataTestIdNames.account.signOutButton}
+			onClick={handleSignOut}
+			className="button-secondary max-w-xs"
+		>
 			Sign out
 		</button>
 	)
