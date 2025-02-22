@@ -2,9 +2,11 @@
 
 ## Current Task
 
--  Fix transaction error handling in `/api/invitations/accept/[token]`
+-  Inventory/admin routes
 
 ## MVP
+
+-  Fix transaction error handling in `/api/invitations/accept/[token]`
 
 1. Get `verify-token` to return the invited customers details
 2. Set up orders
