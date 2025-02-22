@@ -1,8 +1,9 @@
 import { and, eq, gt } from 'drizzle-orm'
 
-import { freeTrials, merchantProfiles, products, subscriptions, users } from '@/library/database/schema'
+import { customerToMerchant, freeTrials, subscriptions, users } from '@/library/database/schema'
 
-import type { ClientProduct, DangerousBaseUser } from '@/types'
+import type { DangerousBaseUser } from '@/types'
+import logger from '../logger'
 import { database } from './connection'
 
 interface CheckUserExistsResponse {
@@ -29,34 +30,6 @@ export async function checkUserExists(userId: number): Promise<CheckUserExistsRe
 			email: existingUser.email,
 		},
 	}
-}
-
-export async function checkMerchantProfileExists(userId: number): Promise<{ merchantProfileExists: boolean; slug: string | undefined }> {
-	const [merchantProfile] = await database
-		.select({ slug: merchantProfiles.slug })
-		.from(merchantProfiles)
-		.where(eq(merchantProfiles.userId, userId))
-		.limit(1)
-
-	return {
-		merchantProfileExists: Boolean(merchantProfile),
-		slug: merchantProfile ? merchantProfile.slug : undefined,
-	}
-}
-
-export async function getInventory(userId: number): Promise<ClientProduct[]> {
-	const inventory: ClientProduct[] = await database
-		.select({
-			id: products.id,
-			merchantProfileId: products.merchantProfileId,
-			name: products.name,
-			description: products.description,
-			priceInMinorUnits: products.priceInMinorUnits,
-			customVat: products.customVat,
-		})
-		.from(products)
-		.where(eq(products.merchantProfileId, userId))
-	return inventory
 }
 
 // Helper function. Used twice in checkActiveSubscriptionOrTrial to avoid looking in free_trials if cached_trial_expired is true
@@ -95,4 +68,21 @@ export async function checkActiveSubscriptionOrTrial(
 	if (validSubscription) return { validSubscriptionOrTrial: true }
 
 	return { validSubscriptionOrTrial: false }
+}
+
+// ToDo: check the codebase for places where this function can replace existing code
+export async function checkRelationship({
+	merchantId,
+	customerId,
+}: { merchantId: number; customerId: number }): Promise<{ relationshipExists: boolean }> {
+	try {
+		const [existingRelationship] = await database
+			.select()
+			.from(customerToMerchant)
+			.where(and(eq(customerToMerchant.customerUserId, customerId), eq(customerToMerchant.merchantUserId, merchantId)))
+		return { relationshipExists: Boolean(existingRelationship) }
+	} catch (error) {
+		logger.error('database/operations/checkRelationship error: ', error)
+		return { relationshipExists: false }
+	}
 }
