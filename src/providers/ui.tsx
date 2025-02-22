@@ -1,7 +1,5 @@
 'use client'
-
-import type React from 'react'
-import { createContext, useContext, useState } from 'react'
+import { type ReactNode, createContext, useContext, useState } from 'react'
 
 interface UiContextType {
 	merchantMode: boolean
@@ -14,8 +12,8 @@ interface UiContextType {
 
 const UiContext = createContext<UiContextType | undefined>(undefined)
 
-export function UiProvider({ children }: { children: React.ReactNode }) {
-	const [merchantMode, setMerchantMode] = useState(true)
+export function UiProvider({ children }: { children: ReactNode }) {
+	const [merchantMode, setMerchantMode] = useState(false)
 
 	const toggleMerchantMode = () => {
 		setMerchantMode((current) => !current)
