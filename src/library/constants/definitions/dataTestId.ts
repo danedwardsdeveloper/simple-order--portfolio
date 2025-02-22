@@ -29,4 +29,7 @@ export const dataTestIdNames = {
 	account: {
 		signOutButton: 'sign-out-button',
 	},
+	inventory: {
+		deleteProductModal: 'delete-product-modal',
+	},
 } as const
