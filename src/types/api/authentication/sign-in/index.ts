@@ -1,4 +1,4 @@
-import type { AuthenticationMessages, BaseBrowserSafeUser, BasicMessages } from '@/types'
+import type { AuthenticationMessages, BasicMessages, FullBrowserSafeUser } from '@/types'
 
 export interface SignInPOSTbody {
 	password: string
@@ -8,5 +8,5 @@ export interface SignInPOSTbody {
 
 export interface SignInPOSTresponse {
 	message: BasicMessages | AuthenticationMessages
-	baseBrowserSafeUser?: BaseBrowserSafeUser
+	fullBrowserSafeUser?: FullBrowserSafeUser
 }
