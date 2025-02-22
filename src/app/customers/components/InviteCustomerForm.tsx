@@ -6,12 +6,12 @@ import { useAuthorisation } from '@/providers/authorisation'
 import { type ChangeEvent, type FormEvent, useState } from 'react'
 
 export default function InviteCustomerForm() {
-	const { clientSafeUser } = useAuthorisation()
+	const { fullBrowserSafeUser } = useAuthorisation()
 	const [loading, setLoading] = useState(false)
 	const [responseMessage, setResponseMessage] = useState('')
 	const [invitedEmail, setInvitedEmail] = useState('')
 
-	if (!clientSafeUser || !clientSafeUser.merchantDetails || !clientSafeUser.emailConfirmed) return null
+	if (!fullBrowserSafeUser || !fullBrowserSafeUser.merchantDetails || !fullBrowserSafeUser.emailConfirmed) return null
 
 	async function handleSubmit(event: FormEvent) {
 		event.preventDefault()
@@ -36,8 +36,8 @@ export default function InviteCustomerForm() {
 
 			// Figure out how to add the invitation record to the state...
 			// if(browserSafeInvitationRecord) {
-			//   setClientSafeUser({
-			//     ...clientSafeUser,
+			//   setFullBrowserSafeUser({
+			//     ...fullBrowserSafeUser,
 			//     pendingCustomersAsMerchant: [browserSafeInvitationRecord],
 			//   })
 			// }
