@@ -1,13 +1,18 @@
-import PageContainer from '@/components/PageContainer'
+'use client'
+import UnauthorisedLinks from '@/components/UnauthorisedLinks'
+import RoleModeButton from '@/components/menubar/RoleModeButton'
+import { useAuthorisation } from '@/providers/authorisation'
 import SignOutButton from './components/SignOutButton'
 
 export default function SettingsPage() {
+	const { browserSafeUser } = useAuthorisation()
+
+	if (!browserSafeUser) return <UnauthorisedLinks />
+
 	return (
-		<PageContainer>
-			<div className="">
-				<h1>Settings</h1>
-				<SignOutButton />
-			</div>
-		</PageContainer>
+		<>
+			<RoleModeButton />
+			<SignOutButton />
+		</>
 	)
 }
