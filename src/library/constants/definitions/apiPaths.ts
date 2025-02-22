@@ -13,8 +13,24 @@ export const apiPaths = {
 		create: '/api/invitations/create',
 		accept: '/api/invitations/accept',
 	},
+	merchants: {
+		base: '/api/merchants',
+		merchantSlug: '/api/merchants/[merchantSlug]',
+	},
 	inventory: {
-		add: '/api/inventory/add',
-		all: '/api/inventory',
+		admin: {
+			base: '/api/inventory/admin',
+			// Get all inventory items (including drafts/deleted) ✅
+			// POST: Create new item ✅
+
+			itemId: '/api/inventory/admin/[itemId]',
+			// PUT: Update item
+			// DELETE: Delete item ✅
+		},
+		merchants: {
+			base: '/api/inventory/merchants',
+			merchantSlug: '/api/inventory/merchants/[merchantSlug]',
+			// GET Customer view of a specific merchant's published products
+		},
 	},
 } as const
