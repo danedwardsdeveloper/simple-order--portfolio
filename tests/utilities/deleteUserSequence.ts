@@ -21,7 +21,7 @@ export async function deleteUserSequence(email: string) {
 		// If they have a merchant profile, delete related merchant data
 		if (merchantProfile) {
 			// Delete products first (references merchantProfileId)
-			await database.delete(products).where(eq(products.merchantProfileId, merchantProfile.id))
+			await database.delete(products).where(eq(products.ownerId, userToDelete.id))
 
 			// Then delete the merchant profile itself
 			await database.delete(merchantProfiles).where(eq(merchantProfiles.userId, userToDelete.id))
