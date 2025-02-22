@@ -1,26 +1,21 @@
 'use client'
-import { useAuthorisation } from '@/providers/authorisation'
 import { useUi } from '@/providers/ui'
-import type { MouseEvent } from 'react'
+import ToggleWithLabel from '../ToggleWithLabel'
 
 export default function RoleModeButton() {
 	const { merchantMode, toggleMerchantMode } = useUi()
-	const { clientSafeUser } = useAuthorisation()
 
-	if (!clientSafeUser) return null
-
-	function handleClick(event: MouseEvent<HTMLButtonElement>) {
-		event.preventDefault()
-		toggleMerchantMode()
-	}
+	// ToDo: hide this if the user only has one role
 
 	return (
-		<button
-			type="button"
-			onClick={handleClick}
-			className="text-sm text-zinc-500 hover:text-zinc-400 active:text-zinc-300 transition-colors duration-300"
-		>
-			{merchantMode ? 'Switch to customer mode' : 'Switch to merchant mode'}
-		</button>
+		<div className="px-4 pt-2 pb-8 rounded-xl bg-blue-50 flex flex-col gap-y-4 text-center">
+			<h2>Mode</h2>
+			<ToggleWithLabel
+				enabled={merchantMode}
+				setEnabled={() => toggleMerchantMode()}
+				enabledLabel="Merchant mode"
+				disabledLabel="Customer mode"
+			/>
+		</div>
 	)
 }
