@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation'
 import { type FormEvent, useState } from 'react'
 
 export default function SignInPage() {
-	const { setClientSafeUser } = useAuthorisation()
+	const { setBrowserSafeUser } = useAuthorisation()
 	const router = useRouter()
 	const preFillForConvenience = false
 	const [formData, setFormData] = useState<SignInPOSTbody>({
@@ -36,18 +36,18 @@ export default function SignInPage() {
 				} satisfies SignInPOSTbody),
 			})
 
-			const { message, baseBrowserSafeUser }: SignInPOSTresponse = await response.json()
+			const { message, fullBrowserSafeUser }: SignInPOSTresponse = await response.json()
 
 			if (!response.ok || message !== 'success') {
 				setError('Sorry, something went wrong')
 			}
 
-			if (!baseBrowserSafeUser) {
+			if (!fullBrowserSafeUser) {
 				setError('No account found with this email')
 				return
 			}
 
-			setClientSafeUser(baseBrowserSafeUser)
+			setBrowserSafeUser(fullBrowserSafeUser)
 			router.push('/dashboard')
 			return
 		} catch (error) {
