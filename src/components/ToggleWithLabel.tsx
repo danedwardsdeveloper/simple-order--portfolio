@@ -17,8 +17,8 @@ export default function ToggleWithLabel({ enabled, setEnabled, enabledLabel, dis
 					onClick={() => setEnabled(true)}
 					disabled={!enabled}
 					className={clsx(
-						'text-zinc-500 mr-1 hover:text-zinc-600 active:text-zinc-700 transition-all duration-300 ',
-						!enabled && 'text-zinc-900 cursor-default',
+						'transition-all duration-300 mr-1',
+						!enabled ? 'text-blue-600 cursor-default' : 'text-zinc-500 hover:text-zinc-600 active:text-zinc-700',
 					)}
 				>
 					{disabledLabel}
@@ -40,8 +40,8 @@ export default function ToggleWithLabel({ enabled, setEnabled, enabledLabel, dis
 					onClick={() => setEnabled(false)}
 					disabled={enabled}
 					className={clsx(
-						' text-zinc-500 mr-1 hover:text-zinc-600 active:text-zinc-700 transition-all duration-300',
-						enabled ? 'text-zinc-900 cursor-default' : 'cursor-pointer',
+						'transition-all duration-300 mr-1',
+						enabled ? 'text-blue-600 cursor-default' : 'cursor-pointer text-zinc-500  hover:text-zinc-600 active:text-zinc-700',
 					)}
 				>
 					{enabledLabel}
