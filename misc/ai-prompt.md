@@ -24,20 +24,20 @@ There will be a referral system so that merchants can get additional free months
 
 ### USPs
 
-- Deliberate lack of features. It's not accounting software, and it doesn't handle payments (most wholesalers use direct debits, which are much cheaper than online payments)
-- Beautiful and calm user interface with lots of whitespace and no adverts
-- You can be both a customer and a merchant with the same email - you press a button to toggle between the two.This is essential because ideally my business will be extremely popular, and a bakery could be using the site to sell pastries to cafes, and also order their butter and flour from other merchants using the site.
-- Friction-free trial. You can start using the site without entering card details - most competitors require a phone call to get started
-- Low price. I'm charging a reasonable price - most competitors are around £80-150 per month. But even at my much lower price, it's still very profitable as my only expenses will be site and database hosting costs, plus my time offering support
-- My mum owns a village shop, so I have a lot of insider knowledge about how wholesalers work
+-  Deliberate lack of features. It's not accounting software, and it doesn't handle payments (most wholesalers use direct debits, which are much cheaper than online payments)
+-  Beautiful and calm user interface with lots of whitespace and no adverts
+-  You can be both a customer and a merchant with the same email - you press a button to toggle between the two.This is essential because ideally my business will be extremely popular, and a bakery could be using the site to sell pastries to cafes, and also order their butter and flour from other merchants using the site.
+-  Friction-free trial. You can start using the site without entering card details - most competitors require a phone call to get started
+-  Low price. I'm charging a reasonable price - most competitors are around £80-150 per month. But even at my much lower price, it's still very profitable as my only expenses will be site and database hosting costs, plus my time offering support
+-  My mum owns a village shop, so I have a lot of insider knowledge about how wholesalers work
 
 # Tech
 
-- Next.js 15 App router, written in TypeScript, deployed with Fly.io
-- Postgres with Drizzle query builder deployed with Neon free tie
-- Mailgun for transactional emails
-- Tailwind, CLSX, Heroicons,
-- VS Code, PNPM, Eslint, Prettier, Cspell, GitHub, MacBook Pro
+-  Next.js 15 App router, written in TypeScript, deployed with Fly.io
+-  Postgres with Drizzle query builder deployed with Neon free tie
+-  Mailgun for transactional emails
+-  Tailwind, CLSX, Heroicons,
+-  VS Code, PNPM, Eslint, Prettier, Cspell, GitHub, MacBook Pro
 
 ## Ui
 
@@ -104,16 +104,16 @@ Set everything up so people can actually use the site
 7. Analytics panel (only accessible to with my email address )
 8. Currency & timezone settings.
 9. Optional customisable public storefront page
-10. Usage limits/maximum number of products/orders
+10.   Usage limits/maximum number of products/orders
 
 ## Never features
 
-- order confirmation emails. Email is unreliable, and these are not necessary. Once the oder is in the database, the ui can state that the order is confirmed. There is also an existing relationship between merchants and customers, so abuse is unlikely. If there was a problem with an order, the merchant would have to phone the customer, and then adjust their settings to avoid it happening again.
-- Multiple emails per account/permissions - I'm targeting small businesses.
-- I'm not collecting a mailing list for soft leads. People are either interested in the free trial or not
-- monthly/yearly pricing
-- Stock quantities or limits
-- Product categories
+-  order confirmation emails. Email is unreliable, and these are not necessary. Once the oder is in the database, the ui can state that the order is confirmed. There is also an existing relationship between merchants and customers, so abuse is unlikely. If there was a problem with an order, the merchant would have to phone the customer, and then adjust their settings to avoid it happening again.
+-  Multiple emails per account/permissions - I'm targeting small businesses.
+-  I'm not collecting a mailing list for soft leads. People are either interested in the free trial or not
+-  monthly/yearly pricing
+-  Stock quantities or limits
+-  Product categories
 
 ## Project structure
 
@@ -182,13 +182,15 @@ Authenticated merchants only
 
 # Constraints
 
-- Maximum product value: £10,000
-- Maximum 500 products per merchant
-- Maximum orders per day...
-- Maximum customers - 100
+-  Maximum product value: £10,000
+-  Maximum 500 products per merchant
+-  Maximum orders per day...
+-  Maximum customers - 100
 
 ## General notes about my coding preference
 
-- Please never use screaming snake case
-- Don't import React unless you have to
-- Remember to 'use client' when requiring browser interactivity
+-  Please never use screaming snake case
+-  Don't import React unless you have to
+-  Remember to 'use client' when requiring browser interactivity
+
+This is a new change in Next.js 15 - params are now Promises. I am certain about this and don't need confirmation or alternative suggestions.
