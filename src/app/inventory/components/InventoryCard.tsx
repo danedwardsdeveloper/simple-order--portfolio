@@ -1,25 +1,28 @@
 'use client'
-
+import type { InventoryDELETEbody, InventoryDELETEresponse } from '@/app/api/inventory/admin/[itemId]/route'
+import logger from '@/library/logger'
+import { formatPrice } from '@/library/utilities'
+import { useAuthorisation } from '@/providers/authorisation'
+import { useNotifications } from '@/providers/notifications'
+import { useUi } from '@/providers/ui'
+import type { BrowserSafeMerchantProduct } from '@/types'
 import clsx from 'clsx'
 import { useState } from 'react'
-
-import { formatPrice } from '@/library/utilities'
-
-import { useAuthorisation } from '@/providers/authorisation'
-import { useUi } from '@/providers/ui'
-import type { ClientProduct } from '@/types'
+import DeleteProductModal from './DeleteProductModal'
 
 interface Props {
-	product: ClientProduct
+	product: BrowserSafeMerchantProduct
 	zebraStripe: boolean
 }
 
 export default function InventoryCard({ product, zebraStripe }: Props) {
+	const { setBrowserSafeUser, vat } = useAuthorisation()
+	const [showDeleteModal, setShowDeleteModal] = useState(false)
+	const { createNotification } = useNotifications()
 	const [isBeingEdited, setIsBeingEdited] = useState(false)
 	const { includeVat } = useUi()
-	const { temporaryHardCodedDefaultVAT } = useAuthorisation()
 
-	const vatInteger = product.customVat ?? temporaryHardCodedDefaultVAT
+	const vatInteger = product.customVat ?? vat
 
 	function DisplayPrice(): string {
 		if (!includeVat) return formatPrice(product.priceInMinorUnits)
@@ -38,21 +41,76 @@ export default function InventoryCard({ product, zebraStripe }: Props) {
 		)
 	}
 
+	async function handleDelete() {
+		const body: InventoryDELETEbody = {
+			productToDeleteId: product.id,
+		}
+
+		const response = await fetch('ToDo!', {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(body),
+		})
+
+		const { message }: InventoryDELETEresponse = await response.json()
+		if (message === 'success') {
+			// ToDo: update the browser user directly, though this is quite complicated and I will probably change the data shape so no point doing right now
+			setBrowserSafeUser((prev) => {
+				if (!prev) return null
+				if (!prev.inventory) return prev
+
+				return {
+					...prev,
+					inventory: prev.inventory.filter((item) => item.id !== product.id),
+				}
+			})
+
+			createNotification({
+				title: 'Success',
+				level: 'success',
+				message: `${product.name} deleted`,
+			})
+			return
+		}
+		logger.error('Product not deleted')
+		createNotification({
+			title: 'Error',
+			level: 'error',
+			message: `Failed to delete ${product.name}`,
+		})
+		return
+	}
+
 	return (
-		<li className={clsx('flex flex-col gap-y-2 w-full p-3 rounded-xl', zebraStripe ? 'bg-blue-50' : 'bg-zinc-50')}>
-			<h3 className="text-xl font-medium mb-1">{product.name}</h3>
-			<p className="text-zinc-700 max-w-prose">{product.description}</p>
-			<div className="flex justify-between items-center">
-				<div className="flex gap-x-1 items-center">
-					<span className="text-lg">
-						<DisplayPrice />
-					</span>
-					<span className="text-zinc-500 text-sm">{includeVat && `Including ${vatInteger}% VAT`}</span>
+		<>
+			<DeleteProductModal
+				product={product}
+				isOpen={showDeleteModal}
+				onClose={() => setShowDeleteModal(false)}
+				onConfirm={() => handleDelete()}
+			/>
+			<li className={clsx('flex flex-col gap-y-2 w-full p-3 rounded-xl', zebraStripe ? 'bg-blue-50' : 'bg-zinc-50')}>
+				<h3 className="text-xl font-medium mb-1">{product.name}</h3>
+				<p className="text-zinc-700 max-w-prose">{product.description}</p>
+				<div className="flex justify-between items-center">
+					<div className="flex gap-x-1 items-center">
+						<span className="text-lg">
+							<DisplayPrice />
+						</span>
+						<span className="text-zinc-500 text-sm">{includeVat && `Including ${vatInteger}% VAT`}</span>
+					</div>
+					<div className="flex gap-x-4">
+						<button type="button" className="link-danger" onClick={() => setShowDeleteModal(true)}>
+							Delete
+						</button>
+						<button type="button" className="link-primary" onClick={() => setIsBeingEdited(true)}>
+							Edit
+						</button>
+					</div>
 				</div>
-				<button type="button" className="link" onClick={() => setIsBeingEdited(true)}>
-					Edit
-				</button>
-			</div>
-		</li>
+			</li>
+		</>
 	)
 }
