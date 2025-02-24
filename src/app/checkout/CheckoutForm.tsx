@@ -1,16 +1,22 @@
 'use client'
 import Spinner from '@/components/Spinner'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
+import { apiPaths } from '@/library/constants'
 import logger from '@/library/logger'
 import { useUser } from '@/providers/user'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { type FormEvent, useState } from 'react'
+import type {
+	StripeCreateCheckoutSessionPOSTbody,
+	StripeCreateCheckoutSessionPOSTresponse,
+} from '../api/stripe/create-checkout-session/route'
 
 export default function CheckoutPage() {
 	const searchParams = useSearchParams()
 	const status = searchParams.get('success')
 	const { user } = useUser()
 	const [isLoading, setIsLoading] = useState(false)
+	const router = useRouter()
 
 	if (status === 'true') return <h1>Successfully subscribed</h1>
 	if (status === 'false') return <h1>Subscription cancelled</h1>
@@ -19,14 +25,26 @@ export default function CheckoutPage() {
 
 	async function handleSubmit(event: FormEvent) {
 		event.preventDefault()
+
+		if (!user) return null
+
 		setIsLoading(true)
 		try {
-			setIsLoading(true)
-			const response = await fetch('/api/stripe/create-checkout-session', { method: 'POST' })
+			const { redirectUrl, message }: StripeCreateCheckoutSessionPOSTresponse = await (
+				await fetch(apiPaths.stripe.createCheckoutSession, {
+					method: 'POST',
+					body: JSON.stringify({
+						email: user.email,
+					} satisfies StripeCreateCheckoutSessionPOSTbody),
+				})
+			).json()
 
-			if (!response.ok) logger.error('checkout/page.tsx error')
+			if (message === 'success' && redirectUrl) return router.push(redirectUrl)
+
+			logger.error('Client-side app/checkout/CheckoutForm.tsx error: ', message)
 		} catch (error) {
-			logger.error('app/checkout/page.tsx error: ', error)
+			logger.error('app/checkout/CheckoutForm.tsx error: ', error)
+		} finally {
 			setIsLoading(false)
 		}
 	}
