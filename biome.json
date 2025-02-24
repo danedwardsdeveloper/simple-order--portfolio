@@ -50,6 +50,13 @@
 		}
 	},
 	"files": {
-		"ignore": ["node_modules", ".next", "public", "misc"]
+		"ignore": [
+			"node_modules",
+			".next",
+			"public",
+			"misc",
+			"**/*.tailwind.css",
+			"cspell.json"
+		]
 	}
 }
