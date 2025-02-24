@@ -6,16 +6,15 @@ import logger from '@/library/logger'
 import type { BaseBrowserSafeUser, BrowserSafeMerchantProduct, BrowserSafeMerchantProfile } from '@/types'
 import { type Dispatch, type ReactNode, type SetStateAction, createContext, useContext, useEffect, useState } from 'react'
 
-// ToDo: Add dispatches to all
 interface UserContextType {
 	user: BaseBrowserSafeUser | null
-	setUser: (user: BaseBrowserSafeUser | null) => void
+	setUser: Dispatch<SetStateAction<BaseBrowserSafeUser | null>>
 	inventory: BrowserSafeMerchantProduct[] | null
 	setInventory: Dispatch<SetStateAction<BrowserSafeMerchantProduct[] | null>>
 	confirmedMerchants: BrowserSafeMerchantProfile[] | null
-	setConfirmedMerchants: (confirmedMerchants: BrowserSafeMerchantProfile[] | null) => void
+	setConfirmedMerchants: Dispatch<SetStateAction<BrowserSafeMerchantProfile[] | null>>
 	pendingMerchants: BrowserSafeMerchantProfile[] | null
-	setPendingMerchants: (pendingMerchants: BrowserSafeMerchantProfile[] | null) => void
+	setPendingMerchants: Dispatch<SetStateAction<BrowserSafeMerchantProfile[] | null>>
 	isLoading: boolean
 	vat: number
 }
@@ -30,19 +29,22 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 	const [isLoading, setIsLoading] = useState(true)
 
 	useEffect(() => {
-		fetch(apiPaths.authentication.verifyToken, { credentials: 'include' })
-			.then(async (response) => {
-				if (response.ok) {
-					const { user }: VerifyTokenGETresponse = await response.json()
-					if (user) setUser(user)
+		async function getUser() {
+			setIsLoading(true)
+			try {
+				const { user }: VerifyTokenGETresponse = await (await fetch(apiPaths.authentication.verifyToken, { credentials: 'include' })).json()
+				if (user) {
+					logger.info('Found user: ', user.firstName)
+					setUser(user)
 				}
-			})
-			.catch((error) => {
+			} catch (error) {
 				logger.error(`User provider ${apiPaths.authentication.verifyToken}`, error)
-				setUser(null)
-			})
-			.finally(() => setIsLoading(false))
-	}, [])
+			} finally {
+				setIsLoading(false)
+			}
+		}
+		if (!user) getUser()
+	}, [user])
 
 	return (
 		<UserContext.Provider
