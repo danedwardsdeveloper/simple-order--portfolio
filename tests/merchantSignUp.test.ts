@@ -150,4 +150,6 @@ describe('Create Account Form', async () => {
 	test.skip('Click the link from test_email_inbox', async () => {
 		//
 	})
+
+	// https://checkout.stripe.com/
 })
