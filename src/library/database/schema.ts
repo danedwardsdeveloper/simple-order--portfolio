@@ -66,20 +66,16 @@ export const freeTrials = pgTable('free_trials', {
 	endDate: timestamp('end_date').notNull(),
 })
 
+// Optimisation ToDo: Keep track of cancelled subscriptions
 export const subscriptions = pgTable('subscriptions', {
 	id: serial('id').primaryKey(),
 	userId: integer('user_id')
 		.notNull()
 		.references(() => users.id),
 	stripeCustomerId: text('stripe_customer_id').notNull(),
-	stripeSubscriptionId: text('stripe_subscription_id').notNull().unique(),
-	priceId: text('price_id').notNull(),
-	stripeProductId: text('stripe_product_id'), // Optional
-	subscriptionStatus: text('subscription_status').notNull(),
 	currentPeriodStart: timestamp('current_period_start').notNull(),
 	currentPeriodEnd: timestamp('current_period_end').notNull(),
 	cancelledAt: timestamp('cancelled_at'),
-	scheduledChange: timestamp('scheduled_change'), // Optional
 })
 
 // ToDo: create index on deletedAt
