@@ -1,35 +1,26 @@
 import { and, eq, gt } from 'drizzle-orm'
 
 import { customerToMerchant, freeTrials, subscriptions, users } from '@/library/database/schema'
-
-import type { DangerousBaseUser } from '@/types'
+import type { BaseBrowserSafeUser } from '@/types'
 import logger from '../logger'
 import { database } from './connection'
 
-interface CheckUserExistsResponse {
-	userExists: boolean
-	existingUser?: {
-		emailConfirmed: boolean
-		cachedTrialExpired: boolean
-		businessName: string
-		email: string
-	}
-}
-
-export async function checkUserExists(userId: number): Promise<CheckUserExistsResponse> {
-	const [existingUser]: DangerousBaseUser[] = await database.select().from(users).where(eq(users.id, userId)).limit(1)
+export async function checkUserExists(userId: number): Promise<{ userExists: boolean; existingUser?: BaseBrowserSafeUser }> {
+	const [existingUser] = await database
+		.select({
+			firstName: users.firstName,
+			lastName: users.lastName,
+			email: users.email,
+			emailConfirmed: users.emailConfirmed,
+			cachedTrialExpired: users.cachedTrialExpired,
+			businessName: users.businessName,
+		})
+		.from(users)
+		.where(eq(users.id, userId))
+		.limit(1)
 
 	if (!existingUser) return { userExists: false }
-
-	return {
-		userExists: true,
-		existingUser: {
-			emailConfirmed: existingUser.emailConfirmed,
-			cachedTrialExpired: existingUser.cachedTrialExpired,
-			businessName: existingUser.businessName,
-			email: existingUser.email,
-		},
-	}
+	return { userExists: true, existingUser }
 }
 
 // Helper function. Used twice in checkActiveSubscriptionOrTrial to avoid looking in free_trials if cached_trial_expired is true
