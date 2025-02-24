@@ -2,9 +2,12 @@
 
 ## Current Task
 
--  Inventory/admin routes
+-  Write a test for adding items to the inventory
+   -  Make it pass
 
 ## MVP
+
+-  Make sure all routes are RESTful
 
 -  Fix transaction error handling in `/api/invitations/accept/[token]`
 
