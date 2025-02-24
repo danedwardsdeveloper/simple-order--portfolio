@@ -38,7 +38,7 @@ export const apiPaths = {
 		orderId: '/api/orders/[orderId]',
 	},
 	stripe: {
-		createCheckoutSession: '/api/ stripe/checkout/create-checkout-session',
+		createCheckoutSession: '/api/stripe/create-checkout-session',
 		createPortalSession: '/api/ stripe/create-portal-session',
 		webhook: '/api/stripe/webhook',
 	},
