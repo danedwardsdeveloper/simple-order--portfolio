@@ -11,12 +11,15 @@
 	"words": [
 		"Agromberis",
 		"Bakewell",
+		"cloudflared",
 		"Mondacoup",
 		"Pompamonterson",
 		"Pompermonterson",
+		"price_1QvcZAKCyKQPfgmWyYeynNh3", // Stripe price ID
 		"resends",
 		"simpleorder",
 		"steves",
-		"stoneground"
+		"stoneground",
+		"unmarshal"
 	]
 }
