@@ -37,12 +37,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<MerchantsG
 			.from(customerToMerchant)
 			.where(eq(customerToMerchant.customerUserId, extractedUserId))
 
-		logger.debug('Existing relationships: ', existingRelationships)
-
 		// Find any pending invitations
 		const pendingInvitations = await database.select().from(invitations).where(eq(invitations.email, existingUser.email))
-
-		logger.debug('Pending invitations: ', pendingInvitations)
 
 		if (!existingRelationships && !pendingInvitations) {
 			return NextResponse.json({ message: 'no merchants' }, { status: httpStatus.http204noContent })
@@ -77,9 +73,6 @@ export async function GET(request: NextRequest): Promise<NextResponse<MerchantsG
 				.innerJoin(users, eq(users.id, merchantProfiles.userId))
 				.where(inArray(merchantProfiles.userId, invitedMerchantIds))
 		}
-
-		logger.debug('Confirmed merchants: ', confirmedMerchants)
-		logger.debug('Invited merchants: ', pendingMerchants)
 
 		return NextResponse.json(
 			{
