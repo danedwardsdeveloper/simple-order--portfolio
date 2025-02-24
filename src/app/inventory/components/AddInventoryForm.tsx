@@ -1,10 +1,10 @@
 'use client'
-import type { InventoryAddPOSTbody, InventoryAddPOSTresponse } from '@/app/api/inventory/admin/add/route'
+import type { InventoryAddPOSTbody, InventoryAddPOSTresponse } from '@/app/api/inventory/admin/route'
 import { serviceConstraints } from '@/library/constants'
 import { generateRandomString } from '@/library/utilities'
-import { useAuthorisation } from '@/providers/authorisation'
 import { useNotifications } from '@/providers/notifications'
-import type { BrowserSafeMerchantProduct, NewNotification } from '@/types'
+import { useUser } from '@/providers/user'
+import type { NewNotification } from '@/types'
 import { type FormEvent, useState } from 'react'
 
 const formFields = {
@@ -31,7 +31,7 @@ const formFields = {
 } as const
 
 export default function AddInventoryForm() {
-	const { browserSafeUser, setBrowserSafeUser } = useAuthorisation()
+	const { user, setInventory } = useUser()
 	const temporaryRandomString = generateRandomString()
 	const [formData, setFormData] = useState<InventoryAddPOSTbody>({
 		name: temporaryRandomString,
@@ -45,34 +45,25 @@ export default function AddInventoryForm() {
 	async function handleSubmit(event: FormEvent) {
 		event.preventDefault()
 		setErrorMessage('')
-		if (!browserSafeUser) {
+		if (!user) {
 			setErrorMessage('Not signed in')
 			return
 		}
 
-		const response = await fetch('ToDo!', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({
-				...formData,
-			} satisfies InventoryAddPOSTbody),
-		})
-
-		const { message, product }: InventoryAddPOSTresponse = await response.json()
-
-		if (response.ok) {
-			setBrowserSafeUser((prev) => {
-				if (!prev) {
-					setErrorMessage('User session error')
-					return null
-				}
-				return {
-					...prev,
-					inventory: [...(prev.inventory ?? []), product] as BrowserSafeMerchantProduct[],
-				}
+		const { message, product }: InventoryAddPOSTresponse = await (
+			await fetch('ToDo!', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					...formData,
+				} satisfies InventoryAddPOSTbody),
 			})
+		).json()
+
+		if (product) {
+			setInventory((previousInventory) => (previousInventory ? [...previousInventory, product] : [product]))
 
 			const notification: NewNotification = {
 				title: 'Success',
@@ -88,9 +79,9 @@ export default function AddInventoryForm() {
 				priceInMinorUnits: Math.floor(Math.random() * serviceConstraints.maximumProductValueInMinorUnits + 1),
 				customVat: Math.floor(Math.random() * serviceConstraints.highestVat + 1),
 			})
-		} else {
-			setErrorMessage(message)
+			return
 		}
+		setErrorMessage(message)
 	}
 
 	// Enhancement ToDo: add illegal punctuation warning

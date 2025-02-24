@@ -1,4 +1,12 @@
-import { apiPaths, authenticationMessages, basicMessages, durationSettings, httpStatus } from '@/library/constants'
+import {
+	apiPaths,
+	authenticationMessages,
+	basicMessages,
+	durationSettings,
+	httpStatus,
+	missingFieldMessages,
+	tokenMessages,
+} from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkActiveSubscriptionOrTrial, checkUserExists } from '@/library/database/operations'
 import { customerToMerchant, invitations, users } from '@/library/database/schema'
@@ -12,12 +20,12 @@ import { createInvitationURL } from '@/library/utilities/definitions/createInvit
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
 import type {
 	AuthenticationMessages,
-	BasicMessages,
 	BrowserSafeInvitationRecord,
 	CustomerToMerchant,
 	DangerousBaseUser,
 	Invitation,
 	InvitationInsert,
+	TokenMessages,
 } from '@/types'
 import { and, eq } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
@@ -25,10 +33,12 @@ import { v4 as generateConfirmationToken } from 'uuid'
 
 export interface InviteCustomerPOSTresponse {
 	message:
-		| BasicMessages
+		| typeof basicMessages.success
+		| typeof basicMessages.unknownTransactionError
+		| typeof basicMessages.serverError
 		| AuthenticationMessages
-		| 'invitedEmail missing'
-		| 'invalid email'
+		| TokenMessages
+		| typeof missingFieldMessages.invitedEmailMissing
 		| 'attempted to invite self'
 		| 'relationship exists'
 		| 'in-date invitation exists'
@@ -45,7 +55,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
 
 		// 1. Check the email has been provided
 		if (!invitedEmail) {
-			return NextResponse.json({ message: 'invitedEmail missing' }, { status: 400 })
+			return NextResponse.json({ message: missingFieldMessages.invitedEmailMissing }, { status: 400 })
 		}
 
 		// 2. Normalise email
@@ -53,7 +63,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
 
 		// 3. Check email format
 		if (!emailRegex.test(normalisedInvitedEmail)) {
-			return NextResponse.json({ message: 'invalid email' }, { status: 400 })
+			return NextResponse.json({ message: authenticationMessages.invalidEmailFormat }, { status: 400 })
 		}
 
 		// 4. Check for valid token
@@ -69,7 +79,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
 		logger.debug('Existing user details:', existingUser)
 
 		if (!userExists || !existingUser) {
-			return NextResponse.json({ message: authenticationMessages.userNotFound }, { status: httpStatus.http401unauthorised })
+			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
 		}
 
 		logger.debug('Email is confirmed: ', existingUser.emailConfirmed)
@@ -186,7 +196,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
 		})
 
 		if (transactionErrorMessage || transactionErrorCode) {
-			return NextResponse.json({ message: transactionErrorMessage || 'unknown transaction error' }, { status: transactionErrorCode || 503 })
+			return NextResponse.json(
+				{ message: transactionErrorMessage || basicMessages.unknownTransactionError },
+				{ status: transactionErrorCode || 503 },
+			)
 		}
 
 		// 12. Return browser-safe details

@@ -2,10 +2,10 @@
 import type { SignOutPOSTresponse } from '@/app/api/authentication/sign-out/route'
 import { apiPaths, dataTestIdNames } from '@/library/constants'
 import logger from '@/library/logger'
-import { useAuthorisation } from '@/providers/authorisation'
+import { useUser } from '@/providers/user'
 
 export default function SignOutButton() {
-	const { setBrowserSafeUser } = useAuthorisation()
+	const { setUser } = useUser()
 
 	async function handleSignOut() {
 		const response = await fetch(apiPaths.authentication.signOut, {
@@ -18,7 +18,7 @@ export default function SignOutButton() {
 		const { message }: SignOutPOSTresponse = await response.json()
 
 		if (message === 'success') {
-			setBrowserSafeUser(null)
+			setUser(null)
 		} else {
 			logger.error('Error signing out: ', message)
 		}

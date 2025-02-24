@@ -19,7 +19,6 @@ export const merchantProfiles = pgTable('merchant_profiles', {
 		.notNull()
 		.references(() => users.id),
 	slug: text('slug').notNull().unique(),
-	stripeCustomerId: text('stripe_customer_id'),
 })
 
 export const customerToMerchant = pgTable(
@@ -68,15 +67,19 @@ export const freeTrials = pgTable('free_trials', {
 })
 
 export const subscriptions = pgTable('subscriptions', {
-	id: integer('id').primaryKey(),
+	id: serial('id').primaryKey(),
 	userId: integer('user_id')
 		.notNull()
 		.references(() => users.id),
+	stripeCustomerId: text('stripe_customer_id').notNull(),
 	stripeSubscriptionId: text('stripe_subscription_id').notNull().unique(),
 	priceId: text('price_id').notNull(),
+	stripeProductId: text('stripe_product_id'), // Optional
+	subscriptionStatus: text('subscription_status').notNull(),
 	currentPeriodStart: timestamp('current_period_start').notNull(),
 	currentPeriodEnd: timestamp('current_period_end').notNull(),
 	cancelledAt: timestamp('cancelled_at'),
+	scheduledChange: timestamp('scheduled_change'), // Optional
 })
 
 // ToDo: create index on deletedAt

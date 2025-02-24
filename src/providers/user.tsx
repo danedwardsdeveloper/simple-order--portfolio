@@ -3,15 +3,15 @@ import type { VerifyTokenGETresponse } from '@/app/api/authentication/verify-tok
 import SplashScreen from '@/components/SplashScreen'
 import { apiPaths, temporaryVat } from '@/library/constants'
 import logger from '@/library/logger'
-import type { BrowserSafeMerchantProduct, BrowserSafeMerchantProfile, FullBrowserSafeUser } from '@/types'
-import { type ReactNode, createContext, useContext, useEffect, useState } from 'react'
+import type { BaseBrowserSafeUser, BrowserSafeMerchantProduct, BrowserSafeMerchantProfile } from '@/types'
+import { type Dispatch, type ReactNode, type SetStateAction, createContext, useContext, useEffect, useState } from 'react'
 
-// ToDo: rename this useUser
-interface AuthorisationContextType {
-	browserSafeUser: FullBrowserSafeUser | null
-	setBrowserSafeUser: (user: FullBrowserSafeUser | null) => void
+// ToDo: Add dispatches to all
+interface UserContextType {
+	user: BaseBrowserSafeUser | null
+	setUser: (user: BaseBrowserSafeUser | null) => void
 	inventory: BrowserSafeMerchantProduct[] | null
-	setInventory: (inventory: BrowserSafeMerchantProduct[] | null) => void
+	setInventory: Dispatch<SetStateAction<BrowserSafeMerchantProduct[] | null>>
 	confirmedMerchants: BrowserSafeMerchantProfile[] | null
 	setConfirmedMerchants: (confirmedMerchants: BrowserSafeMerchantProfile[] | null) => void
 	pendingMerchants: BrowserSafeMerchantProfile[] | null
@@ -20,10 +20,10 @@ interface AuthorisationContextType {
 	vat: number
 }
 
-const AuthorisationContext = createContext<AuthorisationContextType>({} as AuthorisationContextType)
+const UserContext = createContext<UserContextType>({} as UserContextType)
 
-export const AuthorisationProvider = ({ children }: { children: ReactNode }) => {
-	const [browserSafeUser, setBrowserSafeUser] = useState<FullBrowserSafeUser | null>(null)
+export const UserProvider = ({ children }: { children: ReactNode }) => {
+	const [user, setUser] = useState<BaseBrowserSafeUser | null>(null)
 	const [inventory, setInventory] = useState<BrowserSafeMerchantProduct[] | null>(null)
 	const [confirmedMerchants, setConfirmedMerchants] = useState<BrowserSafeMerchantProfile[] | null>(null)
 	const [pendingMerchants, setPendingMerchants] = useState<BrowserSafeMerchantProfile[] | null>(null)
@@ -33,22 +33,22 @@ export const AuthorisationProvider = ({ children }: { children: ReactNode }) => 
 		fetch(apiPaths.authentication.verifyToken, { credentials: 'include' })
 			.then(async (response) => {
 				if (response.ok) {
-					const { browserSafeUser }: VerifyTokenGETresponse = await response.json()
-					if (browserSafeUser) setBrowserSafeUser(browserSafeUser)
+					const { user }: VerifyTokenGETresponse = await response.json()
+					if (user) setUser(user)
 				}
 			})
 			.catch((error) => {
-				logger.error('Authorisation check failed: ', error)
-				setBrowserSafeUser(null)
+				logger.error(`User provider ${apiPaths.authentication.verifyToken}`, error)
+				setUser(null)
 			})
 			.finally(() => setIsLoading(false))
 	}, [])
 
 	return (
-		<AuthorisationContext.Provider
+		<UserContext.Provider
 			value={{
-				browserSafeUser,
-				setBrowserSafeUser,
+				user,
+				setUser,
 				inventory,
 				setInventory,
 				confirmedMerchants,
@@ -61,12 +61,12 @@ export const AuthorisationProvider = ({ children }: { children: ReactNode }) => 
 		>
 			<SplashScreen show={isLoading} />
 			{children}
-		</AuthorisationContext.Provider>
+		</UserContext.Provider>
 	)
 }
 
-export const useAuthorisation = () => {
-	const context = useContext(AuthorisationContext)
-	if (context === undefined) throw new Error('useAuthorisation must be used within the AuthorisationProvider')
+export const useUser = () => {
+	const context = useContext(UserContext)
+	if (context === undefined) throw new Error('useUser must be used within the UserProvider')
 	return context
 }

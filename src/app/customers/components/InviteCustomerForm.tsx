@@ -2,16 +2,17 @@
 import type { InviteCustomerPOSTbody, InviteCustomerPOSTresponse } from '@/app/api/invitations/create/route'
 import { apiPaths, dataTestIdNames } from '@/library/constants'
 import logger from '@/library/logger'
-import { useAuthorisation } from '@/providers/authorisation'
+import { useUser } from '@/providers/user'
 import { type ChangeEvent, type FormEvent, useState } from 'react'
 
 export default function InviteCustomerForm() {
-	const { fullBrowserSafeUser } = useAuthorisation()
+	const { user } = useUser()
 	const [loading, setLoading] = useState(false)
 	const [responseMessage, setResponseMessage] = useState('')
 	const [invitedEmail, setInvitedEmail] = useState('')
 
-	if (!fullBrowserSafeUser || !fullBrowserSafeUser.merchantDetails || !fullBrowserSafeUser.emailConfirmed) return null
+	// ToDo: Only show this message to merchants
+	if (!user || !user.emailConfirmed) return null
 
 	async function handleSubmit(event: FormEvent) {
 		event.preventDefault()
@@ -36,8 +37,8 @@ export default function InviteCustomerForm() {
 
 			// Figure out how to add the invitation record to the state...
 			// if(browserSafeInvitationRecord) {
-			//   setFullBrowserSafeUser({
-			//     ...fullBrowserSafeUser,
+			//   setuser({
+			//     ...user,
 			//     pendingCustomersAsMerchant: [browserSafeInvitationRecord],
 			//   })
 			// }

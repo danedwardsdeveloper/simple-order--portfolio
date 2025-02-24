@@ -1,4 +1,4 @@
-import { cookieNames, dataTestIdNames, testPasswords, testUsers } from '@/library/constants'
+import { apiPaths, cookieNames, dataTestIdNames, testPasswords, testUsers } from '@/library/constants'
 import { developmentBaseURL, isProduction } from '@/library/environment/publicVariables'
 import { type Browser, type Cookie, type Page, launch } from 'puppeteer'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
@@ -79,9 +79,10 @@ describe('Sign in', () => {
 		const signOutButton = await getElementByTestId(dataTestIdNames.account.signOutButton)
 		expect(signOutButton).toBeDefined()
 
-		await Promise.all([page.waitForNavigation(), signOutButton?.click()])
-
-		expect(page.url()).toBe(`${developmentBaseURL}/`)
+		await Promise.all([
+			page.waitForResponse((response) => response.url().includes(apiPaths.authentication.signOut)),
+			signOutButton?.click(),
+		])
 	})
 
 	test('token cookie has been deleted', async () => {

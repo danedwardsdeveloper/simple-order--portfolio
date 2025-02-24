@@ -1,13 +1,13 @@
 'use client'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
-import { useAuthorisation } from '@/providers/authorisation'
+import { useUser } from '@/providers/user'
 import AddInventoryForm from './components/AddInventoryForm'
 import InventoryControlPanel from './components/InventoryControlPanel'
 import InventoryList from './components/InventoryList'
 
 export default function InventoryPage() {
-	const { browserSafeUser } = useAuthorisation()
-	if (!browserSafeUser) return <UnauthorisedLinks />
+	const { user } = useUser()
+	if (!user) return <UnauthorisedLinks />
 
 	return (
 		<div className="flex flex-col gap-y-4">

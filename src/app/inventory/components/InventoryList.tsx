@@ -1,9 +1,9 @@
 'use client'
-import { useAuthorisation } from '@/providers/authorisation'
+import { useUser } from '@/providers/user'
 import InventoryCard from './InventoryCard'
 
 export default function InventoryList() {
-	const { inventory } = useAuthorisation()
+	const { inventory } = useUser()
 	if (!inventory) return null
 
 	return (

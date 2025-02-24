@@ -1,15 +1,15 @@
-import { apiPaths, authenticationMessages, basicMessages, httpStatus } from '@/library/constants'
+import { apiPaths, basicMessages, httpStatus, tokenMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { users } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { AuthenticationMessages, BaseBrowserSafeUser, BasicMessages, FullBrowserSafeUser } from '@/types'
+import type { BaseBrowserSafeUser, TokenMessages } from '@/types'
 import { eq } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface VerifyTokenGETresponse {
-	message: BasicMessages | AuthenticationMessages
-	browserSafeUser?: FullBrowserSafeUser
+	message: typeof basicMessages.success | typeof basicMessages.serverError | TokenMessages
+	user?: BaseBrowserSafeUser
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse<VerifyTokenGETresponse>> {
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 			return NextResponse.json({ message }, { status })
 		}
 
-		const [browserSafeUser]: BaseBrowserSafeUser[] = await database
+		const [user]: BaseBrowserSafeUser[] = await database
 			.select({
 				firstName: users.firstName,
 				lastName: users.lastName,
@@ -32,11 +32,11 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 			.from(users)
 			.where(eq(users.id, extractedUserId))
 
-		if (!browserSafeUser) {
-			return NextResponse.json({ message: authenticationMessages.userNotFound }, { status: httpStatus.http401unauthorised })
+		if (!user) {
+			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
 		}
 
-		return NextResponse.json({ message: basicMessages.success, browserSafeUser }, { status: httpStatus.http200ok })
+		return NextResponse.json({ message: basicMessages.success, user }, { status: httpStatus.http200ok })
 	} catch (error) {
 		logger.error(`${apiPaths.authentication.verifyToken} error: `, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })

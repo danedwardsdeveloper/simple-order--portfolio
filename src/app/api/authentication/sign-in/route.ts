@@ -1,23 +1,46 @@
-import { apiPaths, authenticationMessages, basicMessages, cookieDurations, httpStatus } from '@/library/constants'
+import {
+	authenticationMessages,
+	basicMessages,
+	cookieDurations,
+	httpStatus,
+	missingFieldMessages,
+	tokenMessages,
+} from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { products, users } from '@/library/database/schema'
+import { users } from '@/library/database/schema'
 import { emailRegex } from '@/library/email/utilities'
 import logger from '@/library/logger'
 import { sanitiseDangerousBaseUser } from '@/library/utilities'
 import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
-import type { AuthenticationMessages, BrowserSafeProduct, DangerousBaseUser, FullBrowserSafeUser } from '@/types'
-import type { SignInPOSTbody, SignInPOSTresponse } from '@/types/api/authentication/sign-in'
+import type { BaseBrowserSafeUser, DangerousBaseUser, MissingFieldMessages } from '@/types'
 import bcrypt from 'bcryptjs'
-import { and, eq, isNull } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
+
+export interface SignInPOSTbody {
+	password: string
+	email: string
+	staySignedIn: boolean
+}
+
+export interface SignInPOSTresponse {
+	message:
+		| typeof basicMessages.success
+		| typeof missingFieldMessages.emailMissing
+		| typeof missingFieldMessages.passwordMissing
+		| typeof authenticationMessages.invalidEmailFormat
+		| typeof tokenMessages.userNotFound
+		| typeof authenticationMessages.invalidCredentials
+	user?: BaseBrowserSafeUser
+}
 
 export async function POST(request: NextRequest): Promise<NextResponse<SignInPOSTresponse>> {
 	const { email, password, staySignedIn }: SignInPOSTbody = await request.json()
 
-	let missingFieldMessage: AuthenticationMessages | null = null
-	if (!email) missingFieldMessage = authenticationMessages.emailMissing
-	if (!password) missingFieldMessage = authenticationMessages.passwordMissing
+	let missingFieldMessage: MissingFieldMessages | null = null
+	if (!email) missingFieldMessage = missingFieldMessages.emailMissing
+	if (!password) missingFieldMessage = missingFieldMessages.passwordMissing
 
 	if (missingFieldMessage) {
 		return NextResponse.json({ message: missingFieldMessage }, { status: httpStatus.http400badRequest })
@@ -25,14 +48,14 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
 
 	const normalisedEmail = email.toLowerCase().trim()
 	if (!emailRegex.test(normalisedEmail)) {
-		return NextResponse.json({ message: authenticationMessages.emailInvalid }, { status: httpStatus.http400badRequest })
+		return NextResponse.json({ message: authenticationMessages.invalidEmailFormat }, { status: httpStatus.http400badRequest })
 	}
 
 	const [foundUser]: DangerousBaseUser[] = await database.select().from(users).where(eq(users.email, email)).limit(1)
 
 	if (!foundUser) {
 		logger.debug(`User with email ${email} not found`)
-		return NextResponse.json({ message: authenticationMessages.userNotFound }, { status: httpStatus.http404notFound })
+		return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http404notFound })
 	}
 
 	logger.info('Found user: ', foundUser)
@@ -44,23 +67,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
 		return NextResponse.json({ message: authenticationMessages.invalidCredentials }, { status: httpStatus.http401unauthorised })
 	}
 
-	const baseBrowserSafeUser = sanitiseDangerousBaseUser(foundUser)
-
-	const inventory: BrowserSafeProduct[] = await database
-		.select()
-		.from(products)
-		.where(and(eq(products.ownerId, foundUser.id), isNull(products.deletedAt)))
-
-	if (!inventory) {
-		logger.error(`${apiPaths.authentication.signIn} inventory not found`)
-	}
-
-	const fullBrowserSafeUser: FullBrowserSafeUser = {
-		...baseBrowserSafeUser,
-		inventory,
-	}
-
-	logger.debug('Full browser-safe user: ', fullBrowserSafeUser)
+	const user = sanitiseDangerousBaseUser(foundUser)
 
 	const cookieStore = await cookies()
 	if (staySignedIn) {
@@ -70,5 +77,5 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
 	}
 
 	// ToDo: Somehow get the full user info. Maybe recycle verify-token
-	return NextResponse.json({ message: basicMessages.success, fullBrowserSafeUser }, { status: httpStatus.http200ok })
+	return NextResponse.json({ message: basicMessages.success, user }, { status: httpStatus.http200ok })
 }

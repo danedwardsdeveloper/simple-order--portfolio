@@ -1,18 +1,17 @@
-import { apiPaths, authenticationMessages, basicMessages, cookieDurations, cookieNames, httpStatus } from '@/library/constants'
+import { apiPaths, basicMessages, cookieDurations, cookieNames, httpStatus, tokenMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { customerToMerchant, invitations, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import logger from '@/library/logger'
 import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
 import type {
-	AuthenticationMessages,
 	BaseBrowserSafeUser,
 	BaseUserInsertValues,
-	BasicMessages,
 	CustomerToMerchant,
 	DangerousBaseUser,
 	Invitation,
 	InvitedCustomerBrowserInputValues,
+	TokenMessages,
 } from '@/types'
 import bcrypt from 'bcryptjs'
 import { and, eq } from 'drizzle-orm'
@@ -23,7 +22,13 @@ import { validate } from 'uuid'
 export type InvitationsAcceptPOSTbody = InvitedCustomerBrowserInputValues
 
 export interface InvitationsAcceptPOSTresponse {
-	message: BasicMessages | AuthenticationMessages | string // ToDo: make strict
+	message:
+		| typeof basicMessages.success
+		| typeof basicMessages.serverError
+		| 'missing fields'
+		| TokenMessages
+		| 'invitation not found'
+		| 'please provide details'
 	createdUser?: BaseBrowserSafeUser
 	senderBusinessName?: string
 }
@@ -47,17 +52,18 @@ export async function POST(
 		// Reject requests that have some but not all fields
 		if (partialDetailsProvided) {
 			logger.info('Not enough details provided to create new account')
+			// ToDo: make this more specific
 			return NextResponse.json({ message: 'missing fields' }, { status: httpStatus.http400badRequest })
 		}
 
 		const token = (await params).token
 
 		if (!token) {
-			return NextResponse.json({ message: authenticationMessages.tokenMissing }, { status: httpStatus.http400badRequest })
+			return NextResponse.json({ message: tokenMessages.tokenMissing }, { status: httpStatus.http400badRequest })
 		}
 
 		if (!validate(token)) {
-			return NextResponse.json({ message: authenticationMessages.tokenInvalid }, { status: httpStatus.http400badRequest })
+			return NextResponse.json({ message: tokenMessages.tokenInvalid }, { status: httpStatus.http400badRequest })
 		}
 
 		const [foundInvitation]: Invitation[] = await database.select().from(invitations).where(eq(invitations.token, token)).limit(1)

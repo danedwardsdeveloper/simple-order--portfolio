@@ -2,10 +2,10 @@
 
 import Link from 'next/link'
 
-import { useAuthorisation } from '@/providers/authorisation'
+import { useUser } from '@/providers/user'
 
 export default function EmptyInventoryMessage() {
-	const { inventory } = useAuthorisation()
+	const { inventory } = useUser()
 
 	if (!inventory) return null
 

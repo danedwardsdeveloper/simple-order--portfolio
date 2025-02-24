@@ -5,6 +5,7 @@ import {
 	durationOptions,
 	httpStatus,
 	illegalCharactersMessages,
+	missingFieldMessages,
 } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { confirmationTokens, freeTrials, merchantProfiles, users } from '@/library/database/schema'
@@ -17,29 +18,45 @@ import { containsIllegalCharacters, createFreeTrialEndTime, createMerchantSlug }
 import { sanitiseDangerousBaseUser } from '@/library/utilities'
 import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
 import type {
-	AuthenticationMessages,
+	BaseBrowserSafeUser,
 	BaseUserInsertValues,
 	DangerousBaseUser,
 	FreeTrial,
-	FullBrowserSafeUser,
 	IllegalCharactersMessages,
+	MissingFieldMessages,
 	NewFreeTrial,
 } from '@/types'
-import type { CreateAccountPOSTbody, CreateAccountPOSTresponse } from '@/types/api/authentication/create-account'
 import bcrypt from 'bcryptjs'
 import { eq, or } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 import { v4 as generateConfirmationToken } from 'uuid'
 
+export interface CreateAccountPOSTbody extends Omit<BaseUserInsertValues, 'hashedPassword' | 'emailConfirmed' | 'cachedTrialExpired'> {
+	password: string
+	staySignedIn: boolean
+}
+
+export interface CreateAccountPOSTresponse {
+	message:
+		| IllegalCharactersMessages
+		| MissingFieldMessages
+		| typeof authenticationMessages.invalidEmailFormat
+		| typeof authenticationMessages.emailTaken
+		| typeof authenticationMessages.businessNameTaken
+		| typeof basicMessages.success
+		| typeof basicMessages.serverError
+	user?: BaseBrowserSafeUser
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse<CreateAccountPOSTresponse>> {
 	const { firstName, lastName, email, password, businessName, staySignedIn }: CreateAccountPOSTbody = await request.json()
 
-	let missingFieldMessage: AuthenticationMessages | null = null
-	if (!firstName) missingFieldMessage = authenticationMessages.fistNameMissing
-	if (!lastName) missingFieldMessage = authenticationMessages.lastNameMissing
-	if (!email) missingFieldMessage = authenticationMessages.emailMissing
-	if (!password) missingFieldMessage = authenticationMessages.passwordMissing
-	if (!businessName) missingFieldMessage = authenticationMessages.businessNameMissing
+	let missingFieldMessage: MissingFieldMessages | null = null
+	if (!firstName) missingFieldMessage = missingFieldMessages.fistNameMissing
+	if (!lastName) missingFieldMessage = missingFieldMessages.lastNameMissing
+	if (!email) missingFieldMessage = missingFieldMessages.emailMissing
+	if (!password) missingFieldMessage = missingFieldMessages.passwordMissing
+	if (!businessName) missingFieldMessage = missingFieldMessages.businessNameMissing
 
 	if (missingFieldMessage) {
 		return NextResponse.json({ message: missingFieldMessage }, { status: httpStatus.http400badRequest })
@@ -57,7 +74,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 
 	const normalisedEmail = email.toLowerCase().trim()
 	if (!emailRegex.test(normalisedEmail)) {
-		return NextResponse.json({ message: authenticationMessages.emailInvalid }, { status: httpStatus.http400badRequest })
+		return NextResponse.json({ message: authenticationMessages.invalidEmailFormat }, { status: httpStatus.http400badRequest })
 	}
 
 	try {
@@ -166,18 +183,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 			return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http503serviceUnavailable })
 		}
 
-		const sanitisedBaseUser = sanitiseDangerousBaseUser(newUser)
+		const user = sanitiseDangerousBaseUser(newUser)
 
-		const transformedUser: FullBrowserSafeUser = {
-			...sanitisedBaseUser,
-			merchantDetails: {
-				slug: newMerchant.slug,
-				freeTrial: { endDate: new Date(newFreeTrial.endDate) },
-				customersAsMerchant: [],
-			},
-		}
-
-		const response = NextResponse.json({ message: basicMessages.success, user: transformedUser }, { status: httpStatus.http200ok })
+		const response = NextResponse.json({ message: basicMessages.success, user }, { status: httpStatus.http200ok })
 
 		response.cookies.set(
 			staySignedIn ? createCookieWithToken(newUser.id, cookieDurations.oneYear) : createSessionCookieWithToken(newUser.id),
@@ -186,6 +194,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 		return response
 	} catch (error) {
 		logger.error('Error creating user: ', error)
-		return NextResponse.json({ message: basicMessages.databaseError }, { status: httpStatus.http500serverError })
+		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
 	}
 }

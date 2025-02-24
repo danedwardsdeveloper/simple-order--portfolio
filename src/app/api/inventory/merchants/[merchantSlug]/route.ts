@@ -1,4 +1,4 @@
-import { apiPaths, authenticationMessages, basicMessages, httpStatus, relationshipMessages } from '@/library/constants'
+import { apiPaths, authenticationMessages, basicMessages, httpStatus, relationshipMessages, tokenMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkRelationship, checkUserExists } from '@/library/database/operations'
 import { merchantProfiles, products } from '@/library/database/schema'
@@ -33,7 +33,7 @@ export async function GET(
 
 	const { userExists } = await checkUserExists(extractedUserId)
 	if (!userExists) {
-		return NextResponse.json({ message: authenticationMessages.userNotFound }, { status: httpStatus.http401unauthorised })
+		return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
 	}
 
 	const [merchantProfile] = await database.select().from(merchantProfiles).where(eq(merchantProfiles.slug, merchantSlug))

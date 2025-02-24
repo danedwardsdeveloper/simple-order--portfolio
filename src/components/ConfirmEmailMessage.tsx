@@ -1,16 +1,16 @@
 'use client'
 import { dataTestIdNames } from '@/library/constants'
-import { useAuthorisation } from '@/providers/authorisation'
+import { useUser } from '@/providers/user'
 
 export default function ConfirmEmailMessage() {
-	const { fullBrowserSafeUser } = useAuthorisation()
+	const { user } = useUser()
 
-	if (!fullBrowserSafeUser || fullBrowserSafeUser.emailConfirmed) return null
+	if (!user || user.emailConfirmed) return null
 
 	return (
 		<p
 			data-test-id={dataTestIdNames.pleaseConfirmYourEmailMessage}
 			className="max-w-prose p-3 my-4 border-2 rounded-xl border-orange-300"
-		>{`Please confirm your email by clicking the link in the email sent to ${fullBrowserSafeUser.email}. Remember to check your junk folder.`}</p>
+		>{`Please confirm your email by clicking the link in the email sent to ${user.email}. Remember to check your junk folder.`}</p>
 	)
 }

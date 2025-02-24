@@ -10,3 +10,8 @@ export const dynamicBaseURL = isProduction ? productionBaseURL : developmentBase
 
 export const serverLogLevel: LogLevel = 'level4debug'
 export const browserLogLevel: LogLevel = 'level4debug'
+
+// cspell:disable
+export const stripePublishableKey =
+	'pk_test_51QvcWRKCyKQPfgmWcdvr4AWoY3HwbgPViqUrv3looVKibsXIaIJmBThSKOJ2t3086yaIp5BTlJ8XRREMm3qOjMHA00crLYOXlI'
+// cspell:enable

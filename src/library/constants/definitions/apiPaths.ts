@@ -28,9 +28,18 @@ export const apiPaths = {
 			// DELETE: Delete item ✅
 		},
 		merchants: {
-			base: '/api/inventory/merchants',
+			base: '/api/inventory/merchants', // ✅
 			merchantSlug: '/api/inventory/merchants/[merchantSlug]',
 			// GET Customer view of a specific merchant's published products
 		},
+	},
+	order: {
+		base: '/api/orders',
+		orderId: '/api/orders/[orderId]',
+	},
+	stripe: {
+		createCheckoutSession: '/api/ stripe/checkout/create-checkout-session',
+		createPortalSession: '/api/ stripe/create-portal-session',
+		webhook: '/api/stripe/webhook',
 	},
 } as const

@@ -6,34 +6,30 @@ export const basicMessages = {
 	success: 'success',
 } as const
 
+export const missingFieldMessages = {
+	lastNameMissing: 'lastName missing',
+	fistNameMissing: 'firstName missing',
+	emailMissing: 'email missing',
+	businessNameMissing: 'businessName missing',
+	passwordMissing: 'password missing',
+	invitedEmailMissing: 'invited email missing',
+	merchantSlugMissing: 'merchantSlug missing',
+} as const
+
 export const authenticationMessages = {
 	alreadyConfirmed: 'already confirmed',
 	authorisationError: 'authorisation error',
-	businessNameMissing: 'businessName missing',
 	businessNameTaken: 'businessName taken',
-	confirmationTokenMissing: 'confirmation token missing',
-	emailInvalid: 'email invalid',
-	emailMissing: 'email missing',
+	invalidEmailFormat: 'invalid email format',
 	emailNotConfirmed: 'email not confirmed',
 	emailTaken: 'email taken',
 	errorSendingEmail: 'error sending email',
-	fistNameMissing: 'firstName missing',
 	invalidCredentials: 'invalid credentials',
-	lastNameMissing: 'lastName missing',
-	merchantMissing: 'merchant profile missing',
 	merchantNotFound: 'merchant not found',
 	noActiveTrialSubscription: 'no active subscription or trial',
 	notSignedIn: 'not signed in',
-	passwordMissing: 'password missing',
 	slugTaken: 'slug taken',
 	unauthorised: 'unauthorised',
-
-	// Remove these once I'm sure my new system works
-	userNotFound: 'user not found',
-	tokenExpired: 'token expired',
-	tokenInvalid: 'token invalid',
-	tokenMissing: 'token missing',
-	tokenUsed: 'token used',
 } as const
 
 export const illegalCharactersMessages = {
@@ -44,7 +40,7 @@ export const illegalCharactersMessages = {
 } as const
 
 export const tokenMessages = {
-	userNotFound: 'user not found', // This one isn't strictly a token message but they're always used together
+	userNotFound: 'user not found',
 	tokenMissing: 'token missing',
 	tokenExpired: 'token expired',
 	tokenInvalid: 'token invalid',

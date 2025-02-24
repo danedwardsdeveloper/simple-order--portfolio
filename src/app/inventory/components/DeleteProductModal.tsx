@@ -1,7 +1,7 @@
 'use client'
 import type {} from '@/app/api/inventory/admin/[itemId]/route'
 import { dataTestIdNames } from '@/library/constants'
-import type { BrowserSafeProduct } from '@/types'
+import type { BrowserSafeMerchantProduct } from '@/types'
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
@@ -14,7 +14,7 @@ export default function DeleteProductModal({
 	isOpen: boolean
 	onClose: () => void
 	onConfirm: () => Promise<void> | void
-	product: BrowserSafeProduct
+	product: BrowserSafeMerchantProduct
 }) {
 	async function handleConfirm() {
 		await onConfirm()

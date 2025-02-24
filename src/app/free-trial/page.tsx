@@ -4,14 +4,14 @@ import PageContainer from '@/components/PageContainer'
 import { apiPaths, dataTestIdNames } from '@/library/constants'
 import logger from '@/library/logger'
 import { generateRandomString } from '@/library/utilities'
-import { useAuthorisation } from '@/providers/authorisation'
-import type { CreateAccountPOSTbody, CreateAccountPOSTresponse } from '@/types/api/authentication/create-account'
+import { useUser } from '@/providers/user'
 import { useRouter } from 'next/navigation'
 import { type FormEvent, useState } from 'react'
+import type { CreateAccountPOSTbody, CreateAccountPOSTresponse } from '../api/authentication/create-account/route'
 
 export default function CreateAccountPage() {
 	const router = useRouter()
-	const { setFullBrowserSafeUser } = useAuthorisation()
+	const { setUser } = useUser()
 	const [error, setError] = useState('')
 	const randomString = generateRandomString()
 	const preFillFormForManualTesting = false
@@ -29,26 +29,23 @@ export default function CreateAccountPage() {
 		setError('')
 
 		try {
-			const response = await fetch(apiPaths.authentication.createAccount, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(formData),
-			})
-
-			const { message, user }: CreateAccountPOSTresponse = await response.json()
+			const { message, user }: CreateAccountPOSTresponse = await (
+				await fetch(apiPaths.authentication.createAccount, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify(formData),
+				})
+			).json()
 			logger.debug(message, user)
 
-			if (!response.ok) {
+			if (user) {
+				setUser(user)
+				router.push('/dashboard')
+			} else {
 				setError(message)
 			}
-
-			if (user) {
-				setFullBrowserSafeUser(user)
-				router.push('/dashboard')
-			}
-
 			return
 		} catch (error) {
 			logger.error(error)

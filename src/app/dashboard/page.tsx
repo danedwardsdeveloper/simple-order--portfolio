@@ -1,50 +1,48 @@
 'use client'
 
-import Link from 'next/link'
-
 import ConfirmEmailMessage from '../../components/ConfirmEmailMessage'
 import EmptyInventoryMessage from './components/EmptyInventoryLink'
 
-import { useAuthorisation } from '@/providers/authorisation'
-import { useUi } from '@/providers/ui'
+// import { useUi } from '@/providers/ui'
+import { useUser } from '@/providers/user'
 
 export default function DashboardPage() {
-	const { browserSafeUser } = useAuthorisation()
-	const { merchantMode } = useUi()
+	const { user } = useUser()
+	// const { merchantMode } = useUi()
 
-	if (!browserSafeUser) {
+	if (!user) {
 		return null
 	}
 
-	const emailConfirmed = browserSafeUser.emailConfirmed
-	const hasConfirmedCustomers =
-		Array.isArray(browserSafeUser.merchantDetails?.customersAsMerchant) && browserSafeUser.merchantDetails?.customersAsMerchant.length > 0
+	// const emailConfirmed = user.emailConfirmed
+	// const hasConfirmedCustomers =
+	// 	Array.isArray(user.merchantDetails?.customersAsMerchant) && user.merchantDetails?.customersAsMerchant.length > 0
 
-	function NoCustomersMessage() {
-		if (hasConfirmedCustomers) return null
-		if (emailConfirmed) {
-			return (
-				<div className="max-w-prose p-3 my-4 border-2 rounded-xl border-blue-300">
-					<Link href="/customers" className="link-primary">
-						Invite your first customer
-					</Link>
-				</div>
-			)
-		}
-		return (
-			<p className="max-w-prose p-3 my-4 border-2 rounded-xl border-orange-300">
-				{'You must confirm your email before inviting your first customer'}
-			</p>
-		)
-	}
+	// function NoCustomersMessage() {
+	// 	if (hasConfirmedCustomers) return null
+	// 	if (emailConfirmed) {
+	// 		return (
+	// 			<div className="max-w-prose p-3 my-4 border-2 rounded-xl border-blue-300">
+	// 				<Link href="/customers" className="link-primary">
+	// 					Invite your first customer
+	// 				</Link>
+	// 			</div>
+	// 		)
+	// 	}
+	// 	return (
+	// 		<p className="max-w-prose p-3 my-4 border-2 rounded-xl border-orange-300">
+	// 			{'You must confirm your email before inviting your first customer'}
+	// 		</p>
+	// 	)
+	// }
 
 	return (
 		<>
 			<h1>Dashboard</h1>
-			{browserSafeUser && <p>{`Welcome ${browserSafeUser.businessName}`}</p>}
+			{user && <p>{`Welcome ${user.businessName}`}</p>}
 			<ConfirmEmailMessage />
 			<EmptyInventoryMessage />
-			{merchantMode && <NoCustomersMessage />}
+			{/* {merchantMode && <NoCustomersMessage />} */}
 		</>
 	)
 }

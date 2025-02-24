@@ -1,10 +1,10 @@
-import { httpStatus } from '@/library/constants'
+import { basicMessages, httpStatus, type missingFieldMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkUserExists } from '@/library/database/operations'
 import { merchantProfiles, orders } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { AuthenticationMessages, BasicMessages, OrderInsertValues } from '@/types'
+import type { OrderInsertValues, TokenMessages } from '@/types'
 import { eq } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -13,7 +13,7 @@ export interface OrdersPOSTbody {
 }
 
 export interface OrdersPOSTresponse {
-	message: 'success' | 'failure' | 'merchantSlug missing' | AuthenticationMessages | BasicMessages
+	message: typeof basicMessages.success | typeof basicMessages.serverError | TokenMessages | typeof missingFieldMessages.merchantSlugMissing
 	orderId?: number
 }
 
@@ -53,9 +53,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<OrdersPOS
 		}
 		const [{ newOrderId }] = await database.insert(orders).values(newOrderInsertValues).returning({ newOrderId: orders.id })
 
-		return NextResponse.json({ message: 'success', orderId: newOrderId }, { status: httpStatus.http200ok })
+		return NextResponse.json({ message: basicMessages.success, orderId: newOrderId }, { status: httpStatus.http200ok })
 	} catch (error) {
 		logger.error(error)
-		return NextResponse.json({ message: 'failure' }, { status: httpStatus.http500serverError })
+		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
 	}
 }

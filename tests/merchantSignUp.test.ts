@@ -2,7 +2,7 @@ import { dataTestIdNames, testUsers } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { freeTrials, merchantProfiles, testEmailInbox, users } from '@/library/database/schema'
 import { developmentBaseURL } from '@/library/environment/publicVariables'
-import type { DangerousBaseUser, FreeTrial, MerchantProfile } from '@/types'
+import type { DangerousBaseUser, DangerousMerchantProfile, FreeTrial } from '@/types'
 import { desc, eq } from 'drizzle-orm'
 import { type Browser, type Page, launch } from 'puppeteer'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
@@ -15,7 +15,7 @@ describe('Create Account Form', async () => {
 	let browser: Browser
 	let page: Page
 	let createdUser: DangerousBaseUser
-	let createdMerchant: MerchantProfile
+	let createdMerchant: DangerousMerchantProfile
 	let _createdFreeTrial: FreeTrial
 	let invitationLink: string | undefined
 
@@ -64,7 +64,10 @@ describe('Create Account Form', async () => {
 	})
 
 	test('created merchant should exist in the database', async () => {
-		const [merchant]: MerchantProfile[] = await database.select().from(merchantProfiles).where(eq(merchantProfiles.userId, createdUser.id))
+		const [merchant]: DangerousMerchantProfile[] = await database
+			.select()
+			.from(merchantProfiles)
+			.where(eq(merchantProfiles.userId, createdUser.id))
 
 		createdMerchant = merchant
 	})

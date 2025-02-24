@@ -3,13 +3,13 @@ import { CheckboxIcon } from '@/components/Icons'
 import PageContainer from '@/components/PageContainer'
 import { apiPaths, dataTestIdNames, testPasswords, testUsers } from '@/library/constants'
 import logger from '@/library/logger'
-import { useAuthorisation } from '@/providers/authorisation'
-import type { SignInPOSTbody, SignInPOSTresponse } from '@/types/api/authentication/sign-in'
+import { useUser } from '@/providers/user'
 import { useRouter } from 'next/navigation'
 import { type FormEvent, useState } from 'react'
+import type { SignInPOSTbody, SignInPOSTresponse } from '../api/authentication/sign-in/route'
 
 export default function SignInPage() {
-	const { setBrowserSafeUser } = useAuthorisation()
+	const { setUser } = useUser()
 	const router = useRouter()
 	const preFillForConvenience = false
 	const [formData, setFormData] = useState<SignInPOSTbody>({
@@ -24,30 +24,30 @@ export default function SignInPage() {
 		setError('')
 
 		try {
-			const response = await fetch(apiPaths.authentication.signIn, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					email: formData.email,
-					password: formData.password,
-					staySignedIn: formData.staySignedIn,
-				} satisfies SignInPOSTbody),
-			})
+			const { message, user }: SignInPOSTresponse = await (
+				await fetch(apiPaths.authentication.signIn, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						email: formData.email,
+						password: formData.password,
+						staySignedIn: formData.staySignedIn,
+					} satisfies SignInPOSTbody),
+				})
+			).json()
 
-			const { message, fullBrowserSafeUser }: SignInPOSTresponse = await response.json()
-
-			if (!response.ok || message !== 'success') {
+			if (message !== 'success') {
 				setError('Sorry, something went wrong')
 			}
 
-			if (!fullBrowserSafeUser) {
+			if (!user) {
 				setError('No account found with this email')
 				return
 			}
 
-			setBrowserSafeUser(fullBrowserSafeUser)
+			setUser(user)
 			router.push('/dashboard')
 			return
 		} catch (error) {

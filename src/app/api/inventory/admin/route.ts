@@ -1,16 +1,16 @@
-import { apiPaths, authenticationMessages, basicMessages, httpStatus, serviceConstraints } from '@/library/constants'
+import { apiPaths, authenticationMessages, basicMessages, httpStatus, serviceConstraints, tokenMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { checkActiveSubscriptionOrTrial, checkMerchantProfileExists, checkUserExists } from '@/library/database/operations'
+import { checkActiveSubscriptionOrTrial, checkUserExists } from '@/library/database/operations'
 import { merchantProfiles, products } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { containsIllegalCharacters } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { AuthenticationMessages, BasicMessages, BrowserSafeMerchantProduct, NewProduct, Product } from '@/types'
+import type { AuthenticationMessages, BasicMessages, BrowserSafeMerchantProduct, NewProduct, Product, TokenMessages } from '@/types'
 import { and, eq, isNull } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface InventoryGETresponse {
-	message: BasicMessages | AuthenticationMessages
+	message: BasicMessages | AuthenticationMessages | TokenMessages
 	inventory?: BrowserSafeMerchantProduct[]
 }
 
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<InventoryG
 
 		const { userExists } = await checkUserExists(extractedUserId)
 		if (!userExists) {
-			return NextResponse.json({ message: authenticationMessages.userNotFound }, { status: httpStatus.http401unauthorised })
+			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
 		}
 
 		const [merchantProfile] = await database
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<InventoryG
 			.limit(1)
 
 		if (!merchantProfile) {
-			return NextResponse.json({ message: authenticationMessages.merchantMissing }, { status: httpStatus.http401unauthorised })
+			return NextResponse.json({ message: authenticationMessages.merchantNotFound }, { status: httpStatus.http401unauthorised })
 		}
 
 		const inventory: BrowserSafeMerchantProduct[] = await database
@@ -63,6 +63,7 @@ export interface InventoryAddPOSTresponse {
 	message:
 		| BasicMessages
 		| AuthenticationMessages
+		| TokenMessages
 		| 'name missing'
 		| 'name contains illegal characters'
 		| 'priceInMinorUnits missing'
@@ -141,12 +142,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<Inventory
 
 		const { userExists } = await checkUserExists(extractedUserId)
 		if (!userExists) {
-			return NextResponse.json({ message: authenticationMessages.userNotFound }, { status: httpStatus.http401unauthorised })
+			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
 		}
 
-		const { merchantProfileExists } = await checkMerchantProfileExists(extractedUserId)
-		if (!merchantProfileExists) {
-			return NextResponse.json({ message: authenticationMessages.merchantMissing }, { status: httpStatus.http401unauthorised })
+		const [foundMerchantProfile] = await database.select().from(merchantProfiles).where(eq(merchantProfiles.userId, extractedUserId))
+
+		if (!foundMerchantProfile) {
+			return NextResponse.json({ message: authenticationMessages.merchantNotFound }, { status: httpStatus.http401unauthorised })
 		}
 
 		const { validSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(extractedUserId)

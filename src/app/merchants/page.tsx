@@ -4,13 +4,13 @@ import Spinner from '@/components/Spinner'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
 import { apiPaths } from '@/library/constants'
 import logger from '@/library/logger'
-import { useAuthorisation } from '@/providers/authorisation'
+import { useUser } from '@/providers/user'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import type { MerchantsGETresponse } from '../api/merchants/route'
 
 export default function Page() {
-	const { browserSafeUser, confirmedMerchants, setConfirmedMerchants, pendingMerchants, setPendingMerchants } = useAuthorisation()
+	const { user, confirmedMerchants, setConfirmedMerchants, pendingMerchants, setPendingMerchants } = useUser()
 	const [loading, setLoading] = useState(false)
 
 	useEffect(() => {
@@ -38,10 +38,10 @@ export default function Page() {
 			}
 		}
 
-		if (browserSafeUser) getMerchants()
-	}, [browserSafeUser, setConfirmedMerchants, setPendingMerchants])
+		if (user) getMerchants()
+	}, [user, setConfirmedMerchants, setPendingMerchants])
 
-	if (!browserSafeUser) return <UnauthorisedLinks />
+	if (!user) return <UnauthorisedLinks />
 
 	if (loading) {
 		return <Spinner />

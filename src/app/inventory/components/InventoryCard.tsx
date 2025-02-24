@@ -2,9 +2,9 @@
 import type { InventoryDELETEbody, InventoryDELETEresponse } from '@/app/api/inventory/admin/[itemId]/route'
 import logger from '@/library/logger'
 import { formatPrice } from '@/library/utilities'
-import { useAuthorisation } from '@/providers/authorisation'
 import { useNotifications } from '@/providers/notifications'
 import { useUi } from '@/providers/ui'
+import { useUser } from '@/providers/user'
 import type { BrowserSafeMerchantProduct } from '@/types'
 import clsx from 'clsx'
 import { useState } from 'react'
@@ -16,7 +16,7 @@ interface Props {
 }
 
 export default function InventoryCard({ product, zebraStripe }: Props) {
-	const { setBrowserSafeUser, vat } = useAuthorisation()
+	const { vat } = useUser()
 	const [showDeleteModal, setShowDeleteModal] = useState(false)
 	const { createNotification } = useNotifications()
 	const [isBeingEdited, setIsBeingEdited] = useState(false)
@@ -56,16 +56,7 @@ export default function InventoryCard({ product, zebraStripe }: Props) {
 
 		const { message }: InventoryDELETEresponse = await response.json()
 		if (message === 'success') {
-			// ToDo: update the browser user directly, though this is quite complicated and I will probably change the data shape so no point doing right now
-			setBrowserSafeUser((prev) => {
-				if (!prev) return null
-				if (!prev.inventory) return prev
-
-				return {
-					...prev,
-					inventory: prev.inventory.filter((item) => item.id !== product.id),
-				}
-			})
+			// ToDo: delete the product from the context
 
 			createNotification({
 				title: 'Success',
