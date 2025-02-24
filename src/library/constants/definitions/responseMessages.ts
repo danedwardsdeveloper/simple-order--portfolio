@@ -1,9 +1,10 @@
 export const basicMessages = {
 	databaseError: 'database error',
 	parametersMissing: 'parameters missing',
-	unknownTransactionError: 'unknown transaction error',
 	serverError: 'server error',
+	serviceUnavailable: 'service unavailable',
 	success: 'success',
+	unknownTransactionError: 'unknown transaction error',
 } as const
 
 export const missingFieldMessages = {
