@@ -1,5 +1,5 @@
 import Stripe from 'stripe'
-import { stripeTestKey } from './environment/serverVariables'
+import { stripeTestKey } from '../environment/serverVariables'
 
 const stripeClient = new Stripe(stripeTestKey)
 
