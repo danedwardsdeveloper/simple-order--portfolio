@@ -25,3 +25,4 @@
 -  Expire unconfirmed accounts after 24-48 hours
 -  Add CAPTCHA if you see suspicious patterns of account creation
 -  Monitor for unusual spikes in failed confirmation attempts
+-  Customise the Stripe product logo - make smaller/use find something better than the logo
