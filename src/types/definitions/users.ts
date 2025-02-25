@@ -1,4 +1,5 @@
-import type { customerToMerchant, merchantProfiles, users } from '@/library/database/schema'
+import type { merchantProfiles, relationships, users } from '@/library/database/schema'
+import type { Roles } from '@/types'
 
 export type DangerousBaseUser = typeof users.$inferSelect
 export type BaseUserInsertValues = Required<Omit<typeof users.$inferInsert, 'id'>>
@@ -7,6 +8,11 @@ export type BaseUserBrowserInputValues = Omit<BaseUserInsertValues, 'hashedPassw
 	password: string
 	staySignedIn: boolean
 }
+export interface BrowserSafeCompositeUser extends BaseBrowserSafeUser {
+	roles: Roles
+	accountActive: boolean
+}
+
 export type InvitedCustomerBrowserInputValues = Omit<BaseUserBrowserInputValues, 'email'>
 
 export type DangerousMerchantProfile = typeof merchantProfiles.$inferSelect
@@ -17,7 +23,7 @@ export interface BrowserSafeMerchantProfile {
 }
 
 // Junction table where insert & return type are identical
-export type CustomerToMerchant = typeof customerToMerchant.$inferSelect
+export type RelationshipJoinRow = typeof relationships.$inferSelect
 
 export interface RelationshipItem {
 	id: number
@@ -36,17 +42,11 @@ export interface ClientMerchantDetails {
 
 export interface BrowserSafeInvitationRecord {
 	obfuscatedEmail: string
+	lastEmailSentDate: Date
 	expirationDate: Date
 }
 
-export interface FullBrowserSafeUser {
-	firstName: string
-	lastName: string
-	email: string
+export interface BrowserSafeCustomerProfile {
 	businessName: string
-	emailConfirmed: boolean
-	merchantDetails?: ClientMerchantDetails
-	merchantsAsCustomer?: RelationshipItem[]
-	acceptedCustomersAsMerchant?: RelationshipItem[]
-	pendingCustomersAsMerchant?: BrowserSafeInvitationRecord[]
+	obfuscatedEmail: string
 }
