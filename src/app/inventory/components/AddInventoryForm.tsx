@@ -1,6 +1,6 @@
 'use client'
 import type { InventoryAddPOSTbody, InventoryAddPOSTresponse } from '@/app/api/inventory/admin/route'
-import { serviceConstraints } from '@/library/constants'
+import { apiPaths, serviceConstraints } from '@/library/constants'
 import { generateRandomString } from '@/library/utilities'
 import { useNotifications } from '@/providers/notifications'
 import { useUser } from '@/providers/user'
@@ -51,7 +51,7 @@ export default function AddInventoryForm() {
 		}
 
 		const { message, product }: InventoryAddPOSTresponse = await (
-			await fetch('ToDo!', {
+			await fetch(apiPaths.inventory.admin.base, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
