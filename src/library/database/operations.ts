@@ -1,26 +1,15 @@
 import { and, eq, gt } from 'drizzle-orm'
 
-import { customerToMerchant, freeTrials, subscriptions, users } from '@/library/database/schema'
-import type { BaseBrowserSafeUser } from '@/types'
+import { freeTrials, relationships, subscriptions, users } from '@/library/database/schema'
+import type { DangerousBaseUser } from '@/types'
 import logger from '../logger'
 import { database } from './connection'
 
-export async function checkUserExists(userId: number): Promise<{ userExists: boolean; existingUser?: BaseBrowserSafeUser }> {
-	const [existingUser] = await database
-		.select({
-			firstName: users.firstName,
-			lastName: users.lastName,
-			email: users.email,
-			emailConfirmed: users.emailConfirmed,
-			cachedTrialExpired: users.cachedTrialExpired,
-			businessName: users.businessName,
-		})
-		.from(users)
-		.where(eq(users.id, userId))
-		.limit(1)
+export async function checkUserExists(userId: number): Promise<{ userExists: boolean; existingDangerousUser?: DangerousBaseUser }> {
+	const [existingDangerousUser] = await database.select().from(users).where(eq(users.id, userId)).limit(1)
 
-	if (!existingUser) return { userExists: false }
-	return { userExists: true, existingUser }
+	if (!existingDangerousUser) return { userExists: false }
+	return { userExists: true, existingDangerousUser }
 }
 
 // Helper function. Used twice in checkActiveSubscriptionOrTrial to avoid looking in free_trials if cached_trial_expired is true
@@ -35,16 +24,13 @@ async function checkActiveSubscription(userId: number): Promise<boolean> {
 	return false
 }
 
-/* Usage
-const { validSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(extractedUserId, cachedTrialExpired)
-*/
 export async function checkActiveSubscriptionOrTrial(
 	userId: number,
 	cachedTrialExpired = false,
-): Promise<{ validSubscriptionOrTrial: boolean }> {
+): Promise<{ activeSubscriptionOrTrial: boolean }> {
 	if (cachedTrialExpired) {
 		const validSubscription = await checkActiveSubscription(userId)
-		if (validSubscription) return { validSubscriptionOrTrial: true }
+		if (validSubscription) return { activeSubscriptionOrTrial: true }
 	}
 
 	const [validFreeTrial] = await database
@@ -52,13 +38,13 @@ export async function checkActiveSubscriptionOrTrial(
 		.from(freeTrials)
 		.where(and(gt(freeTrials.endDate, new Date()), eq(freeTrials.userId, userId)))
 		.limit(1)
-	if (validFreeTrial) return { validSubscriptionOrTrial: true }
+	if (validFreeTrial) return { activeSubscriptionOrTrial: true }
 
 	// Check subscriptions table if it was skipped the first time
 	const validSubscription = await checkActiveSubscription(userId)
-	if (validSubscription) return { validSubscriptionOrTrial: true }
+	if (validSubscription) return { activeSubscriptionOrTrial: true }
 
-	return { validSubscriptionOrTrial: false }
+	return { activeSubscriptionOrTrial: false }
 }
 
 // ToDo: check the codebase for places where this function can replace existing code
@@ -69,8 +55,8 @@ export async function checkRelationship({
 	try {
 		const [existingRelationship] = await database
 			.select()
-			.from(customerToMerchant)
-			.where(and(eq(customerToMerchant.customerUserId, customerId), eq(customerToMerchant.merchantUserId, merchantId)))
+			.from(relationships)
+			.where(and(eq(relationships.customerId, customerId), eq(relationships.merchantId, merchantId)))
 		return { relationshipExists: Boolean(existingRelationship) }
 	} catch (error) {
 		logger.error('database/operations/checkRelationship error: ', error)
