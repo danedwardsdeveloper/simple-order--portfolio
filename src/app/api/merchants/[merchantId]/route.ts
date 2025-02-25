@@ -19,6 +19,7 @@ export interface MerchantSlugGETresponse {
 	merchantBusinessName?: string
 }
 
+// ToDo: Move this logic to part of /api/inventory as it's trivial
 export async function GET(
 	request: NextRequest,
 	{ params }: { params: Promise<{ merchantSlug: string }> },
@@ -37,9 +38,9 @@ export async function GET(
 			return NextResponse.json({ message }, { status })
 		}
 
-		const { existingUser } = await checkUserExists(extractedUserId)
+		const { existingDangerousUser } = await checkUserExists(extractedUserId)
 
-		if (!existingUser) {
+		if (!existingDangerousUser) {
 			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http404notFound })
 		}
 
