@@ -1,5 +1,18 @@
 import { relations, sql } from 'drizzle-orm'
-import { boolean, check, integer, pgEnum, pgTable, primaryKey, serial, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core'
+import {
+	boolean,
+	check,
+	integer,
+	pgEnum,
+	pgTable,
+	primaryKey,
+	serial,
+	text,
+	timestamp,
+	unique,
+	uniqueIndex,
+	uuid,
+} from 'drizzle-orm/pg-core'
 import { serviceConstraints } from '../constants'
 
 export const users = pgTable('users', {
@@ -21,30 +34,38 @@ export const merchantProfiles = pgTable('merchant_profiles', {
 	slug: text('slug').notNull().unique(),
 })
 
-export const customerToMerchant = pgTable(
-	'customer_to_merchant',
+export const relationships = pgTable(
+	'relationships',
 	{
-		merchantUserId: integer('merchant_user_id')
+		merchantId: integer('merchant_id')
 			.notNull()
 			.references(() => users.id),
-		customerUserId: integer('customer_user_id')
+		customerId: integer('customer_id')
 			.notNull()
 			.references(() => users.id),
 	},
-	(table) => [primaryKey({ columns: [table.merchantUserId, table.customerUserId] })],
+	(table) => [primaryKey({ columns: [table.merchantId, table.customerId] })],
 )
 
-export const invitations = pgTable('invitations', {
-	id: serial('id').primaryKey(),
-	email: text('email').notNull().unique(),
-	senderUserId: integer('sender_user_id')
-		.notNull()
-		.references(() => users.id),
-	token: uuid('token').notNull().unique().defaultRandom(),
-	expiresAt: timestamp('expires_at').notNull(),
-	emailAttempts: integer('email_attempts').notNull().default(0),
-	lastEmailSent: timestamp('last_email_sent').notNull(),
-})
+export const invitations = pgTable(
+	'invitations',
+	{
+		id: serial('id').primaryKey(),
+		email: text('email').notNull(),
+		senderUserId: integer('sender_user_id')
+			.notNull()
+			.references(() => users.id),
+		token: uuid('token').notNull().unique().defaultRandom(),
+		expiresAt: timestamp('expires_at').notNull(),
+		emailAttempts: integer('email_attempts').notNull().default(0),
+		lastEmailSent: timestamp('last_email_sent').notNull(),
+	},
+	(table) => {
+		return {
+			senderEmailUnique: uniqueIndex('sender_email_unique_idx').on(table.senderUserId, table.email),
+		}
+	},
+)
 
 export const confirmationTokens = pgTable('confirmation_tokens', {
 	id: serial('id').primaryKey(),
@@ -71,7 +92,8 @@ export const subscriptions = pgTable('subscriptions', {
 	id: serial('id').primaryKey(),
 	userId: integer('user_id')
 		.notNull()
-		.references(() => users.id),
+		.references(() => users.id)
+		.unique(),
 	stripeCustomerId: text('stripe_customer_id').notNull(),
 	currentPeriodStart: timestamp('current_period_start').notNull(),
 	currentPeriodEnd: timestamp('current_period_end').notNull(),
