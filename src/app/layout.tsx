@@ -8,7 +8,10 @@ import './globals.tailwind.css'
 import type { ReactNode } from 'react'
 
 export const metadata: Metadata = {
-	title: websiteCopy.metadata.titles.home41,
+	title: {
+		default: 'Simple Order | Wholesale order management website',
+		template: '%s | Simple Order - Wholesale order management website',
+	},
 	description: websiteCopy.metadata.descriptions.home138,
 	alternates: {
 		canonical: productionBaseURL,
