@@ -151,8 +151,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<Inventory
 			return NextResponse.json({ message: authenticationMessages.merchantNotFound }, { status: httpStatus.http401unauthorised })
 		}
 
-		const { validSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(extractedUserId)
-		if (!validSubscriptionOrTrial) {
+		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(extractedUserId)
+		if (!activeSubscriptionOrTrial) {
 			return NextResponse.json({ message: authenticationMessages.noActiveTrialSubscription }, { status: httpStatus.http401unauthorised })
 		}
 

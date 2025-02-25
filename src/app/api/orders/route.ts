@@ -25,9 +25,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<OrdersPOS
 			return NextResponse.json({ message }, { status })
 		}
 
-		const { userExists, existingUser } = await checkUserExists(extractedUserId)
+		const { userExists, existingDangerousUser } = await checkUserExists(extractedUserId)
 
-		if (!userExists || !existingUser) {
+		if (!userExists || !existingDangerousUser) {
 			return NextResponse.json({ message: 'user not found' }, { status: httpStatus.http404notFound })
 		}
 

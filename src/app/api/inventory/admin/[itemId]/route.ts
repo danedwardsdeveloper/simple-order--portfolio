@@ -40,15 +40,15 @@ export async function DELETE(
 			return NextResponse.json({ message }, { status })
 		}
 
-		const { userExists, existingUser } = await checkUserExists(extractedUserId)
+		const { userExists, existingDangerousUser } = await checkUserExists(extractedUserId)
 
-		if (!userExists || !existingUser) {
+		if (!userExists || !existingDangerousUser) {
 			return NextResponse.json({ message: 'user not found' }, { status: httpStatus.http404notFound })
 		}
 
-		const validSubscriptionOrTrial = await checkActiveSubscriptionOrTrial(extractedUserId, existingUser.cachedTrialExpired)
+		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(extractedUserId, existingDangerousUser.cachedTrialExpired)
 
-		if (!validSubscriptionOrTrial) {
+		if (!activeSubscriptionOrTrial) {
 			return NextResponse.json({ message: 'no active subscription or trial' }, { status: httpStatus.http401unauthorised })
 		}
 

@@ -1,7 +1,7 @@
 import { apiPaths, basicMessages, httpStatus, tokenMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkUserExists } from '@/library/database/operations'
-import { customerToMerchant, invitations, merchantProfiles, users } from '@/library/database/schema'
+import { invitations, merchantProfiles, relationships, users } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
 import type { BrowserSafeMerchantProfile, TokenMessages } from '@/types'
@@ -25,20 +25,17 @@ export async function GET(request: NextRequest): Promise<NextResponse<MerchantsG
 			return NextResponse.json({ message }, { status })
 		}
 
-		const { existingUser } = await checkUserExists(extractedUserId)
+		const { existingDangerousUser } = await checkUserExists(extractedUserId)
 
-		if (!existingUser) {
+		if (!existingDangerousUser) {
 			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http404notFound })
 		}
 
 		// Find existing relationships
-		const existingRelationships = await database
-			.select()
-			.from(customerToMerchant)
-			.where(eq(customerToMerchant.customerUserId, extractedUserId))
+		const existingRelationships = await database.select().from(relationships).where(eq(relationships.customerId, extractedUserId))
 
 		// Find any pending invitations
-		const pendingInvitations = await database.select().from(invitations).where(eq(invitations.email, existingUser.email))
+		const pendingInvitations = await database.select().from(invitations).where(eq(invitations.email, existingDangerousUser.email))
 
 		if (!existingRelationships && !pendingInvitations) {
 			return NextResponse.json({ message: 'no merchants' }, { status: httpStatus.http204noContent })
@@ -49,7 +46,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<MerchantsG
 		let pendingMerchants: BrowserSafeMerchantProfile[] | null = null
 
 		if (existingRelationships) {
-			const confirmedMerchantIds = existingRelationships.map((relationship) => relationship.merchantUserId)
+			const confirmedMerchantIds = existingRelationships.map((relationship) => relationship.merchantId)
 
 			confirmedMerchants = await database
 				.select({

@@ -6,7 +6,11 @@ import { webhookHandler } from '@/library/stripe/webhookHandler'
 import { headers } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
+interface StripeWebhookPOSTresponse {
+	message: typeof basicMessages.success | typeof basicMessages.serverError | typeof basicMessages.serviceUnavailable
+}
+
+export async function POST(request: NextRequest): Promise<NextResponse<StripeWebhookPOSTresponse>> {
 	const rawBody = await request.text()
 	const headersList = await headers()
 	const stripeSignature = headersList.get('stripe-signature')
@@ -17,11 +21,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
 			await webhookHandler(event)
 
-			logger.info('Received webhook type: ', event.type)
 			return NextResponse.json({ message: 'success' }, { status: httpStatus.http200ok })
 		} catch (error) {
 			logger.error(`${apiPaths.stripe.webhook} error: `, error)
-			return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
+			return NextResponse.json({ message: basicMessages.serviceUnavailable }, { status: httpStatus.http503serviceUnavailable })
 		}
 	}
 	return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })

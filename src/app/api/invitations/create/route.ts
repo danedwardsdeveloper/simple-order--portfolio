@@ -9,7 +9,7 @@ import {
 } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkActiveSubscriptionOrTrial, checkUserExists } from '@/library/database/operations'
-import { customerToMerchant, invitations, users } from '@/library/database/schema'
+import { invitations, relationships, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import { createExistingUserInvitation } from '@/library/email/templates/invitations/existingUser'
 import { createNewUserInvitation } from '@/library/email/templates/invitations/newUser'
@@ -21,10 +21,10 @@ import { extractIdFromRequestCookie } from '@/library/utilities/server'
 import type {
 	AuthenticationMessages,
 	BrowserSafeInvitationRecord,
-	CustomerToMerchant,
 	DangerousBaseUser,
 	Invitation,
 	InvitationInsert,
+	RelationshipJoinRow,
 	TokenMessages,
 } from '@/types'
 import { and, eq } from 'drizzle-orm'
@@ -73,31 +73,31 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
 		}
 
 		// 5. Check user exists and emailConfirmed
-		const { userExists, existingUser } = await checkUserExists(extractedUserId)
+		const { userExists, existingDangerousUser } = await checkUserExists(extractedUserId)
 
 		logger.debug('User exists:', userExists)
-		logger.debug('Existing user details:', existingUser)
+		logger.debug('Existing user details:', existingDangerousUser)
 
-		if (!userExists || !existingUser) {
+		if (!userExists || !existingDangerousUser) {
 			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
 		}
 
-		logger.debug('Email is confirmed: ', existingUser.emailConfirmed)
+		logger.debug('Email is confirmed: ', existingDangerousUser.emailConfirmed)
 
-		if (!existingUser.emailConfirmed) {
+		if (!existingDangerousUser.emailConfirmed) {
 			return NextResponse.json({ message: authenticationMessages.emailNotConfirmed }, { status: httpStatus.http401unauthorised })
 		}
 
-		if (existingUser.email === normalisedInvitedEmail) {
+		if (existingDangerousUser.email === normalisedInvitedEmail) {
 			return NextResponse.json({ message: 'attempted to invite self' }, { status: 400 })
 		}
 
 		// 6. Check user has an active subscription or trial
-		const { validSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(extractedUserId, existingUser.cachedTrialExpired)
+		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(extractedUserId, existingDangerousUser.cachedTrialExpired)
 
-		logger.debug('Valid subscription or trial: ', validSubscriptionOrTrial)
+		logger.debug('Valid subscription or trial: ', activeSubscriptionOrTrial)
 
-		if (!validSubscriptionOrTrial) {
+		if (!activeSubscriptionOrTrial) {
 			return NextResponse.json({ message: authenticationMessages.noActiveTrialSubscription }, { status: httpStatus.http401unauthorised })
 		}
 
@@ -110,12 +110,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
 
 		if (inviteeAlreadyHasAccount) {
 			// 8. If so, look for an existing relationship
-			const [existingRelationship]: CustomerToMerchant[] = await database
+			const [existingRelationship]: RelationshipJoinRow[] = await database
 				.select()
-				.from(customerToMerchant)
-				.where(
-					and(eq(customerToMerchant.merchantUserId, extractedUserId), eq(customerToMerchant.customerUserId, inviteeAlreadyHasAccount.id)),
-				)
+				.from(relationships)
+				.where(and(eq(relationships.merchantId, extractedUserId), eq(relationships.customerId, inviteeAlreadyHasAccount.id)))
 			if (existingRelationship) {
 				return NextResponse.json({ message: 'relationship exists' }, { status: httpStatus.http202accepted })
 			}
@@ -175,13 +173,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<InviteCus
 			const dynamicEmailTemplate = inviteeAlreadyHasAccount
 				? createExistingUserInvitation({
 						recipientEmail: normalisedInvitedEmail,
-						merchantBusinessName: existingUser.businessName,
+						merchantBusinessName: existingDangerousUser.businessName,
 						invitationURL,
 						expiryDate: newInvitationExpiryDate,
 					})
 				: createNewUserInvitation({
 						recipientEmail: normalisedInvitedEmail,
-						merchantBusinessName: existingUser.businessName,
+						merchantBusinessName: existingDangerousUser.businessName,
 						invitationURL,
 						expiryDate: newInvitationExpiryDate,
 					})
