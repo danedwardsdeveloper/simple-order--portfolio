@@ -1,26 +1,30 @@
 import { apiPaths, basicMessages, httpStatus, tokenMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
+import { checkActiveSubscriptionOrTrial } from '@/library/database/operations'
 import { users } from '@/library/database/schema'
 import logger from '@/library/logger'
+import { getUserRoles } from '@/library/operations'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { BaseBrowserSafeUser, TokenMessages } from '@/types'
+import type { BaseBrowserSafeUser, BrowserSafeCompositeUser, TokenMessages } from '@/types'
 import { eq } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface VerifyTokenGETresponse {
 	message: typeof basicMessages.success | typeof basicMessages.serverError | TokenMessages
-	user?: BaseBrowserSafeUser
+	user?: BrowserSafeCompositeUser
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse<VerifyTokenGETresponse>> {
 	try {
 		const { extractedUserId, status, message } = await extractIdFromRequestCookie(request)
 
+		logger.debug('Extracted user ID: ', extractedUserId)
+
 		if (!extractedUserId) {
 			return NextResponse.json({ message }, { status })
 		}
 
-		const [user]: BaseBrowserSafeUser[] = await database
+		const [baseUser]: BaseBrowserSafeUser[] = await database
 			.select({
 				firstName: users.firstName,
 				lastName: users.lastName,
@@ -32,11 +36,26 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 			.from(users)
 			.where(eq(users.id, extractedUserId))
 
-		if (!user) {
+		if (!baseUser) {
 			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
 		}
 
-		return NextResponse.json({ message: basicMessages.success, user }, { status: httpStatus.http200ok })
+		// If they have confirmed merchants they are a customer
+		// If they have a merchant profile they are a merchant
+
+		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(extractedUserId, baseUser.cachedTrialExpired)
+
+		const { userRole } = await getUserRoles(extractedUserId)
+
+		const compositeUser: BrowserSafeCompositeUser = {
+			...baseUser,
+			roles: userRole,
+			accountActive: activeSubscriptionOrTrial,
+		}
+
+		logger.debug('Composite user: ', compositeUser)
+
+		return NextResponse.json({ message: basicMessages.success, user: compositeUser }, { status: httpStatus.http200ok })
 	} catch (error) {
 		logger.error(`${apiPaths.authentication.verifyToken} error: `, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
