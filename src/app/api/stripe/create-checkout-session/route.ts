@@ -39,13 +39,16 @@ export async function POST(request: NextRequest): Promise<NextResponse<StripeCre
 			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
 		}
 
+		const customMetadata = {
+			simpleOrderUserId: extractedUserId.toString(),
+		}
+
 		const { url } = await stripeClient.checkout.sessions.create({
 			billing_address_collection: 'auto',
 			customer_email: email,
+			metadata: customMetadata,
 			subscription_data: {
-				metadata: {
-					simpleOrderUserId: extractedUserId,
-				},
+				metadata: customMetadata,
 			},
 			line_items: [
 				{
@@ -60,7 +63,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<StripeCre
 		})
 
 		if (url) {
-			logger.info(`${apiPaths.stripe.createCheckoutSession}. Redirect url: ${url}`)
 			return NextResponse.json({ message: basicMessages.success, redirectUrl: url }, { status: httpStatus.http200ok })
 		}
 
