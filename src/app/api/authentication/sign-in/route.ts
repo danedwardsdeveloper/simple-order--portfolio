@@ -7,12 +7,14 @@ import {
 	tokenMessages,
 } from '@/library/constants'
 import { database } from '@/library/database/connection'
+import { checkActiveSubscriptionOrTrial } from '@/library/database/operations'
 import { users } from '@/library/database/schema'
 import { emailRegex } from '@/library/email/utilities'
 import logger from '@/library/logger'
+import { getUserRoles } from '@/library/operations'
 import { sanitiseDangerousBaseUser } from '@/library/utilities'
 import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
-import type { BaseBrowserSafeUser, DangerousBaseUser, MissingFieldMessages } from '@/types'
+import type { BrowserSafeCompositeUser, DangerousBaseUser, MissingFieldMessages } from '@/types'
 import bcrypt from 'bcryptjs'
 import { eq } from 'drizzle-orm'
 import { cookies } from 'next/headers'
@@ -32,7 +34,7 @@ export interface SignInPOSTresponse {
 		| typeof authenticationMessages.invalidEmailFormat
 		| typeof tokenMessages.userNotFound
 		| typeof authenticationMessages.invalidCredentials
-	user?: BaseBrowserSafeUser
+	user?: BrowserSafeCompositeUser
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse<SignInPOSTresponse>> {
@@ -51,31 +53,40 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
 		return NextResponse.json({ message: authenticationMessages.invalidEmailFormat }, { status: httpStatus.http400badRequest })
 	}
 
-	const [foundUser]: DangerousBaseUser[] = await database.select().from(users).where(eq(users.email, email)).limit(1)
+	const [dangerousUser]: DangerousBaseUser[] = await database.select().from(users).where(eq(users.email, email)).limit(1)
 
-	if (!foundUser) {
+	if (!dangerousUser) {
 		logger.debug(`User with email ${email} not found`)
 		return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http404notFound })
 	}
 
-	logger.info('Found user: ', foundUser)
+	logger.info('Found user: ', dangerousUser)
 
-	const isMatch = await bcrypt.compare(password, foundUser.hashedPassword)
+	const isMatch = await bcrypt.compare(password, dangerousUser.hashedPassword)
 
 	if (!isMatch) {
 		logger.debug(`Passwords didn't match`)
 		return NextResponse.json({ message: authenticationMessages.invalidCredentials }, { status: httpStatus.http401unauthorised })
 	}
 
-	const user = sanitiseDangerousBaseUser(foundUser)
-
 	const cookieStore = await cookies()
 	if (staySignedIn) {
-		cookieStore.set(createCookieWithToken(foundUser.id, cookieDurations.oneYear))
+		cookieStore.set(createCookieWithToken(dangerousUser.id, cookieDurations.oneYear))
 	} else {
-		cookieStore.set(createSessionCookieWithToken(foundUser.id))
+		cookieStore.set(createSessionCookieWithToken(dangerousUser.id))
 	}
 
-	// ToDo: Somehow get the full user info. Maybe recycle verify-token
+	const { userRole } = await getUserRoles(dangerousUser.id)
+
+	const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(dangerousUser.id)
+
+	const sanitisedBaseUser = sanitiseDangerousBaseUser(dangerousUser)
+
+	const user: BrowserSafeCompositeUser = {
+		...sanitisedBaseUser,
+		roles: userRole,
+		accountActive: activeSubscriptionOrTrial,
+	}
+
 	return NextResponse.json({ message: basicMessages.success, user }, { status: httpStatus.http200ok })
 }
