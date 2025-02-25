@@ -15,6 +15,10 @@ export const apiPaths = {
 	},
 	merchants: {
 		base: '/api/merchants',
+
+		/** Used by customers to get the business name using the merchant slug
+		 * I think this could be merged with inventory, as it's trivial
+		 */
 		merchantSlug: '/api/merchants/[merchantSlug]',
 	},
 	inventory: {
@@ -41,5 +45,11 @@ export const apiPaths = {
 		createCheckoutSession: '/api/stripe/create-checkout-session',
 		createPortalSession: '/api/ stripe/create-portal-session',
 		webhook: '/api/stripe/webhook',
+	},
+	customers: {
+		/** Get confirmed and invited customers for the signed-in merchant
+		 * ✅ I'm totally happy with this route
+		 */
+		base: '/api/customers',
 	},
 } as const
