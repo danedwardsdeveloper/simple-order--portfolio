@@ -1,11 +1,11 @@
 import { database } from '@/library/database/connection'
 import {
 	confirmationTokens,
-	customerToMerchant,
 	freeTrials,
 	invitations,
 	merchantProfiles,
 	products,
+	relationships,
 	subscriptions,
 	users,
 } from '@/library/database/schema'
@@ -27,10 +27,10 @@ export async function deleteUserSequence(email: string) {
 			await database.delete(merchantProfiles).where(eq(merchantProfiles.userId, userToDelete.id))
 		}
 
-		// Delete all relationships in customerToMerchant (both as customer and merchant)
+		// Delete all relationships in relationships (both as customer and merchant)
 		await database
-			.delete(customerToMerchant)
-			.where(or(eq(customerToMerchant.customerUserId, userToDelete.id), eq(customerToMerchant.merchantUserId, userToDelete.id)))
+			.delete(relationships)
+			.where(or(eq(relationships.customerId, userToDelete.id), eq(relationships.merchantId, userToDelete.id)))
 
 		// Delete references to userId in other tables
 		await database.delete(subscriptions).where(eq(subscriptions.userId, userToDelete.id))
