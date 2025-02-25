@@ -11,8 +11,7 @@ export default function InviteCustomerForm() {
 	const [responseMessage, setResponseMessage] = useState('')
 	const [invitedEmail, setInvitedEmail] = useState('')
 
-	// ToDo: Only show this message to merchants
-	if (!user || !user.emailConfirmed) return null
+	if (user?.roles === 'customer') return null
 
 	async function handleSubmit(event: FormEvent) {
 		event.preventDefault()
@@ -37,7 +36,7 @@ export default function InviteCustomerForm() {
 
 			// Figure out how to add the invitation record to the state...
 			// if(browserSafeInvitationRecord) {
-			//   setuser({
+			//   setUser({
 			//     ...user,
 			//     pendingCustomersAsMerchant: [browserSafeInvitationRecord],
 			//   })
@@ -65,7 +64,7 @@ export default function InviteCustomerForm() {
 
 	return (
 		<div data-test-id={dataTestIdNames.invite.form}>
-			<form onSubmit={handleSubmit} className="flex flex-col gap-y-4 max-w-sm p-3 border-2 my-4 rounded-xl border-blue-300 ">
+			<form onSubmit={handleSubmit} className="flex flex-col gap-y-4 max-w-md p-3 border-2 my-4 rounded-xl border-blue-300 ">
 				<h2>Invite a customer</h2>
 				<div className="flex flex-col mb-4">
 					<label htmlFor="invitedEmail" className="mb-1">
