@@ -9,8 +9,19 @@ export function obfuscateEmail(email: string) {
 		throw new Error('Invalid email format')
 	}
 
-	const obfuscatedLocal =
-		localPart.length < 6 ? `${localPart.slice(0, 1)}${'*'.repeat(localPart.length - 1)}` : `${localPart.slice(0, -5)}${'*'.repeat(5)}`
+	function obfuscatePart(part: string) {
+		if (part.length <= 3) {
+			return `${part.charAt(0)}${'*'.repeat(Math.max(2, part.length - 1))}`
+		}
+		if (part.length <= 6) {
+			const charsToShow = Math.max(1, Math.floor(part.length * 0.4))
+			return `${part.slice(0, charsToShow)}${'*'.repeat(Math.max(3, part.length - charsToShow))}`
+		}
+		const asterisksCount = Math.min(6, Math.max(3, Math.ceil(part.length / 3)))
+		return `${part.slice(0, part.length - asterisksCount)}${'*'.repeat(asterisksCount)}`
+	}
+
+	const obfuscatedLocal = obfuscatePart(localPart)
 
 	const domainParts = domain.split('.')
 
@@ -19,7 +30,7 @@ export function obfuscateEmail(email: string) {
 			if (index === domainParts.length - 1) {
 				return part
 			}
-			return `${part.charAt(0)}${'*'.repeat(Math.max(part.length - 1, 2))}`
+			return obfuscatePart(part)
 		})
 		.join('.')
 
