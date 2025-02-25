@@ -1,6 +1,6 @@
 'use client'
 import type { InventoryMerchantsMerchantSlugGETresponse } from '@/app/api/inventory/merchants/[merchantSlug]/route'
-import type { MerchantSlugGETresponse } from '@/app/api/merchants/[merchantSlug]/route'
+import type { MerchantSlugGETresponse } from '@/app/api/merchants/[merchantId]/route'
 import Spinner from '@/components/Spinner'
 import { apiPaths } from '@/library/constants'
 import logger from '@/library/logger'
