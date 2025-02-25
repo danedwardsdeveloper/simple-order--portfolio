@@ -1,5 +1,5 @@
 import { websiteCopy } from '@/library/constants'
-import { bareDomain, productionBaseURL } from '@/library/environment/publicVariables'
+import { bareLaunchedDomain, productionBaseURL } from '@/library/environment/publicVariables'
 import { formatTimeAndDate } from '@/library/utilities'
 import type { EmailTemplate } from '@/types'
 import { createParagraph } from '../../utilities'
@@ -25,7 +25,7 @@ export function createExistingUserInvitation({
 	const securityMessage = `If you weren't expecting an invitation from this business or want to decline the invitation, you can safely ignore this email. The link will expire in 7 days, at  ${formatTimeAndDate(expiryDate)}.`
 	const thankYou = 'Many thanks'
 	const companyName = 'Accounts team, Simple Order'
-	const companyLink = `<a href="${productionBaseURL}">${bareDomain}</a>`
+	const companyLink = `<a href="${productionBaseURL}">${bareLaunchedDomain}</a>`
 
 	const htmlVersion = `
   ${createParagraph(greeting)}
