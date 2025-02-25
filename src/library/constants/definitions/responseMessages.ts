@@ -13,7 +13,7 @@ export const missingFieldMessages = {
 	emailMissing: 'email missing',
 	businessNameMissing: 'businessName missing',
 	passwordMissing: 'password missing',
-	invitedEmailMissing: 'invited email missing',
+	invitedEmailMissing: 'invitedEmail missing',
 	merchantSlugMissing: 'merchantSlug missing',
 } as const
 
@@ -21,6 +21,7 @@ export const authenticationMessages = {
 	alreadyConfirmed: 'already confirmed',
 	authorisationError: 'authorisation error',
 	businessNameTaken: 'businessName taken',
+	dataBelongsToOtherUser: 'data belongs to another user',
 	invalidEmailFormat: 'invalid email format',
 	emailNotConfirmed: 'email not confirmed',
 	emailTaken: 'email taken',
