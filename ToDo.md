@@ -2,8 +2,10 @@
 
 ## Current Task
 
--  Write a test for adding items to the inventory
-   -  Make it pass
+    	/** Get all customers for a specific merchant
+    	 * This is the route I'm working on. I don't actually have the merchantSlug straight away as it's in merchant_profiles, not users. I think I need to move this to an api/customers route...
+    	*/
+    	customers: '/api/merchants/[merchantSlug]/customers',
 
 ## MVP
 
