@@ -1,13 +1,14 @@
 import ConfirmEmailMessage from '@/components/ConfirmEmailMessage'
+import CustomersList from './components/CustomersList'
 import InviteCustomerForm from './components/InviteCustomerForm'
 
-// This is for merchants to handle their invited customers
 export default function CustomersPage() {
 	return (
 		<>
 			<h2>Customers</h2>
 			<ConfirmEmailMessage />
 			<InviteCustomerForm />
+			<CustomersList />
 		</>
 	)
 }
