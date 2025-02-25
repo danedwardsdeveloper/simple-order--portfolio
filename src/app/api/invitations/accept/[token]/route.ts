@@ -1,16 +1,16 @@
 import { apiPaths, basicMessages, cookieDurations, cookieNames, httpStatus, tokenMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { customerToMerchant, invitations, users } from '@/library/database/schema'
+import { invitations, relationships, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import logger from '@/library/logger'
 import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
 import type {
 	BaseBrowserSafeUser,
 	BaseUserInsertValues,
-	CustomerToMerchant,
 	DangerousBaseUser,
 	Invitation,
 	InvitedCustomerBrowserInputValues,
+	RelationshipJoinRow,
 	TokenMessages,
 } from '@/types'
 import bcrypt from 'bcryptjs'
@@ -83,12 +83,12 @@ export async function POST(
 		if (existingUser) {
 			await database.transaction(async (tx) => {
 				// Transaction: Create the relationship
-				transactionErrorMessage = 'transaction error creating customerToMerchant'
-				const newRelationshipInsert: CustomerToMerchant = {
-					merchantUserId: foundInvitation.senderUserId,
-					customerUserId: existingUser.id,
+				transactionErrorMessage = 'transaction error creating relationships'
+				const newRelationshipInsert: RelationshipJoinRow = {
+					merchantId: foundInvitation.senderUserId,
+					customerId: existingUser.id,
 				}
-				await tx.insert(customerToMerchant).values(newRelationshipInsert).returning()
+				await tx.insert(relationships).values(newRelationshipInsert).returning()
 
 				// Transaction: change user table emailConfirmed to true if not already
 				transactionErrorMessage = 'transaction error ensuring emailConfirmed on existing user is set to true'
@@ -141,12 +141,12 @@ export async function POST(
 				const [createdUser]: DangerousBaseUser[] = await tx.insert(users).values(newUserInsertValues).returning()
 
 				// Create relationship
-				transactionErrorMessage = 'transaction error creating customerToMerchant'
-				const newRelationshipInsert: CustomerToMerchant = {
-					merchantUserId: foundInvitation.senderUserId,
-					customerUserId: createdUser.id,
+				transactionErrorMessage = 'transaction error creating relationship join row'
+				const newRelationshipInsert: RelationshipJoinRow = {
+					merchantId: foundInvitation.senderUserId,
+					customerId: createdUser.id,
 				}
-				await tx.insert(customerToMerchant).values(newRelationshipInsert).returning()
+				await tx.insert(relationships).values(newRelationshipInsert).returning()
 
 				// Transaction: Delete invitation
 				transactionErrorMessage = 'transaction error deleting invitation'
