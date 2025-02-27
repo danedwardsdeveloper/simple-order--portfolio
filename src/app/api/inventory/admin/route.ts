@@ -3,18 +3,19 @@ import { database } from '@/library/database/connection'
 import { checkActiveSubscriptionOrTrial, checkUserExists } from '@/library/database/operations'
 import { merchantProfiles, products } from '@/library/database/schema'
 import logger from '@/library/logger'
-import { containsIllegalCharacters } from '@/library/utilities'
+import { containsIllegalCharacters, nonEmptyArray } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
 import type { AuthenticationMessages, BasicMessages, BrowserSafeMerchantProduct, NewProduct, Product, TokenMessages } from '@/types'
 import { and, eq, isNull } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
-export interface InventoryGETresponse {
-	message: BasicMessages | AuthenticationMessages | TokenMessages
+export interface InventoryAdminGETresponse {
+	message: typeof basicMessages.success | typeof basicMessages.serverError | TokenMessages | typeof authenticationMessages.merchantNotFound
 	inventory?: BrowserSafeMerchantProduct[]
 }
 
-export async function GET(request: NextRequest): Promise<NextResponse<InventoryGETresponse>> {
+// GET all products for the signed-in merchant
+export async function GET(request: NextRequest): Promise<NextResponse<InventoryAdminGETresponse>> {
 	try {
 		const { extractedUserId, status, message } = await extractIdFromRequestCookie(request)
 
@@ -50,15 +51,23 @@ export async function GET(request: NextRequest): Promise<NextResponse<InventoryG
 			.from(products)
 			.where(and(eq(products.ownerId, extractedUserId), isNull(products.deletedAt)))
 
-		return NextResponse.json({ message: basicMessages.success, inventory }, { status: httpStatus.http200ok })
+		return NextResponse.json(
+			{
+				message: basicMessages.success,
+				...(nonEmptyArray(inventory) && { inventory }),
+			},
+			{ status: httpStatus.http200ok },
+		)
 	} catch (error) {
 		logger.error(`${apiPaths.inventory.admin.base} error: `, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
 	}
 }
 
-export type InventoryAddPOSTbody = Omit<NewProduct, 'ownerId'>
+// POST add an item to the inventory
+export type InventoryAddPOSTbody = Omit<NewProduct, 'ownerId' | 'id' | 'createdAt' | 'deletedAt' | 'updatedAt'>
 
+// ToDo: remove unused responses
 export interface InventoryAddPOSTresponse {
 	message:
 		| BasicMessages
@@ -129,6 +138,18 @@ export async function POST(request: NextRequest): Promise<NextResponse<Inventory
 		}
 	}
 
+	// if (customVat !== undefined && customVat !== null) {
+	// 	if (Number.isNaN(customVat)) {
+	// 		return res.status(400).json({ message: 'customVat not a number' });
+	// 	} else if (customVat > serviceConstraints.highestVat) {
+	// 		return res.status(400).json({ message: 'customVat too high' });
+	// 	} else if (customVat < 0) {
+	// 		return res.status(400).json({ message: 'customVat is negative' });
+	// 	} else if (customVat % 1 !== 0) {
+	// 		return res.status(400).json({ message: 'customVat is a decimal' });
+	// 	}
+	// }
+
 	if (badRequestMessage) {
 		return NextResponse.json({ message: badRequestMessage }, { status: httpStatus.http400badRequest })
 	}
@@ -182,7 +203,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Inventory
 		const [addedProduct]: Product[] = await database.insert(products).values(newProduct).returning()
 
 		if (!addedProduct) {
-			logger.error(`Couldn't add product`)
+			logger.error(`POST ${apiPaths.inventory.admin.base} error: Couldn't add product to database`)
 			return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
 		}
 
