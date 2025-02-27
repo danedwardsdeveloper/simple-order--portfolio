@@ -5,14 +5,17 @@ import { apiPaths, dataTestIdNames } from '@/library/constants'
 import logger from '@/library/logger'
 import { generateRandomString } from '@/library/utilities'
 import { useUser } from '@/providers/user'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { type FormEvent, useState } from 'react'
 import type { CreateAccountPOSTbody, CreateAccountPOSTresponse } from '../api/authentication/create-account/route'
 
+// Important enhancement ToDo: confirm password input, hide password toggle, strong password
+
 export default function CreateAccountPage() {
 	const router = useRouter()
 	const { setUser } = useUser()
-	const [error, setError] = useState('')
+	const [errorMessage, setErrorMessage] = useState('')
 	const randomString = generateRandomString()
 	const preFillFormForManualTesting = false
 	const [formData, setFormData] = useState<CreateAccountPOSTbody>({
@@ -26,7 +29,7 @@ export default function CreateAccountPage() {
 
 	async function handleSubmit(event: FormEvent) {
 		event.preventDefault()
-		setError('')
+		setErrorMessage('')
 
 		try {
 			const { message, user }: CreateAccountPOSTresponse = await (
@@ -44,12 +47,12 @@ export default function CreateAccountPage() {
 				setUser(user)
 				router.push('/dashboard')
 			} else {
-				setError(message)
+				setErrorMessage(message)
 			}
 			return
 		} catch (error) {
 			logger.error(error)
-			setError('Sorry something went wrong')
+			setErrorMessage('Sorry something went wrong')
 		}
 	}
 
@@ -57,7 +60,6 @@ export default function CreateAccountPage() {
 		<PageContainer>
 			<div className="max-w-md mx-auto mt-8 p-6">
 				<h1>Start your 31-day free trial</h1>
-				{error && <div className="mb-4 p-2 bg-red-50 text-red-600 rounded">{error}</div>}
 				<form onSubmit={handleSubmit} className="flex flex-col gap-y-4">
 					<div>
 						<label htmlFor="firstName" className="block mb-1">
@@ -183,10 +185,17 @@ export default function CreateAccountPage() {
 							Stay signed in
 						</label>
 					</div>
+					{errorMessage && <div className="mb-4 p-2 bg-red-50 text-red-600 rounded">{errorMessage}</div>}
 					<button data-test-id={dataTestIdNames.createAccountSubmitButton} type="submit" className="button-primary inline-block w-full">
 						Start free trial
 					</button>
 				</form>
+				<div className="flex justify-center gap-x-2 mt-6">
+					<p>Already a member?</p>
+					<Link href="/sign-in" className="link-secondary">
+						Sign in instead
+					</Link>
+				</div>
 			</div>
 		</PageContainer>
 	)
