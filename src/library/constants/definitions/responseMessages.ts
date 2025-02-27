@@ -1,5 +1,6 @@
 export const basicMessages = {
 	databaseError: 'database error',
+	errorSendingEmail: 'error sending email',
 	parametersMissing: 'parameters missing',
 	serverError: 'server error',
 	serviceUnavailable: 'service unavailable',
@@ -9,7 +10,7 @@ export const basicMessages = {
 
 export const missingFieldMessages = {
 	lastNameMissing: 'lastName missing',
-	fistNameMissing: 'firstName missing',
+	firstNameMissing: 'firstName missing',
 	emailMissing: 'email missing',
 	businessNameMissing: 'businessName missing',
 	passwordMissing: 'password missing',
@@ -25,7 +26,6 @@ export const authenticationMessages = {
 	invalidEmailFormat: 'invalid email format',
 	emailNotConfirmed: 'email not confirmed',
 	emailTaken: 'email taken',
-	errorSendingEmail: 'error sending email',
 	invalidCredentials: 'invalid credentials',
 	merchantNotFound: 'merchant not found',
 	noActiveTrialSubscription: 'no active subscription or trial',
@@ -52,3 +52,7 @@ export const relationshipMessages = {
 	relationshipExists: 'relationship exists',
 	relationshipMissing: 'relationship missing',
 } as const
+
+// Other potential response messages that could be reused
+// - businessName not found
+// - not a customer of this merchant
