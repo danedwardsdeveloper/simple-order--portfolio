@@ -1,19 +1,5 @@
-import { relations, sql } from 'drizzle-orm'
-import {
-	boolean,
-	check,
-	integer,
-	pgEnum,
-	pgTable,
-	primaryKey,
-	serial,
-	text,
-	timestamp,
-	unique,
-	uniqueIndex,
-	uuid,
-} from 'drizzle-orm/pg-core'
-import { serviceConstraints } from '../constants'
+import { relations } from 'drizzle-orm'
+import { boolean, integer, pgEnum, pgTable, primaryKey, serial, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
 
 export const users = pgTable('users', {
 	id: serial('id').primaryKey(),
@@ -102,41 +88,19 @@ export const subscriptions = pgTable('subscriptions', {
 
 // ToDo: create index on deletedAt
 // Enhancement ToDo: add cutoff date to expire products
-export const products = pgTable(
-	'products',
-	{
-		id: serial('id').primaryKey(),
-		ownerId: integer('owner_id')
-			.notNull()
-			.references(() => users.id),
-		name: text('name').notNull(),
-		description: text('description'),
-		priceInMinorUnits: integer('price_in_minor_units').notNull(),
-		customVat: integer('custom_vat'),
-		createdAt: timestamp('created_at').notNull().defaultNow(),
-		updatedAt: timestamp('updated_at').notNull().defaultNow(),
-		deletedAt: timestamp('deleted_at'),
-	},
-	(table) => [
-		unique().on(table.ownerId, table.name),
-		check(
-			'price_check',
-			sql`${table.priceInMinorUnits} >= 0 AND ${table.priceInMinorUnits} <= ${sql.raw(
-				serviceConstraints.maximumProductValueInMinorUnits.toString(),
-			)}`,
-		),
-		check(
-			'vat_check',
-			sql`${table.customVat} IS NULL OR (${table.customVat} >= 1 AND ${
-				table.customVat
-			} <= ${sql.raw(serviceConstraints.highestVat.toString())})`,
-		),
-		check(
-			'description_length',
-			sql`length(${table.description}) <= ${sql.raw(serviceConstraints.maximumProductDescriptionCharacters.toString())}`,
-		),
-	],
-)
+export const products = pgTable('products', {
+	id: serial('id').primaryKey(),
+	ownerId: integer('owner_id')
+		.notNull()
+		.references(() => users.id),
+	name: text('name').notNull(),
+	description: text('description'),
+	priceInMinorUnits: integer('price_in_minor_units').notNull(),
+	customVat: integer('custom_vat'),
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow(),
+	deletedAt: timestamp('deleted_at'),
+})
 
 export const testEmailInbox = pgTable('test_email_inbox', {
 	id: serial('id').primaryKey(),
