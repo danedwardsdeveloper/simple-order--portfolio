@@ -25,8 +25,8 @@ export default function SignedInMenu() {
 	}
 
 	return (
-		<nav className="fixed inset-x-0 top-0 flex h-14 bg-white/70 backdrop-blur border-b-2 border-neutral-100 z-menubar px-4 lg:px-0">
-			<div className="w-full max-w-4xl mx-auto flex items-center justify-between">
+		<nav className="fixed inset-x-0 top-0 flex h-14 bg-white/70 backdrop-blur border-b-2 border-neutral-100 z-menubar ">
+			<div className="w-full max-w-4xl mx-auto px-4 lg:px-0 flex items-center justify-between">
 				<div className="flex h-full items-center gap-x-3">
 					<HomePageLink />
 					<DashboardLink />
