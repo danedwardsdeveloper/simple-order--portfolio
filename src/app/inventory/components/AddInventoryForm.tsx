@@ -1,50 +1,46 @@
 'use client'
 import type { InventoryAddPOSTbody, InventoryAddPOSTresponse } from '@/app/api/inventory/admin/route'
 import { apiPaths, serviceConstraints } from '@/library/constants'
-import { generateRandomString } from '@/library/utilities'
+import { containsIllegalCharacters, generateRandomString } from '@/library/utilities'
 import { useNotifications } from '@/providers/notifications'
 import { useUser } from '@/providers/user'
 import type { NewNotification } from '@/types'
-import { type FormEvent, useState } from 'react'
+import { type FormEvent, useEffect, useState } from 'react'
 
-const formFields = {
-	name: {
-		label: 'Name',
-		type: 'text',
-		key: 'name',
-	},
-	description: {
-		label: 'Description',
-		type: 'text',
-		key: 'description',
-	},
-	price: {
-		label: 'Price',
-		type: 'number',
-		key: 'priceInMinorUnits',
-	},
-	vat: {
-		label: 'VAT',
-		type: 'number',
-		key: 'customVat',
-	},
-} as const
+export type InventoryAddFormData = {
+	[K in keyof InventoryAddPOSTbody]-?: InventoryAddPOSTbody[K] extends string | null | undefined
+		? string
+		: InventoryAddPOSTbody[K] extends number | null | undefined
+			? number
+			: InventoryAddPOSTbody[K]
+}
 
 export default function AddInventoryForm() {
-	const { user, setInventory } = useUser()
-	const temporaryRandomString = generateRandomString()
-	const [formData, setFormData] = useState<InventoryAddPOSTbody>({
-		name: temporaryRandomString,
-		description: temporaryRandomString,
-		priceInMinorUnits: Math.floor(Math.random() * serviceConstraints.maximumProductValueInMinorUnits + 1),
-		customVat: Math.floor(Math.random() * serviceConstraints.highestVat + 1),
+	const { user, setInventory, vat } = useUser()
+	const [formData, setFormData] = useState<InventoryAddFormData>({
+		name: '',
+		description: '',
+		priceInMinorUnits: 0,
+		customVat: vat,
 	})
 	const [errorMessage, setErrorMessage] = useState('')
+	const [illegalCharacterWarnings, setIllegalCharacterWarnings] = useState<{
+		name: boolean
+		description: boolean
+	}>({ name: false, description: false })
 	const { createNotification } = useNotifications()
+
+	useEffect(() => {
+		setIllegalCharacterWarnings({
+			name: containsIllegalCharacters(formData.name || ''),
+			description: containsIllegalCharacters(formData.description || ''),
+		})
+	}, [formData.name, formData.description])
 
 	async function handleSubmit(event: FormEvent) {
 		event.preventDefault()
 		setErrorMessage('')
+
 		if (!user) {
 			setErrorMessage('Not signed in')
 			return
@@ -84,31 +80,82 @@ export default function AddInventoryForm() {
 		setErrorMessage(message)
 	}
 
-	// Enhancement ToDo: add illegal punctuation warning
+	// ToDo: sort out this ai-generated nonsense
+
+	const handleNameChange = (value: string) => {
+		setFormData({ ...formData, name: value })
+	}
+
+	const handleDescriptionChange = (value: string) => {
+		setFormData({ ...formData, description: value })
+	}
+
+	const handlePriceChange = (value: string) => {
+		setFormData({ ...formData, priceInMinorUnits: Number(value) })
+	}
+
+	const handleVatChange = (value: string) => {
+		setFormData({ ...formData, customVat: Number(value) })
+	}
 
 	return (
 		<form onSubmit={handleSubmit} className="p-4 border-2 border-zinc-200 rounded-xl flex flex-col gap-y-4 max-w-xl -mx-3">
 			<h2 className="">Add an item</h2>
-			{Object.entries(formFields).map(([id, field]) => (
-				<div key={id}>
-					<label htmlFor={id} className="block mb-1">
-						{field.label}
-					</label>
-					<input
-						id={id}
-						type={field.type}
-						value={formData[field.key] ?? ''}
-						onChange={(event) =>
-							setFormData({
-								...formData,
-								[field.key]: event.target.value,
-							})
-						}
-						className="w-full"
-					/>
+
+			<div>
+				<div className="mb-1">
+					<label htmlFor="name">Name</label>
+					{illegalCharacterWarnings.name && (
+						<span className="text-red-600 text-sm mt-2">Only letters, numbers, and {`',.!? -`} are allowed.</span>
+					)}
 				</div>
-			))}
-			{errorMessage && <p>{errorMessage}</p>}
+				<input id="name" type="text" value={formData.name} onChange={(event) => handleNameChange(event.target.value)} className="w-full" />
+			</div>
+
+			<div>
+				<label htmlFor="description" className="block mb-1">
+					Description
+				</label>
+				{illegalCharacterWarnings.description && (
+					<p className="text-red-600 text-sm mt-2">Only letters, numbers, and {`',.!? -`} are allowed.</p>
+				)}
+				<input
+					id="description"
+					type="text"
+					value={formData.description}
+					onChange={(event) => handleDescriptionChange(event.target.value)}
+					className="w-full"
+				/>
+			</div>
+
+			{/* ToDo: this is horrible and won't let you completely wipe the field */}
+			<div>
+				<label htmlFor="price" className="block mb-1">
+					Price
+				</label>
+				<input
+					id="price"
+					type="number"
+					value={formData.priceInMinorUnits}
+					onChange={(event) => handlePriceChange(event.target.value)}
+					className="w-full"
+				/>
+			</div>
+
+			<div>
+				<label htmlFor="vat" className="block mb-1">
+					VAT
+				</label>
+				<input
+					id="vat"
+					type="number"
+					value={formData.customVat}
+					onChange={(event) => handleVatChange(event.target.value)}
+					className="w-full"
+				/>
+			</div>
+
+			{errorMessage && <p className="text-red-600">{errorMessage}</p>}
 			<div className="flex justify-center mt-8">
 				<button type="submit" className="button-secondary w-full">
 					Add item
