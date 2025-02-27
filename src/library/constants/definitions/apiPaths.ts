@@ -1,4 +1,23 @@
 export const apiPaths = {
+	// Working RESTful routes that I'm happy with
+	customers: {
+		base: '/api/customers',
+	},
+	invitations: {
+		// POST create an invitation.
+		// The code could be cleaned up but I think it works okay.
+		base: '/api/invitations',
+
+		// PATCH accept an invitation
+		// I think this works fine but it needs thorough testing
+		accept: '/api/invitations/[token]',
+	},
+	merchants: {
+		// GET confirmed & pending merchants for the signed-in customer
+		base: '/api/merchants',
+	},
+
+	// Major ToDos / not RESTful / Broken / Not sure...
 	authentication: {
 		signIn: '/api/authentication/sign-in',
 		createAccount: '/api/authentication/create-account',
@@ -8,18 +27,6 @@ export const apiPaths = {
 			confirm: '/api/authentication/email/confirm',
 			resend: '/api/authentication/email/resend',
 		},
-	},
-	invitations: {
-		create: '/api/invitations/create',
-		accept: '/api/invitations/accept',
-	},
-	merchants: {
-		base: '/api/merchants',
-
-		/** Used by customers to get the business name using the merchant slug
-		 * I think this could be merged with inventory, as it's trivial
-		 */
-		merchantSlug: '/api/merchants/[merchantSlug]',
 	},
 	inventory: {
 		admin: {
@@ -45,11 +52,5 @@ export const apiPaths = {
 		createCheckoutSession: '/api/stripe/create-checkout-session',
 		createPortalSession: '/api/ stripe/create-portal-session',
 		webhook: '/api/stripe/webhook',
-	},
-	customers: {
-		/** Get confirmed and invited customers for the signed-in merchant
-		 * ✅ I'm totally happy with this route
-		 */
-		base: '/api/customers',
 	},
 } as const
