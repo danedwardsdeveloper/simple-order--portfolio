@@ -30,27 +30,27 @@ export default function NotificationItem({ notification, onClose }: Props) {
 		}
 	> = {
 		error: {
-			title: 'text-red-600',
-			message: 'text-red-500',
-			background: 'ring-red-300 bg-white',
+			title: 'text-red-900',
+			message: 'text-red-600',
+			background: 'ring-red-500 bg-white',
 			icon: 'text-red-600',
 		},
 		warning: {
-			title: 'text-orange-600',
-			message: 'text-orange-500',
-			background: 'ring-orange-300 bg-white',
-			icon: 'text-orange-600',
+			title: 'text-yellow-900',
+			message: 'text-yellow-600',
+			background: 'ring-yellow-500 bg-white',
+			icon: 'text-yellow-600',
 		},
 		info: {
-			title: 'text-blue-600',
-			message: 'text-indigo-500',
-			background: 'ring-indigo-300 bg-white',
-			icon: 'text-indigo-600',
+			title: 'text-blue-900',
+			message: 'text-blue-600',
+			background: 'ring-blue-500 bg-white',
+			icon: 'text-blue-600',
 		},
 		success: {
-			title: 'text-green-600',
-			message: 'text-green-500',
-			background: 'ring-green-300 bg-white',
+			title: 'text-green-900',
+			message: 'text-green-600',
+			background: 'ring-green-500 bg-white',
 			icon: 'text-green-600',
 		},
 	}
@@ -70,7 +70,7 @@ export default function NotificationItem({ notification, onClose }: Props) {
 						</div>
 						<div className="ml-3 w-0 flex-1">
 							<p className={clsx('text-sm font-semibold', colourStyles[notification.level].title)}>{notification.title}</p>
-							<p className={clsx('mt-1 text-sm', colourStyles[notification.level].message)}>{notification.message}</p>
+							<p className={clsx('mt-1 text-sm leading-6', colourStyles[notification.level].message)}>{notification.message}</p>
 						</div>
 						<div className="ml-4 flex shrink-0">
 							<button
