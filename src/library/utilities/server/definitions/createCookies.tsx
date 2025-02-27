@@ -70,8 +70,3 @@ export function createDeleteCookie(): CookieOptions {
 		maxAge: cookieDurations.zero,
 	}
 }
-
-// Usage
-// response.cookies.set(createCookieWithToken(user.id, cookieDurations.oneYear))
-// response.cookies.set(createSessionCookieWithToken(user.id))
-// response.cookies.set(createDeleteCookie())
