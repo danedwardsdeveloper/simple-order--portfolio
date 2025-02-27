@@ -4,11 +4,23 @@ export const testPasswords = {
 }
 
 export const testUsers = {
-	permanentTestUser: {
-		firstName: 'Permanent',
-		lastName: 'Test User',
-		email: 'permanenttestuser@gmail.com',
-		businessName: 'Permanent Business',
+	permanentBoth: {
+		firstName: 'Samantha',
+		lastName: 'Jones',
+		email: 'permanentboth@gmail.com',
+		businessName: "Samantha's Sauces",
+	},
+	permanentCustomer: {
+		firstName: 'Charlotte',
+		lastName: 'York',
+		email: 'permanentcustomer@gmail.com',
+		businessName: "Charlotte's Harlots",
+	},
+	permanentMerchant: {
+		firstName: 'Miranda',
+		lastName: 'Hobbes',
+		email: 'permanentmerchant@gmail.com',
+		businessName: "Miranda's Pandas",
 	},
 	customerOnly: {
 		firstName: 'Jane',
@@ -32,7 +44,14 @@ export const testUsers = {
 
 export function checkIsTestEmail(email: string): boolean {
 	const normalizedEmail = email.trim().toLowerCase()
-	return [testUsers.customerOnly.email, testUsers.merchantOnly.email, testUsers.both.email, testUsers.permanentTestUser.email]
+	return [
+		testUsers.customerOnly.email,
+		testUsers.merchantOnly.email,
+		testUsers.both.email,
+		testUsers.permanentBoth.email,
+		testUsers.permanentCustomer.email,
+		testUsers.permanentMerchant.email,
+	]
 		.map((email) => email.toLowerCase())
 		.includes(normalizedEmail)
 }
