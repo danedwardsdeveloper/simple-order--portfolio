@@ -32,4 +32,7 @@ export const dataTestIdNames = {
 	inventory: {
 		deleteProductModal: 'delete-product-modal',
 	},
+	merchants: {
+		customerFacingProductCard: 'customer-facing-product-card',
+	},
 } as const
