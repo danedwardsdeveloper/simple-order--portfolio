@@ -10,7 +10,7 @@ export type BaseUserBrowserInputValues = Omit<BaseUserInsertValues, 'hashedPassw
 }
 export interface BrowserSafeCompositeUser extends BaseBrowserSafeUser {
 	roles: Roles
-	accountActive: boolean
+	accountActive: boolean // ToDo: This should be activeSubscriptionOrTrial
 }
 
 export type InvitedCustomerBrowserInputValues = Omit<BaseUserBrowserInputValues, 'email'>
