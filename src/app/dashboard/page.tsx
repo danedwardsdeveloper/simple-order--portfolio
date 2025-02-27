@@ -1,48 +1,93 @@
 'use client'
-
-import ConfirmEmailMessage from '../../components/ConfirmEmailMessage'
-import EmptyInventoryMessage from './components/EmptyInventoryLink'
-
-// import { useUi } from '@/providers/ui'
+import PleaseConfirmYourEmailMessage from '@/components/PleaseConfirmYourEmailMessage'
+import UnauthorisedLinks from '@/components/UnauthorisedLinks'
+import { apiPaths } from '@/library/constants'
+import logger from '@/library/logger'
 import { useUser } from '@/providers/user'
+import { useEffect } from 'react'
+import type { CustomersGETresponse } from '../api/customers/route'
+import type { InventoryAdminGETresponse } from '../api/inventory/admin/route'
+import EmptyInventoryMessage from './components/EmptyInventoryMessage'
+import NoCustomersMessage from './components/NoCustomersMessage'
 
 export default function DashboardPage() {
-	const { user } = useUser()
-	// const { merchantMode } = useUi()
+	const {
+		user,
+		inventory,
+		setInventory,
+		hasAttemptedInventoryFetch,
+		setHasAttemptedInventoryFetch,
+		setInvitedCustomers,
+		setConfirmedCustomers,
+		hasAttemptedCustomersFetch,
+		setHasAttemptedCustomersFetch,
+		showNoCustomersMessage,
+	} = useUser()
 
-	if (!user) {
-		return null
-	}
+	useEffect(() => {
+		if (!user) return
 
-	// const emailConfirmed = user.emailConfirmed
-	// const hasConfirmedCustomers =
-	// 	Array.isArray(user.merchantDetails?.customersAsMerchant) && user.merchantDetails?.customersAsMerchant.length > 0
+		async function fetchData() {
+			try {
+				if (!user) return
 
-	// function NoCustomersMessage() {
-	// 	if (hasConfirmedCustomers) return null
-	// 	if (emailConfirmed) {
-	// 		return (
-	// 			<div className="max-w-prose p-3 my-4 border-2 rounded-xl border-blue-300">
-	// 				<Link href="/customers" className="link-primary">
-	// 					Invite your first customer
-	// 				</Link>
-	// 			</div>
-	// 		)
-	// 	}
-	// 	return (
-	// 		<p className="max-w-prose p-3 my-4 border-2 rounded-xl border-orange-300">
-	// 			{'You must confirm your email before inviting your first customer'}
-	// 		</p>
-	// 	)
-	// }
+				const fetchPromises = []
+				const fetchTypes: ('inventory' | 'customers')[] = []
+
+				if (!hasAttemptedInventoryFetch) {
+					fetchPromises.push(fetch(apiPaths.inventory.admin.base, { credentials: 'include' }).then((res) => res.json()))
+					fetchTypes.push('inventory')
+				}
+
+				if (user.roles !== 'customer' && !hasAttemptedCustomersFetch) {
+					fetchPromises.push(fetch(apiPaths.customers.base, { credentials: 'include' }).then((res) => res.json()))
+					fetchTypes.push('customers')
+				}
+
+				if (fetchPromises.length === 0) return
+
+				const responses = await Promise.all(fetchPromises)
+
+				responses.forEach((result, index) => {
+					const fetchType = fetchTypes[index]
+
+					if (fetchType === 'inventory') {
+						const { inventory }: InventoryAdminGETresponse = result
+						if (inventory) setInventory(inventory)
+						setHasAttemptedInventoryFetch(true)
+					} else if (fetchType === 'customers') {
+						const { invitedCustomers, confirmedCustomers }: CustomersGETresponse = result
+
+						if (invitedCustomers) setInvitedCustomers(invitedCustomers)
+						if (confirmedCustomers) setConfirmedCustomers(confirmedCustomers)
+						setHasAttemptedCustomersFetch(true)
+					}
+				})
+			} catch (error) {
+				logger.error('Error fetching dashboard data:', error)
+			}
+		}
+
+		fetchData()
+	}, [
+		user,
+		hasAttemptedInventoryFetch,
+		hasAttemptedCustomersFetch,
+		setInventory,
+		setInvitedCustomers,
+		setConfirmedCustomers,
+		setHasAttemptedInventoryFetch,
+		setHasAttemptedCustomersFetch,
+	])
+
+	if (!user) return <UnauthorisedLinks />
 
 	return (
 		<>
-			<h1>Dashboard</h1>
-			{user && <p>{`Welcome ${user.businessName}`}</p>}
-			<ConfirmEmailMessage />
-			<EmptyInventoryMessage />
-			{/* {merchantMode && <NoCustomersMessage />} */}
+			<h2>Welcome {user.businessName}</h2>
+			{!user.emailConfirmed && <PleaseConfirmYourEmailMessage email={user.email} />}
+			{!inventory && <EmptyInventoryMessage />}
+			{showNoCustomersMessage && <NoCustomersMessage emailConfirmed={user.emailConfirmed} />}
 		</>
 	)
 }
