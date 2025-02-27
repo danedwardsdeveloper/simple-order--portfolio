@@ -9,11 +9,19 @@ import ConfirmedCustomerCard from './ConfirmedCustomerCard'
 import InvitedCustomerCard from './InvitedCustomerCard'
 
 export default function CustomersList() {
-	const { confirmedCustomers, setConfirmedCustomers, invitedCustomers, setInvitedCustomers } = useUser()
-	const [isLoading, setIsLoading] = useState(true)
-	const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false)
+	const {
+		confirmedCustomers,
+		setConfirmedCustomers,
+		invitedCustomers,
+		setInvitedCustomers,
+		hasAttemptedCustomersFetch,
+		setHasAttemptedCustomersFetch,
+	} = useUser()
+	const [isLoading, setIsLoading] = useState(false)
 	const [message, setMessage] = useState('')
 
+	// Enhancement ToDo: implement React Query for better data caching
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <Run on initial mount only>
 	useEffect(() => {
 		async function getCustomers() {
 			try {
@@ -35,24 +43,33 @@ export default function CustomersList() {
 				setMessage('Failed to load customers. Please try again later.')
 			} finally {
 				setIsLoading(false)
-				setHasAttemptedFetch(true)
+				setHasAttemptedCustomersFetch(true)
 			}
 		}
 
-		if (!hasAttemptedFetch) {
+		if (!hasAttemptedCustomersFetch) {
 			getCustomers()
 		}
-	}, [setConfirmedCustomers, setInvitedCustomers, hasAttemptedFetch])
+	}, [])
 
+	// Enhancement ToDo: create skeleton
 	if (isLoading) return <Spinner />
 
 	return (
 		<div className="flex flex-col gap-y-4">
-			{confirmedCustomers && <h2 className="mt-12">Customers</h2>}
+			{confirmedCustomers && (
+				<h2 className="mt-12">
+					{confirmedCustomers.length} Confirmed customer{confirmedCustomers.length !== 1 && 's'}
+				</h2>
+			)}
 			{confirmedCustomers?.map((customer, index) => (
 				<ConfirmedCustomerCard key={customer.businessName} confirmedCustomer={customer} zebraStripe={Boolean(index % 2)} />
 			))}
-			{invitedCustomers && <h2 className="mt-12">Invited customers</h2>}
+			{invitedCustomers && (
+				<h2 className="mt-12">
+					{invitedCustomers.length} Invited customer{invitedCustomers.length !== 1 && 's'}
+				</h2>
+			)}
 			{invitedCustomers?.map((customer, index) => (
 				<InvitedCustomerCard key={customer.obfuscatedEmail} invitedCustomer={customer} zebraStripe={Boolean(index % 2)} />
 			))}
