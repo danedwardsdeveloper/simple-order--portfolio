@@ -12,8 +12,11 @@ interface UiContextType {
 
 const UiContext = createContext<UiContextType | undefined>(undefined)
 
+// ToDo: store the merchantMode in local storage or it's very annoying
+
 export function UiProvider({ children }: { children: ReactNode }) {
-	const [merchantMode, setMerchantMode] = useState(false)
+	// Default needs to be merchant mode, or new free trials can't invite customers
+	const [merchantMode, setMerchantMode] = useState(true)
 
 	const toggleMerchantMode = () => {
 		setMerchantMode((current) => !current)
