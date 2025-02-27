@@ -38,6 +38,7 @@ export default async function Page({
 
 	return (
 		<PageContainer>
+			{/* ToDo: fix this */}
 			<BreadCrumbs title={article.displayTitle} />
 			<h1>{article.displayTitle}</h1>
 			<div className="flex flex-col max-w-prose gap-y-4">
