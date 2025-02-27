@@ -1,17 +1,21 @@
 'use client'
-import type { InviteCustomerPOSTbody, InviteCustomerPOSTresponse } from '@/app/api/invitations/create/route'
+import type { InviteCustomerPOSTbody, InviteCustomerPOSTresponse } from '@/app/api/invitations/route'
 import { apiPaths, dataTestIdNames } from '@/library/constants'
 import logger from '@/library/logger'
+import { useNotifications } from '@/providers/notifications'
 import { useUser } from '@/providers/user'
 import { type ChangeEvent, type FormEvent, useState } from 'react'
 
 export default function InviteCustomerForm() {
-	const { user } = useUser()
+	const { user, setInvitedCustomers } = useUser()
+	const { createNotification } = useNotifications()
 	const [loading, setLoading] = useState(false)
 	const [responseMessage, setResponseMessage] = useState('')
 	const [invitedEmail, setInvitedEmail] = useState('')
 
-	if (user?.roles === 'customer') return null
+	if (!user || user.roles === 'customer' || !user.emailConfirmed) return null
+
+	// ToDo: there's a weird glitch for a split second when you submit the form
 
 	async function handleSubmit(event: FormEvent) {
 		event.preventDefault()
@@ -19,30 +23,25 @@ export default function InviteCustomerForm() {
 		setLoading(true)
 
 		try {
-			const body: InviteCustomerPOSTbody = {
-				invitedEmail,
+			const { message, browserSafeInvitationRecord }: InviteCustomerPOSTresponse = await (
+				await fetch(apiPaths.invitations.base, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ invitedEmail } satisfies InviteCustomerPOSTbody),
+				})
+			).json()
+
+			if (message === 'success' && browserSafeInvitationRecord) {
+				createNotification({
+					level: 'success',
+					title: 'Success',
+					message: `Successfully sent invitation email to ${invitedEmail}`,
+				})
+				setInvitedCustomers((prev) => (prev ? [browserSafeInvitationRecord, ...prev] : []))
+				setInvitedEmail('')
+			} else {
+				setResponseMessage(message)
 			}
-
-			const response = await fetch(apiPaths.invitations.create, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(body),
-			})
-			const { message, browserSafeInvitationRecord }: InviteCustomerPOSTresponse = await response.json()
-
-			logger.debug('Browser-safe invitation record: ', JSON.stringify(browserSafeInvitationRecord))
-
-			// Figure out how to add the invitation record to the state...
-			// if(browserSafeInvitationRecord) {
-			//   setUser({
-			//     ...user,
-			//     pendingCustomersAsMerchant: [browserSafeInvitationRecord],
-			//   })
-			// }
-			setInvitedEmail('')
-			setResponseMessage(message)
 		} catch (error) {
 			logger.error('Error sending new invitation fetch request', error)
 			setResponseMessage('Unknown error')
@@ -50,6 +49,9 @@ export default function InviteCustomerForm() {
 			setLoading(false)
 		}
 	}
+
+	// Enhancement ToDo: validate email on the client
+	// Trim, check email isn't the user's own etc.
 
 	function handleEmailChange(event: ChangeEvent<HTMLInputElement>) {
 		setInvitedEmail(event.target.value)
@@ -59,7 +61,13 @@ export default function InviteCustomerForm() {
 		if (loading) {
 			return <p data-test-id={dataTestIdNames.invite.loading}>Sending invitation...</p>
 		}
-		return responseMessage && <p data-test-id={dataTestIdNames.invite.response}>{responseMessage}</p>
+		return (
+			responseMessage && (
+				<p data-test-id={dataTestIdNames.invite.response} className="text-red-600">
+					{responseMessage}
+				</p>
+			)
+		)
 	}
 
 	return (
