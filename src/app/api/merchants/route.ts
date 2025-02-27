@@ -14,11 +14,11 @@ export interface MerchantsGETresponse {
 	pendingMerchants?: BrowserSafeMerchantProfile[] // ToDo: add expiry
 }
 
-// ToDo: Doesn't return 204 when there aren't any merchants of any kind
+// ToDo: Should return 204 when there aren't any merchants, but I'm not sure it does this
 
+// GET confirmed & pending merchants for the signed-in customer
 export async function GET(request: NextRequest): Promise<NextResponse<MerchantsGETresponse>> {
 	try {
-		// Validate the user
 		const { extractedUserId, status, message } = await extractIdFromRequestCookie(request)
 
 		if (!extractedUserId) {
@@ -31,17 +31,14 @@ export async function GET(request: NextRequest): Promise<NextResponse<MerchantsG
 			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http404notFound })
 		}
 
-		// Find existing relationships
 		const existingRelationships = await database.select().from(relationships).where(eq(relationships.customerId, extractedUserId))
 
-		// Find any pending invitations
 		const pendingInvitations = await database.select().from(invitations).where(eq(invitations.email, existingDangerousUser.email))
 
 		if (!existingRelationships && !pendingInvitations) {
 			return NextResponse.json({ message: 'no merchants' }, { status: httpStatus.http204noContent })
 		}
 
-		// Use relationships and pending invitations to retrieve the slug and business name
 		let confirmedMerchants: BrowserSafeMerchantProfile[] | null = null
 		let pendingMerchants: BrowserSafeMerchantProfile[] | null = null
 
@@ -74,6 +71,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<MerchantsG
 		return NextResponse.json(
 			{
 				message: basicMessages.success,
+				// The browser is handling these empty arrays fine, and it broke when I used nonEmptyArray()
 				confirmedMerchants: confirmedMerchants ?? [],
 				pendingMerchants: pendingMerchants ?? [],
 			},
