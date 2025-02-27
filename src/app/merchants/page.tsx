@@ -1,22 +1,20 @@
 'use client'
-
-import Spinner from '@/components/Spinner'
+import BreadCrumbs from '@/components/BreadCrumbs'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
 import { apiPaths } from '@/library/constants'
 import logger from '@/library/logger'
 import { useUser } from '@/providers/user'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import type { MerchantsGETresponse } from '../api/merchants/route'
 
-export default function Page() {
+// Customer view of a list of merchants the signed-in user is subscribed to
+export default function MerchantsPage() {
 	const { user, confirmedMerchants, setConfirmedMerchants, pendingMerchants, setPendingMerchants } = useUser()
-	const [loading, setLoading] = useState(false)
 
 	useEffect(() => {
 		async function getMerchants() {
 			try {
-				setLoading(true)
 				const response = await fetch(apiPaths.merchants.base, { credentials: 'include' })
 				const { confirmedMerchants, pendingMerchants, message }: MerchantsGETresponse = await response.json()
 
@@ -33,8 +31,6 @@ export default function Page() {
 				}
 			} catch (error) {
 				logger.error('merchants/page.tsx error: ', error)
-			} finally {
-				setLoading(false)
 			}
 		}
 
@@ -43,38 +39,39 @@ export default function Page() {
 
 	if (!user) return <UnauthorisedLinks />
 
-	if (loading) {
-		return <Spinner />
-	}
-
 	if (!confirmedMerchants?.length && !pendingMerchants?.length) {
 		return <span>No merchants found</span>
 	}
 
+	// ToDo: Don't show 'Place an order' links for merchants with no products
+
 	return (
 		<>
 			<h1>Merchants</h1>
+			<BreadCrumbs home={'dashboard'} currentPageTitle="Merchants" />
 
 			{confirmedMerchants &&
 				confirmedMerchants?.length > 0 &&
 				confirmedMerchants.map((merchant) => (
-					<Link key={merchant.slug} href={`/merchants/${merchant.slug}`} className="link-primary">
-						{merchant.businessName}
-					</Link>
+					<div key={merchant.slug} className="flex gap-x-2 items-end">
+						<h2>{merchant.businessName}</h2>
+						<Link href={`/merchants/${merchant.slug}`} className="link-primary">
+							Place an order
+						</Link>
+					</div>
 				))}
-
+			{/* ToDo: This should be pendingInvitations (as in a merchant has invited you...) */}
+			{/* ToDo: Handle empty arrays consistently */}
 			{pendingMerchants && pendingMerchants?.length > 0 && (
-				<>
-					<h2>Invitations</h2>
+				<div>
 					{pendingMerchants.map((merchant) => (
-						<span
-							key={merchant.slug}
-							className="block transition-colors duration-300 text-zinc-600 hover:text-blue-400 active:text-blue-500"
-						>
-							{merchant.businessName}
-						</span>
+						<div key={merchant.slug}>
+							<span className="block transition-colors duration-300 text-zinc-600 hover:text-blue-400 active:text-blue-500">
+								{merchant.businessName}
+							</span>
+						</div>
 					))}
-				</>
+				</div>
 			)}
 		</>
 	)
