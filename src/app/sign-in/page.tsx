@@ -1,6 +1,6 @@
 'use client'
 import { CheckboxIcon } from '@/components/Icons'
-import { apiPaths, dataTestIdNames, testPasswords, testUsers } from '@/library/constants'
+import { apiPaths, dataTestIdNames, testPasswords } from '@/library/constants'
 import logger from '@/library/logger'
 import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
@@ -12,11 +12,11 @@ export default function SignInPage() {
 	const { user, setUser } = useUser()
 	const { setMerchantMode } = useUi()
 	const router = useRouter()
-	const preFillForConvenience = false
+	const preFillForConvenience = true
 	const [formData, setFormData] = useState<SignInPOSTbody>({
-		email: preFillForConvenience ? testUsers.permanentTestUser.email : '',
+		email: '',
 		password: preFillForConvenience ? testPasswords.good : '',
-		staySignedIn: false,
+		staySignedIn: preFillForConvenience,
 	})
 	const [error, setError] = useState('')
 
