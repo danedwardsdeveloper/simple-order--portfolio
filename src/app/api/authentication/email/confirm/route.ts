@@ -21,6 +21,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ConfirmEm
 		return NextResponse.json({ message: tokenMessages.tokenMissing }, { status: httpStatus.http401unauthorised })
 	}
 
+	// ToDo: this shouldn't be a transaction!
 	// ToDo: remove unnecessary stages from this transaction and catch errors properly
 	let transactionFailureMessage = null
 	let transactionFailureStatus = null
@@ -74,6 +75,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<ConfirmEm
 		if (!result) {
 			throw new Error()
 		}
+
+		// Optimisation ToDo: Handle sign in if not already
 
 		return NextResponse.json({ message: basicMessages.success }, { status: httpStatus.http200ok })
 	} catch (error) {
