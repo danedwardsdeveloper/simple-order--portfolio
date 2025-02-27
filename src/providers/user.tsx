@@ -17,39 +17,62 @@ interface UserContextType {
 	user: BrowserSafeCompositeUser | null
 	setUser: Dispatch<SetStateAction<BrowserSafeCompositeUser | null>>
 
+	// Enhancement ToDo: add caching & revalidation with React Query
+
 	inventory: BrowserSafeMerchantProduct[] | null
-	setInventory: Dispatch<SetStateAction<BrowserSafeMerchantProduct[] | null>>
+	setInventory: Dispatch<SetStateAction<BrowserSafeMerchantProduct[]>>
+	hasAttemptedInventoryFetch: boolean
+	setHasAttemptedInventoryFetch: Dispatch<SetStateAction<boolean>>
 
-	confirmedMerchants: BrowserSafeMerchantProfile[] | null
-	setConfirmedMerchants: Dispatch<SetStateAction<BrowserSafeMerchantProfile[] | null>>
-	pendingMerchants: BrowserSafeMerchantProfile[] | null
-	setPendingMerchants: Dispatch<SetStateAction<BrowserSafeMerchantProfile[] | null>>
+	confirmedMerchants: BrowserSafeMerchantProfile[]
+	setConfirmedMerchants: Dispatch<SetStateAction<BrowserSafeMerchantProfile[]>>
+	pendingMerchants: BrowserSafeMerchantProfile[]
+	setPendingMerchants: Dispatch<SetStateAction<BrowserSafeMerchantProfile[]>>
+	hasAttemptedMerchantsFetch: boolean
+	setHasAttemptedMerchantsFetch: Dispatch<SetStateAction<boolean>>
 
-	confirmedCustomers: BrowserSafeCustomerProfile[] | undefined
-	setConfirmedCustomers: Dispatch<SetStateAction<BrowserSafeCustomerProfile[] | undefined>>
-	invitedCustomers: BrowserSafeInvitationRecord[] | undefined
-	setInvitedCustomers: Dispatch<SetStateAction<BrowserSafeInvitationRecord[] | undefined>>
+	confirmedCustomers: BrowserSafeCustomerProfile[]
+	setConfirmedCustomers: Dispatch<SetStateAction<BrowserSafeCustomerProfile[]>>
+	invitedCustomers: BrowserSafeInvitationRecord[]
+	setInvitedCustomers: Dispatch<SetStateAction<BrowserSafeInvitationRecord[]>>
+	hasAttemptedCustomersFetch: boolean
+	setHasAttemptedCustomersFetch: Dispatch<SetStateAction<boolean>>
 
 	vat: number
-
 	isLoading: boolean
+	showNoCustomersMessage: boolean
 }
 
 const UserContext = createContext<UserContextType>({} as UserContextType)
 
+// ToDo: Change default states back to being null instead of empty arrays as it's confusing!
+
 export const UserProvider = ({ children }: { children: ReactNode }) => {
+	const { merchantMode } = useUi()
 	const { setMerchantMode } = useUi()
-
 	const [user, setUser] = useState<BrowserSafeCompositeUser | null>(null)
-	const [inventory, setInventory] = useState<BrowserSafeMerchantProduct[] | null>(null)
+	const [inventory, setInventory] = useState<BrowserSafeMerchantProduct[]>([])
+	const [hasAttemptedInventoryFetch, setHasAttemptedInventoryFetch] = useState(false)
 
-	const [confirmedMerchants, setConfirmedMerchants] = useState<BrowserSafeMerchantProfile[] | null>(null)
-	const [pendingMerchants, setPendingMerchants] = useState<BrowserSafeMerchantProfile[] | null>(null)
+	const [confirmedMerchants, setConfirmedMerchants] = useState<BrowserSafeMerchantProfile[]>([])
+	const [pendingMerchants, setPendingMerchants] = useState<BrowserSafeMerchantProfile[]>([])
+	const [hasAttemptedMerchantsFetch, setHasAttemptedMerchantsFetch] = useState(false)
 
-	const [confirmedCustomers, setConfirmedCustomers] = useState<BrowserSafeCustomerProfile[] | undefined>(undefined)
-	const [invitedCustomers, setInvitedCustomers] = useState<BrowserSafeInvitationRecord[] | undefined>(undefined)
+	const [confirmedCustomers, setConfirmedCustomers] = useState<BrowserSafeCustomerProfile[]>([])
+	const [invitedCustomers, setInvitedCustomers] = useState<BrowserSafeInvitationRecord[]>([])
+	const [hasAttemptedCustomersFetch, setHasAttemptedCustomersFetch] = useState(false)
 
 	const [isLoading, setIsLoading] = useState(true)
+
+	const showNoCustomersMessage =
+		!!(
+			user &&
+			hasAttemptedCustomersFetch &&
+			!confirmedCustomers?.length &&
+			!invitedCustomers?.length &&
+			user.roles !== 'customer' &&
+			merchantMode
+		) || false
 
 	useEffect(() => {
 		async function getUser() {
@@ -84,19 +107,26 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
 				inventory,
 				setInventory,
+				hasAttemptedInventoryFetch,
+				setHasAttemptedInventoryFetch,
 
 				confirmedMerchants,
 				setConfirmedMerchants,
 				pendingMerchants,
 				setPendingMerchants,
+				hasAttemptedMerchantsFetch,
+				setHasAttemptedMerchantsFetch,
 
 				confirmedCustomers,
 				setConfirmedCustomers,
 				invitedCustomers,
 				setInvitedCustomers,
+				hasAttemptedCustomersFetch,
+				setHasAttemptedCustomersFetch,
 
 				isLoading,
 				vat: temporaryVat,
+				showNoCustomersMessage,
 			}}
 		>
 			<SplashScreen show={isLoading} />
