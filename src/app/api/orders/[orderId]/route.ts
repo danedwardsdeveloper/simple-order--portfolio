@@ -1,7 +1,7 @@
 import { basicMessages, httpStatus } from '@/library/constants'
 import { temporaryVat } from '@/library/constants/definitions/vat'
+import { checkUserExists } from '@/library/database/checkRelationship'
 import { database } from '@/library/database/connection'
-import { checkUserExists } from '@/library/database/operations'
 import { orderItems, orders, products } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'

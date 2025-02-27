@@ -1,6 +1,6 @@
 import { basicMessages, httpStatus, type missingFieldMessages } from '@/library/constants'
+import { checkUserExists } from '@/library/database/checkRelationship'
 import { database } from '@/library/database/connection'
-import { checkUserExists } from '@/library/database/operations'
 import { merchantProfiles, orders } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'

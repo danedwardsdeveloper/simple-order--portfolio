@@ -1,5 +1,5 @@
 import { apiPaths, basicMessages, httpStatus, missingFieldMessages, tokenMessages } from '@/library/constants'
-import { checkUserExists } from '@/library/database/operations'
+import { checkUserExists } from '@/library/database/checkRelationship'
 import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import logger from '@/library/logger'
 import stripeClient from '@/library/stripe/stripeClient'

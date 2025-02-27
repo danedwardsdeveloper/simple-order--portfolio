@@ -1,7 +1,7 @@
+import BreadCrumbs from '@/components/BreadCrumbs'
 import PageContainer from '@/components/PageContainer'
 import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import type { Metadata } from 'next'
-import BreadCrumbs from '../BreadCrumbs'
 import { articlesData } from '../data'
 
 export function generateStaticParams() {

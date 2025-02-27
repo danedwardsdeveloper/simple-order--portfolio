@@ -7,11 +7,10 @@ import {
 	tokenMessages,
 } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { checkActiveSubscriptionOrTrial } from '@/library/database/operations'
+import { checkActiveSubscriptionOrTrial, getUserRoles } from '@/library/database/operations'
 import { users } from '@/library/database/schema'
 import { emailRegex } from '@/library/email/utilities'
 import logger from '@/library/logger'
-import { getUserRoles } from '@/library/operations'
 import { sanitiseDangerousBaseUser } from '@/library/utilities'
 import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
 import type { BrowserSafeCompositeUser, DangerousBaseUser, MissingFieldMessages } from '@/types'
