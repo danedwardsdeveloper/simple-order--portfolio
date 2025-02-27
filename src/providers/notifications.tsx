@@ -10,6 +10,10 @@ interface NotificationsContextType {
 
 const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined)
 
+const _testNotifications: NotificationInterface[] = [
+	{ id: 1, level: 'warning', title: 'Congratulations!', message: "You've won an all-expenses-paid trip to Iran for a facelift!" },
+]
+
 export function NotificationsProvider({ children }: { children: ReactNode }) {
 	const [notifications, setNotifications] = useState<NotificationInterface[] | null>(null)
 
