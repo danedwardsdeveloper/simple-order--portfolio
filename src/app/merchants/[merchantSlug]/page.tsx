@@ -1,14 +1,17 @@
 'use client'
 import type { InventoryMerchantsMerchantSlugGETresponse } from '@/app/api/inventory/merchants/[merchantSlug]/route'
-import type { MerchantSlugGETresponse } from '@/app/api/merchants/[merchantId]/route'
+import BreadCrumbs from '@/components/BreadCrumbs'
 import Spinner from '@/components/Spinner'
 import { apiPaths } from '@/library/constants'
 import logger from '@/library/logger'
 import type { BrowserSafeCustomerProduct } from '@/types'
 import { use, useEffect, useState } from 'react'
 import urlJoin from 'url-join'
-import ProductCardForCustomer from './components/ProductCardForCustomer'
+import CustomerFacingProductCard from './components/CustomerFacingProductCard'
 
+// ToDo: Emphasise 'Merchants' in the menu bar, even though we're one level deeper
+// ToDo: remove loading state and use loading.ts
+// This page is the order form - there's no point displaying the products unless it's an order form!
 export default function MerchantPage({
 	params,
 }: {
@@ -25,31 +28,17 @@ export default function MerchantPage({
 
 	useEffect(() => {
 		async function getData() {
-			// ToDo: get merchant data using slug, then use Promise.all to get both responses
 			try {
 				setIsLoading(true)
 
-				const productsURL = urlJoin(apiPaths.inventory.merchants.base, merchantSlug)
-
-				const businessNameURL = urlJoin(apiPaths.merchants.base, merchantSlug)
-
-				const [productsResponse, businessNameResponse] = await Promise.all([
-					fetch(productsURL, { credentials: 'include' }),
-					fetch(businessNameURL, { credentials: 'include' }),
-				])
-
-				const productsData: InventoryMerchantsMerchantSlugGETresponse = await productsResponse.json()
-				const businessData: MerchantSlugGETresponse = await businessNameResponse.json()
-
-				// 3. Destructure with clear naming
-				const { availableProducts } = productsData
-				const { merchantBusinessName } = businessData
+				const { availableProducts, message, businessName }: InventoryMerchantsMerchantSlugGETresponse = await (
+					await fetch(urlJoin(apiPaths.inventory.merchants.base, merchantSlug), { credentials: 'include' })
+				).json()
 
 				if (availableProducts) setProducts(availableProducts)
-				if (merchantBusinessName) setBusinessName(merchantBusinessName)
+				if (businessName) setBusinessName(businessName)
 
-				if (productsData.message !== 'success') setErrorMessage(productsData.message)
-				if (businessData.message !== 'success') setErrorMessage(productsData.message)
+				if (!availableProducts && !businessName) setErrorMessage(message)
 			} catch (error) {
 				logger.error('unknown error: ', error)
 			} finally {
@@ -63,7 +52,7 @@ export default function MerchantPage({
 		return (
 			<>
 				<h1>{businessName || merchantSlug}</h1>
-				<p>No products</p>
+				<p>This merchant hasn't added any products yet</p>
 			</>
 		)
 	}
@@ -72,7 +61,7 @@ export default function MerchantPage({
 		return (
 			<ul className="flex flex-col w-full gap-y-4 max-w-xl -mx-3">
 				{products?.map((product, index) => (
-					<ProductCardForCustomer key={product.id} product={product} zebraStripe={Boolean(index % 2)} />
+					<CustomerFacingProductCard key={product.id} product={product} zebraStripe={Boolean(index % 2)} />
 				))}
 			</ul>
 		)
@@ -80,6 +69,16 @@ export default function MerchantPage({
 
 	return (
 		<>
+			<BreadCrumbs
+				home={'dashboard'}
+				trail={[
+					{
+						displayName: 'Merchants',
+						href: '/merchants',
+					},
+				]}
+				currentPageTitle={businessName}
+			/>
 			<h1>{businessName}</h1>
 			{errorMessage && <p>{errorMessage}</p>}
 			{isLoading ? <Spinner /> : <Products />}
