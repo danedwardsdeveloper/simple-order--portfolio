@@ -5,7 +5,8 @@ import logger from '@/library/logger'
 import { useNotifications } from '@/providers/notifications'
 import { useUser } from '@/providers/user'
 import { useEffect, useState } from 'react'
-import InventoryCard, { SkeletonCard } from './InventoryCard'
+import InventoryCard from './InventoryCard'
+import SkeletonCard from './SkeletonCard'
 
 export default function InventoryList() {
 	const { inventory, setInventory, hasAttemptedInventoryFetch, setHasAttemptedInventoryFetch } = useUser()
