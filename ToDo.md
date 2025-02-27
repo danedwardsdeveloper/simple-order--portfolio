@@ -18,6 +18,7 @@
 
 ## Refinements 7 extras (even if they're really important)
 
+-  Make sure all error NextResponses are preceded by logger.error
 -  Replace CLSX with tailwindMerge
 -  Prevent sign-in from returning dangerous information!
 -  Sanitise business names but allow apostrophes
