@@ -34,7 +34,7 @@ There will be a referral system so that merchants can get additional free months
 # Tech
 
 -  Next.js 15 App router, written in TypeScript, deployed with Fly.io
--  Postgres with Drizzle query builder deployed with Neon free tie
+-  Postgres with Drizzle query builder deployed with Neon free tier
 -  Mailgun for transactional emails
 -  Tailwind, CLSX, Heroicons,
 -  VS Code, PNPM, Eslint, Prettier, Cspell, GitHub, MacBook Pro
