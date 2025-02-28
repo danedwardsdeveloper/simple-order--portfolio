@@ -18,7 +18,7 @@
 -  Lot of work on invitations system front-end
 -  A load of other stuff I forgot to write about
 
-## Thursday 27 February 2025
+## Thursday 27 February
 
 -  Retrieved the merchant name from `api/inventory/merchants/[merchantSlug]` instead of a dedicated route for convenience
 -  Fixed controlled component type issue with AddInventoryForm
@@ -27,3 +27,14 @@
 -  Made Breadcrumbs component reusable (articles, merchants etc.)
 -  Updated the default user state to use empty arrays instead of null
 -  Worked on /dashboard page, getting it to fetch initial data
+
+## Friday 28 February
+
+-  Added placeholder privacy policy, cookie policy, terms of service, and GDPR compliance pages
+-  Updated article sorting so these pages are in the blog but always at the end
+-  Updated the articles breadcrumbs
+-  Updated the menu bar so that the active link is highlighted even if you're on a subpage
+-  Created a footer
+-  Sorted out a load of type issues where I hadn't updated the entire site
+-  Changed user provider back to having null instead of empty arrays as the default
+   -  My approach now is to nullify all empty arrays at the source (i.e. Drizzle queries with no results)
