@@ -1,11 +1,20 @@
-import { apiPaths, authenticationMessages, basicMessages, httpStatus, serviceConstraints, tokenMessages } from '@/library/constants'
+import {
+	apiPaths,
+	authenticationMessages,
+	basicMessages,
+	httpStatus,
+	illegalCharactersMessages,
+	missingFieldMessages,
+	serviceConstraints,
+	tokenMessages,
+} from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkActiveSubscriptionOrTrial, checkUserExists } from '@/library/database/operations'
 import { merchantProfiles, products } from '@/library/database/schema'
 import logger from '@/library/logger'
-import { containsIllegalCharacters, nonEmptyArray } from '@/library/utilities'
+import { containsIllegalCharacters, containsItems } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { AuthenticationMessages, BasicMessages, BrowserSafeMerchantProduct, NewProduct, Product, TokenMessages } from '@/types'
+import type { BrowserSafeMerchantProduct, ProductInsertValues, TokenMessages } from '@/types'
 import { and, eq, isNull } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -38,7 +47,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<InventoryA
 			return NextResponse.json({ message: authenticationMessages.merchantNotFound }, { status: httpStatus.http401unauthorised })
 		}
 
-		const inventory: BrowserSafeMerchantProduct[] = await database
+		const foundInventory: BrowserSafeMerchantProduct[] = await database
 			.select({
 				id: products.id,
 				merchantProfileId: products.ownerId,
@@ -51,13 +60,11 @@ export async function GET(request: NextRequest): Promise<NextResponse<InventoryA
 			.from(products)
 			.where(and(eq(products.ownerId, extractedUserId), isNull(products.deletedAt)))
 
-		return NextResponse.json(
-			{
-				message: basicMessages.success,
-				...(nonEmptyArray(inventory) && { inventory }),
-			},
-			{ status: httpStatus.http200ok },
-		)
+		logger.debug('Found inventory: ', foundInventory)
+
+		const inventory = containsItems(foundInventory) ? foundInventory : undefined
+
+		return NextResponse.json({ message: basicMessages.success, inventory }, { status: httpStatus.http200ok })
 	} catch (error) {
 		logger.error(`${apiPaths.inventory.admin.base} error: `, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
@@ -65,16 +72,21 @@ export async function GET(request: NextRequest): Promise<NextResponse<InventoryA
 }
 
 // POST add an item to the inventory
-export type InventoryAddPOSTbody = Omit<NewProduct, 'ownerId' | 'id' | 'createdAt' | 'deletedAt' | 'updatedAt'>
+export type InventoryAddPOSTbody = Omit<ProductInsertValues, 'ownerId' | 'id' | 'createdAt' | 'deletedAt' | 'updatedAt'>
 
 // ToDo: remove unused responses
 export interface InventoryAddPOSTresponse {
 	message:
-		| BasicMessages
-		| AuthenticationMessages
+		| typeof basicMessages.success
+		| typeof basicMessages.databaseError
+		| typeof basicMessages.serverError
+		| typeof missingFieldMessages.nameMissing
+		| typeof authenticationMessages.merchantNotFound
+		| typeof authenticationMessages.noActiveTrialSubscription
+		| typeof illegalCharactersMessages.name
+		| typeof illegalCharactersMessages.description
 		| TokenMessages
-		| 'name missing'
-		| 'name contains illegal characters'
+		| typeof missingFieldMessages.priceMissing
 		| 'priceInMinorUnits missing'
 		| 'priceInMinorUnits not a number'
 		| 'priceInMinorUnits too high'
@@ -82,11 +94,10 @@ export interface InventoryAddPOSTresponse {
 		| 'customVat too high'
 		| 'customVat is a decimal'
 		| 'customVat is negative'
-		| 'description contains illegal characters'
 		| 'description too long'
 		| 'too many products'
 		| 'product name exists'
-	product?: BrowserSafeMerchantProduct
+	addedProduct?: BrowserSafeMerchantProduct
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse<InventoryAddPOSTresponse>> {
@@ -94,49 +105,25 @@ export async function POST(request: NextRequest): Promise<NextResponse<Inventory
 
 	let badRequestMessage: InventoryAddPOSTresponse['message'] | undefined
 
-	if (!name) {
-		badRequestMessage = 'name missing'
-	}
-
-	if (containsIllegalCharacters(name)) {
-		badRequestMessage = 'name contains illegal characters'
-	}
-
-	if (!priceInMinorUnits) {
-		badRequestMessage = 'priceInMinorUnits missing'
-	}
-
-	if (Number.isNaN(priceInMinorUnits)) {
-		badRequestMessage = 'priceInMinorUnits not a number'
-	}
-
-	if (priceInMinorUnits > serviceConstraints.maximumProductValueInMinorUnits) {
-		badRequestMessage = 'priceInMinorUnits too high'
-	}
+	if (!name) badRequestMessage = missingFieldMessages.nameMissing
+	if (containsIllegalCharacters(name)) badRequestMessage = illegalCharactersMessages.name
+	if (!priceInMinorUnits) badRequestMessage = missingFieldMessages.priceMissing
+	if (Number.isNaN(priceInMinorUnits)) badRequestMessage = 'priceInMinorUnits not a number'
+	if (priceInMinorUnits > serviceConstraints.maximumProductValueInMinorUnits) badRequestMessage = 'priceInMinorUnits too high'
 
 	if (description) {
-		if (containsIllegalCharacters(description)) {
-			badRequestMessage = 'description contains illegal characters'
-		}
-		if (description.length > serviceConstraints.maximumProductDescriptionCharacters) {
-			badRequestMessage = 'description too long'
-		}
+		if (containsIllegalCharacters(description)) badRequestMessage = illegalCharactersMessages.description
+		if (description.length > serviceConstraints.maximumProductDescriptionCharacters) badRequestMessage = 'description too long'
 	}
 
 	if (customVat) {
-		if (Number.isNaN(customVat)) {
-			badRequestMessage = 'customVat not a number'
-		}
-		if (customVat > serviceConstraints.highestVat) {
-			badRequestMessage = 'customVat too high'
-		}
-		if (customVat < 0) {
-			badRequestMessage = 'customVat is negative'
-		}
-		if (customVat % 1 !== 0) {
-			badRequestMessage = 'customVat is a decimal'
-		}
+		if (Number.isNaN(customVat)) badRequestMessage = 'customVat not a number'
+		if (customVat > serviceConstraints.highestVat) badRequestMessage = 'customVat too high'
+		if (customVat < 0) badRequestMessage = 'customVat is negative'
+		if (customVat % 1 !== 0) badRequestMessage = 'customVat is a decimal'
 	}
+
+	// Optimisation ToDo: Make these constraints better
 
 	// if (customVat !== undefined && customVat !== null) {
 	// 	if (Number.isNaN(customVat)) {
@@ -177,6 +164,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Inventory
 			return NextResponse.json({ message: authenticationMessages.noActiveTrialSubscription }, { status: httpStatus.http401unauthorised })
 		}
 
+		// Optimisation ToDo: check for duplicates at the same time (existingProducts/existingProduct)
 		const existingProducts = await database.select().from(products).where(eq(products.ownerId, extractedUserId))
 		if (existingProducts.length >= serviceConstraints.maximumProducts) {
 			return NextResponse.json({ message: 'too many products' }, { status: httpStatus.http400badRequest })
@@ -192,7 +180,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Inventory
 			return NextResponse.json({ message: 'product name exists' }, { status: httpStatus.http400badRequest })
 		}
 
-		const newProduct: NewProduct = {
+		const insertValues: ProductInsertValues = {
 			name,
 			ownerId: extractedUserId,
 			priceInMinorUnits,
@@ -200,16 +188,23 @@ export async function POST(request: NextRequest): Promise<NextResponse<Inventory
 			customVat,
 		}
 
-		const [addedProduct]: Product[] = await database.insert(products).values(newProduct).returning()
+		const [addedProduct]: BrowserSafeMerchantProduct[] = await database.insert(products).values(insertValues).returning({
+			id: products.id,
+			name: products.name,
+			description: products.description,
+			priceInMinorUnits: products.priceInMinorUnits,
+			customVat: products.customVat,
+			deletedAt: products.deletedAt,
+		})
 
 		if (!addedProduct) {
 			logger.error(`POST ${apiPaths.inventory.admin.base} error: Couldn't add product to database`)
-			return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
+			return NextResponse.json({ message: basicMessages.databaseError }, { status: httpStatus.http500serverError })
 		}
 
-		logger.info('Added product: ', JSON.stringify(addedProduct))
+		logger.info('Added product: ', addedProduct)
 
-		return NextResponse.json({ message: basicMessages.success, product: addedProduct }, { status: httpStatus.http200ok })
+		return NextResponse.json({ message: basicMessages.success, addedProduct }, { status: httpStatus.http200ok })
 	} catch (error) {
 		logger.error(`${apiPaths.inventory.admin.base}`, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
