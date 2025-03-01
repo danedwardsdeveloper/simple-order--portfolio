@@ -3,7 +3,7 @@ import { database } from '@/library/database/connection'
 import { checkUserExists } from '@/library/database/operations'
 import { invitations, merchantProfiles, relationships, users } from '@/library/database/schema'
 import logger from '@/library/logger'
-import { obfuscateEmail } from '@/library/utilities'
+import { containsItems, obfuscateEmail } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
 import type { BrowserSafeCustomerProfile, BrowserSafeInvitationRecord, TokenMessages } from '@/types'
 import { eq } from 'drizzle-orm'
@@ -45,8 +45,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<CustomersG
 			return NextResponse.json({ message: authenticationMessages.dataBelongsToOtherUser }, { status: httpStatus.http403forbidden })
 		}
 
-		// Get confirmed customers
-		const rawConfirmedCustomers = await database
+		const foundConfirmedCustomers = await database
 			.select({
 				businessName: users.businessName,
 				plainEmail: users.email,
@@ -55,21 +54,29 @@ export async function GET(request: NextRequest): Promise<NextResponse<CustomersG
 			.innerJoin(users, eq(relationships.customerId, users.id))
 			.where(eq(relationships.merchantId, extractedUserId))
 
-		const obfuscatedConfirmedCustomers: BrowserSafeCustomerProfile[] = rawConfirmedCustomers.map((customer) => ({
-			businessName: customer.businessName,
-			obfuscatedEmail: obfuscateEmail(customer.plainEmail),
-		}))
+		const confirmedCustomers = containsItems(foundConfirmedCustomers)
+			? foundConfirmedCustomers.map((customer) => ({
+					businessName: customer.businessName,
+					obfuscatedEmail: obfuscateEmail(customer.plainEmail),
+				}))
+			: undefined
 
-		const rawInvitedCustomers = await database.select().from(invitations).where(eq(invitations.senderUserId, extractedUserId))
+		const foundInvitedCustomers = await database.select().from(invitations).where(eq(invitations.senderUserId, extractedUserId))
 
-		const obfuscatedInvitedCustomers: BrowserSafeInvitationRecord[] = rawInvitedCustomers.map((customer) => ({
-			obfuscatedEmail: obfuscateEmail(customer.email),
-			lastEmailSentDate: customer.lastEmailSent,
-			expirationDate: customer.expiresAt,
-		}))
+		const invitedCustomers = containsItems(foundInvitedCustomers)
+			? foundInvitedCustomers.map((customer) => ({
+					obfuscatedEmail: obfuscateEmail(customer.email),
+					lastEmailSentDate: customer.lastEmailSent,
+					expirationDate: customer.expiresAt,
+				}))
+			: undefined
 
 		return NextResponse.json(
-			{ message: basicMessages.success, confirmedCustomers: obfuscatedConfirmedCustomers, invitedCustomers: obfuscatedInvitedCustomers },
+			{
+				message: basicMessages.success,
+				confirmedCustomers,
+				invitedCustomers,
+			},
 			{ status: httpStatus.http200ok },
 		)
 	} catch (error) {
