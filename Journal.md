@@ -38,3 +38,7 @@
 -  Sorted out a load of type issues where I hadn't updated the entire site
 -  Changed user provider back to having null instead of empty arrays as the default
    -  My approach now is to nullify all empty arrays at the source (i.e. Drizzle queries with no results)
+-  Prevented a load of routes from returning empty arrays
+-  Restructured the site in a big way!
+   -  I removed /merchants as it's confusing. Now, customers go to /orders, where there's a list of merchants they're subscribed to
+-  Made Customer/Merchant-facing order pages
