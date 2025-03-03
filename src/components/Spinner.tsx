@@ -4,7 +4,7 @@ export default function Spinner({
 	colour = 'text-blue-600',
 	classes,
 }: {
-	colour?: string
+	colour?: 'text-blue-600' | 'text-white'
 	classes?: string
 }) {
 	return (

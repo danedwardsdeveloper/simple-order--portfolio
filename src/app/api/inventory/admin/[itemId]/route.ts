@@ -71,7 +71,7 @@ export async function DELETE(
 
 		return NextResponse.json({ message: basicMessages.success, softDeletedProduct }, { status: httpStatus.http200ok })
 	} catch (error) {
-		logger.error(`${apiPaths.inventory.admin.base} error: `, error)
+		logger.error(`${apiPaths.inventory.merchantPerspective.itemId} error: `, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
 	}
 }
