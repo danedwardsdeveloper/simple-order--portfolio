@@ -40,9 +40,14 @@ export interface ClientMerchantDetails {
 	customersAsMerchant: RelationshipItem[]
 }
 
-export interface BrowserSafeInvitationRecord {
+export interface MerchantFacingInvitationRecord {
 	obfuscatedEmail: string
 	lastEmailSentDate: Date
+	expirationDate: Date
+}
+
+export interface CustomerFacingInvitationRecord {
+	merchantName: string
 	expirationDate: Date
 }
 
