@@ -4,7 +4,9 @@ import { usePathname } from 'next/navigation'
 
 export default function MenuItem({ href, text }: { href: string; text: string }) {
 	const pathname = usePathname()
-	const isActive = pathname === href
+
+	// Not sure this will handle the homepage properly...
+	const isActive = pathname.includes(href)
 	return (
 		<Link
 			href={href}
