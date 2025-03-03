@@ -10,8 +10,31 @@ interface NotificationsContextType {
 
 const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined)
 
-const _testNotifications: NotificationInterface[] = [
-	{ id: 1, level: 'warning', title: 'Congratulations!', message: "You've won an all-expenses-paid trip to Iran for a facelift!" },
+const _exampleNotifications: NotificationInterface[] = [
+	{
+		id: 0,
+		title: 'Congratulations!',
+		message: "You've won an all-expenses-paid trip to Iran for a facelift!",
+		level: 'success',
+	},
+	{
+		id: 1,
+		title: 'Information',
+		message: 'French people are French',
+		level: 'info',
+	},
+	{
+		id: 3,
+		title: 'Warning!',
+		message: 'You will die in seven days',
+		level: 'warning',
+	},
+	{
+		id: 2,
+		title: 'Error!',
+		message: 'Your bank account has been hacked! Send me £1,000 to fix it',
+		level: 'error',
+	},
 ]
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
