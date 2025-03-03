@@ -1,6 +1,6 @@
 import { apiPaths, basicMessages, httpStatus, tokenMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { checkActiveSubscriptionOrTrial, getUserRoles } from '@/library/database/operations'
+import { checkActiveSubscriptionOrTrial, checkUserExists, getUserRoles } from '@/library/database/operations'
 import { users } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
@@ -17,10 +17,13 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 	try {
 		const { extractedUserId, status, message } = await extractIdFromRequestCookie(request)
 
-		logger.debug('Extracted user ID: ', extractedUserId)
-
 		if (!extractedUserId) {
 			return NextResponse.json({ message }, { status })
+		}
+
+		const { userExists } = await checkUserExists(extractedUserId)
+		if (!userExists) {
+			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
 		}
 
 		const [baseUser]: BaseBrowserSafeUser[] = await database

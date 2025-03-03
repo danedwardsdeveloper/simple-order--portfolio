@@ -19,12 +19,13 @@ import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
 import { validate } from 'uuid'
 
-export type InvitationsTokenPATCHbody = InvitedCustomerBrowserInputValues
+export type InvitationsTokenPOSTbody = InvitedCustomerBrowserInputValues
 
 // PATCH accept an invitation
 // Ask for more details if user is new to the site
 // Sign the user in
-export interface InvitationsTokenPATCHresponse {
+// Urgent ToDo: This doesn't work!
+export interface InvitationsTokenPOSTresponse {
 	message:
 		| typeof basicMessages.success
 		| typeof basicMessages.serverError
@@ -36,23 +37,22 @@ export interface InvitationsTokenPATCHresponse {
 	senderBusinessName?: string
 }
 
-export async function PATCH(
+export async function POST(
 	request: NextRequest,
 	{ params }: { params: Promise<{ token: string }> },
-): Promise<NextResponse<InvitationsTokenPATCHresponse>> {
+): Promise<NextResponse<InvitationsTokenPOSTresponse>> {
 	const cookieStore = await cookies()
 
 	let transactionErrorMessage = null
 	let transactionErrorCode = null
 
 	try {
-		const { firstName, lastName, businessName, password, staySignedIn }: InvitationsTokenPATCHbody = await request.json()
+		const { firstName, lastName, businessName, password, staySignedIn }: InvitationsTokenPOSTbody = await request.json()
 		logger.debug(firstName, lastName, businessName, password, staySignedIn)
 
 		const allDetailsProvided = Boolean(firstName && lastName && businessName && password)
 		const partialDetailsProvided = Boolean(firstName || lastName || businessName || password) && !allDetailsProvided
 
-		// Reject requests that have some but not all fields
 		if (partialDetailsProvided) {
 			logger.info('Not enough details provided to create new account')
 			// ToDo: make this more specific
@@ -141,7 +141,7 @@ export async function PATCH(
 				transactionErrorCode = httpStatus.http503serviceUnavailable
 
 				// Create new user
-				const [createdUser]: DangerousBaseUser[] = await tx.insert(users).values(newUserInsertValues).returning()
+				const [createdUser]: DangerousBaseUser[] | undefined = await tx.insert(users).values(newUserInsertValues).returning()
 
 				// Create relationship
 				transactionErrorMessage = 'transaction error creating relationship join row'
@@ -156,7 +156,8 @@ export async function PATCH(
 				await tx.delete(invitations).where(and(eq(invitations.senderUserId, foundInvitation.senderUserId), eq(invitations.token, token)))
 
 				// Transaction: Send welcome email
-				const emailContent = `Hello ${createdUser.firstName}, thank you for signing up to Simple Order.` // ToDo: write a much better email
+				// Optimisation ToDo: write a much better email
+				const emailContent = `Hello ${createdUser.firstName}, thank you for signing up to Simple Order.`
 
 				transactionErrorMessage = 'transaction error sending welcome email'
 				const emailSuccess = await sendEmail({

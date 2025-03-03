@@ -5,7 +5,7 @@ import { invitations, merchantProfiles, relationships, users } from '@/library/d
 import logger from '@/library/logger'
 import { containsItems, obfuscateEmail } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { BrowserSafeCustomerProfile, BrowserSafeInvitationRecord, TokenMessages } from '@/types'
+import type { BrowserSafeCustomerProfile, MerchantFacingInvitationRecord, TokenMessages } from '@/types'
 import { eq } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -17,7 +17,7 @@ export interface CustomersGETresponse {
 		| typeof authenticationMessages.merchantNotFound
 		| typeof authenticationMessages.dataBelongsToOtherUser
 	confirmedCustomers?: BrowserSafeCustomerProfile[]
-	invitedCustomers?: BrowserSafeInvitationRecord[]
+	invitedCustomers?: MerchantFacingInvitationRecord[]
 }
 
 // Get confirmed and invited customers for the signed-in merchant

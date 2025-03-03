@@ -3,13 +3,11 @@ import { database } from '@/library/database/connection'
 import { checkRelationship, checkUserExists } from '@/library/database/operations'
 import { merchantProfiles, products, users } from '@/library/database/schema'
 import logger from '@/library/logger'
-import { nonEmptyArray } from '@/library/utilities'
+import { convertEmptyToUndefined } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
 import type { BrowserSafeCustomerProduct, TokenMessages } from '@/types'
 import { and, eq, isNull } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
-
-// This is a GET route using params, so there isn't a body interface
 
 export interface InventoryMerchantsMerchantSlugGETresponse {
 	message:
@@ -25,7 +23,7 @@ export interface InventoryMerchantsMerchantSlugGETresponse {
 }
 
 // Get all published products for a particular merchant, plus the businessName for convenience
-
+// This is a GET route using params, so there isn't a body interface
 export async function GET(
 	request: NextRequest,
 	{ params }: { params: Promise<{ merchantSlug: string }> },
@@ -67,23 +65,25 @@ export async function GET(
 		return NextResponse.json({ message: 'businessName not found' }, { status: httpStatus.http503serviceUnavailable })
 	}
 
-	const availableProducts: BrowserSafeCustomerProduct[] = await database
-		.select({
-			id: products.id,
-			name: products.name,
-			description: products.description,
-			priceInMinorUnits: products.priceInMinorUnits,
-			customVat: products.customVat,
-		})
-		.from(products)
-		.where(and(eq(products.ownerId, merchantProfile.userId), isNull(products.deletedAt)))
+	const availableProducts = convertEmptyToUndefined(
+		await database
+			.select({
+				id: products.id,
+				name: products.name,
+				description: products.description,
+				priceInMinorUnits: products.priceInMinorUnits,
+				customVat: products.customVat,
+			})
+			.from(products)
+			.where(and(eq(products.ownerId, merchantProfile.userId), isNull(products.deletedAt))),
+	)
 
 	try {
 		return NextResponse.json(
 			{
 				message: basicMessages.success,
-				...(nonEmptyArray(availableProducts) && { availableProducts }),
 				businessName: foundBusinessName,
+				availableProducts,
 			},
 			{ status: httpStatus.http200ok },
 		)
