@@ -1,23 +1,4 @@
 export const apiPaths = {
-	// Working RESTful routes that I'm happy with
-	customers: {
-		base: '/api/customers',
-	},
-	invitations: {
-		// POST create an invitation.
-		// The code could be cleaned up but I think it works okay.
-		base: '/api/invitations',
-
-		// PATCH accept an invitation
-		// I think this works fine but it needs thorough testing
-		accept: '/api/invitations/[token]',
-	},
-	merchants: {
-		// GET confirmed & pending merchants for the signed-in customer
-		base: '/api/merchants',
-	},
-
-	// Major ToDos / not RESTful / Broken / Not sure...
 	authentication: {
 		signIn: '/api/authentication/sign-in',
 		createAccount: '/api/authentication/create-account',
@@ -28,20 +9,24 @@ export const apiPaths = {
 			resend: '/api/authentication/email/resend',
 		},
 	},
+	customers: {
+		base: '/api/customers',
+	},
+	invitations: {
+		base: '/api/invitations',
+		accept: '/api/invitations/[token]',
+	},
+	merchants: {
+		base: '/api/merchants',
+	},
 	inventory: {
 		admin: {
 			base: '/api/inventory/admin',
-			// Get all inventory items (including drafts/deleted) ✅
-			// POST: Create new item ✅
-
 			itemId: '/api/inventory/admin/[itemId]',
-			// PUT: Update item
-			// DELETE: Delete item ✅
 		},
 		merchants: {
-			base: '/api/inventory/merchants', // ✅
+			base: '/api/inventory/merchants',
 			merchantSlug: '/api/inventory/merchants/[merchantSlug]',
-			// GET Customer view of a specific merchant's published products
 		},
 	},
 	order: {
