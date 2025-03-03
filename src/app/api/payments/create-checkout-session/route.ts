@@ -66,10 +66,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<StripeCre
 			return NextResponse.json({ message: basicMessages.success, redirectUrl: url }, { status: httpStatus.http200ok })
 		}
 
-		logger.error(`${apiPaths.stripe.createCheckoutSession} error: session.url missing`)
+		logger.error(`${apiPaths.payments.createCheckoutSession} error: session.url missing`)
 		return NextResponse.json({ message: 'service unavailable' }, { status: httpStatus.http503serviceUnavailable })
 	} catch (error) {
-		logger.error(`${apiPaths.stripe.createCheckoutSession} error`, error)
+		logger.error(`${apiPaths.payments.createCheckoutSession} error`, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
 	}
 }
