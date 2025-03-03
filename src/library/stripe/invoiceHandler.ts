@@ -14,6 +14,7 @@ export async function handleInvoice(invoice: Stripe.Invoice) {
 		const userId = invoice.subscription_details?.metadata?.simpleOrderUserId || invoice.lines?.data?.[0]?.metadata?.simpleOrderUserId
 		const email = invoice.customer_email
 
+		// ToDo: this is very complicated and confusing
 		const [foundUser] = await database
 			.select()
 			.from(users)
