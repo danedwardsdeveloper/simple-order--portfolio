@@ -6,9 +6,9 @@ import logger from '@/library/logger'
 import type {
 	BrowserSafeCompositeUser,
 	BrowserSafeCustomerProfile,
-	BrowserSafeInvitationRecord,
 	BrowserSafeMerchantProduct,
 	BrowserSafeMerchantProfile,
+	MerchantFacingInvitationRecord,
 } from '@/types'
 import { type Dispatch, type ReactNode, type SetStateAction, createContext, useContext, useEffect, useState } from 'react'
 import { useUi } from './ui'
@@ -20,21 +20,21 @@ interface UserContextType {
 	// Enhancement ToDo: add caching & revalidation with React Query
 
 	inventory: BrowserSafeMerchantProduct[] | null
-	setInventory: Dispatch<SetStateAction<BrowserSafeMerchantProduct[]>>
+	setInventory: Dispatch<SetStateAction<BrowserSafeMerchantProduct[] | null>>
 	hasAttemptedInventoryFetch: boolean
 	setHasAttemptedInventoryFetch: Dispatch<SetStateAction<boolean>>
 
-	confirmedMerchants: BrowserSafeMerchantProfile[]
-	setConfirmedMerchants: Dispatch<SetStateAction<BrowserSafeMerchantProfile[]>>
-	pendingMerchants: BrowserSafeMerchantProfile[]
-	setPendingMerchants: Dispatch<SetStateAction<BrowserSafeMerchantProfile[]>>
+	confirmedMerchants: BrowserSafeMerchantProfile[] | null
+	setConfirmedMerchants: Dispatch<SetStateAction<BrowserSafeMerchantProfile[] | null>>
+	pendingMerchants: BrowserSafeMerchantProfile[] | null
+	setPendingMerchants: Dispatch<SetStateAction<BrowserSafeMerchantProfile[] | null>>
 	hasAttemptedMerchantsFetch: boolean
 	setHasAttemptedMerchantsFetch: Dispatch<SetStateAction<boolean>>
 
-	confirmedCustomers: BrowserSafeCustomerProfile[]
-	setConfirmedCustomers: Dispatch<SetStateAction<BrowserSafeCustomerProfile[]>>
-	invitedCustomers: BrowserSafeInvitationRecord[]
-	setInvitedCustomers: Dispatch<SetStateAction<BrowserSafeInvitationRecord[]>>
+	confirmedCustomers: BrowserSafeCustomerProfile[] | null
+	setConfirmedCustomers: Dispatch<SetStateAction<BrowserSafeCustomerProfile[] | null>>
+	invitedCustomers: MerchantFacingInvitationRecord[] | null
+	setInvitedCustomers: Dispatch<SetStateAction<MerchantFacingInvitationRecord[] | null>>
 	hasAttemptedCustomersFetch: boolean
 	setHasAttemptedCustomersFetch: Dispatch<SetStateAction<boolean>>
 
@@ -51,15 +51,15 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 	const { merchantMode } = useUi()
 	const { setMerchantMode } = useUi()
 	const [user, setUser] = useState<BrowserSafeCompositeUser | null>(null)
-	const [inventory, setInventory] = useState<BrowserSafeMerchantProduct[]>([])
+	const [inventory, setInventory] = useState<BrowserSafeMerchantProduct[] | null>(null)
 	const [hasAttemptedInventoryFetch, setHasAttemptedInventoryFetch] = useState(false)
 
-	const [confirmedMerchants, setConfirmedMerchants] = useState<BrowserSafeMerchantProfile[]>([])
-	const [pendingMerchants, setPendingMerchants] = useState<BrowserSafeMerchantProfile[]>([])
+	const [confirmedMerchants, setConfirmedMerchants] = useState<BrowserSafeMerchantProfile[] | null>(null)
+	const [pendingMerchants, setPendingMerchants] = useState<BrowserSafeMerchantProfile[] | null>(null)
 	const [hasAttemptedMerchantsFetch, setHasAttemptedMerchantsFetch] = useState(false)
 
-	const [confirmedCustomers, setConfirmedCustomers] = useState<BrowserSafeCustomerProfile[]>([])
-	const [invitedCustomers, setInvitedCustomers] = useState<BrowserSafeInvitationRecord[]>([])
+	const [confirmedCustomers, setConfirmedCustomers] = useState<BrowserSafeCustomerProfile[] | null>(null)
+	const [invitedCustomers, setInvitedCustomers] = useState<MerchantFacingInvitationRecord[] | null>(null)
 	const [hasAttemptedCustomersFetch, setHasAttemptedCustomersFetch] = useState(false)
 
 	const [isLoading, setIsLoading] = useState(true)
