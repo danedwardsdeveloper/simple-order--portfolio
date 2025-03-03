@@ -1,41 +1,42 @@
+// This is only a record of the paths for making fetch requests and logging errors.
+// Full API details are in my Notion project
 export const apiPaths = {
 	authentication: {
-		signIn: '/api/authentication/sign-in',
 		createAccount: '/api/authentication/create-account',
-		signOut: '/api/authentication/sign-out',
-		verifyToken: '/api/authentication/verify-token',
 		email: {
 			confirm: '/api/authentication/email/confirm',
-			resend: '/api/authentication/email/resend',
 		},
+		signIn: '/api/authentication/sign-in',
+		signOut: '/api/authentication/sign-out',
+		verifyToken: '/api/authentication/verify-token',
 	},
-	customers: {
-		base: '/api/customers',
+	payments: {
+		createCheckoutSession: '/api/payments/create-checkout-session',
+		webhook: '/api/payments/webhook',
 	},
 	invitations: {
 		base: '/api/invitations',
 		accept: '/api/invitations/[token]',
 	},
-	merchants: {
-		base: '/api/merchants',
-	},
+	relationships: '/api/relationships',
 	inventory: {
-		admin: {
+		merchantPerspective: {
 			base: '/api/inventory/admin',
 			itemId: '/api/inventory/admin/[itemId]',
 		},
-		merchants: {
+		customerPerspective: {
 			base: '/api/inventory/merchants',
 			merchantSlug: '/api/inventory/merchants/[merchantSlug]',
 		},
 	},
-	order: {
-		base: '/api/orders',
-		orderId: '/api/orders/[orderId]',
-	},
-	stripe: {
-		createCheckoutSession: '/api/stripe/create-checkout-session',
-		createPortalSession: '/api/ stripe/create-portal-session',
-		webhook: '/api/stripe/webhook',
+	orders: {
+		merchantPerspective: {
+			base: '/api/orders/admin',
+			update: '/api/orders/admin/[orderId]',
+		},
+		customerPerspective: {
+			base: '/api/orders',
+			orderId: '/api/orders/[orderId]',
+		},
 	},
 } as const
