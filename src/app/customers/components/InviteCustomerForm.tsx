@@ -1,5 +1,5 @@
 'use client'
-import type { InviteCustomerPOSTbody, InviteCustomerPOSTresponse } from '@/app/api/invitations/route'
+import type { InvitationsPOSTbody, InvitationsPOSTresponse } from '@/app/api/invitations/route'
 import { apiPaths, dataTestIdNames } from '@/library/constants'
 import logger from '@/library/logger'
 import { useNotifications } from '@/providers/notifications'
@@ -23,11 +23,11 @@ export default function InviteCustomerForm() {
 		setLoading(true)
 
 		try {
-			const { message, browserSafeInvitationRecord }: InviteCustomerPOSTresponse = await (
+			const { message, browserSafeInvitationRecord }: InvitationsPOSTresponse = await (
 				await fetch(apiPaths.invitations.base, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ invitedEmail } satisfies InviteCustomerPOSTbody),
+					body: JSON.stringify({ invitedEmail } satisfies InvitationsPOSTbody),
 				})
 			).json()
 
