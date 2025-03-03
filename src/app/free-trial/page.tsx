@@ -22,6 +22,7 @@ export default function CreateAccountPage() {
 		firstName: preFillFormForManualTesting ? randomString : '',
 		lastName: preFillFormForManualTesting ? randomString : '',
 		businessName: preFillFormForManualTesting ? randomString : '',
+		slug: preFillFormForManualTesting ? randomString : '',
 		email: preFillFormForManualTesting ? `${randomString}@gmail.com` : '',
 		password: preFillFormForManualTesting ? randomString : '',
 		staySignedIn: preFillFormForManualTesting,
