@@ -63,6 +63,6 @@ export async function webhookHandler(event: Stripe.Event) {
 		case 'customer.subscription.trial_will_end':
 			break
 		default:
-			logger.debug(`${apiPaths.stripe.webhook}unhandled event type: ${event.type}.`)
+			logger.debug(`${apiPaths.payments.webhook}unhandled event type: ${event.type}.`)
 	}
 }
