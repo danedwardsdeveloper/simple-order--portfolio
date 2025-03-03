@@ -7,17 +7,10 @@ export const users = pgTable('users', {
 	lastName: text('last_name').notNull(),
 	email: text('email').notNull().unique(),
 	businessName: text('business_name').notNull().unique(),
+	slug: text('slug').notNull().unique(),
 	hashedPassword: text('hashed_password').notNull(),
 	emailConfirmed: boolean('email_confirmed').notNull().default(false),
 	cachedTrialExpired: boolean('cached_trial_expired').notNull().default(false),
-})
-
-export const merchantProfiles = pgTable('merchant_profiles', {
-	id: serial('id').primaryKey(),
-	userId: integer('user_id')
-		.notNull()
-		.references(() => users.id),
-	slug: text('slug').notNull().unique(),
 })
 
 export const relationships = pgTable(
@@ -46,11 +39,7 @@ export const invitations = pgTable(
 		emailAttempts: integer('email_attempts').notNull().default(0),
 		lastEmailSent: timestamp('last_email_sent').notNull(),
 	},
-	(table) => {
-		return {
-			senderEmailUnique: uniqueIndex('sender_email_unique_idx').on(table.senderUserId, table.email),
-		}
-	},
+	(table) => [uniqueIndex('sender_email_unique_idx').on(table.senderUserId, table.email)],
 )
 
 export const confirmationTokens = pgTable('confirmation_tokens', {
@@ -107,6 +96,8 @@ export const testEmailInbox = pgTable('test_email_inbox', {
 	content: text('content').notNull(),
 })
 
+// ToDo: change to 'pending' | 'completed'
+// Optimisation ToDo: add 'cancelled'
 export const orderStatusEnum = pgEnum('order_status', ['pending', 'processing', 'completed', 'cancelled'])
 
 export const orders = pgTable('orders', {
