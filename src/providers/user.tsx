@@ -1,5 +1,6 @@
 'use client'
 import type { VerifyTokenGETresponse } from '@/app/api/authentication/verify-token/route'
+import type { RelationshipsGETresponse } from '@/app/api/relationships/route'
 import SplashScreen from '@/components/SplashScreen'
 import { apiPaths, temporaryVat } from '@/library/constants'
 import logger from '@/library/logger'
@@ -17,8 +18,6 @@ interface UserContextType {
 	user: BrowserSafeCompositeUser | null
 	setUser: Dispatch<SetStateAction<BrowserSafeCompositeUser | null>>
 
-	// Enhancement ToDo: add caching & revalidation with React Query
-
 	inventory: BrowserSafeMerchantProduct[] | null
 	setInventory: Dispatch<SetStateAction<BrowserSafeMerchantProduct[] | null>>
 	hasAttemptedInventoryFetch: boolean
@@ -26,21 +25,18 @@ interface UserContextType {
 
 	confirmedMerchants: BrowserSafeMerchantProfile[] | null
 	setConfirmedMerchants: Dispatch<SetStateAction<BrowserSafeMerchantProfile[] | null>>
-	pendingMerchants: BrowserSafeMerchantProfile[] | null
-	setPendingMerchants: Dispatch<SetStateAction<BrowserSafeMerchantProfile[] | null>>
-	hasAttemptedMerchantsFetch: boolean
-	setHasAttemptedMerchantsFetch: Dispatch<SetStateAction<boolean>>
 
 	confirmedCustomers: BrowserSafeCustomerProfile[] | null
 	setConfirmedCustomers: Dispatch<SetStateAction<BrowserSafeCustomerProfile[] | null>>
+
+	pendingMerchants: BrowserSafeMerchantProfile[] | null
+	setPendingMerchants: Dispatch<SetStateAction<BrowserSafeMerchantProfile[] | null>>
+
 	invitedCustomers: MerchantFacingInvitationRecord[] | null
 	setInvitedCustomers: Dispatch<SetStateAction<MerchantFacingInvitationRecord[] | null>>
-	hasAttemptedCustomersFetch: boolean
-	setHasAttemptedCustomersFetch: Dispatch<SetStateAction<boolean>>
 
 	vat: number
 	isLoading: boolean
-	showNoCustomersMessage: boolean
 }
 
 const UserContext = createContext<UserContextType>({} as UserContextType)
@@ -48,7 +44,6 @@ const UserContext = createContext<UserContextType>({} as UserContextType)
 // ToDo: Change default states back to being null instead of empty arrays as it's confusing!
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
-	const { merchantMode } = useUi()
 	const { setMerchantMode } = useUi()
 	const [user, setUser] = useState<BrowserSafeCompositeUser | null>(null)
 	const [inventory, setInventory] = useState<BrowserSafeMerchantProduct[] | null>(null)
@@ -56,23 +51,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
 	const [confirmedMerchants, setConfirmedMerchants] = useState<BrowserSafeMerchantProfile[] | null>(null)
 	const [pendingMerchants, setPendingMerchants] = useState<BrowserSafeMerchantProfile[] | null>(null)
-	const [hasAttemptedMerchantsFetch, setHasAttemptedMerchantsFetch] = useState(false)
 
 	const [confirmedCustomers, setConfirmedCustomers] = useState<BrowserSafeCustomerProfile[] | null>(null)
 	const [invitedCustomers, setInvitedCustomers] = useState<MerchantFacingInvitationRecord[] | null>(null)
-	const [hasAttemptedCustomersFetch, setHasAttemptedCustomersFetch] = useState(false)
 
 	const [isLoading, setIsLoading] = useState(true)
-
-	const showNoCustomersMessage =
-		!!(
-			user &&
-			hasAttemptedCustomersFetch &&
-			!confirmedCustomers?.length &&
-			!invitedCustomers?.length &&
-			user.roles !== 'customer' &&
-			merchantMode
-		) || false
 
 	useEffect(() => {
 		async function getUser() {
@@ -80,7 +63,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 			try {
 				const { user }: VerifyTokenGETresponse = await (await fetch(apiPaths.authentication.verifyToken, { credentials: 'include' })).json()
 				if (user) {
-					logger.info('Found user: ', user.firstName)
 					setUser(user)
 
 					// Enhancement ToDO: change this so that it remembers the last used state/recorded preference
@@ -89,6 +71,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 					} else {
 						setMerchantMode(false)
 					}
+
+					await getRelationships()
 				}
 			} catch (error) {
 				logger.error(`User provider ${apiPaths.authentication.verifyToken}`, error)
@@ -96,6 +80,19 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 				setIsLoading(false)
 			}
 		}
+
+		async function getRelationships() {
+			try {
+				const { customers, merchants }: RelationshipsGETresponse = await (
+					await fetch(apiPaths.relationships, { credentials: 'include' })
+				).json()
+				setConfirmedMerchants(merchants || null)
+				setConfirmedCustomers(customers || null)
+			} catch (error) {
+				logger.error(`User provider ${apiPaths.relationships}`, error)
+			}
+		}
+
 		if (!user) getUser()
 	}, [user, setMerchantMode])
 
@@ -112,21 +109,18 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
 				confirmedMerchants,
 				setConfirmedMerchants,
-				pendingMerchants,
-				setPendingMerchants,
-				hasAttemptedMerchantsFetch,
-				setHasAttemptedMerchantsFetch,
 
 				confirmedCustomers,
 				setConfirmedCustomers,
+
+				pendingMerchants,
+				setPendingMerchants,
+
 				invitedCustomers,
 				setInvitedCustomers,
-				hasAttemptedCustomersFetch,
-				setHasAttemptedCustomersFetch,
 
 				isLoading,
 				vat: temporaryVat,
-				showNoCustomersMessage,
 			}}
 		>
 			<SplashScreen show={isLoading} />
