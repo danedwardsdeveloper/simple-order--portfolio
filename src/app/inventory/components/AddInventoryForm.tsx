@@ -46,7 +46,7 @@ export default function AddInventoryForm() {
 			return
 		}
 
-		const { message, product }: InventoryAddPOSTresponse = await (
+		const { message, addedProduct }: InventoryAddPOSTresponse = await (
 			await fetch(apiPaths.inventory.admin.base, {
 				method: 'POST',
 				headers: {
@@ -58,8 +58,8 @@ export default function AddInventoryForm() {
 			})
 		).json()
 
-		if (product) {
-			setInventory((previousInventory) => (previousInventory ? [...previousInventory, product] : [product]))
+		if (addedProduct) {
+			setInventory((previousInventory) => (previousInventory ? [...previousInventory, addedProduct] : [addedProduct]))
 
 			const notification: NewNotification = {
 				title: 'Success',
