@@ -1,4 +1,4 @@
-import type { merchantProfiles, relationships, users } from '@/library/database/schema'
+import type { relationships, users } from '@/library/database/schema'
 import type { Roles } from '@/types'
 
 export type DangerousBaseUser = typeof users.$inferSelect
@@ -15,8 +15,6 @@ export interface BrowserSafeCompositeUser extends BaseBrowserSafeUser {
 
 export type InvitedCustomerBrowserInputValues = Omit<BaseUserBrowserInputValues, 'email'>
 
-export type DangerousMerchantProfile = typeof merchantProfiles.$inferSelect
-export type MerchantProfileInsertValues = typeof merchantProfiles.$inferInsert
 export interface BrowserSafeMerchantProfile {
 	slug: string
 	businessName: string
