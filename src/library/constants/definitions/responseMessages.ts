@@ -9,11 +9,13 @@ export const basicMessages = {
 } as const
 
 export const missingFieldMessages = {
+	nameMissing: 'name missing',
 	lastNameMissing: 'lastName missing',
 	firstNameMissing: 'firstName missing',
 	emailMissing: 'email missing',
 	businessNameMissing: 'businessName missing',
 	passwordMissing: 'password missing',
+	priceMissing: 'priceInMinorUnits missing',
 	invitedEmailMissing: 'invitedEmail missing',
 	merchantSlugMissing: 'merchantSlug missing',
 } as const
@@ -35,10 +37,12 @@ export const authenticationMessages = {
 } as const
 
 export const illegalCharactersMessages = {
+	businessName: 'businessName contains illegal characters',
+	description: 'description contains illegal characters',
 	firstName: 'firstName contains illegal characters',
 	lastName: 'lastName contains illegal characters',
+	name: 'name contains illegal characters',
 	password: 'password contains illegal characters',
-	businessName: 'businessName contains illegal characters',
 } as const
 
 export const tokenMessages = {
