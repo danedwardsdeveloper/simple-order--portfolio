@@ -12,7 +12,9 @@ interface Props {
 	currentPageTitle: string
 }
 
-function DashboardItem() {
+// ToDo: Add business name
+
+function UserItem() {
 	return (
 		<li>
 			<div className="flex items-center">
@@ -40,7 +42,7 @@ export default function BreadCrumbs({ home, trail, currentPageTitle }: Props) {
 	return (
 		<nav aria-label="Breadcrumb" className="flex mb-12">
 			<ol className="flex items-center space-x-4">
-				{home === 'landingPage' ? <LandingPageItem /> : <DashboardItem />}
+				{home === 'landingPage' ? <LandingPageItem /> : <UserItem />}
 				{trail?.map((item) => (
 					<li key={item.href}>
 						<div className="flex items-center">
