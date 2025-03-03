@@ -1,56 +1,47 @@
 'use client'
-import type { CustomersGETresponse } from '@/app/api/customers/route'
 import Spinner from '@/components/Spinner'
-import { apiPaths } from '@/library/constants'
-import logger from '@/library/logger'
 import { useUser } from '@/providers/user'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import ConfirmedCustomerCard from './ConfirmedCustomerCard'
 import InvitedCustomerCard from './InvitedCustomerCard'
 
 export default function CustomersList() {
-	const {
-		confirmedCustomers,
-		setConfirmedCustomers,
-		invitedCustomers,
-		setInvitedCustomers,
-		hasAttemptedCustomersFetch,
-		setHasAttemptedCustomersFetch,
-	} = useUser()
-	const [isLoading, setIsLoading] = useState(false)
-	const [message, setMessage] = useState('')
+	const { confirmedCustomers, invitedCustomers } = useUser()
+	const [isLoading] = useState(false)
+	const [message] = useState('')
 
 	// Enhancement ToDo: implement React Query for better data caching
-	// biome-ignore lint/correctness/useExhaustiveDependencies: <Run on initial mount only>
-	useEffect(() => {
-		async function getCustomers() {
-			try {
-				setIsLoading(true)
-				const { confirmedCustomers, invitedCustomers, message }: CustomersGETresponse = await (
-					await fetch(apiPaths.customers.base, { credentials: 'include' })
-				).json()
+	// ToDo: Get invited customers
 
-				if (confirmedCustomers) setConfirmedCustomers(confirmedCustomers)
-				if (invitedCustomers) setInvitedCustomers(invitedCustomers)
+	// useEffect(() => {
+	// 	async function getCustomers() {
+	// 		try {
+	// 			setIsLoading(true)
+	// 			const { confirmedCustomers, invitedCustomers, message }: CustomersGETresponse = await (
+	// 				await fetch(apiPaths.customers.base, { credentials: 'include' })
+	// 			).json()
 
-				if (!confirmedCustomers && !invitedCustomers) {
-					setMessage(message || 'No customers found')
-				} else {
-					setMessage('')
-				}
-			} catch (error) {
-				logger.error('Error fetching customers:', error)
-				setMessage('Failed to load customers. Please try again later.')
-			} finally {
-				setIsLoading(false)
-				setHasAttemptedCustomersFetch(true)
-			}
-		}
+	// 			if (confirmedCustomers) setConfirmedCustomers(confirmedCustomers)
+	// 			if (invitedCustomers) setInvitedCustomers(invitedCustomers)
 
-		if (!hasAttemptedCustomersFetch) {
-			getCustomers()
-		}
-	}, [])
+	// 			if (!confirmedCustomers && !invitedCustomers) {
+	// 				setMessage(message || 'No customers found')
+	// 			} else {
+	// 				setMessage('')
+	// 			}
+	// 		} catch (error) {
+	// 			logger.error('Error fetching customers:', error)
+	// 			setMessage('Failed to load customers. Please try again later.')
+	// 		} finally {
+	// 			setIsLoading(false)
+	// 			setHasAttemptedCustomersFetch(true)
+	// 		}
+	// 	}
+
+	// 	if (!hasAttemptedCustomersFetch) {
+	// 		getCustomers()
+	// 	}
+	// }, [])
 
 	// Enhancement ToDo: create skeleton
 	if (isLoading) return <Spinner />
