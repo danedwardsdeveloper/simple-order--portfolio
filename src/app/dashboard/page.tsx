@@ -5,80 +5,35 @@ import { apiPaths } from '@/library/constants'
 import logger from '@/library/logger'
 import { useUser } from '@/providers/user'
 import { useEffect } from 'react'
-import type { CustomersGETresponse } from '../api/customers/route'
 import type { InventoryAdminGETresponse } from '../api/inventory/admin/route'
 import EmptyInventoryMessage from './components/EmptyInventoryMessage'
 import NoCustomersMessage from './components/NoCustomersMessage'
 
 export default function DashboardPage() {
-	const {
-		user,
-		inventory,
-		setInventory,
-		hasAttemptedInventoryFetch,
-		setHasAttemptedInventoryFetch,
-		setInvitedCustomers,
-		setConfirmedCustomers,
-		hasAttemptedCustomersFetch,
-		setHasAttemptedCustomersFetch,
-		showNoCustomersMessage,
-	} = useUser()
+	const { user, inventory, setInventory, hasAttemptedInventoryFetch, setHasAttemptedInventoryFetch, confirmedCustomers } = useUser()
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies:
 	useEffect(() => {
 		if (!user) return
 
-		async function fetchData() {
+		async function getInventory() {
 			try {
 				if (!user) return
 
-				const fetchPromises = []
-				const fetchTypes: ('inventory' | 'customers')[] = []
-
 				if (!hasAttemptedInventoryFetch) {
-					fetchPromises.push(fetch(apiPaths.inventory.admin.base, { credentials: 'include' }).then((res) => res.json()))
-					fetchTypes.push('inventory')
+					const { inventory }: InventoryAdminGETresponse = await (
+						await fetch(apiPaths.inventory.merchantPerspective.base, { credentials: 'include' })
+					).json()
+					if (inventory) setInventory(inventory)
+					setHasAttemptedInventoryFetch(true)
 				}
-
-				if (user.roles !== 'customer' && !hasAttemptedCustomersFetch) {
-					fetchPromises.push(fetch(apiPaths.customers.base, { credentials: 'include' }).then((res) => res.json()))
-					fetchTypes.push('customers')
-				}
-
-				if (fetchPromises.length === 0) return
-
-				const responses = await Promise.all(fetchPromises)
-
-				responses.forEach((result, index) => {
-					const fetchType = fetchTypes[index]
-
-					if (fetchType === 'inventory') {
-						const { inventory }: InventoryAdminGETresponse = result
-						if (inventory) setInventory(inventory)
-						setHasAttemptedInventoryFetch(true)
-					} else if (fetchType === 'customers') {
-						const { invitedCustomers, confirmedCustomers }: CustomersGETresponse = result
-
-						if (invitedCustomers) setInvitedCustomers(invitedCustomers)
-						if (confirmedCustomers) setConfirmedCustomers(confirmedCustomers)
-						setHasAttemptedCustomersFetch(true)
-					}
-				})
 			} catch (error) {
-				logger.error('Error fetching dashboard data:', error)
+				logger.error('Error getting inventory from dashboard/page.tsx:', error)
 			}
 		}
 
-		fetchData()
-	}, [
-		user,
-		hasAttemptedInventoryFetch,
-		hasAttemptedCustomersFetch,
-		setInventory,
-		setInvitedCustomers,
-		setConfirmedCustomers,
-		setHasAttemptedInventoryFetch,
-		setHasAttemptedCustomersFetch,
-	])
+		getInventory()
+	}, [user])
 
 	if (!user) return <UnauthorisedLinks />
 
@@ -86,8 +41,8 @@ export default function DashboardPage() {
 		<>
 			<h2>Welcome {user.businessName}</h2>
 			{!user.emailConfirmed && <PleaseConfirmYourEmailMessage email={user.email} />}
-			{!inventory && <EmptyInventoryMessage />}
-			{showNoCustomersMessage && <NoCustomersMessage emailConfirmed={user.emailConfirmed} />}
+			{user.roles !== 'customer' && !inventory && <EmptyInventoryMessage />}
+			{user.roles !== 'customer' && !confirmedCustomers && <NoCustomersMessage emailConfirmed={user.emailConfirmed} />}
 		</>
 	)
 }
