@@ -18,7 +18,7 @@ export async function generateMetadata({
 
 	if (!article) return null
 	return {
-		title: article.metaTitle,
+		title: article.metaTitlePrefix,
 		description: article.metaDescription,
 		alternates: {
 			canonical: `${dynamicBaseURL}/articles/${slug}`,
@@ -38,8 +38,7 @@ export default async function Page({
 
 	return (
 		<PageContainer>
-			{/* ToDo: fix this */}
-			<BreadCrumbs title={article.displayTitle} />
+			<BreadCrumbs home="landingPage" trail={[{ href: '/articles', displayName: 'Articles' }]} currentPageTitle={article.displayTitle} />
 			<h1>{article.displayTitle}</h1>
 			<div className="flex flex-col max-w-prose gap-y-4">
 				{article.paragraphs.map((paragraph) => (
