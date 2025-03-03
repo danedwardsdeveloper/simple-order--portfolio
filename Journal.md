@@ -42,3 +42,9 @@
 -  Restructured the site in a big way!
    -  I removed /merchants as it's confusing. Now, customers go to /orders, where there's a list of merchants they're subscribed to
 -  Made Customer/Merchant-facing order pages
+
+## Saturday 29 February
+
+-  Prevented /api/inventory/merchants/[merchantSlug] GET from returning empty arrays
+-  Working on a root-level BreadCrumbs component as I want this on every page except the home page
+-  Created /api/invitations GET route to retrieve pending invitations for the signed-in customer
