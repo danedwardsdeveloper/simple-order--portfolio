@@ -30,8 +30,8 @@ export default function CustomersList() {
 					await fetch(apiPaths.customers.base, { credentials: 'include' })
 				).json()
 
-				setConfirmedCustomers(confirmedCustomers)
-				setInvitedCustomers(invitedCustomers)
+				if (confirmedCustomers) setConfirmedCustomers(confirmedCustomers)
+				if (invitedCustomers) setInvitedCustomers(invitedCustomers)
 
 				if (!confirmedCustomers && !invitedCustomers) {
 					setMessage(message || 'No customers found')
