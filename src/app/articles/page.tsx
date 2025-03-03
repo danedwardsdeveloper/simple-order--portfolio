@@ -1,5 +1,6 @@
 import Link from 'next/link'
 
+import BreadCrumbs from '@/components/BreadCrumbs'
 import PageContainer from '@/components/PageContainer'
 import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import type { Metadata } from 'next'
@@ -15,10 +16,16 @@ export const metadata: Metadata = {
 export default function AllArticlesPage() {
 	return (
 		<PageContainer>
+			<BreadCrumbs currentPageTitle="Articles" home="landingPage" />
 			<h1>Articles</h1>
 			<div className="grid grid-cols-2 gap-y-24">
 				{Object.keys(articlesData)
-					.sort((a, b) => articlesData[b].date.getTime() - articlesData[a].date.getTime())
+					.sort((a, b) => {
+						// Utility pages last, then sort by date
+						if (articlesData[a].utilityPage && !articlesData[b].utilityPage) return 1
+						if (!articlesData[a].utilityPage && articlesData[b].utilityPage) return -1
+						return articlesData[b].date.getTime() - articlesData[a].date.getTime()
+					})
 					.map((slug) => (
 						<Link key={slug} href={`/articles/${slug}`} className="max-w-sm p-2 hover:bg-blue-50 rounded-lg transition-colors duration-300">
 							<h2 className="text-xl font-medium mb-1">{articlesData[slug].displayTitle}</h2>
