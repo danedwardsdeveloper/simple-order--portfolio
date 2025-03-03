@@ -2,14 +2,12 @@
 
 ## Current Task
 
-    	/** Get all customers for a specific merchant
-    	 * This is the route I'm working on. I don't actually have the merchantSlug straight away as it's in merchant_profiles, not users. I think I need to move this to an api/customers route...
-    	*/
-    	customers: '/api/merchants/[merchantSlug]/customers',
+Make RESTful invitations routes
 
 ## MVP
 
--  Make sure all routes are RESTful
+-  Make all API route don't return empty arrays
+-  Make all routes RESTful (mostly)
 
 -  Fix transaction error handling in `/api/invitations/accept/[token]`
 
