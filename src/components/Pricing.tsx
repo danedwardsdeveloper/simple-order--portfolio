@@ -20,7 +20,7 @@ export default function Pricing() {
 							Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 						</p>
 						<div className="mt-10 flex items-center gap-x-4">
-							<h4 className="flex-none text-sm/6 font-semibold text-blue-600">What's included</h4>
+							<h4 className="flex-none text-sm/6 font-semibold text-blue-600">{`What's included`}</h4>
 							<div className="h-px flex-auto bg-gray-100" />
 						</div>
 						<ul className="mt-8 grid grid-cols-1 gap-4 text-sm/6 text-gray-600 sm:grid-cols-2 sm:gap-6">
