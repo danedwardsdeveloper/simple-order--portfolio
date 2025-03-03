@@ -1,11 +1,10 @@
-import Providers from '@/components/Providers'
 import MenuBar from '@/components/menubar'
-import NotificationsContainer from '@/components/notifications/NotificationContainer'
 import { websiteCopy } from '@/library/constants'
 import { productionBaseURL } from '@/library/environment/publicVariables'
 import type { Metadata, Viewport } from 'next'
 import './globals.tailwind.css'
 import Footer from '@/components/Footer'
+import Providers from '@/components/Providers'
 import type { ReactNode } from 'react'
 
 export const metadata: Metadata = {
@@ -36,7 +35,6 @@ export default function RootLayout({
 					<MenuBar />
 					{children}
 					<Footer />
-					<NotificationsContainer />
 				</Providers>
 			</body>
 		</html>
