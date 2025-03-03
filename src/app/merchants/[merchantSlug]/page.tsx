@@ -1,7 +1,6 @@
 'use client'
 import type { InventoryMerchantsMerchantSlugGETresponse } from '@/app/api/inventory/merchants/[merchantSlug]/route'
 import BreadCrumbs from '@/components/BreadCrumbs'
-import Spinner from '@/components/Spinner'
 import { apiPaths } from '@/library/constants'
 import logger from '@/library/logger'
 import type { BrowserSafeCustomerProduct } from '@/types'
@@ -22,15 +21,12 @@ export default function MerchantPage({
 	const resolvedParams = use(params)
 	const merchantSlug = resolvedParams.merchantSlug
 	const [products, setProducts] = useState<BrowserSafeCustomerProduct[] | null>(null)
-	const [isLoading, setIsLoading] = useState(false)
 	const [errorMessage, setErrorMessage] = useState('')
 	const [businessName, setBusinessName] = useState('')
 
 	useEffect(() => {
 		async function getData() {
 			try {
-				setIsLoading(true)
-
 				const { availableProducts, message, businessName }: InventoryMerchantsMerchantSlugGETresponse = await (
 					await fetch(urlJoin(apiPaths.inventory.merchants.base, merchantSlug), { credentials: 'include' })
 				).json()
@@ -41,8 +37,6 @@ export default function MerchantPage({
 				if (!availableProducts && !businessName) setErrorMessage(message)
 			} catch (error) {
 				logger.error('unknown error: ', error)
-			} finally {
-				setIsLoading(false)
 			}
 		}
 		getData()
@@ -52,7 +46,7 @@ export default function MerchantPage({
 		return (
 			<>
 				<h1>{businessName || merchantSlug}</h1>
-				<p>This merchant hasn't added any products yet</p>
+				<p>{`This merchant hasn't added any products yet`}</p>
 			</>
 		)
 	}
@@ -81,7 +75,7 @@ export default function MerchantPage({
 			/>
 			<h1>{businessName}</h1>
 			{errorMessage && <p>{errorMessage}</p>}
-			{isLoading ? <Spinner /> : <Products />}
+			<Products />
 		</>
 	)
 }
