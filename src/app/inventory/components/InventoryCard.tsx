@@ -94,7 +94,7 @@ export default function InventoryCard({ product, zebraStripe }: Props) {
 					</div>
 					<div className="flex gap-x-4">
 						<button type="button" className="link-danger" onClick={() => setShowDeleteModal(true)}>
-							Delete
+							Delete...
 						</button>
 						<button type="button" className="link-primary" onClick={() => setIsBeingEdited(true)}>
 							Edit
