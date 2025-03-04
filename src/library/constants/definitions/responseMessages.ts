@@ -5,6 +5,7 @@ export const basicMessages = {
 	serverError: 'server error',
 	serviceUnavailable: 'service unavailable',
 	success: 'success',
+	transactionError: 'transaction error',
 	unknownTransactionError: 'unknown transaction error',
 } as const
 
@@ -16,6 +17,7 @@ export const missingFieldMessages = {
 	businessNameMissing: 'businessName missing',
 	passwordMissing: 'password missing',
 	priceMissing: 'priceInMinorUnits missing',
+	productsMissing: 'products missing',
 	invitedEmailMissing: 'invitedEmail missing',
 	merchantSlugMissing: 'merchantSlug missing',
 } as const
