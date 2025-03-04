@@ -1,7 +1,7 @@
 import { apiPaths, authenticationMessages, basicMessages, httpStatus, relationshipMessages, tokenMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkRelationship, checkUserExists } from '@/library/database/operations'
-import { merchantProfiles, products, users } from '@/library/database/schema'
+import { products, users } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { convertEmptyToUndefined } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
@@ -33,7 +33,7 @@ export async function GET(
 	const { extractedUserId, status, message } = await extractIdFromRequestCookie(request)
 
 	if (!extractedUserId) {
-		logger.error(`${apiPaths.inventory.merchants.merchantSlug} error: extractedUserId missing`)
+		logger.error(`${apiPaths.inventory.customerPerspective.merchantSlug} error: extractedUserId missing`)
 		return NextResponse.json({ message }, { status })
 	}
 
@@ -42,27 +42,16 @@ export async function GET(
 		return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
 	}
 
-	const [merchantProfile] = await database.select().from(merchantProfiles).where(eq(merchantProfiles.slug, merchantSlug))
+	const [dangerousMerchantProfile] = await database.select().from(users).where(eq(users.slug, merchantSlug))
 
-	if (!merchantProfile) {
+	if (!dangerousMerchantProfile) {
 		return NextResponse.json({ message: authenticationMessages.merchantNotFound }, { status: httpStatus.http401unauthorised })
 	}
 
-	const { relationshipExists } = await checkRelationship({ customerId: extractedUserId, merchantId: merchantProfile.userId })
+	const { relationshipExists } = await checkRelationship({ customerId: extractedUserId, merchantId: dangerousMerchantProfile.id })
 
 	if (!relationshipExists) {
 		return NextResponse.json({ message: relationshipMessages.relationshipMissing }, { status: httpStatus.http403forbidden })
-	}
-
-	const [{ foundBusinessName }] = await database
-		.select({
-			foundBusinessName: users.businessName,
-		})
-		.from(users)
-		.where(eq(users.id, merchantProfile.userId))
-
-	if (!foundBusinessName) {
-		return NextResponse.json({ message: 'businessName not found' }, { status: httpStatus.http503serviceUnavailable })
 	}
 
 	const availableProducts = convertEmptyToUndefined(
@@ -75,20 +64,20 @@ export async function GET(
 				customVat: products.customVat,
 			})
 			.from(products)
-			.where(and(eq(products.ownerId, merchantProfile.userId), isNull(products.deletedAt))),
+			.where(and(eq(products.ownerId, dangerousMerchantProfile.id), isNull(products.deletedAt))),
 	)
 
 	try {
 		return NextResponse.json(
 			{
 				message: basicMessages.success,
-				businessName: foundBusinessName,
+				businessName: dangerousMerchantProfile.businessName,
 				availableProducts,
 			},
 			{ status: httpStatus.http200ok },
 		)
 	} catch (error) {
-		logger.error(`${apiPaths.inventory.merchants.merchantSlug} error: `, error)
+		logger.error(`${apiPaths.inventory.customerPerspective.merchantSlug} error: `, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
 	}
 }
