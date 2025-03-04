@@ -9,7 +9,7 @@ import { type FormEvent, useState } from 'react'
 import type {
 	StripeCreateCheckoutSessionPOSTbody,
 	StripeCreateCheckoutSessionPOSTresponse,
-} from '../api/stripe/create-checkout-session/route'
+} from '../api/payments/create-checkout-session/route'
 
 export default function CheckoutPage() {
 	const searchParams = useSearchParams()
@@ -31,7 +31,7 @@ export default function CheckoutPage() {
 		setIsLoading(true)
 		try {
 			const { redirectUrl, message }: StripeCreateCheckoutSessionPOSTresponse = await (
-				await fetch(apiPaths.stripe.createCheckoutSession, {
+				await fetch(apiPaths.payments.createCheckoutSession, {
 					method: 'POST',
 					body: JSON.stringify({
 						email: user.email,
