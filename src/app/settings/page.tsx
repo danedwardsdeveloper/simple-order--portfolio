@@ -1,4 +1,5 @@
 'use client'
+import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
 import RoleModeButton from '@/components/menubar/RoleModeButton'
 import { useUser } from '@/providers/user'
@@ -12,9 +13,14 @@ export default function SettingsPage() {
 
 	return (
 		<>
-			<RoleModeButton />
-			<UserInformation />
-			<SignOutButton />
+			<SignedInBreadCrumbs businessName={user.businessName} currentPageTitle="Settings" />
+			<div className="flex flex-col gap-y-4 items-start">
+				<h1>Settings</h1>
+
+				<RoleModeButton />
+				<UserInformation />
+				<SignOutButton />
+			</div>
 		</>
 	)
 }
