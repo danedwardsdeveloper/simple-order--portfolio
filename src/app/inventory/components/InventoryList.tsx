@@ -19,7 +19,7 @@ export default function InventoryList() {
 			try {
 				setIsLoading(true)
 				const { inventory, message }: InventoryAdminGETresponse = await (
-					await fetch(apiPaths.inventory.admin.base, { credentials: 'include' })
+					await fetch(apiPaths.inventory.merchantPerspective.base, { credentials: 'include' })
 				).json()
 
 				logger.debug('Inventory: ', inventory)
