@@ -2,13 +2,13 @@ import {
 	authenticationMessages,
 	basicMessages,
 	cookieDurations,
-	durationOptions,
+	durationSettings,
 	httpStatus,
 	illegalCharactersMessages,
 	missingFieldMessages,
 } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { confirmationTokens, freeTrials, merchantProfiles, users } from '@/library/database/schema'
+import { confirmationTokens, freeTrials, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import { createNewMerchantEmail } from '@/library/email/templates/newMerchant'
 import { emailRegex } from '@/library/email/utilities'
@@ -21,7 +21,6 @@ import type {
 	BaseUserInsertValues,
 	BrowserSafeCompositeUser,
 	DangerousBaseUser,
-	FreeTrial,
 	IllegalCharactersMessages,
 	MissingFieldMessages,
 	NewFreeTrial,
@@ -47,9 +46,10 @@ export interface CreateAccountPOSTresponse {
 		| typeof authenticationMessages.invalidEmailFormat
 		| typeof authenticationMessages.emailTaken
 		| typeof authenticationMessages.businessNameTaken
-		| IllegalCharactersMessages
 		| typeof basicMessages.success
 		| typeof basicMessages.serverError
+		| typeof basicMessages.serviceUnavailable
+		| IllegalCharactersMessages
 	user?: BrowserSafeCompositeUser
 }
 
@@ -108,58 +108,44 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 		let transactionErrorMessage: string | null = basicMessages.serverError
 		let transactionErrorStatusCode: number | null = httpStatus.http503serviceUnavailable
 
-		const { newUser, newMerchant, newFreeTrial } = await database.transaction(async (tx) => {
+		const { dangerousNewUser } = await database.transaction(async (tx) => {
+			const baseSlug = createMerchantSlug(businessName)
+			let slug = baseSlug
+
+			for (let attempt = 0; attempt < 10; attempt++) {
+				const existingSlug = await tx.select().from(users).where(eq(users.slug, slug)).limit(1)
+
+				if (existingSlug.length === 0) break
+				slug = `${baseSlug}-${attempt + 1}`
+			}
+
 			const newUserInsertValues: BaseUserInsertValues = {
 				firstName: firstName.trim(),
 				lastName: lastName.trim(),
 				email: normalisedEmail,
 				hashedPassword: hashedPassword.trim(),
 				businessName: businessName.trim(),
+				slug,
 				emailConfirmed: false,
 				cachedTrialExpired: false,
 			}
 
-			const [newUser]: DangerousBaseUser[] = await tx.insert(users).values(newUserInsertValues).returning()
+			const [dangerousNewUser]: DangerousBaseUser[] = await tx.insert(users).values(newUserInsertValues).returning()
 
-			logger.debug('New user: ', JSON.stringify(newUser))
-
-			const baseSlug = createMerchantSlug(businessName)
-			let slug = baseSlug
-
-			for (let attempt = 0; attempt < 5; attempt++) {
-				const existingSlug = await tx.select().from(merchantProfiles).where(eq(merchantProfiles.slug, slug)).limit(1)
-
-				if (existingSlug.length === 0) break
-				slug = `${baseSlug}-${attempt + 1}`
-			}
-
-			const [newMerchant] = await tx
-				.insert(merchantProfiles)
-				.values({
-					slug,
-					userId: newUser.id,
-				})
-				.returning()
-
-			logger.debug('New merchant profile: ', JSON.stringify(newMerchant))
-
-			// The free trial is linked to the merchantId, not the userId! This is because not all users are merchants
 			const freeTrialInsert: NewFreeTrial = {
 				startDate: new Date(),
 				endDate: createFreeTrialEndTime(),
-				userId: newUser.id,
+				userId: dangerousNewUser.id,
 			}
 
-			const [newFreeTrial]: FreeTrial[] = await tx.insert(freeTrials).values(freeTrialInsert).returning()
-
-			logger.debug('New free trial: ', JSON.stringify(newFreeTrial))
+			await tx.insert(freeTrials).values(freeTrialInsert).returning()
 
 			const emailConfirmationToken = generateConfirmationToken()
 
 			await tx.insert(confirmationTokens).values({
-				userId: newUser.id,
+				userId: dangerousNewUser.id,
 				token: emailConfirmationToken,
-				expiresAt: new Date(Date.now() + durationOptions.twentyFourHoursInMilliseconds),
+				expiresAt: new Date(Date.now() + durationSettings.confirmEmailExpiry),
 			})
 
 			const confirmationURL = `${dynamicBaseURL}/confirm?token=${emailConfirmationToken}`
@@ -180,15 +166,14 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 			transactionErrorMessage = null
 			transactionErrorStatusCode = null
 
-			return { newUser, newMerchant, newFreeTrial }
+			return { dangerousNewUser }
 		})
 
-		if (!newUser || !newMerchant || !newFreeTrial || transactionErrorMessage || transactionErrorStatusCode) {
-			// ToDo: Use proper codes
-			return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http503serviceUnavailable })
+		if (transactionErrorMessage || transactionErrorStatusCode) {
+			return NextResponse.json({ message: basicMessages.serviceUnavailable }, { status: httpStatus.http503serviceUnavailable })
 		}
 
-		const sanitisedBaseUser = sanitiseDangerousBaseUser(newUser)
+		const sanitisedBaseUser = sanitiseDangerousBaseUser(dangerousNewUser)
 
 		const compositeUser: BrowserSafeCompositeUser = {
 			...sanitisedBaseUser,
@@ -199,12 +184,12 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 		const cookieStore = await cookies()
 
 		if (staySignedIn) {
-			cookieStore.set(createCookieWithToken(newUser.id, cookieDurations.oneYear))
+			cookieStore.set(createCookieWithToken(dangerousNewUser.id, cookieDurations.oneYear))
 		} else {
-			cookieStore.set(createSessionCookieWithToken(newUser.id))
+			cookieStore.set(createSessionCookieWithToken(dangerousNewUser.id))
 		}
 
-		return NextResponse.json({ message: basicMessages.success, compositeUser }, { status: httpStatus.http200ok })
+		return NextResponse.json({ message: basicMessages.success, user: compositeUser }, { status: httpStatus.http200ok })
 	} catch (error) {
 		logger.error('Error creating user: ', error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
