@@ -7,10 +7,5 @@ export const metadata: Metadata = {
 }
 
 export default function Layout({ children }: { children: ReactNode }) {
-	return (
-		<PageContainer>
-			<h1>Dashboard</h1>
-			{children}
-		</PageContainer>
-	)
+	return <PageContainer>{children}</PageContainer>
 }
