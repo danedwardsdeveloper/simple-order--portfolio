@@ -10,7 +10,7 @@ import {
 } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkActiveSubscriptionOrTrial, checkUserExists } from '@/library/database/operations'
-import { merchantProfiles, products } from '@/library/database/schema'
+import { products } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { containsIllegalCharacters, containsItems } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
@@ -37,16 +37,6 @@ export async function GET(request: NextRequest): Promise<NextResponse<InventoryA
 			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
 		}
 
-		const [merchantProfile] = await database
-			.select({ slug: merchantProfiles.slug })
-			.from(merchantProfiles)
-			.where(eq(merchantProfiles.userId, extractedUserId))
-			.limit(1)
-
-		if (!merchantProfile) {
-			return NextResponse.json({ message: authenticationMessages.merchantNotFound }, { status: httpStatus.http401unauthorised })
-		}
-
 		const foundInventory: BrowserSafeMerchantProduct[] = await database
 			.select({
 				id: products.id,
@@ -60,13 +50,11 @@ export async function GET(request: NextRequest): Promise<NextResponse<InventoryA
 			.from(products)
 			.where(and(eq(products.ownerId, extractedUserId), isNull(products.deletedAt)))
 
-		logger.debug('Found inventory: ', foundInventory)
-
 		const inventory = containsItems(foundInventory) ? foundInventory : undefined
 
 		return NextResponse.json({ message: basicMessages.success, inventory }, { status: httpStatus.http200ok })
 	} catch (error) {
-		logger.error(`${apiPaths.inventory.admin.base} error: `, error)
+		logger.error(`${apiPaths.inventory.merchantPerspective.base} error: `, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
 	}
 }
@@ -153,12 +141,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<Inventory
 			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
 		}
 
-		const [foundMerchantProfile] = await database.select().from(merchantProfiles).where(eq(merchantProfiles.userId, extractedUserId))
-
-		if (!foundMerchantProfile) {
-			return NextResponse.json({ message: authenticationMessages.merchantNotFound }, { status: httpStatus.http401unauthorised })
-		}
-
 		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(extractedUserId)
 		if (!activeSubscriptionOrTrial) {
 			return NextResponse.json({ message: authenticationMessages.noActiveTrialSubscription }, { status: httpStatus.http401unauthorised })
@@ -198,7 +180,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Inventory
 		})
 
 		if (!addedProduct) {
-			logger.error(`POST ${apiPaths.inventory.admin.base} error: Couldn't add product to database`)
+			logger.error(`POST ${apiPaths.inventory.merchantPerspective.base} error: Couldn't add product to database`)
 			return NextResponse.json({ message: basicMessages.databaseError }, { status: httpStatus.http500serverError })
 		}
 
@@ -206,7 +188,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Inventory
 
 		return NextResponse.json({ message: basicMessages.success, addedProduct }, { status: httpStatus.http200ok })
 	} catch (error) {
-		logger.error(`${apiPaths.inventory.admin.base}`, error)
+		logger.error(`${apiPaths.inventory.merchantPerspective.base}`, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
 	}
 }
