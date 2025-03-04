@@ -1,38 +1,11 @@
 'use client'
-import type { MerchantsGETresponse } from '@/app/api/merchants/route'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
-import { apiPaths } from '@/library/constants'
-import logger from '@/library/logger'
 import { useUser } from '@/providers/user'
 import Link from 'next/link'
-import { useEffect } from 'react'
 
 // Customer view of a list of merchants the signed-in user is subscribed to
 export default function MerchantsList() {
-	const { user, confirmedMerchants, setConfirmedMerchants, hasAttemptedMerchantsFetch, setHasAttemptedMerchantsFetch } = useUser()
-
-	// biome-ignore lint/correctness/useExhaustiveDependencies:
-	useEffect(() => {
-		async function getMerchants() {
-			try {
-				const { confirmedMerchants, message }: MerchantsGETresponse = await await (
-					await fetch(apiPaths.merchants.base, { credentials: 'include' })
-				).json()
-
-				logger.debug('Confirmed merchants: ', confirmedMerchants)
-
-				setConfirmedMerchants(confirmedMerchants || null)
-
-				if (message !== 'success') logger.error('merchants/page.tsx error: ', message)
-			} catch (error) {
-				logger.error('merchants/page.tsx error: ', error)
-			} finally {
-				setHasAttemptedMerchantsFetch(true)
-			}
-		}
-
-		if (user && !hasAttemptedMerchantsFetch) getMerchants()
-	}, [user, setConfirmedMerchants])
+	const { user, confirmedMerchants } = useUser()
 
 	if (!user) return <UnauthorisedLinks />
 
@@ -46,9 +19,9 @@ export default function MerchantsList() {
 		<>
 			<h2>Merchants</h2>
 			{confirmedMerchants.map((merchant) => (
-				<div key={merchant.slug} className="flex gap-x-2 items-end">
+				<div key={merchant.slug} className="mt-4 flex gap-x-2 items-end">
 					<h3>{merchant.businessName}</h3>
-					<Link href={`/merchants/${merchant.slug}`} className="link-primary">
+					<Link href={`/orders/${merchant.slug}/new`} className="link-primary">
 						Place an order
 					</Link>
 				</div>
