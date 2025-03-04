@@ -1,8 +1,10 @@
 export const websiteCopy = {
 	heroSection: {
 		h1: 'Order management made simple',
-		intro:
-			'Simple Order is an order management website for wholesalers and their customers so you can reduce costs, save time, and eliminate phone call confusion. Start a free 30-day trial now and get started in minutes.',
+		intro: [
+			'An order management website for wholesalers so you can reduce costs, save time, and eliminate phone call confusion.',
+			'Start a free no-card 30-day trial now and get started in minutes.',
+		],
 	},
 	metadata: {
 		titles: {
