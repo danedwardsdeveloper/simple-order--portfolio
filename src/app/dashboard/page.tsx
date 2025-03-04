@@ -1,5 +1,7 @@
 'use client'
+import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
 import PleaseConfirmYourEmailMessage from '@/components/PleaseConfirmYourEmailMessage'
+import TemporaryRoleNotice from '@/components/TemporaryRoleNotice'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
 import { apiPaths } from '@/library/constants'
 import logger from '@/library/logger'
@@ -39,10 +41,12 @@ export default function DashboardPage() {
 
 	return (
 		<>
-			<h2>Welcome {user.businessName}</h2>
+			<SignedInBreadCrumbs businessName={user.businessName} />
+			<h1>Dashboard</h1>
 			{!user.emailConfirmed && <PleaseConfirmYourEmailMessage email={user.email} />}
 			{user.roles !== 'customer' && !inventory && <EmptyInventoryMessage />}
 			{user.roles !== 'customer' && !confirmedCustomers && <NoCustomersMessage emailConfirmed={user.emailConfirmed} />}
+			<TemporaryRoleNotice />
 		</>
 	)
 }
