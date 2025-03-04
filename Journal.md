@@ -48,3 +48,27 @@
 -  Prevented /api/inventory/merchants/[merchantSlug] GET from returning empty arrays
 -  Working on a root-level BreadCrumbs component as I want this on every page except the home page
 -  Created /api/invitations GET route to retrieve pending invitations for the signed-in customer
+
+## Monday 3 March (My birthday!)
+
+-  Created API details file in Notion to keep track of work I need to do on the API in detail
+-  Created meta to-do list to print out and keep me on track, focussing on functionality
+-  Sorted out apiPaths
+-  Worked on new /api/relationships route
+-  Deleted unnecessary merchant_profiles table as I was only using it for the slug. All users now get a slug on sign-up, whether they need it or not, as this makes everything much simpler
+-  Fixed the composite index on relationships
+-  Updated create-account to add the slug to the users table
+-  Fixed /api/invitations/[token] just about... it's still a mess though!
+-  Created new /api/relationships route, which works beautifully and is very lovely code
+-  Updated user provider
+-  Sorted out initial data fetch
+-  Turned customer-facing inventory list into a controlled form
+-  Coded until 10pm in a flow state so did loads of other stuff I forgot to record
+-  Created route to create a new order using fully normalised tables
+
+## Tuesday 4 March
+
+-  Researched UK VAT guidelines for rounding
+-  Created orders/admin GET route
+-  Figured out how to join and shape the orders data
+-  Fixed problem with new order page using strings instead of numbers
