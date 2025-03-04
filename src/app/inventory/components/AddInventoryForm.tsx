@@ -47,7 +47,7 @@ export default function AddInventoryForm() {
 		}
 
 		const { message, addedProduct }: InventoryAddPOSTresponse = await (
-			await fetch(apiPaths.inventory.admin.base, {
+			await fetch(apiPaths.inventory.merchantPerspective.base, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
