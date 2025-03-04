@@ -2,7 +2,10 @@
 
 ## Current Task
 
-Make RESTful invitations routes
+-  Static BreadCrumbs
+-  DynamicBreadCrumbs
+-  I don't think I need a merchantMode toggle any more
+-  However I do need to calculate merchants/customers/both properly
 
 ## MVP
 
