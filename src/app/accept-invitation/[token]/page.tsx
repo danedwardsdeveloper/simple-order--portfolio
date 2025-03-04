@@ -10,7 +10,6 @@ import CompleteRegistrationForm from '../components/CompleteRegistrationForm'
 
 export default function AcceptInvitationPage() {
 	const { token } = useParams<{ token: string }>()
-	const url = urlJoin(dynamicBaseURL, apiPaths.invitations.base, token)
 	const [status, setStatus] = useState<'checking' | 'please provide details' | 'success' | 'error'>('checking')
 	const [errorMessage, setErrorMessage] = useState('')
 
@@ -24,10 +23,10 @@ export default function AcceptInvitationPage() {
 		try {
 			setStatus('checking')
 			const { message }: InvitationsTokenPATCHresponse = await (
-				await fetch(url, {
+				await fetch(urlJoin(dynamicBaseURL, apiPaths.invitations.base, token), {
 					method: 'PATCH',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify(''),
+					body: JSON.stringify(token),
 				})
 			).json()
 
@@ -78,6 +77,7 @@ export default function AcceptInvitationPage() {
 	if (status === 'success') {
 		return (
 			<div className="max-w-md mx-auto mt-8 p-4 border rounded-lg bg-green-50 text-green-700">
+				{/* UX ToDo: This is awful */}
 				<p className="text-center">Successfully connected! You can now close this window.</p>
 			</div>
 		)
