@@ -31,6 +31,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 				firstName: users.firstName,
 				lastName: users.lastName,
 				email: users.email,
+				slug: users.slug,
 				businessName: users.businessName,
 				emailConfirmed: users.emailConfirmed,
 				cachedTrialExpired: users.cachedTrialExpired,
@@ -54,8 +55,6 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 			roles: userRole,
 			accountActive: activeSubscriptionOrTrial,
 		}
-
-		logger.debug('Composite user: ', compositeUser)
 
 		return NextResponse.json({ message: basicMessages.success, user: compositeUser }, { status: httpStatus.http200ok })
 	} catch (error) {
