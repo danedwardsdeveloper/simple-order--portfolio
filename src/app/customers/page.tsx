@@ -6,13 +6,13 @@ import CustomersList from './components/CustomersList'
 import InviteCustomerForm from './components/InviteCustomerForm'
 
 export default function CustomersPage() {
-	const { user, showNoCustomersMessage } = useUser()
+	const { user } = useUser()
 
 	if (!user) return <UnauthorisedLinks />
 
 	return (
 		<>
-			{showNoCustomersMessage && <PleaseConfirmYourEmailMessage email={user.email} />}
+			{<PleaseConfirmYourEmailMessage email={user.email} />}
 			<InviteCustomerForm />
 			<CustomersList />
 		</>
