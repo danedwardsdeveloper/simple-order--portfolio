@@ -7,4 +7,4 @@ export type OrderItem = typeof orderItems.$inferSelect
 export type OrderItemInsertValues = typeof orderItems.$inferInsert
 
 // This repeats the values from orderStatusEnum but I can't see any other way to get the values
-export type OrderStatus = 'pending' | 'processing' | 'completed' | 'cancelled'
+export type OrderStatus = 'pending' | 'completed' | 'cancelled'
