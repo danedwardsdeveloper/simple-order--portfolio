@@ -11,18 +11,22 @@ export default function HeroSection() {
 				className="absolute inset-y-0 right-1/2 -z-10 -mr-96 w-[200%] origin-top-right skew-x-[-30deg] bg-white shadow-xl shadow-indigo-600/10 ring-1 ring-indigo-50 sm:-mr-80 lg:-mr-96"
 			/>
 			<div className="mx-auto max-w-7xl px-6 py-32 sm:py-20 lg:px-8">
-				<div className="mx-auto max-w-2xl lg:mx-0 lg:grid lg:max-w-none lg:grid-cols-2 lg:gap-x-16 lg:gap-y-8 xl:grid-cols-1 xl:grid-rows-1 xl:gap-x-8">
+				<div className="mx-auto max-w-2xl lg:mx-0 lg:grid lg:max-w-none lg:grid-cols-2 lg:gap-x-16 lg:gap-y-8 xl:grid-cols-1 xl:grid-rows-1 xl:gap-x-8 text-right">
 					<h1 className="max-w-2xl text-balance text-5xl font-semibold tracking-tight text-gray-900 sm:text-7xl lg:col-span-2 xl:col-auto">
 						{websiteCopy.heroSection.h1}
 					</h1>
-					<div className="mt-6 max-w-xl lg:mt-0 xl:col-end-1 xl:row-start-1">
-						<p className="text-pretty text-lg font-medium text-gray-500 sm:text-xl/8">{websiteCopy.heroSection.intro}</p>
-						<div className="mt-10 flex items-center gap-x-6">
-							<Link href={websiteCopy.CTAs.primary.href} className="button-primary text-lg">
-								{websiteCopy.CTAs.primary.displayText}
-							</Link>
+					<div className="mt-6 max-w-2xl lg:mt-0 xl:col-end-1 xl:row-start-1">
+						{websiteCopy.heroSection.intro.map((paragraph) => (
+							<p className="text-pretty text-lg font-medium text-gray-500 sm:text-xl/8 mb-2" key={paragraph}>
+								{paragraph}
+							</p>
+						))}
+						<div className="mt-10 flex items-center justify-end gap-x-6">
 							<Link href={websiteCopy.CTAs.secondary.href} className="button-secondary text-lg">
 								{websiteCopy.CTAs.secondary.displayText}
+							</Link>
+							<Link href={websiteCopy.CTAs.primary.href} className="button-primary text-lg">
+								{websiteCopy.CTAs.primary.displayText}
 							</Link>
 						</div>
 					</div>
