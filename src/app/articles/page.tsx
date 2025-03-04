@@ -1,9 +1,8 @@
-import Link from 'next/link'
-
-import BreadCrumbs from '@/components/BreadCrumbs'
+import { SignedOutBreadCrumbs } from '@/components/BreadCrumbs'
 import PageContainer from '@/components/PageContainer'
 import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { articlesData } from './data'
 
 export const metadata: Metadata = {
@@ -16,7 +15,7 @@ export const metadata: Metadata = {
 export default function AllArticlesPage() {
 	return (
 		<PageContainer>
-			<BreadCrumbs currentPageTitle="Articles" home="landingPage" />
+			<SignedOutBreadCrumbs currentPageTitle="Articles" />
 			<h1>Articles</h1>
 			<div className="grid grid-cols-2 gap-y-24">
 				{Object.keys(articlesData)
