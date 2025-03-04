@@ -59,8 +59,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
 		return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http404notFound })
 	}
 
-	logger.info('Found user: ', dangerousUser)
-
 	const isMatch = await bcrypt.compare(password, dangerousUser.hashedPassword)
 
 	if (!isMatch) {
