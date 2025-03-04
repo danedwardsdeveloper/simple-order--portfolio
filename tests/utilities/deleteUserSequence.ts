@@ -1,31 +1,13 @@
 import { database } from '@/library/database/connection'
-import {
-	confirmationTokens,
-	freeTrials,
-	invitations,
-	merchantProfiles,
-	products,
-	relationships,
-	subscriptions,
-	users,
-} from '@/library/database/schema'
+import { confirmationTokens, freeTrials, invitations, products, relationships, subscriptions, users } from '@/library/database/schema'
 import { eq, or } from 'drizzle-orm'
 
 export async function deleteUserSequence(email: string) {
 	const [userToDelete] = await database.select().from(users).where(eq(users.email, email))
 
 	if (userToDelete) {
-		// Get merchant profile first as we need it for products
-		const [merchantProfile] = await database.select().from(merchantProfiles).where(eq(merchantProfiles.userId, userToDelete.id))
-
-		// If they have a merchant profile, delete related merchant data
-		if (merchantProfile) {
-			// Delete products first (references merchantProfileId)
-			await database.delete(products).where(eq(products.ownerId, userToDelete.id))
-
-			// Then delete the merchant profile itself
-			await database.delete(merchantProfiles).where(eq(merchantProfiles.userId, userToDelete.id))
-		}
+		// Delete products first
+		await database.delete(products).where(eq(products.ownerId, userToDelete.id))
 
 		// Delete all relationships in relationships (both as customer and merchant)
 		await database
