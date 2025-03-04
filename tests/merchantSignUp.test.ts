@@ -1,8 +1,8 @@
 import { dataTestIdNames, testUsers } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { freeTrials, merchantProfiles, testEmailInbox, users } from '@/library/database/schema'
+import { freeTrials, testEmailInbox, users } from '@/library/database/schema'
 import { developmentBaseURL } from '@/library/environment/publicVariables'
-import type { DangerousBaseUser, DangerousMerchantProfile, FreeTrial } from '@/types'
+import type { DangerousBaseUser, FreeTrial } from '@/types'
 import { desc, eq } from 'drizzle-orm'
 import { type Browser, type Page, launch } from 'puppeteer'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
@@ -15,7 +15,6 @@ describe('Create Account Form', async () => {
 	let browser: Browser
 	let page: Page
 	let createdUser: DangerousBaseUser
-	let createdMerchant: DangerousMerchantProfile
 	let _createdFreeTrial: FreeTrial
 	let invitationLink: string | undefined
 
@@ -63,17 +62,8 @@ describe('Create Account Form', async () => {
 		expect(createdUser).toBeDefined()
 	})
 
-	test('created merchant should exist in the database', async () => {
-		const [merchant]: DangerousMerchantProfile[] = await database
-			.select()
-			.from(merchantProfiles)
-			.where(eq(merchantProfiles.userId, createdUser.id))
-
-		createdMerchant = merchant
-	})
-
 	test('free trial row should exist in the database', async () => {
-		const [freeTrialRow]: FreeTrial[] = await database.select().from(freeTrials).where(eq(freeTrials.id, createdMerchant.id)).limit(1)
+		const [freeTrialRow]: FreeTrial[] = await database.select().from(freeTrials).where(eq(freeTrials.id, createdUser.id)).limit(1)
 
 		expect(freeTrialRow).toBeDefined()
 		_createdFreeTrial = freeTrialRow
