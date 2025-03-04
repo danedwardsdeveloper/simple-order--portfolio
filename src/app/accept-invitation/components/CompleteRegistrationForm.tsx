@@ -24,6 +24,7 @@ export default function CompleteRegistrationForm({ token }: { token: string }) {
 		firstName: 'Charlotte',
 		lastName: 'York',
 		businessName: "Charlotte's Harlots",
+		slug: 'charlottes-harlots',
 		password: 'securePassword123',
 		staySignedIn: false,
 	})
