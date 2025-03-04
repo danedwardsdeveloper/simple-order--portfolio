@@ -3,14 +3,11 @@ import { type Dispatch, type ReactNode, type SetStateAction, createContext, useC
 
 interface UiContextType {
 	merchantMode: boolean
-	setMerchantMode: (value: boolean) => void
+	setMerchantMode: Dispatch<SetStateAction<boolean>>
 	toggleMerchantMode: () => void
 	includeVat: boolean
-	setIncludeVat: (value: boolean) => void
+	setIncludeVat: Dispatch<SetStateAction<boolean>>
 	toggleIncludeVat: () => void
-
-	breadCrumbTest: string | null
-	setBreadCrumbTest: Dispatch<SetStateAction<string | null>>
 }
 
 const UiContext = createContext<UiContextType | undefined>(undefined)
@@ -20,7 +17,6 @@ const UiContext = createContext<UiContextType | undefined>(undefined)
 export function UiProvider({ children }: { children: ReactNode }) {
 	// Default needs to be merchant mode, or new free trials can't invite customers
 	const [merchantMode, setMerchantMode] = useState(true)
-	const [breadCrumbTest, setBreadCrumbTest] = useState<string | null>('Not set!')
 
 	const toggleMerchantMode = () => {
 		setMerchantMode((current) => !current)
@@ -38,9 +34,6 @@ export function UiProvider({ children }: { children: ReactNode }) {
 		includeVat,
 		setIncludeVat,
 		toggleIncludeVat,
-
-		breadCrumbTest,
-		setBreadCrumbTest,
 	}
 
 	return <UiContext.Provider value={value}>{children}</UiContext.Provider>
