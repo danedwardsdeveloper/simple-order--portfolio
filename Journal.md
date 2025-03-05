@@ -74,3 +74,9 @@
 -  Fixed problem with new order page using strings instead of numbers
 -  Created OrderSummary.tsx
 -  Started data fetching for merchant-facing orders
+
+## Wednesday 5 March
+
+-  Added requested delivery date when creating new order
+-  Fixed errors in accept invitations route
+-  Lots of work on accepting invitations UX
