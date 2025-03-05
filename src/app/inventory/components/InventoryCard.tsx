@@ -83,7 +83,7 @@ export default function InventoryCard({ product, zebraStripe }: Props) {
 				onConfirm={() => handleDelete()}
 			/>
 			<li className={clsx('flex flex-col gap-y-2 w-full p-3 rounded-xl', zebraStripe ? 'bg-blue-50' : 'bg-zinc-50')}>
-				<h3 className="text-xl font-medium mb-1">{product.name}</h3>
+				<h3 className="mb-1">{product.name}</h3>
 				<p className="text-zinc-700 max-w-prose">{product.description}</p>
 				<div className="flex justify-between items-center">
 					<div className="flex gap-x-1 items-center">
