@@ -6,37 +6,26 @@ export type BaseUserInsertValues = Required<Omit<typeof users.$inferInsert, 'id'
 export type BaseBrowserSafeUser = Omit<DangerousBaseUser, 'id' | 'hashedPassword'>
 export type BaseUserBrowserInputValues = Omit<BaseUserInsertValues, 'hashedPassword' | 'cachedTrialExpired' | 'emailConfirmed'> & {
 	password: string
-	staySignedIn: boolean
 }
+export type InvitedCustomerBrowserInputValues = Omit<BaseUserBrowserInputValues, 'email'>
+
 export interface BrowserSafeCompositeUser extends BaseBrowserSafeUser {
 	roles: Roles
-	accountActive: boolean // ToDo: This should be activeSubscriptionOrTrial
+	activeSubscriptionOrTrial: boolean
 }
-
-export type InvitedCustomerBrowserInputValues = Omit<BaseUserBrowserInputValues, 'email'>
 
 export interface BrowserSafeMerchantProfile {
 	slug: string
 	businessName: string
 }
 
+export interface BrowserSafeCustomerProfile {
+	businessName: string
+	obfuscatedEmail: string
+}
+
 // Junction table where insert & return type are identical
 export type RelationshipJoinRow = typeof relationships.$inferSelect
-
-export interface RelationshipItem {
-	id: number
-	businessName: string
-}
-
-// Change to BrowserMerchantDetails
-export interface ClientMerchantDetails {
-	slug: string
-	// This needs work...
-	freeTrial: {
-		endDate: Date
-	}
-	customersAsMerchant: RelationshipItem[]
-}
 
 export interface MerchantFacingInvitationRecord {
 	obfuscatedEmail: string
@@ -45,11 +34,6 @@ export interface MerchantFacingInvitationRecord {
 }
 
 export interface CustomerFacingInvitationRecord {
-	merchantName: string
+	merchantBusinessName: string
 	expirationDate: Date
-}
-
-export interface BrowserSafeCustomerProfile {
-	businessName: string
-	obfuscatedEmail: string
 }

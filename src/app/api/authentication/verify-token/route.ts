@@ -50,7 +50,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 		const compositeUser: BrowserSafeCompositeUser = {
 			...baseUser,
 			roles: userRole,
-			accountActive: activeSubscriptionOrTrial,
+			activeSubscriptionOrTrial,
 		}
 
 		return NextResponse.json({ message: basicMessages.success, user: compositeUser }, { status: httpStatus.http200ok })
