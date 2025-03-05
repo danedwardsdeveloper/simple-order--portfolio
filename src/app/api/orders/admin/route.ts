@@ -1,49 +1,82 @@
-import { apiPaths, basicMessages, httpStatus } from '@/library/constants'
+import { apiPaths, basicMessages, httpStatus, tokenMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { orderItems, orders } from '@/library/database/schema'
+import { checkUserExists } from '@/library/database/operations'
+import { orderItems, orders, users } from '@/library/database/schema'
 import logger from '@/library/logger'
-import { eq } from 'drizzle-orm'
+import { convertEmptyToUndefined } from '@/library/utilities'
+import { extractIdFromRequestCookie } from '@/library/utilities/server'
+import type { BrowserSafeOrder, TokenMessages } from '@/types'
+import { eq, inArray } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface OrdersAdminGETresponse {
-	message: typeof basicMessages.success | typeof basicMessages.serverError
-	// biome-ignore lint/suspicious/noExplicitAny: <temporary>
-	orders?: any
+	message: TokenMessages | typeof basicMessages.success | typeof basicMessages.serverError | 'no orders found'
+	orders?: BrowserSafeOrder[]
 }
 
-interface GroupedOrdersMap {
-	[orderId: number]: {
-		items: (typeof orderItems.$inferSelect)[]
-	} & typeof orders.$inferSelect
-}
-
-export async function GET(_request: NextRequest): Promise<NextResponse<OrdersAdminGETresponse>> {
+// Get Orders received as a merchant, with search parameters
+export async function GET(request: NextRequest): Promise<NextResponse<OrdersAdminGETresponse>> {
+	// Optimisation ToDo: add search parameters
 	try {
-		// 1. Extract userId from cookie
-		// 2. Check user exists
-		// 3. Build the query string from search parameters
-		// 4. Retrieve and join the order details
+		const { extractedUserId, status, message } = await extractIdFromRequestCookie(request)
 
-		const ordersWithItems = await database.select().from(orders).leftJoin(orderItems, eq(orders.id, orderItems.orderId))
+		if (!extractedUserId) {
+			return NextResponse.json({ message }, { status })
+		}
 
-		// Group items by order ID
-		const groupedOrders = ordersWithItems.reduce((accumulator: GroupedOrdersMap, row) => {
-			const orderId = row.orders.id
-			if (!accumulator[orderId]) {
-				accumulator[orderId] = {
-					...row.orders,
-					items: [],
-				}
+		const { userExists } = await checkUserExists(extractedUserId)
+		if (!userExists) {
+			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
+		}
+
+		// No need to checkActiveSubscriptionOrTrial
+
+		const merchantOrders = convertEmptyToUndefined(await database.select().from(orders).where(eq(orders.merchantId, extractedUserId)))
+
+		if (!merchantOrders) {
+			return NextResponse.json({ message: 'no orders found' }, { status: httpStatus.http200ok })
+		}
+
+		const orderIds = merchantOrders.map((order) => order.id)
+		const allOrderItems = await database.select().from(orderItems).where(inArray(orderItems.orderId, orderIds))
+
+		const customerIds = [...new Set(merchantOrders.map((order) => order.customerId))]
+		const customers = await database
+			.select({
+				id: users.id,
+				firstName: users.firstName,
+				lastName: users.lastName,
+				email: users.email,
+				businessName: users.businessName,
+			})
+			.from(users)
+			.where(inArray(users.id, customerIds))
+
+		const itemsMap = new Map()
+		for (const item of allOrderItems) {
+			if (!itemsMap.has(item.orderId)) {
+				itemsMap.set(item.orderId, [])
 			}
-			if (row.order_items) {
-				accumulator[orderId].items.push(row.order_items)
+			itemsMap.get(item.orderId).push(item)
+		}
+
+		const customersMap = new Map(customers.map((customer) => [customer.id, customer]))
+
+		const browserSafeOrders: BrowserSafeOrder[] = merchantOrders.map((order): BrowserSafeOrder => {
+			return {
+				id: order.id,
+				customerBusinessName: customersMap.get(order.customerId)?.businessName || 'Unknown customer',
+				status: order.status,
+				requestedDeliveryDate: order.requestedDeliveryDate,
+				adminOnlyNote: order.adminOnlyNote || undefined,
+				customerNote: order.customerNote || undefined,
+				createdAt: order.createdAt,
+				updatedAt: order.updatedAt,
+				items: itemsMap.get(order.id) || [],
 			}
-			return accumulator
-		}, {} as GroupedOrdersMap)
+		})
 
-		const result = Object.values(groupedOrders)
-
-		return NextResponse.json({ message: basicMessages.success, order: result }, { status: httpStatus.http200ok })
+		return NextResponse.json({ message: basicMessages.success, orders: browserSafeOrders }, { status: httpStatus.http200ok })
 	} catch (error) {
 		logger.error(`GET ${apiPaths.orders.merchantPerspective.base} error: `, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
