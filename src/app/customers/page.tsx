@@ -12,9 +12,14 @@ export default function CustomersPage() {
 
 	return (
 		<>
-			{<PleaseConfirmYourEmailMessage email={user.email} />}
-			<InviteCustomerForm />
-			<CustomersList />
+			{!user.emailConfirmed ? (
+				<PleaseConfirmYourEmailMessage email={user.email} />
+			) : (
+				<>
+					<InviteCustomerForm />
+					<CustomersList />
+				</>
+			)}
 		</>
 	)
 }
