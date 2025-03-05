@@ -198,60 +198,69 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
 
 export interface InvitationsGETresponse {
 	message: TokenMessages | typeof basicMessages.serverError | typeof basicMessages.success | 'no invitations found'
-	pendingInvitations?: CustomerFacingInvitationRecord[]
+	invitationsSent?: MerchantFacingInvitationRecord[]
+	invitationsReceived?: CustomerFacingInvitationRecord[]
 }
+
+const routeDetailsGET = `GET ${apiPaths.invitations.base}: `
 
 export async function GET(request: NextRequest): Promise<NextResponse<InvitationsGETresponse>> {
 	try {
 		const { extractedUserId, status, message } = await extractIdFromRequestCookie(request)
 
 		if (!extractedUserId) {
+			logger.warn(routeDetailsGET, "Couldn't extract user ID from cookie")
 			return NextResponse.json({ message }, { status })
 		}
 
 		const { existingDangerousUser } = await checkUserExists(extractedUserId)
 		if (!existingDangerousUser) {
+			logger.warn(routeDetailsGET, 'user not found')
 			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
 		}
 
-		const existingInvitations = convertEmptyToUndefined(
+		const rawInvitationsReceived = convertEmptyToUndefined(
 			await database.select().from(invitations).where(eq(invitations.email, existingDangerousUser.email)),
 		)
 
-		if (!existingInvitations) {
+		const rawInvitationsSent = convertEmptyToUndefined(
+			await database.select().from(invitations).where(eq(invitations.senderUserId, existingDangerousUser.id)),
+		)
+
+		if (!rawInvitationsReceived && !rawInvitationsSent) {
+			logger.info(routeDetailsGET, 'legitimately no invitations found')
 			return NextResponse.json({ message: 'no invitations found' }, { status: httpStatus.http200ok })
 		}
 
-		// ToDo: this logic still seems unnecessarily complex for essentially adding a string to a date
-		const senderUserIds = existingInvitations.map((invitation) => invitation.senderUserId)
+		let invitationsReceived: CustomerFacingInvitationRecord[] | undefined
+		if (rawInvitationsReceived) {
+			const senderUserIds = rawInvitationsReceived.map((invitation) => invitation.senderUserId)
 
-		const merchantDetails = convertEmptyToUndefined(
-			await database
-				.select()
+			const merchantBusinessNames = await database
+				.select({
+					id: users.id,
+					businessName: users.businessName,
+				})
 				.from(users)
-				.where(
-					senderUserIds.length > 0 ? inArray(users.id, senderUserIds) : undefined, // This shouldn't happen but handles edge case
-				),
-		)
+				.where(inArray(users.id, senderUserIds))
 
-		// unlikely but possible
-		if (!merchantDetails) {
-			return NextResponse.json({ message: 'no invitations found' }, { status: httpStatus.http200ok })
+			const businessNameMap = new Map(merchantBusinessNames.map((merchant) => [merchant.id, merchant.businessName]))
+
+			invitationsReceived = rawInvitationsReceived.map((invitation) => ({
+				merchantBusinessName: businessNameMap.get(invitation.senderUserId) || 'Unknown Business',
+				expirationDate: invitation.expiresAt || new Date(),
+			}))
 		}
 
-		const merchantMap = new Map(merchantDetails.map((merchant) => [merchant.id, merchant.businessName]))
-
-		const pendingInvitations = convertEmptyToUndefined(
-			existingInvitations.map((invitation) => {
-				const merchantName = merchantMap.get(invitation.senderUserId) || 'Unknown Merchant'
-				return {
-					merchantName,
+		const invitationsSent: MerchantFacingInvitationRecord[] | undefined = rawInvitationsSent
+			? rawInvitationsSent.map((invitation) => ({
+					obfuscatedEmail: obfuscateEmail(invitation.email),
+					lastEmailSentDate: invitation.lastEmailSent,
 					expirationDate: invitation.expiresAt,
-				}
-			}),
-		)
+				}))
+			: undefined
 
-		return NextResponse.json({ message: basicMessages.success, pendingInvitations }, { status: httpStatus.http200ok })
+		return NextResponse.json({ message: basicMessages.success, invitationsReceived, invitationsSent }, { status: httpStatus.http200ok })
 	} catch (error) {
 		logger.error(`GET ${apiPaths.invitations.base} error: `, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
