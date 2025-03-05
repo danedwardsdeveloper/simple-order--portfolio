@@ -19,23 +19,13 @@ export default function MenuBar() {
 						</div>
 						<div className="flex h-full items-center gap-x-6">
 							<MenuItem href="/dashboard" text="Dashboard" />
-
 							{user.roles !== 'customer' && (
 								<>
 									<MenuItem href="/inventory" text="Inventory" />
 									<MenuItem href="/customers" text="Customers" />
 								</>
 							)}
-
-							{user.roles === 'both' ? (
-								<>
-									<MenuItem href="/orders-received" text="Orders received" />
-									<MenuItem href="/orders-made" text="Orders made" />
-								</>
-							) : (
-								<MenuItem href="/orders" text="Orders" />
-							)}
-
+							<MenuItem href="/orders" text="Orders" />
 							<MenuItem href="/settings" text="Settings" />
 						</div>
 					</>
