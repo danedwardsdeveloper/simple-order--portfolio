@@ -17,5 +17,3 @@ export type MissingFieldMessages = (typeof missingFieldMessages)[keyof typeof mi
 export type TokenMessages = (typeof tokenMessages)[keyof typeof tokenMessages]
 export type InvalidFieldMessages = (typeof invalidFieldsMessages)[keyof typeof invalidFieldsMessages]
 export type ServiceConstraintMessages = (typeof serviceConstraintMessages)[keyof typeof serviceConstraintMessages]
-
-export type EmailTokenMessages = TokenMessages | 'token used'
