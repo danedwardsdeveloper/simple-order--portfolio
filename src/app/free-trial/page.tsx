@@ -1,5 +1,4 @@
 'use client'
-import { CheckboxIcon } from '@/components/Icons'
 import PageContainer from '@/components/PageContainer'
 import { apiPaths, dataTestIdNames } from '@/library/constants'
 import logger from '@/library/logger'
@@ -25,7 +24,6 @@ export default function CreateAccountPage() {
 		slug: preFillFormForManualTesting ? randomString : '',
 		email: preFillFormForManualTesting ? `${randomString}@gmail.com` : '',
 		password: preFillFormForManualTesting ? randomString : '',
-		staySignedIn: preFillFormForManualTesting,
 	})
 
 	async function handleSubmit(event: FormEvent) {
@@ -60,7 +58,7 @@ export default function CreateAccountPage() {
 	return (
 		<PageContainer>
 			<div className="max-w-md mx-auto mt-8 p-6">
-				<h1>Start your 31-day free trial</h1>
+				<h1>Start your 30-day free trial</h1>
 				<form onSubmit={handleSubmit} className="flex flex-col gap-y-4">
 					<div>
 						<label htmlFor="firstName" className="block mb-1">
@@ -82,6 +80,7 @@ export default function CreateAccountPage() {
 							className="w-full"
 						/>
 					</div>
+
 					<div>
 						<label htmlFor="lastName" className="block mb-1">
 							Last name
@@ -102,6 +101,7 @@ export default function CreateAccountPage() {
 							className="w-full"
 						/>
 					</div>
+
 					<div>
 						<label htmlFor="businessName" className="block mb-1">
 							Business name
@@ -122,7 +122,7 @@ export default function CreateAccountPage() {
 							className="w-full"
 						/>
 					</div>
-					{/* ToDo: add honeypot */}
+					{/* Optimisation ToDo: add honeypot */}
 					<div>
 						<label htmlFor="email" className="block mb-1">
 							Email
@@ -143,6 +143,7 @@ export default function CreateAccountPage() {
 							className="w-full"
 						/>
 					</div>
+
 					<div>
 						<label htmlFor="password" className="block mb-1">
 							Password
@@ -163,29 +164,7 @@ export default function CreateAccountPage() {
 							className="w-full"
 						/>
 					</div>
-					<div className="flex gap-3">
-						<div className="flex h-6 shrink-0 items-center">
-							<div className="group grid size-4 grid-cols-1">
-								<input
-									data-test-id={dataTestIdNames.createAccountStaySignedInCheckbox}
-									id="stay-signed-in"
-									name="stay-signed-in"
-									type="checkbox"
-									checked={formData.staySignedIn}
-									onChange={(event) =>
-										setFormData((prev) => ({
-											...prev,
-											staySignedIn: event.target.checked,
-										}))
-									}
-								/>
-								<CheckboxIcon />
-							</div>
-						</div>
-						<label htmlFor="stay-signed-in" className="block text-sm/6 text-gray-900">
-							Stay signed in
-						</label>
-					</div>
+
 					{errorMessage && <div className="mb-4 p-2 bg-red-50 text-red-600 rounded">{errorMessage}</div>}
 					<button data-test-id={dataTestIdNames.createAccountSubmitButton} type="submit" className="button-primary inline-block w-full">
 						Start free trial
