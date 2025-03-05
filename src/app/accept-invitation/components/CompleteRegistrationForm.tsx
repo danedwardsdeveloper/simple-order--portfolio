@@ -1,7 +1,6 @@
 'use client'
 
 import type { InvitationsTokenPATCHbody, InvitationsTokenPATCHresponse } from '@/app/api/invitations/[token]/route'
-import { CheckboxIcon } from '@/components/Icons'
 import { apiPaths } from '@/library/constants'
 import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import { useNotifications } from '@/providers/notifications'
@@ -26,7 +25,6 @@ export default function CompleteRegistrationForm({ token }: { token: string }) {
 		businessName: "Charlotte's Harlots",
 		slug: 'charlottes-harlots',
 		password: 'securePassword123',
-		staySignedIn: false,
 	})
 
 	async function handleSubmit(event: FormEvent) {
@@ -34,7 +32,7 @@ export default function CompleteRegistrationForm({ token }: { token: string }) {
 		setIsSubmitting(true)
 
 		try {
-			const { message, senderBusinessName, createdUser }: InvitationsTokenPATCHresponse = await (
+			const { message, senderDetails, createdUser }: InvitationsTokenPATCHresponse = await (
 				await fetch(urlJoin(dynamicBaseURL, apiPaths.invitations.base, token), {
 					method: 'PATCH',
 					headers: { 'Content-Type': 'application/json' },
@@ -42,7 +40,7 @@ export default function CompleteRegistrationForm({ token }: { token: string }) {
 				})
 			).json()
 
-			if (message === 'success' && createdUser && senderBusinessName) {
+			if (message === 'success' && createdUser && senderDetails) {
 				setMerchantMode(false)
 				setUser(createdUser)
 				createNotification({
@@ -128,29 +126,6 @@ export default function CompleteRegistrationForm({ token }: { token: string }) {
 							}))
 						}
 					/>
-				</div>
-
-				<div className="flex gap-3">
-					<div className="flex h-6 shrink-0 items-center">
-						<div className="group grid size-4 grid-cols-1">
-							<input
-								id="stay-signed-in"
-								name="stay-signed-in"
-								type="checkbox"
-								checked={formData.staySignedIn}
-								onChange={(event) =>
-									setFormData((prev) => ({
-										...prev,
-										staySignedIn: event.target.checked,
-									}))
-								}
-							/>
-							<CheckboxIcon />
-						</div>
-					</div>
-					<label htmlFor="stay-signed-in" className="block text-sm/6 text-gray-900">
-						Stay signed in
-					</label>
 				</div>
 
 				<button
