@@ -2,7 +2,7 @@
 
 ## Current Task
 
--  Display order information on the /orders page
+-  Gather and display all information about orders from products, users, orders, order_items
 
 ## MVP tasks
 
