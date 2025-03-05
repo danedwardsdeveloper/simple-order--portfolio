@@ -78,7 +78,7 @@ export function SignedInBreadCrumbs({ businessName, trail, currentPageTitle }: S
 					<li>
 						<div className="flex items-center">
 							<ChevronRightIcon aria-hidden="true" className="size-5 shrink-0 text-zinc-400" />
-							<span aria-current="page" className="ml-4 text-sm font-medium text-blue-400">
+							<span aria-current="page" className="ml-4 text-sm font-medium text-blue-600">
 								{currentPageTitle}
 							</span>
 						</div>
