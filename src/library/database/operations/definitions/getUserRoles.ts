@@ -6,13 +6,11 @@ import { eq } from 'drizzle-orm'
 
 export async function getUserRoles(userId: number): Promise<{ userRole: Roles }> {
 	try {
-		// Urgent ToDo: This needs a lot of work.
-
 		// A merchant is signified by:
 		// - an active free-trial or subscription, or confirmed customers
 
 		// A customer is signified by:
-		// - confirmed merchants
+		// - a relationship where the user's ID is in the customer column
 
 		const [isCustomer] = await database.select().from(relationships).where(eq(relationships.customerId, userId))
 		const [isMerchant] = await database.select().from(relationships).where(eq(relationships.merchantId, userId))
