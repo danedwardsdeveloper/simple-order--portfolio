@@ -35,16 +35,13 @@ describe('Create Account Form', () => {
 		const businessNameInput = await getElementByTestId(dataTestIdNames.createAccountBusinessNameInput)
 		const emailInput = await getElementByTestId(dataTestIdNames.createAccountEmailInput)
 		const passwordInput = await getElementByTestId(dataTestIdNames.createAccountPasswordInput)
-		const staySignedInCheckbox = await getElementByTestId(dataTestIdNames.createAccountStaySignedInCheckbox)
 		const submitButton = await getElementByTestId(dataTestIdNames.createAccountSubmitButton)
 
 		await firstNameInput?.type(bothUser.firstName)
 		await lastNameInput?.type(bothUser.lastName)
 		await businessNameInput?.type(bothUser.businessName)
 		await emailInput?.type(bothUser.email)
-		await staySignedInCheckbox?.click()
 		await passwordInput?.type(testPasswords.illegalCharacters)
-		await staySignedInCheckbox?.click()
 		await submitButton?.click()
 	})
 

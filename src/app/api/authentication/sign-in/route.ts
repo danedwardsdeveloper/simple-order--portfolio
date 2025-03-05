@@ -12,7 +12,7 @@ import { users } from '@/library/database/schema'
 import { emailRegex } from '@/library/email/utilities'
 import logger from '@/library/logger'
 import { sanitiseDangerousBaseUser } from '@/library/utilities'
-import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
+import { createCookieWithToken } from '@/library/utilities/server'
 import type { BrowserSafeCompositeUser, DangerousBaseUser, MissingFieldMessages } from '@/types'
 import bcrypt from 'bcryptjs'
 import { eq } from 'drizzle-orm'
@@ -22,7 +22,6 @@ import { type NextRequest, NextResponse } from 'next/server'
 export interface SignInPOSTbody {
 	password: string
 	email: string
-	staySignedIn: boolean
 }
 
 export interface SignInPOSTresponse {
@@ -37,7 +36,7 @@ export interface SignInPOSTresponse {
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse<SignInPOSTresponse>> {
-	const { email, password, staySignedIn }: SignInPOSTbody = await request.json()
+	const { email, password }: SignInPOSTbody = await request.json()
 
 	let missingFieldMessage: MissingFieldMessages | null = null
 	if (!email) missingFieldMessage = missingFieldMessages.emailMissing
@@ -67,11 +66,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
 	}
 
 	const cookieStore = await cookies()
-	if (staySignedIn) {
-		cookieStore.set(createCookieWithToken(dangerousUser.id, cookieDurations.oneYear))
-	} else {
-		cookieStore.set(createSessionCookieWithToken(dangerousUser.id))
-	}
+	cookieStore.set(createCookieWithToken(dangerousUser.id, cookieDurations.oneYear))
 
 	const { userRole } = await getUserRoles(dangerousUser.id)
 
@@ -82,7 +77,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
 	const user: BrowserSafeCompositeUser = {
 		...sanitisedBaseUser,
 		roles: userRole,
-		accountActive: activeSubscriptionOrTrial,
+		activeSubscriptionOrTrial,
 	}
 
 	return NextResponse.json({ message: basicMessages.success, user }, { status: httpStatus.http200ok })

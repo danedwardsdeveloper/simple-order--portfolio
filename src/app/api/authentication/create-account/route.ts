@@ -16,7 +16,7 @@ import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import logger from '@/library/logger'
 import { containsIllegalCharacters, createFreeTrialEndTime, createMerchantSlug } from '@/library/utilities'
 import { sanitiseDangerousBaseUser } from '@/library/utilities'
-import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
+import { createCookieWithToken } from '@/library/utilities/server'
 import type {
 	BaseUserInsertValues,
 	BrowserSafeCompositeUser,
@@ -33,7 +33,6 @@ import { v4 as generateConfirmationToken } from 'uuid'
 
 export interface CreateAccountPOSTbody extends Omit<BaseUserInsertValues, 'hashedPassword' | 'emailConfirmed' | 'cachedTrialExpired'> {
 	password: string
-	staySignedIn: boolean
 }
 
 export interface CreateAccountPOSTresponse {
@@ -54,7 +53,7 @@ export interface CreateAccountPOSTresponse {
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse<CreateAccountPOSTresponse>> {
-	const { firstName, lastName, email, password, businessName, staySignedIn }: CreateAccountPOSTbody = await request.json()
+	const { firstName, lastName, email, password, businessName }: CreateAccountPOSTbody = await request.json()
 
 	let missingFieldMessage: MissingFieldMessages | null = null
 	if (!firstName) missingFieldMessage = missingFieldMessages.firstNameMissing
@@ -178,16 +177,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 		const compositeUser: BrowserSafeCompositeUser = {
 			...sanitisedBaseUser,
 			roles: 'merchant',
-			accountActive: true,
+			activeSubscriptionOrTrial: true,
 		}
 
 		const cookieStore = await cookies()
-
-		if (staySignedIn) {
-			cookieStore.set(createCookieWithToken(dangerousNewUser.id, cookieDurations.oneYear))
-		} else {
-			cookieStore.set(createSessionCookieWithToken(dangerousNewUser.id))
-		}
+		cookieStore.set(createCookieWithToken(dangerousNewUser.id, cookieDurations.oneYear))
 
 		return NextResponse.json({ message: basicMessages.success, user: compositeUser }, { status: httpStatus.http200ok })
 	} catch (error) {

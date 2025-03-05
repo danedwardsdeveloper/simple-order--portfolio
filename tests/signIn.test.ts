@@ -28,15 +28,11 @@ describe('Sign in', () => {
 	test('fills in and submits the sign-in form', async () => {
 		const emailInput = await getElementByTestId(dataTestIdNames.signIn.emailInput)
 		expect(emailInput).toBeDefined()
-		await emailInput?.type(testUsers.permanentTestUser.email)
+		await emailInput?.type(testUsers.permanentBoth.email)
 
 		const passwordInput = await getElementByTestId(dataTestIdNames.signIn.passwordInput)
 		expect(passwordInput).toBeDefined()
 		await passwordInput?.type(testPasswords.good)
-
-		const staySignedInCheckbox = await getElementByTestId(dataTestIdNames.signIn.staySignedInCheckbox)
-		expect(staySignedInCheckbox).toBeDefined()
-		await staySignedInCheckbox?.click()
 
 		const submitButton = await getElementByTestId(dataTestIdNames.signIn.submitButton)
 		expect(submitButton).toBeDefined()

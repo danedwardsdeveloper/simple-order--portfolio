@@ -53,16 +53,6 @@ export function createCookieWithToken(userId: number, duration: CookieDurations)
 	}
 }
 
-export function createSessionCookieWithToken(userId: number): CookieOptions {
-	const payload = generateTokenPayload(userId, cookieDurations.twoHours)
-	const token = jwt.sign(payload, jwtSecret)
-
-	return {
-		...baseCookieOptions,
-		value: token,
-	}
-}
-
 export function createDeleteCookie(): CookieOptions {
 	return {
 		...baseCookieOptions,

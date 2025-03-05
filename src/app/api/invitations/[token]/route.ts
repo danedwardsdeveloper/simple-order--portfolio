@@ -5,7 +5,7 @@ import { invitations, relationships, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import logger from '@/library/logger'
 import { createMerchantSlug, sanitiseDangerousBaseUser } from '@/library/utilities'
-import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
+import { createCookieWithToken } from '@/library/utilities/server'
 import type {
 	BaseUserInsertValues,
 	BrowserSafeCompositeUser,
@@ -57,7 +57,6 @@ export async function PATCH(
 	let lastName = undefined
 	let businessName = undefined
 	let password = undefined
-	let staySignedIn = undefined
 
 	// Parse the body conditionally
 	// Calling request.json() on an empty body throws an error
@@ -67,9 +66,6 @@ export async function PATCH(
 		lastName = body.lastName
 		businessName = body.businessName
 		password = body.password
-		staySignedIn = body.staySignedIn
-
-		logger.debug('Provided details: ', firstName, lastName, businessName, password, staySignedIn)
 	}
 
 	if (partialDetailsProvided) {
@@ -149,7 +145,7 @@ export async function PATCH(
 			// Create cookie if it wasn't provided
 			const existingTokenCookie = cookieStore.get(cookieNames.token)
 			if (!existingTokenCookie) {
-				cookieStore.set(createSessionCookieWithToken(foundDangerousUser.id))
+				cookieStore.set(createCookieWithToken(foundDangerousUser.id, cookieDurations.oneYear))
 			}
 
 			logger.info(`PATCH ${apiPaths.invitations.accept}: existing user found, relationship created`)
@@ -161,7 +157,7 @@ export async function PATCH(
 			const existingUser: BrowserSafeCompositeUser = {
 				...sanitiseDangerousBaseUser(foundDangerousUser),
 				roles: userRole,
-				accountActive: activeSubscriptionOrTrial,
+				activeSubscriptionOrTrial,
 			}
 
 			return NextResponse.json({ message: basicMessages.success, senderDetails, existingUser }, { status: httpStatus.http201created })
@@ -227,16 +223,12 @@ export async function PATCH(
 				return { createdUser }
 			})
 
-			if (staySignedIn) {
-				cookieStore.set(createCookieWithToken(createdUser.id, cookieDurations.oneYear))
-			} else {
-				cookieStore.set(createSessionCookieWithToken(createdUser.id))
-			}
+			cookieStore.set(createCookieWithToken(createdUser.id, cookieDurations.oneYear))
 
 			const compositeUser: BrowserSafeCompositeUser = {
 				...createdUser,
 				roles: 'customer',
-				accountActive: false, // This is a new customer-only, so they don't have a subscription but can still use the site to make orders
+				activeSubscriptionOrTrial: false, // This is a new customer-only, so they don't have a subscription but can still use the site to make orders
 			}
 
 			logger.info(`PATCH ${apiPaths.invitations.accept}: created new user: `, compositeUser)

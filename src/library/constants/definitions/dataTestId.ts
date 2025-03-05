@@ -4,11 +4,11 @@ export const dataTestIdNames = {
 	createAccountBusinessNameInput: 'create-account-business-name-input',
 	createAccountEmailInput: 'create-account-email-input',
 	createAccountPasswordInput: 'create-account-password-input',
-	createAccountStaySignedInCheckbox: 'create-account-stay-signed-in-checkbox',
 	createAccountSubmitButton: 'create-account-submit-button',
 	pleaseConfirmYourEmailMessage: 'please-confirm-your-email-message',
 	emailConfirmationFeedback: 'email-confirmation-feedback',
 	emailConfirmation: {
+		// ToDo: Remove these. Check for a notification instead
 		loading: 'confirm-page-loading-message',
 		default: 'confirm-page-default-message',
 		response: 'confirm-page-response-message',
@@ -16,7 +16,6 @@ export const dataTestIdNames = {
 	signIn: {
 		emailInput: 'sign-in-email-input',
 		passwordInput: 'sign-in-password-input',
-		staySignedInCheckbox: 'sign-in-stay-signed-in-checkbox',
 		submitButton: 'sign-in-submit-button',
 	},
 	invite: {

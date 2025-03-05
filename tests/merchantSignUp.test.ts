@@ -20,7 +20,7 @@ describe('Create Account Form', async () => {
 
 	beforeAll(async () => {
 		deleteUserSequence(susanPoodle.email)
-		browser = await launch()
+		browser = await launch({ headless: false, slowMo: 500 })
 		page = await browser.newPage()
 		initializePage(page)
 		await page.goto(`${developmentBaseURL}/free-trial`)
@@ -37,17 +37,14 @@ describe('Create Account Form', async () => {
 		const businessNameInput = await getElementByTestId(dataTestIdNames.createAccountBusinessNameInput)
 		const emailInput = await getElementByTestId(dataTestIdNames.createAccountEmailInput)
 		const passwordInput = await getElementByTestId(dataTestIdNames.createAccountPasswordInput)
-		const staySignedInCheckbox = await getElementByTestId(dataTestIdNames.createAccountStaySignedInCheckbox)
 		const submitButton = await getElementByTestId(dataTestIdNames.createAccountSubmitButton)
 
 		await firstNameInput?.type('Susan')
 		await lastNameInput?.type('Poodle')
 		await businessNameInput?.type(`Susan's Spicey Sausages`)
 		await emailInput?.type(susanPoodle.email)
-		await staySignedInCheckbox?.click()
 		await passwordInput?.type('securePassword123')
 
-		await staySignedInCheckbox?.click()
 		await Promise.all([page.waitForNavigation(), submitButton?.click()])
 		expect(page.url()).toContain('/dashboard')
 	})
