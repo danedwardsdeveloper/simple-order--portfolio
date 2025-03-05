@@ -2,31 +2,21 @@
 
 ## Current Task
 
--  Static BreadCrumbs
--  DynamicBreadCrumbs
--  I don't think I need a merchantMode toggle any more
--  However I do need to calculate merchants/customers/both properly
+-  Display order information on the /orders page
 
-## MVP
+## MVP tasks
 
--  Make all API route don't return empty arrays
--  Make all routes RESTful (mostly)
+-  Calculate merchants/customers/both properly
 
--  Fix transaction error handling in `/api/invitations/accept/[token]`
+## Refinements & extras (even if they're really important)
 
-1. Get `verify-token` to return the invited customers details
-2. Set up orders
-
-## Refinements 7 extras (even if they're really important)
-
--  Make sure all error NextResponses are preceded by logger.error
+-  Make sure all a logger statement precedes all NextResponses
 -  Replace CLSX with tailwindMerge
--  Prevent sign-in from returning dangerous information!
--  Sanitise business names but allow apostrophes
--  Style notification items
 -  Resend confirmation emails (invite customer, merchant sign-up)
 -  Rate limit the confirmation endpoint by IP
 -  Expire unconfirmed accounts after 24-48 hours
 -  Add CAPTCHA if you see suspicious patterns of account creation
 -  Monitor for unusual spikes in failed confirmation attempts
--  Customise the Stripe product logo - make smaller/use find something better than the logo
+-  Customise the logo on the Stripe-hosted checkout page - make smaller/find something better
+-  Made dynamic /orders page much more intuitive
+-  Worked on OrderSummaryCard.tsx
