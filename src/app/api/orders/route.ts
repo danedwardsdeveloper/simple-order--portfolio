@@ -3,8 +3,12 @@ import {
 	authenticationMessages,
 	basicMessages,
 	httpStatus,
+	illegalCharactersMessages,
+	invalidFieldsMessages,
 	missingFieldMessages,
 	relationshipMessages,
+	serviceConstraintMessages,
+	serviceConstraints,
 	temporaryVat,
 } from '@/library/constants'
 import { database } from '@/library/database/connection'
@@ -12,6 +16,7 @@ import { checkRelationship, checkUserExists } from '@/library/database/operation
 import { orderItems, orders, users } from '@/library/database/schema'
 import { products as productsTable } from '@/library/database/schema'
 import logger from '@/library/logger'
+import { containsIllegalCharacters, isValidDate } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
 import type { OrderInsertValues, TokenMessages } from '@/types'
 import { eq, inArray } from 'drizzle-orm'
@@ -24,6 +29,8 @@ export interface SelectedProduct {
 
 export interface OrdersPOSTbody {
 	merchantSlug: string
+	requestedDeliveryDate: Date
+	customerNote?: string
 	products: SelectedProduct[]
 }
 
@@ -38,6 +45,11 @@ export interface OrdersPOSTresponse {
 		| typeof authenticationMessages.merchantNotFound
 		| typeof missingFieldMessages.merchantSlugMissing
 		| typeof missingFieldMessages.productsMissing
+		| typeof missingFieldMessages.requestedDeliveryDateMissing
+		| typeof illegalCharactersMessages.customerNote
+		| typeof invalidFieldsMessages.customerNote
+		| typeof invalidFieldsMessages.requestedDelivery
+		| typeof serviceConstraintMessages.customerNoteTooLong
 	orderId?: number
 }
 
@@ -59,7 +71,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<OrdersPOS
 			return NextResponse.json({ message: 'user not found' }, { status: httpStatus.http404notFound })
 		}
 
-		const { merchantSlug, products }: OrdersPOSTbody = await request.json()
+		const { merchantSlug, products, requestedDeliveryDate, customerNote }: OrdersPOSTbody = await request.json()
 
 		if (!merchantSlug) {
 			return NextResponse.json({ message: missingFieldMessages.merchantSlugMissing }, { status: httpStatus.http400badRequest })
@@ -67,6 +79,30 @@ export async function POST(request: NextRequest): Promise<NextResponse<OrdersPOS
 
 		if (!products) {
 			return NextResponse.json({ message: missingFieldMessages.productsMissing }, { status: httpStatus.http400badRequest })
+		}
+
+		if (!requestedDeliveryDate) {
+			return NextResponse.json({ message: missingFieldMessages.requestedDeliveryDateMissing }, { status: httpStatus.http400badRequest })
+		}
+
+		if (!isValidDate(requestedDeliveryDate)) {
+			logger.error(`POST ${apiPaths.orders.merchantPerspective.base} invalid requestedDeliveryDate format: `, requestedDeliveryDate)
+			return NextResponse.json({ message: invalidFieldsMessages.requestedDelivery }, { status: httpStatus.http400badRequest })
+		}
+
+		if (customerNote) {
+			let customerNoteError = undefined
+
+			if (typeof customerNote !== 'string') {
+				customerNoteError = invalidFieldsMessages.customerNote
+			} else if (containsIllegalCharacters(customerNote)) {
+				customerNoteError = illegalCharactersMessages.customerNote
+			} else if (customerNote.length > serviceConstraints.maximumCustomerNoteLength) {
+				customerNoteError = serviceConstraintMessages.customerNoteTooLong
+			}
+			if (customerNoteError) {
+				return NextResponse.json({ message: customerNoteError }, { status: httpStatus.http400badRequest })
+			}
 		}
 
 		const [merchantProfile] = await database
@@ -90,6 +126,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<OrdersPOS
 		const newOrderInsertValues: OrderInsertValues = {
 			customerId: extractedUserId,
 			merchantId: merchantProfile.userId,
+			requestedDeliveryDate,
+			customerNote,
 		}
 
 		const { newOrderId } = await database.transaction(async (tx) => {
