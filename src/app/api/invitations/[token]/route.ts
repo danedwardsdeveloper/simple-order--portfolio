@@ -1,13 +1,15 @@
-import { apiPaths, basicMessages, cookieDurations, cookieNames, httpStatus, tokenMessages } from '@/library/constants'
+import { apiPaths, basicMessages, cookieDurations, cookieNames, httpStatus, relationshipMessages, tokenMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
+import { checkActiveSubscriptionOrTrial, getUserRoles } from '@/library/database/operations'
 import { invitations, relationships, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import logger from '@/library/logger'
-import { createMerchantSlug } from '@/library/utilities'
+import { createMerchantSlug, sanitiseDangerousBaseUser } from '@/library/utilities'
 import { createCookieWithToken, createSessionCookieWithToken } from '@/library/utilities/server'
 import type {
 	BaseUserInsertValues,
 	BrowserSafeCompositeUser,
+	BrowserSafeMerchantProfile,
 	DangerousBaseUser,
 	Invitation,
 	InvitedCustomerBrowserInputValues,
@@ -29,12 +31,14 @@ export interface InvitationsTokenPATCHresponse {
 	message:
 		| typeof basicMessages.success
 		| typeof basicMessages.serverError
+		| typeof relationshipMessages.relationshipExists
 		| 'missing fields'
 		| TokenMessages
 		| 'invitation not found'
 		| 'please provide details'
 	createdUser?: BrowserSafeCompositeUser
-	senderBusinessName?: string
+	existingUser?: BrowserSafeCompositeUser
+	senderDetails?: BrowserSafeMerchantProfile
 }
 
 export async function PATCH(
@@ -88,36 +92,55 @@ export async function PATCH(
 	const [foundInvitation]: Invitation[] = await database.select().from(invitations).where(eq(invitations.token, token)).limit(1)
 
 	if (!foundInvitation) {
+		logger.warn(`PATCH ${apiPaths.invitations.accept}: invitation row not found at all`)
 		return NextResponse.json({ message: 'invitation not found' }, { status: httpStatus.http400badRequest })
 	}
 
-	const recipientEmail = foundInvitation.email
+	const [foundDangerousUser]: DangerousBaseUser[] = await database.select().from(users).where(eq(users.email, foundInvitation.email))
 
-	const [existingUser]: DangerousBaseUser[] = await database.select().from(users).where(eq(users.email, recipientEmail))
+	const [foundSenderProfile]: DangerousBaseUser[] = await database.select().from(users).where(eq(users.id, foundInvitation.senderUserId))
 
-	const [senderDetails]: DangerousBaseUser[] = await database.select().from(users).where(eq(users.id, foundInvitation.senderUserId))
+	const senderDetails: BrowserSafeMerchantProfile = {
+		slug: foundSenderProfile.slug,
+		businessName: foundSenderProfile.businessName,
+	}
 
-	const senderBusinessName = senderDetails.businessName
+	if (foundDangerousUser) {
+		const [existingRelationship] = await database
+			.select()
+			.from(relationships)
+			.where(and(eq(relationships.merchantId, foundSenderProfile.id), eq(relationships.customerId, foundDangerousUser.id)))
+
+		if (existingRelationship) {
+			return NextResponse.json(
+				{ message: relationshipMessages.relationshipExists, foundSenderProfile },
+				{ status: httpStatus.http409conflict },
+			)
+		}
+	}
 
 	try {
-		if (existingUser) {
+		if (foundDangerousUser) {
 			await database.transaction(async (tx) => {
 				// Transaction: Create the relationship
 				transactionErrorMessage = 'transaction error creating relationships'
+				transactionErrorCode = httpStatus.http409conflict
 				const newRelationshipInsert: RelationshipJoinRow = {
 					merchantId: foundInvitation.senderUserId,
-					customerId: existingUser.id,
+					customerId: foundDangerousUser.id,
 				}
 				await tx.insert(relationships).values(newRelationshipInsert).returning()
 
 				// Transaction: change user table emailConfirmed to true if not already
 				transactionErrorMessage = 'transaction error ensuring emailConfirmed on existing user is set to true'
-				await tx.update(users).set({ emailConfirmed: true }).where(eq(users.id, existingUser.id))
+				await tx.update(users).set({ emailConfirmed: true }).where(eq(users.id, foundDangerousUser.id))
 
-				// Transaction: Delete invitation
-				transactionErrorMessage = 'error '
-				transactionErrorCode = null
-				await tx.delete(invitations).where(and(eq(invitations.senderUserId, foundInvitation.senderUserId), eq(invitations.token, token)))
+				// Transaction: Expire the invitation
+				transactionErrorMessage = 'error expiring invitation'
+				await tx
+					.update(invitations)
+					.set({ usedAt: new Date() })
+					.where(and(eq(invitations.senderUserId, foundInvitation.senderUserId), eq(invitations.token, token)))
 
 				transactionErrorMessage = null
 				transactionErrorCode = null
@@ -126,26 +149,37 @@ export async function PATCH(
 			// Create cookie if it wasn't provided
 			const existingTokenCookie = cookieStore.get(cookieNames.token)
 			if (!existingTokenCookie) {
-				cookieStore.set(createSessionCookieWithToken(existingUser.id))
+				cookieStore.set(createSessionCookieWithToken(foundDangerousUser.id))
 			}
 
 			logger.info(`PATCH ${apiPaths.invitations.accept}: existing user found, relationship created`)
-			return NextResponse.json({ message: basicMessages.success, senderBusinessName }, { status: httpStatus.http201created })
+
+			const { userRole } = await getUserRoles(foundDangerousUser.id)
+
+			const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(foundDangerousUser.id)
+
+			const existingUser: BrowserSafeCompositeUser = {
+				...sanitiseDangerousBaseUser(foundDangerousUser),
+				roles: userRole,
+				accountActive: activeSubscriptionOrTrial,
+			}
+
+			return NextResponse.json({ message: basicMessages.success, senderDetails, existingUser }, { status: httpStatus.http201created })
 		}
 
-		if (!existingUser && !allDetailsProvided) {
+		if (!foundDangerousUser && !allDetailsProvided) {
 			logger.info('Existing user not found & no details provided to create new account')
 			return NextResponse.json({ message: 'please provide details' }, { status: httpStatus.http422unprocessableContent })
 		}
 
-		if (!existingUser && allDetailsProvided) {
+		if (!foundDangerousUser && allDetailsProvided) {
 			const { createdUser } = await database.transaction(async (tx) => {
 				// Transaction: Create user
 				const saltRounds = 10
 				const hashedPassword = await bcrypt.hash(password, saltRounds)
 
 				const newUserInsertValues: BaseUserInsertValues = {
-					email: recipientEmail,
+					email: foundInvitation.email,
 					firstName,
 					lastName,
 					businessName,
@@ -180,15 +214,13 @@ export async function PATCH(
 
 				transactionErrorMessage = 'transaction error sending welcome email'
 				const emailSuccess = await sendEmail({
-					recipientEmail,
+					recipientEmail: foundInvitation.email,
 					subject: 'Thank you for using Simple Order',
 					htmlVersion: emailContent,
 					textVersion: emailContent,
 				})
 
-				if (!emailSuccess) {
-					tx.rollback()
-				}
+				if (!emailSuccess) tx.rollback()
 
 				transactionErrorMessage = null
 				transactionErrorCode = null
@@ -209,12 +241,13 @@ export async function PATCH(
 
 			logger.info(`PATCH ${apiPaths.invitations.accept}: created new user: `, compositeUser)
 			return NextResponse.json(
-				{ message: basicMessages.success, createdUser: compositeUser, senderBusinessName },
+				{ message: basicMessages.success, createdUser: compositeUser, senderDetails },
 				{ status: httpStatus.http200ok },
 			)
 		}
 
 		// Neither new nor existing users should reach this return
+		logger.error(`PATCH ${apiPaths.invitations.accept}: reached the end of the route handler without successful early return.`)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
 	} catch (error) {
 		logger.error(`PATCH ${apiPaths.invitations.accept} error`, error)
