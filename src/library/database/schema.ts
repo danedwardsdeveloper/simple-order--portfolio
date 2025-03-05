@@ -35,6 +35,7 @@ export const invitations = pgTable(
 			.notNull()
 			.references(() => users.id),
 		token: uuid('token').notNull().unique().defaultRandom(),
+		usedAt: timestamp('used_at'),
 		expiresAt: timestamp('expires_at').notNull(),
 		emailAttempts: integer('email_attempts').notNull().default(0),
 		lastEmailSent: timestamp('last_email_sent').notNull(),
