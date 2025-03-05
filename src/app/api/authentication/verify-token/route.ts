@@ -43,9 +43,6 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
 		}
 
-		// If they have confirmed merchants they are a customer
-		// If they have a merchant profile they are a merchant
-
 		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(extractedUserId, baseUser.cachedTrialExpired)
 
 		const { userRole } = await getUserRoles(extractedUserId)
