@@ -10,40 +10,6 @@ export default function CustomersList() {
 	const [isLoading] = useState(false)
 	const [message] = useState('')
 
-	// Enhancement ToDo: implement React Query for better data caching
-	// ToDo: Get invited customers
-
-	// useEffect(() => {
-	// 	async function getCustomers() {
-	// 		try {
-	// 			setIsLoading(true)
-	// 			const { confirmedCustomers, invitedCustomers, message }: CustomersGETresponse = await (
-	// 				await fetch(apiPaths.customers.base, { credentials: 'include' })
-	// 			).json()
-
-	// 			if (confirmedCustomers) setConfirmedCustomers(confirmedCustomers)
-	// 			if (invitedCustomers) setInvitedCustomers(invitedCustomers)
-
-	// 			if (!confirmedCustomers && !invitedCustomers) {
-	// 				setMessage(message || 'No customers found')
-	// 			} else {
-	// 				setMessage('')
-	// 			}
-	// 		} catch (error) {
-	// 			logger.error('Error fetching customers:', error)
-	// 			setMessage('Failed to load customers. Please try again later.')
-	// 		} finally {
-	// 			setIsLoading(false)
-	// 			setHasAttemptedCustomersFetch(true)
-	// 		}
-	// 	}
-
-	// 	if (!hasAttemptedCustomersFetch) {
-	// 		getCustomers()
-	// 	}
-	// }, [])
-
-	// Enhancement ToDo: create skeleton
 	if (isLoading) return <Spinner />
 
 	return (
