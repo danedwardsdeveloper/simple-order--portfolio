@@ -10,6 +10,13 @@ export function formatTimeAndDate(date: Date): string {
 	return `${time}${meridiem} ${timezone} on ${format(date, 'EEEE, d MMMM yyyy')}`
 }
 
+/**
+ * Formats a date in the "4 March" or "7 September" format
+ */
+export function formatDate(date: Date): string {
+	return format(date, 'd MMMM')
+}
+
 // console.log(formatTimeAndDate(new Date()))
 // 3:25pm GMT on Monday, 10 February 2025
 
