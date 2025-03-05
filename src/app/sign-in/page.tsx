@@ -1,9 +1,9 @@
 'use client'
-import { CheckboxIcon } from '@/components/Icons'
 import { apiPaths, dataTestIdNames, testPasswords } from '@/library/constants'
 import logger from '@/library/logger'
 import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { type FormEvent, useState } from 'react'
 import type { SignInPOSTbody, SignInPOSTresponse } from '../api/authentication/sign-in/route'
@@ -16,7 +16,6 @@ export default function SignInPage() {
 	const [formData, setFormData] = useState<SignInPOSTbody>({
 		email: '',
 		password: preFillForConvenience ? testPasswords.good : '',
-		staySignedIn: preFillForConvenience,
 	})
 	const [error, setError] = useState('')
 
@@ -31,11 +30,7 @@ export default function SignInPage() {
 					headers: {
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({
-						email: formData.email,
-						password: formData.password,
-						staySignedIn: formData.staySignedIn,
-					} satisfies SignInPOSTbody),
+					body: JSON.stringify(formData),
 				})
 			).json()
 
@@ -116,34 +111,19 @@ export default function SignInPage() {
 					/>
 				</div>
 
-				<div className="flex gap-3">
-					<div className="flex h-6 shrink-0 items-center">
-						<div className="group grid size-4 grid-cols-1">
-							<input
-								data-test-id={dataTestIdNames.signIn.staySignedInCheckbox}
-								id="stay-signed-in"
-								name="stay-signed-in"
-								type="checkbox"
-								checked={formData.staySignedIn}
-								onChange={(event) =>
-									setFormData((prev) => ({
-										...prev,
-										staySignedIn: event.target.checked,
-									}))
-								}
-							/>
-							<CheckboxIcon />
-						</div>
-					</div>
-					<label htmlFor="stay-signed-in" className="block text-sm/6 text-gray-900">
-						Stay signed in
-					</label>
-				</div>
-
 				<button data-test-id={dataTestIdNames.signIn.submitButton} type="submit" className="button-primary inline-block w-full">
 					Sign In
 				</button>
 			</form>
+			<div className="mt-8 text-center">
+				<p>
+					{`Don't have an account? `}
+
+					<Link href="/free-trial" className="link-primary">
+						Start a free trial instead
+					</Link>
+				</p>
+			</div>
 		</div>
 	)
 }
