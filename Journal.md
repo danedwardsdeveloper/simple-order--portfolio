@@ -83,3 +83,4 @@
 -  Fixed logic for displaying no customers message, confirm your email message, no inventory message
 -  Pushed new invitation to state on send
 -  Fixed on Invitations GET route
+-  Added invitations data fetching to user provider
