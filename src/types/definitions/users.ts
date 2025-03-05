@@ -27,13 +27,15 @@ export interface BrowserSafeCustomerProfile {
 // Junction table where insert & return type are identical
 export type RelationshipJoinRow = typeof relationships.$inferSelect
 
-export interface MerchantFacingInvitationRecord {
+// ToDo: Think of a better name
+export interface BrowserSafeInvitationSent {
 	obfuscatedEmail: string
 	lastEmailSentDate: Date
 	expirationDate: Date
 }
 
-export interface CustomerFacingInvitationRecord {
+// ToDo: Think of a better name
+export interface BrowserSafeInvitationReceived {
 	merchantBusinessName: string
 	expirationDate: Date
 }

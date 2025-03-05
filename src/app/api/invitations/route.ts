@@ -19,11 +19,11 @@ import { convertEmptyToUndefined, obfuscateEmail } from '@/library/utilities'
 import { createInvitationURL } from '@/library/utilities/definitions/createInvitationURL'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
 import type {
-	CustomerFacingInvitationRecord,
+	BrowserSafeInvitationReceived,
+	BrowserSafeInvitationSent,
 	DangerousBaseUser,
 	Invitation,
 	InvitationInsert,
-	MerchantFacingInvitationRecord,
 	TokenMessages,
 } from '@/types'
 import { and, eq, inArray } from 'drizzle-orm'
@@ -49,7 +49,7 @@ export interface InvitationsPOSTresponse {
 		| 'attempted to invite self'
 		| 'relationship exists'
 		| 'in-date invitation exists'
-	browserSafeInvitationRecord?: MerchantFacingInvitationRecord
+	browserSafeInvitationRecord?: BrowserSafeInvitationSent
 }
 
 export interface InvitationsPOSTbody {
@@ -183,7 +183,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
 			)
 		}
 
-		const browserSafeInvitationRecord: MerchantFacingInvitationRecord = {
+		const browserSafeInvitationRecord: BrowserSafeInvitationSent = {
 			obfuscatedEmail: obfuscateEmail(normalisedInvitedEmail),
 			expirationDate: newInvitationExpiryDate,
 			lastEmailSentDate: newInvitation.lastEmailSent,
@@ -198,8 +198,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
 
 export interface InvitationsGETresponse {
 	message: TokenMessages | typeof basicMessages.serverError | typeof basicMessages.success | 'no invitations found'
-	invitationsSent?: MerchantFacingInvitationRecord[]
-	invitationsReceived?: CustomerFacingInvitationRecord[]
+	invitationsSent?: BrowserSafeInvitationSent[]
+	invitationsReceived?: BrowserSafeInvitationReceived[]
 }
 
 const routeDetailsGET = `GET ${apiPaths.invitations.base}: `
@@ -232,7 +232,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<Invitation
 			return NextResponse.json({ message: 'no invitations found' }, { status: httpStatus.http200ok })
 		}
 
-		let invitationsReceived: CustomerFacingInvitationRecord[] | undefined
+		let invitationsReceived: BrowserSafeInvitationReceived[] | undefined
 		if (rawInvitationsReceived) {
 			const senderUserIds = rawInvitationsReceived.map((invitation) => invitation.senderUserId)
 
@@ -252,7 +252,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<Invitation
 			}))
 		}
 
-		const invitationsSent: MerchantFacingInvitationRecord[] | undefined = rawInvitationsSent
+		const invitationsSent: BrowserSafeInvitationSent[] | undefined = rawInvitationsSent
 			? rawInvitationsSent.map((invitation) => ({
 					obfuscatedEmail: obfuscateEmail(invitation.email),
 					lastEmailSentDate: invitation.lastEmailSent,

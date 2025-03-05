@@ -1,5 +1,6 @@
 'use client'
 import type { VerifyTokenGETresponse } from '@/app/api/authentication/verify-token/route'
+import type { InvitationsGETresponse } from '@/app/api/invitations/route'
 import type { RelationshipsGETresponse } from '@/app/api/relationships/route'
 import SplashScreen from '@/components/SplashScreen'
 import { apiPaths, temporaryVat } from '@/library/constants'
@@ -7,9 +8,10 @@ import logger from '@/library/logger'
 import type {
 	BrowserSafeCompositeUser,
 	BrowserSafeCustomerProfile,
+	BrowserSafeInvitationReceived,
+	BrowserSafeInvitationSent,
 	BrowserSafeMerchantProduct,
 	BrowserSafeMerchantProfile,
-	MerchantFacingInvitationRecord,
 } from '@/types'
 import { type Dispatch, type ReactNode, type SetStateAction, createContext, useContext, useEffect, useState } from 'react'
 import { useUi } from './ui'
@@ -25,15 +27,14 @@ interface UserContextType {
 
 	confirmedMerchants: BrowserSafeMerchantProfile[] | null
 	setConfirmedMerchants: Dispatch<SetStateAction<BrowserSafeMerchantProfile[] | null>>
-
 	confirmedCustomers: BrowserSafeCustomerProfile[] | null
 	setConfirmedCustomers: Dispatch<SetStateAction<BrowserSafeCustomerProfile[] | null>>
 
-	pendingMerchants: BrowserSafeMerchantProfile[] | null
-	setPendingMerchants: Dispatch<SetStateAction<BrowserSafeMerchantProfile[] | null>>
+	invitationsReceived: BrowserSafeInvitationReceived[] | null
+	setInvitationsReceived: Dispatch<SetStateAction<BrowserSafeInvitationReceived[] | null>>
 
-	invitedCustomers: MerchantFacingInvitationRecord[] | null
-	setInvitedCustomers: Dispatch<SetStateAction<MerchantFacingInvitationRecord[] | null>>
+	invitationsSent: BrowserSafeInvitationSent[] | null
+	setInvitationsSent: Dispatch<SetStateAction<BrowserSafeInvitationSent[] | null>>
 
 	vat: number
 	isLoading: boolean
@@ -50,10 +51,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 	const [hasAttemptedInventoryFetch, setHasAttemptedInventoryFetch] = useState(false)
 
 	const [confirmedMerchants, setConfirmedMerchants] = useState<BrowserSafeMerchantProfile[] | null>(null)
-	const [pendingMerchants, setPendingMerchants] = useState<BrowserSafeMerchantProfile[] | null>(null)
-
 	const [confirmedCustomers, setConfirmedCustomers] = useState<BrowserSafeCustomerProfile[] | null>(null)
-	const [invitedCustomers, setInvitedCustomers] = useState<MerchantFacingInvitationRecord[] | null>(null)
+
+	const [invitationsReceived, setInvitationsReceived] = useState<BrowserSafeInvitationReceived[] | null>(null)
+	const [invitationsSent, setInvitationsSent] = useState<BrowserSafeInvitationSent[] | null>(null)
 
 	const [isLoading, setIsLoading] = useState(true)
 
@@ -73,6 +74,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 					}
 
 					await getRelationships()
+					await getInvitations()
 				}
 			} catch (error) {
 				logger.error(`User provider ${apiPaths.authentication.verifyToken}`, error)
@@ -81,6 +83,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 			}
 		}
 
+		// Optimisation ToDo: send concurrent requests with Promise.all
 		async function getRelationships() {
 			try {
 				const { customers, merchants }: RelationshipsGETresponse = await (
@@ -90,6 +93,24 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 				setConfirmedCustomers(customers || null)
 			} catch (error) {
 				logger.error(`User provider ${apiPaths.relationships}`, error)
+			}
+		}
+
+		async function getInvitations() {
+			const path = apiPaths.invitations.base
+			try {
+				const { invitationsSent, invitationsReceived, message }: InvitationsGETresponse = await (
+					await fetch(path, {
+						credentials: 'include',
+					})
+				).json()
+				setInvitationsSent(invitationsSent || null)
+				setInvitationsReceived(invitationsReceived || null)
+				if (message !== 'success') {
+					logger.error(`User provider ${path}: request unsuccessful`, message)
+				}
+			} catch (error) {
+				logger.error(`User provider ${path}: `, error)
 			}
 		}
 
@@ -113,11 +134,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 				confirmedCustomers,
 				setConfirmedCustomers,
 
-				pendingMerchants,
-				setPendingMerchants,
+				invitationsReceived,
+				setInvitationsReceived,
 
-				invitedCustomers,
-				setInvitedCustomers,
+				invitationsSent,
+				setInvitationsSent,
 
 				isLoading,
 				vat: temporaryVat,
