@@ -2,7 +2,8 @@
 
 ## Current Task
 
--  Fetch and store invitations data in user provider on mount
+-  Fix errors until pnpm build works again
+-  Get all tests passing
 
 ## MVP tasks
 

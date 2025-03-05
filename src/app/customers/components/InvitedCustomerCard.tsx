@@ -1,11 +1,11 @@
 import { formatTimeAndDate } from '@/library/utilities'
-import type { MerchantFacingInvitationRecord } from '@/types'
+import type { BrowserSafeInvitationSent } from '@/types'
 import clsx from 'clsx'
 
 export default function InvitedCustomerCard({
 	invitedCustomer,
 	zebraStripe,
-}: { invitedCustomer: MerchantFacingInvitationRecord; zebraStripe: boolean }) {
+}: { invitedCustomer: BrowserSafeInvitationSent; zebraStripe: boolean }) {
 	return (
 		<div
 			className={clsx(

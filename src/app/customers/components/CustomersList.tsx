@@ -6,7 +6,7 @@ import ConfirmedCustomerCard from './ConfirmedCustomerCard'
 import InvitedCustomerCard from './InvitedCustomerCard'
 
 export default function CustomersList() {
-	const { confirmedCustomers, invitedCustomers } = useUser()
+	const { confirmedCustomers, invitationsSent } = useUser()
 	const [isLoading] = useState(false)
 	const [message] = useState('')
 
@@ -22,12 +22,12 @@ export default function CustomersList() {
 			{confirmedCustomers?.map((customer, index) => (
 				<ConfirmedCustomerCard key={customer.businessName} confirmedCustomer={customer} zebraStripe={Boolean(index % 2)} />
 			))}
-			{invitedCustomers && (
+			{invitationsSent && (
 				<h2 className="mt-12">
-					{invitedCustomers.length} Invited customer{invitedCustomers.length !== 1 && 's'}
+					{invitationsSent.length} Invited customer{invitationsSent.length !== 1 && 's'}
 				</h2>
 			)}
-			{invitedCustomers?.map((customer, index) => (
+			{invitationsSent?.map((customer, index) => (
 				<InvitedCustomerCard key={customer.obfuscatedEmail} invitedCustomer={customer} zebraStripe={Boolean(index % 2)} />
 			))}
 

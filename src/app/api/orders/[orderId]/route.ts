@@ -78,13 +78,7 @@ export async function POST(
 
 		// Ensure product belongs to a merchant with a relationship
 
-		let vat = 0
-		if (!product.customVat) {
-			// ToDo: Add default VAT settings
-			vat = temporaryVat
-		} else {
-			vat = product.customVat
-		}
+		const vat = product.customVat ? product.customVat : temporaryVat
 
 		const orderItemInsertValues: OrderItemInsertValues = {
 			orderId,
@@ -92,21 +86,9 @@ export async function POST(
 			quantity,
 			priceInMinorUnitsWithoutVat: product.priceInMinorUnits,
 			vat,
-			subtotal: product.priceInMinorUnits * (1 + vat / 100),
 		}
 
 		const [createdOrderItem]: OrderItem[] = await database.insert(orderItems).values(orderItemInsertValues).returning()
-
-		// Insert item with calculated subtotal
-
-		// Optimisations for later
-		// Check if product belongs to correct merchant
-		// Validate product is in stock
-		// Check if item already exists in order (maybe merge quantities?)
-		// Bulk insert support
-		// Price override validation/logging
-		// Input sanitisation for quantities (max limits etc)
-		// Return updated order total
 
 		return NextResponse.json({ message: basicMessages.success, createdOrderItem }, { status: httpStatus.http200ok })
 	} catch (error) {

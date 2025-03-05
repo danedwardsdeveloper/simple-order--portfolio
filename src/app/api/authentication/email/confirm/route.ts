@@ -28,9 +28,8 @@ export interface AuthenticationEmailConfirmPOSTbody {
 	token: string
 }
 
-export const routeDetail = `POST ${apiPaths.authentication.email.confirm}: `
-
 export async function POST(request: NextRequest): Promise<NextResponse<AuthenticationEmailConfirmPOSTresponse>> {
+	const routeDetail = `POST ${apiPaths.authentication.email.confirm}: `
 	let transactionFailureMessage = undefined
 	let transactionFailureStatus = undefined
 	try {

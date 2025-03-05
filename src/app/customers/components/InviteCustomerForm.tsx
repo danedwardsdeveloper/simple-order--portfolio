@@ -7,7 +7,7 @@ import { useUser } from '@/providers/user'
 import { type ChangeEvent, type FormEvent, useState } from 'react'
 
 export default function InviteCustomerForm() {
-	const { user, setInvitedCustomers } = useUser()
+	const { user, setInvitationsSent } = useUser()
 	const { createNotification } = useNotifications()
 	const [loading, setLoading] = useState(false)
 	const [responseMessage, setResponseMessage] = useState('')
@@ -37,7 +37,8 @@ export default function InviteCustomerForm() {
 					title: 'Success',
 					message: `Successfully sent invitation email to ${invitedEmail}`,
 				})
-				setInvitedCustomers((prev) => (prev ? [browserSafeInvitationRecord, ...prev] : []))
+				// ToDo: check this logic
+				setInvitationsSent((prev) => (prev ? [browserSafeInvitationRecord, ...prev] : []))
 				setInvitedEmail('')
 			} else {
 				setResponseMessage(message)
