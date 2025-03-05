@@ -2,7 +2,7 @@
 
 ## Current Task
 
--  Gather and display all information about orders from products, users, orders, order_items
+-  Fetch and store invitations data in user provider on mount
 
 ## MVP tasks
 
