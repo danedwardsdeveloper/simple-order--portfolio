@@ -72,3 +72,5 @@
 -  Created orders/admin GET route
 -  Figured out how to join and shape the orders data
 -  Fixed problem with new order page using strings instead of numbers
+-  Created OrderSummary.tsx
+-  Started data fetching for merchant-facing orders
