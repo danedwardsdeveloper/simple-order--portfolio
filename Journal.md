@@ -80,3 +80,6 @@
 -  Added requested delivery date when creating new order
 -  Fixed errors in accept invitations route
 -  Lots of work on accepting invitations UX
+-  Fixed logic for displaying no customers message, confirm your email message, no inventory message
+-  Pushed new invitation to state on send
+-  Fixed on Invitations GET route
