@@ -96,8 +96,7 @@ export const testEmailInbox = pgTable('test_email_inbox', {
 	content: text('content').notNull(),
 })
 
-// ToDo: change to 'pending' | 'completed'
-// Optimisation ToDo: add 'cancelled'
+export type OrderStatus = 'pending' | 'completed' | 'cancelled'
 export const orderStatusEnum = pgEnum('order_status', ['pending', 'completed', 'cancelled'])
 
 export const orders = pgTable('orders', {
@@ -109,7 +108,9 @@ export const orders = pgTable('orders', {
 		.notNull()
 		.references(() => users.id),
 	status: orderStatusEnum('status').notNull().default('pending'),
-	// Requested delivery date
+	requestedDeliveryDate: timestamp('requested_delivery_date').notNull(),
+	adminOnlyNote: text('admin_only_note'),
+	customerNote: text('customer_note'),
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
