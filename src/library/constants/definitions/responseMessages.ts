@@ -59,6 +59,7 @@ export const tokenMessages = {
 	tokenMissing: 'token missing',
 	tokenExpired: 'token expired',
 	tokenInvalid: 'token invalid',
+	tokenUsed: 'token used',
 } as const
 
 export const relationshipMessages = {
