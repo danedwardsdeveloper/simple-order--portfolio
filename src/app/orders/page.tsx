@@ -12,13 +12,14 @@ export default function OrdersPage() {
 
 	if (!user) return null
 
+	const dynamicTitle = user.roles === 'both' ? (merchantMode ? 'Orders as merchant' : 'Orders as customer') : 'Orders'
+
 	return (
 		<>
-			<SignedInBreadCrumbs businessName={user.businessName} currentPageTitle="Orders" />
+			<SignedInBreadCrumbs businessName={user.businessName} currentPageTitle={dynamicTitle} />
 			<div className="flex flex-col gap-y-4 items-start">
-				{/* This page is for users with only one role, so the context is clear */}
-				<h1>Orders</h1>
 				<RoleModeButton />
+				<h1>{dynamicTitle}</h1>
 				{merchantMode ? <MerchantFacingOrdersPage /> : <CustomerFacingOrdersPage />}
 			</div>
 		</>
