@@ -49,18 +49,3 @@ ${invitationURL}\n\n
 		textVersion,
 	}
 }
-
-/*
-const testEmail = createNewUserInvitation({
-  merchantBusinessName: `Donkey Dan's Dildos`,
-  recipientEmail: myPersonalEmail,
-  expiryDate: new Date(Date.now() + durationSettings.acceptInvitationExpiry),
-  invitationURL: 'https://google.com',
-})
-
-sendEmail(testEmail)
-*/
-
-/* 
-pnpm tsx src/library/email/templates/invitations/newUser
-*/
