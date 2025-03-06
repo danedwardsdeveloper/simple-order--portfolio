@@ -2,7 +2,6 @@
 
 ## Current Task
 
--  Fix errors until pnpm build works again
 -  Get all tests passing
 
 ## MVP tasks
