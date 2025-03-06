@@ -84,3 +84,6 @@
 -  Pushed new invitation to state on send
 -  Fixed on Invitations GET route
 -  Added invitations data fetching to user provider
+-  Fixed errors until Next build worked again
+
+## Thursday 6 March
