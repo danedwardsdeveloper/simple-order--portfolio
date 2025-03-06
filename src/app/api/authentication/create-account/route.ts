@@ -1,4 +1,5 @@
 import {
+	apiPaths,
 	authenticationMessages,
 	basicMessages,
 	cookieDurations,
@@ -31,7 +32,8 @@ import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
 import { v4 as generateConfirmationToken } from 'uuid'
 
-export interface CreateAccountPOSTbody extends Omit<BaseUserInsertValues, 'hashedPassword' | 'emailConfirmed' | 'cachedTrialExpired'> {
+export interface CreateAccountPOSTbody
+	extends Omit<BaseUserInsertValues, 'hashedPassword' | 'emailConfirmed' | 'cachedTrialExpired' | 'slug'> {
 	password: string
 }
 
@@ -52,6 +54,8 @@ export interface CreateAccountPOSTresponse {
 	user?: BrowserSafeCompositeUser
 }
 
+const routeDetail = `POST ${apiPaths.authentication.createAccount}:`
+
 export async function POST(request: NextRequest): Promise<NextResponse<CreateAccountPOSTresponse>> {
 	const { firstName, lastName, email, password, businessName }: CreateAccountPOSTbody = await request.json()
 
@@ -63,6 +67,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 	if (!businessName) missingFieldMessage = missingFieldMessages.businessNameMissing
 
 	if (missingFieldMessage) {
+		logger.warn(routeDetail, missingFieldMessage)
 		return NextResponse.json({ message: missingFieldMessage }, { status: httpStatus.http400badRequest })
 	}
 
@@ -73,11 +78,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 	if (containsIllegalCharacters(businessName)) illegalCharactersMessage = illegalCharactersMessages.businessName
 
 	if (illegalCharactersMessage) {
+		logger.warn(routeDetail, illegalCharactersMessage)
 		return NextResponse.json({ message: illegalCharactersMessage }, { status: httpStatus.http400badRequest })
 	}
 
 	const normalisedEmail = email.toLowerCase().trim()
 	if (!emailRegex.test(normalisedEmail)) {
+		logger.warn(routeDetail, authenticationMessages.invalidEmailFormat)
 		return NextResponse.json({ message: authenticationMessages.invalidEmailFormat }, { status: httpStatus.http400badRequest })
 	}
 
@@ -90,12 +97,12 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 
 		if (existingUser) {
 			if (existingUser.email === normalisedEmail) {
-				logger.debug('Existing user email: ', existingUser.email)
-				logger.debug('normalisedEmail: ', normalisedEmail)
+				logger.warn(routeDetail, authenticationMessages.emailTaken)
 				return NextResponse.json({ message: authenticationMessages.emailTaken }, { status: httpStatus.http409conflict })
 			}
 
 			if (existingUser.businessName === businessName) {
+				logger.warn(routeDetail, authenticationMessages.businessNameTaken)
 				return NextResponse.json({ message: authenticationMessages.businessNameTaken }, { status: httpStatus.http409conflict })
 			}
 		}
@@ -169,6 +176,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 		})
 
 		if (transactionErrorMessage || transactionErrorStatusCode) {
+			logger.warn(routeDetail, transactionErrorMessage)
 			return NextResponse.json({ message: basicMessages.serviceUnavailable }, { status: httpStatus.http503serviceUnavailable })
 		}
 
@@ -183,9 +191,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 		const cookieStore = await cookies()
 		cookieStore.set(createCookieWithToken(dangerousNewUser.id, cookieDurations.oneYear))
 
+		logger.info(routeDetail, `Account created for ${compositeUser.firstName}`)
 		return NextResponse.json({ message: basicMessages.success, user: compositeUser }, { status: httpStatus.http200ok })
 	} catch (error) {
-		logger.error('Error creating user: ', error)
+		logger.error(routeDetail, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
 	}
 }

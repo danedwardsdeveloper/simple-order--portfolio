@@ -28,6 +28,7 @@ export interface AuthenticationEmailConfirmPOSTbody {
 	token: string
 }
 
+// Optimisation ToDo: this is really inefficient
 export async function POST(request: NextRequest): Promise<NextResponse<AuthenticationEmailConfirmPOSTresponse>> {
 	const routeDetail = `POST ${apiPaths.authentication.email.confirm}: `
 	let transactionFailureMessage = undefined
@@ -61,23 +62,24 @@ export async function POST(request: NextRequest): Promise<NextResponse<Authentic
 			return NextResponse.json({ message: tokenMessages.tokenExpired }, { status: httpStatus.http401unauthorised })
 		}
 
-		await database.transaction(async (tx) => {
+		const { updatedUser } = await database.transaction(async (tx) => {
 			transactionFailureMessage = 'transaction error updating user'
 			transactionFailureStatus = httpStatus.http500serverError
-			await tx.update(users).set({ emailConfirmed: true }).where(eq(users.id, foundDangerousUser.id))
+			const [updatedUser] = await tx.update(users).set({ emailConfirmed: true }).where(eq(users.id, foundDangerousUser.id)).returning()
 
 			transactionFailureMessage = 'transaction error expiring token'
 			await tx.update(confirmationTokens).set({ usedAt: new Date() }).where(eq(confirmationTokens.id, foundToken.id))
 
 			transactionFailureMessage = undefined
 			transactionFailureStatus = undefined
+			return { updatedUser }
 		})
 
 		const { userRole } = await getUserRoles(foundDangerousUser.id)
 		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(foundDangerousUser.id)
 
 		const confirmedUser: BrowserSafeCompositeUser = {
-			...sanitiseDangerousBaseUser(foundDangerousUser),
+			...sanitiseDangerousBaseUser(updatedUser),
 			roles: userRole,
 			activeSubscriptionOrTrial,
 		}

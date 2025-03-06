@@ -1,12 +1,12 @@
 'use client'
 import PageContainer from '@/components/PageContainer'
 import { apiPaths, dataTestIdNames } from '@/library/constants'
+import { emailRegex } from '@/library/email/utilities'
 import logger from '@/library/logger'
-import { generateRandomString } from '@/library/utilities'
 import { useUser } from '@/providers/user'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { type FormEvent, useState } from 'react'
+import { type FormEvent, useEffect, useState } from 'react'
 import type { CreateAccountPOSTbody, CreateAccountPOSTresponse } from '../api/authentication/create-account/route'
 
 // Important enhancement ToDo: confirm password input, hide password toggle, strong password
@@ -15,31 +15,49 @@ export default function CreateAccountPage() {
 	const router = useRouter()
 	const { setUser } = useUser()
 	const [errorMessage, setErrorMessage] = useState('')
-	const randomString = generateRandomString()
-	const preFillFormForManualTesting = false
+	const [formReady, setFormReady] = useState(false)
 	const [formData, setFormData] = useState<CreateAccountPOSTbody>({
-		firstName: preFillFormForManualTesting ? randomString : '',
-		lastName: preFillFormForManualTesting ? randomString : '',
-		businessName: preFillFormForManualTesting ? randomString : '',
-		slug: preFillFormForManualTesting ? randomString : '',
-		email: preFillFormForManualTesting ? `${randomString}@gmail.com` : '',
-		password: preFillFormForManualTesting ? randomString : '',
+		firstName: '',
+		lastName: '',
+		businessName: '',
+		email: '',
+		password: '',
 	})
+
+	useEffect(() => {
+		const allFieldsFilled =
+			formData.firstName !== '' &&
+			formData.lastName !== '' &&
+			formData.businessName !== '' &&
+			formData.email !== '' &&
+			emailRegex.test(formData.email.trim()) &&
+			formData.password.length >= 10
+
+		setFormReady(allFieldsFilled)
+	}, [formData])
 
 	async function handleSubmit(event: FormEvent) {
 		event.preventDefault()
 		setErrorMessage('')
 
 		try {
-			const { message, user }: CreateAccountPOSTresponse = await (
-				await fetch(apiPaths.authentication.createAccount, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify(formData),
-				})
-			).json()
+			const requestBody: CreateAccountPOSTbody = {
+				firstName: formData.firstName.trim(),
+				lastName: formData.lastName.trim(),
+				businessName: formData.businessName.trim(),
+				email: formData.email.trim(),
+				password: formData.password.trim(),
+			}
+
+			const response = await fetch(apiPaths.authentication.createAccount, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(requestBody),
+			})
+
+			const { message, user }: CreateAccountPOSTresponse = await response.json()
 			logger.debug(message, user)
 
 			if (user) {
@@ -59,7 +77,7 @@ export default function CreateAccountPage() {
 		<PageContainer>
 			<div className="max-w-md mx-auto mt-8 p-6">
 				<h1>Start your 30-day free trial</h1>
-				<form onSubmit={handleSubmit} className="flex flex-col gap-y-4">
+				<form onSubmit={handleSubmit} className="flex flex-col gap-y-6">
 					<div>
 						<label htmlFor="firstName" className="block mb-1">
 							First name
@@ -71,8 +89,8 @@ export default function CreateAccountPage() {
 							value={formData.firstName}
 							autoComplete="given-name"
 							onChange={(event) =>
-								setFormData((prev) => ({
-									...prev,
+								setFormData((previous) => ({
+									...previous,
 									firstName: event.target.value,
 								}))
 							}
@@ -92,8 +110,8 @@ export default function CreateAccountPage() {
 							value={formData.lastName}
 							autoComplete="family-name"
 							onChange={(event) =>
-								setFormData((prev) => ({
-									...prev,
+								setFormData((previous) => ({
+									...previous,
 									lastName: event.target.value,
 								}))
 							}
@@ -113,8 +131,8 @@ export default function CreateAccountPage() {
 							value={formData.businessName}
 							autoComplete="company name"
 							onChange={(event) =>
-								setFormData((prev) => ({
-									...prev,
+								setFormData((previous) => ({
+									...previous,
 									businessName: event.target.value,
 								}))
 							}
@@ -134,8 +152,8 @@ export default function CreateAccountPage() {
 							value={formData.email}
 							autoComplete="work email"
 							onChange={(event) =>
-								setFormData((prev) => ({
-									...prev,
+								setFormData((previous) => ({
+									...previous,
 									email: event.target.value,
 								}))
 							}
@@ -155,8 +173,8 @@ export default function CreateAccountPage() {
 							value={formData.password}
 							autoComplete="current-password"
 							onChange={(event) =>
-								setFormData((prev) => ({
-									...prev,
+								setFormData((previous) => ({
+									...previous,
 									password: event.target.value,
 								}))
 							}
@@ -166,7 +184,12 @@ export default function CreateAccountPage() {
 					</div>
 
 					{errorMessage && <div className="mb-4 p-2 bg-red-50 text-red-600 rounded">{errorMessage}</div>}
-					<button data-test-id={dataTestIdNames.createAccountSubmitButton} type="submit" className="button-primary inline-block w-full">
+					<button
+						data-test-id={dataTestIdNames.createAccountSubmitButton}
+						type="submit"
+						disabled={!formReady}
+						className="button-primary inline-block w-full mt-4"
+					>
 						Start free trial
 					</button>
 				</form>

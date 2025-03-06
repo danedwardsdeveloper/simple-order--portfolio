@@ -38,7 +38,7 @@ export const testUsers = {
 		firstName: 'Susan',
 		lastName: 'Poodle',
 		email: 'susanpoodle@gmail.com',
-		businessName: `Susan's Spicey Sausages`,
+		businessName: `Susan's Spicy Sausages`,
 	},
 }
 
