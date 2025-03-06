@@ -97,20 +97,21 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 		}
 
 		async function getInvitations() {
-			const path = apiPaths.invitations.base
+			const invitationsURL = apiPaths.invitations.base
 			try {
-				const { invitationsSent, invitationsReceived, message }: InvitationsGETresponse = await (
-					await fetch(path, {
-						credentials: 'include',
-					})
-				).json()
+				const invitationsResponse = await fetch(invitationsURL, {
+					credentials: 'include',
+				})
+
+				const { invitationsSent, invitationsReceived, message }: InvitationsGETresponse = await invitationsResponse.json()
+
 				setInvitationsSent(invitationsSent || null)
 				setInvitationsReceived(invitationsReceived || null)
-				if (message !== 'success') {
-					logger.error(`User provider ${path}: request unsuccessful`, message)
+				if (!invitationsResponse.ok) {
+					logger.warn(`User provider ${invitationsURL}: request unsuccessful`, message)
 				}
 			} catch (error) {
-				logger.error(`User provider ${path}: `, error)
+				logger.error(`User provider ${invitationsURL}: `, error)
 			}
 		}
 
