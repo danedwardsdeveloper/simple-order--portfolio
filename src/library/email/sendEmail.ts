@@ -13,13 +13,12 @@ export const sendEmail = async ({ recipientEmail, subject, htmlVersion, textVers
 	try {
 		// 1. Add all emails to test_email_inbox
 		const newTestEmailInboxValues: TestEmailInsertValues = {
-			content: `${htmlVersion}\n\n\n${textVersion}`,
+			content: `HTML version: ${htmlVersion}\n\n\n Text version: ${textVersion}`,
+			recipientEmail,
 		}
 		const [addedToTestEmailInbox]: TestEmail[] = await database.insert(testEmailInbox).values(newTestEmailInboxValues).returning()
 
-		if (!addedToTestEmailInbox) {
-			return false
-		}
+		if (!addedToTestEmailInbox) return false
 
 		// Don't actually send emails except to myself
 		if (!(recipientEmail.trim().toLowerCase() === myPersonalEmail)) {
@@ -37,7 +36,7 @@ export const sendEmail = async ({ recipientEmail, subject, htmlVersion, textVers
 
 		const response = await emailClient.messages.create(bareLaunchedDomain, messageData)
 
-		// Enhancement ToDo: Add retry logic later on
+		// Enhancement ToDo: Add retry logic
 		if (response.status === 200) {
 			logger.info(`Sent email to ${recipientEmail}`)
 			return true
@@ -49,15 +48,3 @@ export const sendEmail = async ({ recipientEmail, subject, htmlVersion, textVers
 		return false
 	}
 }
-
-// sendEmail({
-//   recipientEmail: myPersonalEmail,
-//   ...createNewMerchantEmail({
-//     recipientName: 'Dan',
-//     confirmationURL: 'www.google.com',
-//   }),
-// })
-
-/* 
-pnpm tsx src/library/email/sendEmail
-*/
