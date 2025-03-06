@@ -4,12 +4,13 @@ import { apiPaths, dataTestIdNames } from '@/library/constants'
 import { useNotifications } from '@/providers/notifications'
 import { useUser } from '@/providers/user'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { AuthenticationEmailConfirmPOSTbody, AuthenticationEmailConfirmPOSTresponse } from '../api/authentication/email/confirm/route'
 
 export default function ConfirmEmailResponse() {
 	const searchParams = useSearchParams()
 	const token = searchParams.get('token')
+	const hasCheckedToken = useRef(false)
 	const { setUser } = useUser()
 	const { createNotification } = useNotifications()
 	const router = useRouter()
@@ -54,8 +55,9 @@ export default function ConfirmEmailResponse() {
 			}
 		}
 
-		if (token) {
+		if (token && !hasCheckedToken.current) {
 			confirmEmail()
+			hasCheckedToken.current = true
 		}
 	}, [token])
 
