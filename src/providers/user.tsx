@@ -13,7 +13,8 @@ import type {
 	BrowserSafeMerchantProduct,
 	BrowserSafeMerchantProfile,
 } from '@/types'
-import { type Dispatch, type ReactNode, type SetStateAction, createContext, useContext, useEffect, useState } from 'react'
+import { type Dispatch, type ReactNode, type SetStateAction, createContext, useContext, useEffect, useRef, useState } from 'react'
+import { useNotifications } from './notifications'
 import { useUi } from './ui'
 
 interface UserContextType {
@@ -49,6 +50,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 	const [user, setUser] = useState<BrowserSafeCompositeUser | null>(null)
 	const [inventory, setInventory] = useState<BrowserSafeMerchantProduct[] | null>(null)
 	const [hasAttemptedInventoryFetch, setHasAttemptedInventoryFetch] = useState(false)
+	const { createNotification } = useNotifications()
+	const hasCheckedToken = useRef(false)
 
 	const [confirmedMerchants, setConfirmedMerchants] = useState<BrowserSafeMerchantProfile[] | null>(null)
 	const [confirmedCustomers, setConfirmedCustomers] = useState<BrowserSafeCustomerProfile[] | null>(null)
@@ -58,11 +61,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
 	const [isLoading, setIsLoading] = useState(true)
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <Run on mount only>
 	useEffect(() => {
 		async function getUser() {
 			setIsLoading(true)
 			try {
-				const { user }: VerifyTokenGETresponse = await (await fetch(apiPaths.authentication.verifyToken, { credentials: 'include' })).json()
+				const response = await fetch(apiPaths.authentication.verifyToken, { credentials: 'include' })
+				const { user, message }: VerifyTokenGETresponse = await response.json()
+
 				if (user) {
 					setUser(user)
 
@@ -75,6 +81,13 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
 					await getRelationships()
 					await getInvitations()
+				} else if (message === 'token expired' || message === 'token invalid' || message === 'user not found') {
+					// Only show notification if they were previously logged in
+					createNotification({
+						level: 'warning',
+						title: 'Signed out',
+						message: 'You have been signed out.',
+					})
 				}
 			} catch (error) {
 				logger.error(`User provider ${apiPaths.authentication.verifyToken}`, error)
@@ -115,8 +128,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 			}
 		}
 
-		if (!user) getUser()
-	}, [user, setMerchantMode])
+		if (!user && !hasCheckedToken.current) {
+			getUser()
+			hasCheckedToken.current = true
+		}
+	}, [])
 
 	return (
 		<UserContext.Provider
