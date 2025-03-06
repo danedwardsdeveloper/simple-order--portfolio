@@ -150,7 +150,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 			const confirmationURL = `${dynamicBaseURL}/confirm?token=${emailConfirmationToken}`
 			logger.info('Confirmation URL: ', confirmationURL)
 
-			// ToDo: style actual email
+			// Optimisation ToDo: style the email and craft the wording carefully
 			transactionErrorMessage = basicMessages.errorSendingEmail
 			const emailSentSuccessfully = await sendEmail({
 				recipientEmail: email,
