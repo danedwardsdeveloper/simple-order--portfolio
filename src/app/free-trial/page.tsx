@@ -75,8 +75,8 @@ export default function CreateAccountPage() {
 
 	return (
 		<PageContainer>
-			<div className="max-w-md mx-auto mt-8 p-6">
-				<h1>Start your 30-day free trial</h1>
+			<div className="max-w-md mx-auto mt-8 md:p-6">
+				<h1 className="text-pretty">Start your 30-day free trial</h1>
 				<form onSubmit={handleSubmit} className="flex flex-col gap-y-6">
 					<div>
 						<label htmlFor="firstName" className="block mb-1">
@@ -188,7 +188,7 @@ export default function CreateAccountPage() {
 						data-test-id={dataTestIdNames.createAccountSubmitButton}
 						type="submit"
 						disabled={!formReady}
-						className="button-primary inline-block w-full mt-4"
+						className="button-primary inline-block w-full mt-4 py-2"
 					>
 						Start free trial
 					</button>

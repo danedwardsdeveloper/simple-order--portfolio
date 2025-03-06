@@ -85,7 +85,7 @@ export default function AcceptInvitationPage() {
 
 	if (status === 'checking') {
 		return (
-			<div className="max-w-md mx-auto mt-8 p-4 border rounded-lg">
+			<div className="max-w-md mx-auto mt-8 border rounded-lg">
 				<p className="text-center">Processing invitation...</p>
 				<Spinner />
 			</div>
@@ -94,7 +94,7 @@ export default function AcceptInvitationPage() {
 
 	if (status === 'error') {
 		return (
-			<div className="max-w-md mx-auto mt-8 p-4 border rounded-lg bg-red-50 text-red-700">
+			<div className="max-w-md mx-auto mt-8 border rounded-lg bg-red-50 text-red-700">
 				<p className="text-center">{errorMessage}</p>
 			</div>
 		)
@@ -102,7 +102,7 @@ export default function AcceptInvitationPage() {
 
 	if (status === 'relationship exists') {
 		return (
-			<p className="max-w-md mx-auto mt-8 p-4 border rounded-lg bg-green-50 text-green-700">
+			<p className="max-w-md mx-auto mt-8 border rounded-lg bg-green-50 text-green-700">
 				{senderBusinessName
 					? `This invitation from ${senderBusinessName} has already been accepted`
 					: 'You are already a confirmed customer of this merchant'}

@@ -14,6 +14,8 @@ export interface OrdersAdminGETresponse {
 	orders?: BrowserSafeOrder[]
 }
 
+const routeDetail = `GET ${apiPaths.orders.merchantPerspective.base}:`
+
 // Get Orders received as a merchant, with search parameters
 export async function GET(request: NextRequest): Promise<NextResponse<OrdersAdminGETresponse>> {
 	// Optimisation ToDo: add search parameters
@@ -34,6 +36,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersAdmi
 		const merchantOrders = convertEmptyToUndefined(await database.select().from(orders).where(eq(orders.merchantId, extractedUserId)))
 
 		if (!merchantOrders) {
+			logger.info(routeDetail, 'legitimately no orders found')
 			return NextResponse.json({ message: 'no orders found' }, { status: httpStatus.http200ok })
 		}
 
@@ -78,7 +81,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersAdmi
 
 		return NextResponse.json({ message: basicMessages.success, orders: browserSafeOrders }, { status: httpStatus.http200ok })
 	} catch (error) {
-		logger.error(`GET ${apiPaths.orders.merchantPerspective.base} error: `, error)
+		logger.error(routeDetail, 'error: ', error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
 	}
 }

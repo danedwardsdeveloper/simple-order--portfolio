@@ -2,9 +2,14 @@
 import { type Dispatch, type ReactNode, type SetStateAction, createContext, useContext, useState } from 'react'
 
 interface UiContextType {
+	mobileMenuOpen: boolean
+	setMobileMenuOpen: Dispatch<SetStateAction<boolean>>
+	toggleMobileMenuOpen: () => void
+
 	merchantMode: boolean
 	setMerchantMode: Dispatch<SetStateAction<boolean>>
 	toggleMerchantMode: () => void
+
 	includeVat: boolean
 	setIncludeVat: Dispatch<SetStateAction<boolean>>
 	toggleIncludeVat: () => void
@@ -17,9 +22,14 @@ const UiContext = createContext<UiContextType | undefined>(undefined)
 export function UiProvider({ children }: { children: ReactNode }) {
 	// Default needs to be merchant mode, or new free trials can't invite customers
 	const [merchantMode, setMerchantMode] = useState(true)
+	const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-	const toggleMerchantMode = () => {
+	function toggleMerchantMode() {
 		setMerchantMode((current) => !current)
+	}
+
+	function toggleMobileMenuOpen() {
+		setMobileMenuOpen((current) => !current)
 	}
 
 	const [includeVat, setIncludeVat] = useState(false)
@@ -28,9 +38,14 @@ export function UiProvider({ children }: { children: ReactNode }) {
 	}
 
 	const value = {
+		mobileMenuOpen,
+		setMobileMenuOpen,
+		toggleMobileMenuOpen,
+
 		merchantMode,
 		setMerchantMode,
 		toggleMerchantMode,
+
 		includeVat,
 		setIncludeVat,
 		toggleIncludeVat,

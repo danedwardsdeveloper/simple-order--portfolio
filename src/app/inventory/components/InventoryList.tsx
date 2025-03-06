@@ -50,7 +50,7 @@ export default function InventoryList() {
 
 	if (isLoading)
 		return (
-			<ul className="flex flex-col w-full gap-y-4 max-w-xl -mx-3">
+			<ul className="flex flex-col w-full gap-y-4 max-w-xl md:-mx-3">
 				{[0, 1, 2, 3, 4, 5].map((skeleton) => (
 					<SkeletonCard key={skeleton} zebraStripe={Boolean(skeleton % 2)} />
 				))}
@@ -58,7 +58,7 @@ export default function InventoryList() {
 		)
 
 	return (
-		<ul className="flex flex-col w-full gap-y-4 max-w-xl -mx-3">
+		<ul className="flex flex-col w-full gap-y-4 max-w-xl md:-mx-3">
 			{inventory?.map((product, index) => (
 				<InventoryCard key={product.id} product={product} zebraStripe={Boolean(index % 2)} />
 			))}

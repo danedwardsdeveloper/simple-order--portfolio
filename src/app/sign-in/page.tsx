@@ -64,7 +64,7 @@ export default function SignInPage() {
 	}
 
 	return (
-		<div className="max-w-md mx-auto mt-8 p-6">
+		<div className="max-w-md mx-auto mt-8">
 			<h1>Sign In</h1>
 			{error && <div className="mb-4 p-2 bg-red-50 text-red-600 rounded">{error}</div>}
 			<form onSubmit={handleSubmit} className="flex flex-col gap-y-4">
