@@ -1,4 +1,4 @@
-import { dataTestIdNames, testUsers } from '@/library/constants'
+import { dataTestIdNames } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { freeTrials, testEmailInbox, users } from '@/library/database/schema'
 import { developmentBaseURL } from '@/library/environment/publicVariables'
@@ -9,8 +9,6 @@ import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { deleteUserSequence } from './utilities/deleteUserSequence'
 import { getElementByTestId, initializePage } from './utilities/getElements'
 
-const susanPoodle = testUsers.both
-
 describe('Create Account Form', async () => {
 	let browser: Browser
 	let page: Page
@@ -19,7 +17,7 @@ describe('Create Account Form', async () => {
 	let invitationLink: string | undefined
 
 	beforeAll(async () => {
-		deleteUserSequence(susanPoodle.email)
+		deleteUserSequence('susanpoodle@gmail.com')
 		browser = await launch({ headless: false, slowMo: 500 })
 		page = await browser.newPage()
 		initializePage(page)
@@ -27,7 +25,7 @@ describe('Create Account Form', async () => {
 	})
 
 	afterAll(async () => {
-		deleteUserSequence(susanPoodle.email)
+		deleteUserSequence('susanpoodle@gmail.com')
 		await browser.close()
 	})
 
@@ -42,7 +40,7 @@ describe('Create Account Form', async () => {
 		await firstNameInput?.type('Susan')
 		await lastNameInput?.type('Poodle')
 		await businessNameInput?.type(`Susan's Spicey Sausages`)
-		await emailInput?.type(susanPoodle.email)
+		await emailInput?.type('susanpoodle@gmail.com')
 		await passwordInput?.type('securePassword123')
 
 		await Promise.all([page.waitForNavigation(), submitButton?.click()])
@@ -54,7 +52,7 @@ describe('Create Account Form', async () => {
 	// Allow database operations to complete
 
 	test('created user should exist in the database', async () => {
-		;[createdUser] = await database.select().from(users).where(eq(users.email, susanPoodle.email)).limit(1)
+		;[createdUser] = await database.select().from(users).where(eq(users.email, 'susanpoodle@gmail.com'))
 
 		expect(createdUser).toBeDefined()
 	})
@@ -70,7 +68,7 @@ describe('Create Account Form', async () => {
 		const message = await getElementByTestId(dataTestIdNames.pleaseConfirmYourEmailMessage)
 		expect(message).toBeDefined()
 		const text = await message?.evaluate((element) => element.textContent)
-		expect(text).toContain(susanPoodle.email)
+		expect(text).toContain('susanpoodle@gmail.com')
 	})
 
 	test.skip('user should have emailConfirmed=false', async () => {
@@ -106,7 +104,7 @@ describe('Create Account Form', async () => {
 	})
 
 	test.skip('user should now have emailConfirmed=true', async () => {
-		;[createdUser] = await database.select().from(users).where(eq(users.email, susanPoodle.email)).limit(1)
+		;[createdUser] = await database.select().from(users).where(eq(users.email, 'susanpoodle@gmail.com')).limit(1)
 		expect(createdUser.emailConfirmed).toBe(true)
 	})
 
