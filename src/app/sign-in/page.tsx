@@ -80,8 +80,8 @@ export default function SignInPage() {
 						value={formData.email}
 						autoComplete="work email"
 						onChange={(event) =>
-							setFormData((prev) => ({
-								...prev,
+							setFormData((previous) => ({
+								...previous,
 								email: event.target.value,
 							}))
 						}
@@ -101,8 +101,8 @@ export default function SignInPage() {
 						value={formData.password}
 						autoComplete="current-password"
 						onChange={(event) =>
-							setFormData((prev) => ({
-								...prev,
+							setFormData((previous) => ({
+								...previous,
 								password: event.target.value,
 							}))
 						}
