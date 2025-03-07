@@ -94,3 +94,7 @@
 -  Added a mobile menu
 -  Worked on add inventory form controlled component issues
 -  Started to deploy the site for testing on actual devices
+
+## Friday 7 March
+
+-  Added BIMI logo
