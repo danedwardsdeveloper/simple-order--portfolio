@@ -6,7 +6,7 @@ import logger from '@/library/logger'
 import type { SendEmailBody, TestEmail, TestEmailInsertValues } from '@/types'
 import { database } from '../database/connection'
 import { testEmailInbox } from '../database/schema'
-import { bareLaunchedDomain } from '../environment/publicVariables'
+import { bareLaunchedDomain, isDevelopment } from '../environment/publicVariables'
 import emailClient from './client'
 
 export const sendEmail = async ({ recipientEmail, subject, htmlVersion, textVersion }: SendEmailBody): Promise<boolean> => {
@@ -20,15 +20,15 @@ export const sendEmail = async ({ recipientEmail, subject, htmlVersion, textVers
 
 		if (!addedToTestEmailInbox) return false
 
-		// Don't actually send emails except to myself
-		if (!(recipientEmail.trim().toLowerCase() === myPersonalEmail)) {
+		// In development, don't actually send emails, except to myself
+		if (isDevelopment && !(recipientEmail.trim().toLowerCase() === myPersonalEmail)) {
 			logger.info(`Intercepted email to ${recipientEmail}. No email sent`)
 			return true
 		}
 
 		const messageData: MailgunMessageData = {
 			from: 'Simple Order <noreply@simpleorder.co.uk>',
-			to: myPersonalEmail, // Only send emails to myself at the moment, if at all
+			to: recipientEmail,
 			subject,
 			text: textVersion,
 			html: htmlVersion,
