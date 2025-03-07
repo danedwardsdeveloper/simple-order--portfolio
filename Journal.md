@@ -106,3 +106,5 @@
 -  Added placeholder articles for /about
 -  Styled an article not found page
 -  Created a password visibility toggle button for sign-in and free-trial
+-  Achieved perfect Lighthouse scores on the homepage
+-  Updated email sending logic for production
