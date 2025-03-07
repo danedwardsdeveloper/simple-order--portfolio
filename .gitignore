@@ -32,3 +32,4 @@ Dockerfile
 next-env.d.ts
 
 drizzle/
+Dockerfile
