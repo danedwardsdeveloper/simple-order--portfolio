@@ -1,4 +1,5 @@
-import CompanyLogo from './Icons'
+import CompanyLogo from '../Icons'
+import FooterLink from './FooterLink'
 
 type NavigationItem = {
 	name: string
@@ -10,6 +11,11 @@ type NavigationMap = {
 }
 
 const navigationMap: NavigationMap = {
+	Company: [
+		{ name: 'About', href: '/articles/about' },
+		{ name: 'Articles', href: '/articles' },
+		{ name: 'Sign in', href: '/sign-in' },
+	],
 	Legal: [
 		{ name: 'Terms of service', href: '/articles/terms-of-service' },
 		{ name: 'Privacy policy', href: '/articles/privacy-policy' },
@@ -22,14 +28,12 @@ function LinksColumn({ section }: { section: keyof typeof navigationMap }) {
 	const links = navigationMap[section]
 
 	return (
-		<div>
+		<div className="mt-16 xl:mt-0">
 			<h3 className="text-sm/6 font-semibold text-gray-950">{section}</h3>
 			<ul className="mt-6 space-y-4">
 				{links.map((item) => (
 					<li key={item.name}>
-						<a href={item.href} className="text-sm/6 link-primary">
-							{item.name}
-						</a>
+						<FooterLink name={item.name} href={item.href} />
 					</li>
 				))}
 			</ul>
@@ -45,12 +49,10 @@ export default function Footer() {
 					<CompanyLogo />
 				</div>
 
-				<div className="mt-16 xl:mt-0">
-					<div>
-						{Object.keys(navigationMap).map((linksColumn) => (
-							<LinksColumn key={linksColumn} section={linksColumn} />
-						))}
-					</div>
+				<div className="md:grid md:grid-cols-2 md:gap-8">
+					{Object.keys(navigationMap).map((linksColumn) => (
+						<LinksColumn key={linksColumn} section={linksColumn} />
+					))}
 				</div>
 			</div>
 

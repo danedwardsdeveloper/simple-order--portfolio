@@ -3,8 +3,8 @@ import { websiteCopy } from '@/library/constants'
 import { productionBaseURL } from '@/library/environment/publicVariables'
 import type { Metadata, Viewport } from 'next'
 import './globals.tailwind.css'
-import Footer from '@/components/Footer'
 import Providers from '@/components/Providers'
+import Footer from '@/components/footer'
 import type { ReactNode } from 'react'
 
 export const metadata: Metadata = {
