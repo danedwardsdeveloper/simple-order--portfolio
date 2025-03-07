@@ -17,7 +17,7 @@ export default function HeroSection() {
 					</h1>
 					<div className="mt-6 max-w-2xl lg:mt-0 xl:col-end-1 xl:row-start-1">
 						{websiteCopy.heroSection.intro.map((paragraph) => (
-							<p className="text-pretty text-lg font-medium text-gray-500 sm:text-xl/8 mb-2" key={paragraph}>
+							<p className="text-balance text-lg font-medium text-gray-500 sm:text-xl/8 mb-2" key={paragraph}>
 								{paragraph}
 							</p>
 						))}
