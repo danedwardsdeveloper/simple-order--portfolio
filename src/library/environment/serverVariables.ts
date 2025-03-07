@@ -1,7 +1,10 @@
 import { requireVariable } from './requireVariable'
 
-export const databaseURL = requireVariable('DATABASE_URL')
+export const developmentDatabaseString = requireVariable('DEVELOPMENT_DATABASE_STRING')
+export const productionDatabaseString = requireVariable('PRODUCTION_DATABASE_STRING')
+
 export const jwtSecret = requireVariable('JWT_SECRET')
+
 export const mailgunKey = requireVariable('MAILGUN_KEY')
 export const myPersonalEmail = requireVariable('MY_PERSONAL_EMAIL')
 
