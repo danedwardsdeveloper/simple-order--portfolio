@@ -109,3 +109,4 @@
 -  Achieved perfect Lighthouse scores on the homepage
 -  Updated email sending logic for production
 -  Added social image
+-  Took screenshots for project write up

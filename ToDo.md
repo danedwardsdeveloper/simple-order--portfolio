@@ -4,7 +4,8 @@
 
 ## Things I could do...
 
--  Add social image
+-  Allow foreign characters é
+-  Fix punctuation issue on free trial form
 -  Add src set to hero image
 -  Create a notification on sign up
 -  Onboarding messages
