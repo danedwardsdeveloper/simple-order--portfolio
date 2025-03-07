@@ -4,8 +4,8 @@
 
 ## Things I could do...
 
--  Update email handling so people can try the site
 -  Create a notification on sign up
+-  Onboarding messages
 -  Time remaining on trial message
 -  Start subscription button
 -  Breadcrumbs contrast for perfect lighthouse scores
@@ -15,7 +15,6 @@
 
 ## Refinements & extras (even if they're really important)
 
--  Make sure all a logger statement precedes all NextResponses
 -  Replace CLSX with tailwindMerge
 -  Add a honeypot to the free trial form
 -  Resend confirmation emails (invite customer, merchant sign-up)
