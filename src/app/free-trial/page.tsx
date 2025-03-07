@@ -1,6 +1,6 @@
 'use client'
 import PageContainer from '@/components/PageContainer'
-import { apiPaths, dataTestIdNames } from '@/library/constants'
+import { apiPaths, dataTestIdNames, websiteCopy } from '@/library/constants'
 import { emailRegex } from '@/library/email/utilities'
 import logger from '@/library/logger'
 import { useUser } from '@/providers/user'
@@ -190,7 +190,7 @@ export default function CreateAccountPage() {
 						disabled={!formReady}
 						className="button-primary inline-block w-full mt-4 py-2"
 					>
-						Start free trial
+						{websiteCopy.CTAs.primary.displayText}
 					</button>
 				</form>
 				<div className="flex justify-center gap-x-2 mt-6">
