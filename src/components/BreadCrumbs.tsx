@@ -6,6 +6,7 @@ interface BreadCrumbItem {
 	href: string
 }
 
+// ToDo: These two components are pretty much the same!
 // ToDo: Add business name
 
 interface SignedOutProps {
@@ -37,7 +38,7 @@ export function SignedOutBreadCrumbs({ trail, currentPageTitle }: SignedOutProps
 				<li>
 					<div className="flex items-center">
 						<ChevronRightIcon aria-hidden="true" className="size-5 shrink-0 text-zinc-400" />
-						<span aria-current="page" className="ml-4 text-sm font-medium text-blue-400">
+						<span aria-current="page" className="ml-4 text-sm font-medium text-blue-600">
 							{currentPageTitle}
 						</span>
 					</div>
