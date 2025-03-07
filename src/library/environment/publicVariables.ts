@@ -13,7 +13,7 @@ export const developmentBaseURL = 'http://localhost:3000'
 export const dynamicBaseURL = isProduction ? productionBaseURL : developmentBaseURL
 
 export const serverLogLevel: LogLevel = 'level4debug'
-export const browserLogLevel: LogLevel = 'level4debug'
+export const browserLogLevel: LogLevel = isDevelopment ? 'level4debug' : 'level0none'
 
 // cspell:disable
 export const stripePublishableKey =
