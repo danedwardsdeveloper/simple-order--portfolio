@@ -4,16 +4,18 @@ import { apiPaths, dataTestIdNames, websiteCopy } from '@/library/constants'
 import { emailRegex } from '@/library/email/utilities'
 import logger from '@/library/logger'
 import { useUser } from '@/providers/user'
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { type FormEvent, useEffect, useState } from 'react'
 import type { CreateAccountPOSTbody, CreateAccountPOSTresponse } from '../api/authentication/create-account/route'
 
-// Important enhancement ToDo: confirm password input, hide password toggle, strong password
+// Important enhancement ToDo: input validation, strong password etc.
 
 export default function CreateAccountPage() {
 	const router = useRouter()
 	const { setUser } = useUser()
+	const [showPassword, setShowPassword] = useState(false)
 	const [errorMessage, setErrorMessage] = useState('')
 	const [formReady, setFormReady] = useState(false)
 	const [formData, setFormData] = useState<CreateAccountPOSTbody>({
@@ -166,21 +168,36 @@ export default function CreateAccountPage() {
 						<label htmlFor="password" className="block mb-1">
 							Password
 						</label>
-						<input
-							data-test-id={dataTestIdNames.createAccountPasswordInput}
-							id="password"
-							type="password"
-							value={formData.password}
-							autoComplete="current-password"
-							onChange={(event) =>
-								setFormData((previous) => ({
-									...previous,
-									password: event.target.value,
-								}))
-							}
-							required
-							className="w-full"
-						/>
+						<div className="relative">
+							<input
+								data-test-id={dataTestIdNames.createAccountPasswordInput}
+								id="password"
+								type={showPassword ? 'text' : 'password'}
+								value={formData.password}
+								autoComplete="current-password"
+								onChange={(event) =>
+									setFormData((previous) => ({
+										...previous,
+										password: event.target.value,
+									}))
+								}
+								required
+								className="w-full"
+							/>
+							<button
+								type="button"
+								aria-label="Toggle password visibility"
+								onClick={() => setShowPassword(!showPassword)}
+								aria-checked={showPassword}
+								className="absolute right-3 top-1/2 -translate-y-1/2 z-10 focus-visible:outline-orange-400 focus-visible:outline-2 focus-visible:outline focus-visible:rounded"
+								tabIndex={0}
+							>
+								{showPassword ? <EyeIcon className="text-blue-600 size-6" /> : <EyeSlashIcon className="text-blue-600 size-6" />}
+							</button>
+							<div aria-live="polite" id="password-text" className="sr-only">
+								{showPassword ? 'Password visible' : 'Password hidden'}
+							</div>
+						</div>
 					</div>
 
 					{errorMessage && <div className="mb-4 p-2 bg-red-50 text-red-600 rounded">{errorMessage}</div>}

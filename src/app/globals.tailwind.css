@@ -4,7 +4,7 @@
 
 @layer base {
 	input:not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
-		@apply p-2 bg-slate-50 rounded border-2 border-blue-100 outline-offset-4 focus-visible:outline-orange-400;
+		@apply p-2 text-lg bg-slate-50 rounded border-2 border-blue-100 outline-offset-4 focus-visible:outline-orange-400;
 	}
 
 	label {

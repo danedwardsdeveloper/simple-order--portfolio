@@ -2,11 +2,8 @@
 
 ## Current Task
 
--  Fix the pricing section
-
 ## Things I could do...
 
--  Add a hide password toggle
 -  Update email handling so people can try the site
 -  Create a notification on sign up
 -  Time remaining on trial message

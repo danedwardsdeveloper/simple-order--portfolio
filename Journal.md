@@ -101,3 +101,8 @@
 -  Sorted out Dockerfile
 -  Set up Neon database
 -  Deployed with live database!
+-  Wrote copy for the pricing section
+-  Added a links column to the footer
+-  Added placeholder articles for /about
+-  Styled an article not found page
+-  Created a password visibility toggle button for sign-in and free-trial
