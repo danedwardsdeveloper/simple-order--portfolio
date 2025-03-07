@@ -1,6 +1,6 @@
 import MenuBar from '@/components/menubar'
 import { websiteCopy } from '@/library/constants'
-import { productionBaseURL } from '@/library/environment/publicVariables'
+import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import type { Metadata, Viewport } from 'next'
 import './globals.tailwind.css'
 import Providers from '@/components/Providers'
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 	},
 	description: websiteCopy.metadata.descriptions.home138,
 	alternates: {
-		canonical: productionBaseURL,
+		canonical: dynamicBaseURL,
 	},
 }
 
