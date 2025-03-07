@@ -25,6 +25,7 @@ yarn-error.log*
 .env*
 !.env.example
 Dockerfile
+!Dockerfile.example
 
 .vercel
 
@@ -32,4 +33,3 @@ Dockerfile
 next-env.d.ts
 
 drizzle/
-Dockerfile

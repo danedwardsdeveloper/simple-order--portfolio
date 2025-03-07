@@ -98,3 +98,4 @@
 ## Friday 7 March
 
 -  Added BIMI logo
+-  Sorted out Dockerfile
