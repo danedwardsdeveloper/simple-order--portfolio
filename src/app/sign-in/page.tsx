@@ -114,7 +114,6 @@ export default function SignInPage() {
 							type="button"
 							aria-label="Toggle password visibility"
 							onClick={() => setShowPassword(!showPassword)}
-							aria-checked={showPassword}
 							className="absolute right-3 top-1/2 -translate-y-1/2 z-10 focus-visible:outline-orange-400 focus-visible:outline-2 focus-visible:outline focus-visible:rounded"
 							tabIndex={0}
 						>
