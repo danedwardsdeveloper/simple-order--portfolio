@@ -1,27 +1,26 @@
 'use client'
 import type { InventoryAddPOSTbody, InventoryAddPOSTresponse } from '@/app/api/inventory/admin/route'
-import { apiPaths, serviceConstraints } from '@/library/constants'
-import { containsIllegalCharacters, generateRandomString } from '@/library/utilities'
+import { apiPaths } from '@/library/constants'
+import { containsIllegalCharacters } from '@/library/utilities'
 import { useNotifications } from '@/providers/notifications'
 import { useUser } from '@/providers/user'
 import type { NewNotification } from '@/types'
 import { type FormEvent, useEffect, useState } from 'react'
 
 export type InventoryAddFormData = {
-	[K in keyof InventoryAddPOSTbody]-?: InventoryAddPOSTbody[K] extends string | null | undefined
-		? string
-		: InventoryAddPOSTbody[K] extends number | null | undefined
-			? number
-			: InventoryAddPOSTbody[K]
+	name: string
+	description: string
+	priceInMinorUnits: string
+	customVat: string
 }
 
 export default function AddInventoryForm() {
-	const { user, setInventory, vat } = useUser()
+	const { user, setInventory } = useUser()
 	const [formData, setFormData] = useState<InventoryAddFormData>({
 		name: '',
 		description: '',
-		priceInMinorUnits: 0,
-		customVat: vat,
+		priceInMinorUnits: '',
+		customVat: '',
 	})
 	const [errorMessage, setErrorMessage] = useState('')
 	const [illegalCharacterWarnings, setIllegalCharacterWarnings] = useState<{
@@ -46,15 +45,23 @@ export default function AddInventoryForm() {
 			return
 		}
 
+		const priceInMinorUnits = formData.priceInMinorUnits === '' ? 0 : Number.parseInt(formData.priceInMinorUnits, 10)
+		const customVat = formData.customVat === '' ? undefined : Number.parseInt(formData.customVat, 10)
+
+		const requestBody: InventoryAddPOSTbody = {
+			name: formData.name,
+			description: formData.description,
+			priceInMinorUnits,
+			customVat,
+		}
+
 		const { message, addedProduct }: InventoryAddPOSTresponse = await (
 			await fetch(apiPaths.inventory.merchantPerspective.base, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify({
-					...formData,
-				} satisfies InventoryAddPOSTbody),
+				body: JSON.stringify(requestBody),
 			})
 		).json()
 
@@ -68,38 +75,23 @@ export default function AddInventoryForm() {
 			}
 
 			createNotification(notification)
-			const newRandomString = generateRandomString()
 			setFormData({
-				name: newRandomString,
-				description: newRandomString,
-				priceInMinorUnits: Math.floor(Math.random() * serviceConstraints.maximumProductValueInMinorUnits + 1),
-				customVat: Math.floor(Math.random() * serviceConstraints.highestVat + 1),
+				name: '',
+				description: '',
+				priceInMinorUnits: '',
+				customVat: '',
 			})
 			return
 		}
 		setErrorMessage(message)
 	}
 
-	// ToDo: sort out this ai-generated nonsense
-
-	const handleNameChange = (value: string) => {
-		setFormData({ ...formData, name: value })
-	}
-
-	const handleDescriptionChange = (value: string) => {
-		setFormData({ ...formData, description: value })
-	}
-
-	const handlePriceChange = (value: string) => {
-		setFormData({ ...formData, priceInMinorUnits: Number(value) })
-	}
-
-	const handleVatChange = (value: string) => {
-		setFormData({ ...formData, customVat: Number(value) })
+	const handleInputChange = (field: keyof InventoryAddFormData, value: string) => {
+		setFormData((prev) => ({ ...prev, [field]: value }))
 	}
 
 	return (
-		<form onSubmit={handleSubmit} className="p-4 border-2 border-zinc-200 rounded-xl flex flex-col gap-y-4 max-w-xl -mx-3">
+		<form onSubmit={handleSubmit} className="p-4 border-2 border-zinc-200 rounded-xl flex flex-col gap-y-4 max-w-xl md:-mx-3">
 			<h2 className="">Add an item</h2>
 
 			<div>
@@ -109,7 +101,13 @@ export default function AddInventoryForm() {
 						<span className="text-red-600 text-sm mt-2">Only letters, numbers, and {`',.!? -`} are allowed.</span>
 					)}
 				</div>
-				<input id="name" type="text" value={formData.name} onChange={(event) => handleNameChange(event.target.value)} className="w-full" />
+				<input
+					id="name"
+					type="text"
+					value={formData.name}
+					onChange={(event) => handleInputChange('name', event.target.value)}
+					className="w-full"
+				/>
 			</div>
 
 			<div>
@@ -123,34 +121,34 @@ export default function AddInventoryForm() {
 					id="description"
 					type="text"
 					value={formData.description}
-					onChange={(event) => handleDescriptionChange(event.target.value)}
+					onChange={(event) => handleInputChange('description', event.target.value)}
 					className="w-full"
 				/>
 			</div>
 
-			{/* ToDo: this is horrible and won't let you completely wipe the field */}
 			<div>
 				<label htmlFor="price" className="block mb-1">
-					Price
+					Price in pence
 				</label>
 				<input
-					id="price"
-					type="number"
+					id="priceInMinorUnits"
+					type="text"
 					value={formData.priceInMinorUnits}
-					onChange={(event) => handlePriceChange(event.target.value)}
+					onChange={(event) => handleInputChange('priceInMinorUnits', event.target.value)}
 					className="w-full"
 				/>
 			</div>
 
 			<div>
 				<label htmlFor="vat" className="block mb-1">
-					VAT
+					VAT percentage
 				</label>
 				<input
-					id="vat"
-					type="number"
+					id="customVat"
+					placeholder="20"
+					type="text"
 					value={formData.customVat}
-					onChange={(event) => handleVatChange(event.target.value)}
+					onChange={(event) => handleInputChange('customVat', event.target.value)}
 					className="w-full"
 				/>
 			</div>
