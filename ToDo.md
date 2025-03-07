@@ -4,6 +4,8 @@
 
 ## Things I could do...
 
+-  Add social image
+-  Add src set to hero image
 -  Create a notification on sign up
 -  Onboarding messages
 -  Time remaining on trial message

@@ -7,15 +7,35 @@ import Providers from '@/components/Providers'
 import Footer from '@/components/footer'
 import type { ReactNode } from 'react'
 
+const socialImagePath = '/images/simple-order-wholesale-order-management-software-website.png'
+
 export const metadata: Metadata = {
+	metadataBase: new URL(dynamicBaseURL),
 	title: {
 		default: 'Simple Order | Wholesale order management website',
 		template: '%s | Simple Order - Wholesale order management website',
 	},
 	description: websiteCopy.metadata.descriptions.home138,
+	openGraph: {
+		images: {
+			url: socialImagePath,
+			height: 630,
+			width: 1200,
+			alt: websiteCopy.extras.selfContainedDescription,
+		},
+	},
+	twitter: {
+		images: {
+			url: socialImagePath,
+			height: 630,
+			width: 1200,
+			alt: websiteCopy.extras.selfContainedDescription,
+		},
+	},
 	alternates: {
 		canonical: dynamicBaseURL,
 	},
+	robots: { index: true, follow: true },
 }
 
 export const viewport: Viewport = {

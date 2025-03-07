@@ -108,3 +108,4 @@
 -  Created a password visibility toggle button for sign-in and free-trial
 -  Achieved perfect Lighthouse scores on the homepage
 -  Updated email sending logic for production
+-  Added social image
