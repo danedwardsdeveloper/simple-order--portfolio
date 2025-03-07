@@ -99,3 +99,5 @@
 
 -  Added BIMI logo
 -  Sorted out Dockerfile
+-  Set up Neon database
+-  Deployed with live database!
