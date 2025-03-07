@@ -2,7 +2,6 @@
 import type { VerifyTokenGETresponse } from '@/app/api/authentication/verify-token/route'
 import type { InvitationsGETresponse } from '@/app/api/invitations/route'
 import type { RelationshipsGETresponse } from '@/app/api/relationships/route'
-import SplashScreen from '@/components/SplashScreen'
 import { apiPaths, temporaryVat } from '@/library/constants'
 import logger from '@/library/logger'
 import type {
@@ -161,7 +160,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 				vat: temporaryVat,
 			}}
 		>
-			<SplashScreen show={isLoading} />
 			{children}
 		</UserContext.Provider>
 	)
