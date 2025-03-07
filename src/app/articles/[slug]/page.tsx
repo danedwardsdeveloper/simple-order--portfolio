@@ -1,7 +1,7 @@
 import { SignedOutBreadCrumbs } from '@/components/BreadCrumbs'
-import PageContainer from '@/components/PageContainer'
 import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { articlesData } from '../data'
 
 export function generateStaticParams() {
@@ -16,7 +16,8 @@ export async function generateMetadata({
 	const { slug } = await params
 	const article = articlesData[slug]
 
-	if (!article) return null
+	if (!article) notFound()
+
 	return {
 		title: article.metaTitlePrefix,
 		description: article.metaDescription,
@@ -37,7 +38,7 @@ export default async function Page({
 	if (!article) return null
 
 	return (
-		<PageContainer>
+		<>
 			<SignedOutBreadCrumbs trail={[{ href: '/articles', displayName: 'Articles' }]} currentPageTitle={article.displayTitle} />
 			<h1>{article.displayTitle}</h1>
 			<div className="flex flex-col max-w-prose gap-y-4">
@@ -45,6 +46,6 @@ export default async function Page({
 					<p key={paragraph.id}>{paragraph.content}</p>
 				))}
 			</div>
-		</PageContainer>
+		</>
 	)
 }
