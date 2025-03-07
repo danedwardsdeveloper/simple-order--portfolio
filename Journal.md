@@ -87,3 +87,10 @@
 -  Fixed errors until Next build worked again
 
 ## Thursday 6 March
+
+-  Wasted loads of time trying to fix my test suite
+-  Got really annoyed with it and deleted it all. Will try again with different browser automation software another time
+-  Added detailed logging to many routes
+-  Added a mobile menu
+-  Worked on add inventory form controlled component issues
+-  Started to deploy the site for testing on actual devices
