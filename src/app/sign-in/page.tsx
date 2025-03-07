@@ -110,7 +110,7 @@ export default function SignInPage() {
 					/>
 				</div>
 
-				<button data-test-id={dataTestIdNames.signIn.submitButton} type="submit" className="button-primary inline-block w-full">
+				<button data-test-id={dataTestIdNames.signIn.submitButton} type="submit" className="mt-4 button-primary inline-block w-full py-2">
 					Sign In
 				</button>
 			</form>
