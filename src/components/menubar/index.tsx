@@ -38,7 +38,7 @@ export default function MenuBar() {
 	function MobilePanel() {
 		return (
 			<>
-				<div className="fixed inset-0 h-screen w-screen backdrop-blur-sm bg-white/50 z-0" />
+				<div className="fixed md:hidden inset-0 h-screen w-screen backdrop-blur-sm bg-white/50 z-0" />
 				<div className="flex flex-col md:hidden fixed inset-x-0 top-14 border-b-2 border-blue-200 z-menubar bg-blue-50 p-3 gap-y-6 pb-4">
 					{user ? (
 						<>
