@@ -12,6 +12,7 @@ type NavigationMap = {
 
 const navigationMap: NavigationMap = {
 	Company: [
+		{ name: 'How it works', href: '/articles/how-it-works' },
 		{ name: 'About', href: '/articles/about' },
 		{ name: 'Articles', href: '/articles' },
 		{ name: 'Sign in', href: '/sign-in' },
