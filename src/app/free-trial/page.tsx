@@ -3,6 +3,7 @@ import PageContainer from '@/components/PageContainer'
 import { apiPaths, dataTestIdNames, websiteCopy } from '@/library/constants'
 import { emailRegex } from '@/library/email/utilities'
 import logger from '@/library/logger'
+import { allowedCharacters, containsIllegalCharacters } from '@/library/utilities'
 import { useUser } from '@/providers/user'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
@@ -17,6 +18,7 @@ export default function CreateAccountPage() {
 	const { setUser } = useUser()
 	const [showPassword, setShowPassword] = useState(false)
 	const [errorMessage, setErrorMessage] = useState('')
+	const [illegalCharacterMessage, setIllegalCharacterMessage] = useState('')
 	const [formReady, setFormReady] = useState(false)
 	const [formData, setFormData] = useState<CreateAccountPOSTbody>({
 		firstName: '',
@@ -34,6 +36,13 @@ export default function CreateAccountPage() {
 			formData.email !== '' &&
 			emailRegex.test(formData.email.trim()) &&
 			formData.password.length >= 10
+
+		if (containsIllegalCharacters(formData.businessName)) {
+			setIllegalCharacterMessage(`Please use only letters, numbers, spaces or ${allowedCharacters.punctuation}`)
+			setFormReady(false)
+		} else {
+			setIllegalCharacterMessage('')
+		}
 
 		setFormReady(allFieldsFilled)
 	}, [formData])
@@ -123,9 +132,9 @@ export default function CreateAccountPage() {
 					</div>
 
 					<div>
-						<label htmlFor="businessName" className="block mb-1">
-							Business name
-						</label>
+						<div className="block mb-1">
+							<label htmlFor="businessName">Business name</label>
+						</div>
 						<input
 							data-test-id={dataTestIdNames.createAccountBusinessNameInput}
 							id="businessName"
@@ -141,6 +150,7 @@ export default function CreateAccountPage() {
 							required
 							className="w-full"
 						/>
+						{illegalCharacterMessage && <span className="text-red-600 block mt-2">{illegalCharacterMessage}</span>}
 					</div>
 					{/* Optimisation ToDo: add honeypot */}
 					<div>
