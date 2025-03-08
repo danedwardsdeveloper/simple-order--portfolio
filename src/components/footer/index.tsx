@@ -1,13 +1,11 @@
 import CompanyLogo from '../Icons'
 import FooterLink from './FooterLink'
 
-type NavigationItem = {
-	name: string
-	href: string
-}
-
 type NavigationMap = {
-	[key: string]: NavigationItem[]
+	[key: string]: Array<{
+		name: string
+		href: string
+	}>
 }
 
 const navigationMap: NavigationMap = {
