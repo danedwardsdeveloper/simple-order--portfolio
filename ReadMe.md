@@ -6,11 +6,10 @@ An order management website for wholesalers and their customers so they can redu
 
 # Technology
 
-- Next.js App Router (the full-stack framework built on top of React) deployed with Fly.io
-- PostgreSQL deployed with Neon
-- Drizzle type-safe SQL query builder
-- Mailgun email service
-- Tailwind CSS
-- Testing with Vitest & Puppeteer
+-  Next.js App Router (the full-stack framework built on top of React) deployed with Fly.io
+-  PostgreSQL deployed with Neon
+-  Drizzle type-safe SQL query builder
+-  Mailgun email service
+-  Tailwind CSS
 
 Please see my [developer website write-up](http://danedwardsdeveloper.com/projects/simple-order) for more details.
