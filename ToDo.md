@@ -2,8 +2,12 @@
 
 ## Current Task
 
+-  Retrieve customer-facing orders from providers/user
+
 ## Things I could do...
 
+-  Fix the order creation route
+-  User-friendly messages for invitation failures
 -  Allow foreign characters é
 -  Fix punctuation issue on free trial form
 -  Add src set to hero image
