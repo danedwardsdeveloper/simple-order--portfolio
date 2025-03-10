@@ -1,5 +1,6 @@
 'use client'
 import type { VerifyTokenGETresponse } from '@/app/api/authentication/verify-token/route'
+import type { InventoryAdminGETresponse } from '@/app/api/inventory/admin/route'
 import type { InvitationsGETresponse } from '@/app/api/invitations/route'
 import type { RelationshipsGETresponse } from '@/app/api/relationships/route'
 import { apiPaths, temporaryVat } from '@/library/constants'
@@ -22,8 +23,6 @@ interface UserContextType {
 
 	inventory: BrowserSafeMerchantProduct[] | null
 	setInventory: Dispatch<SetStateAction<BrowserSafeMerchantProduct[] | null>>
-	hasAttemptedInventoryFetch: boolean
-	setHasAttemptedInventoryFetch: Dispatch<SetStateAction<boolean>>
 
 	confirmedMerchants: BrowserSafeMerchantProfile[] | null
 	setConfirmedMerchants: Dispatch<SetStateAction<BrowserSafeMerchantProfile[] | null>>
@@ -42,15 +41,12 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType>({} as UserContextType)
 
-// ToDo: Change default states back to being null instead of empty arrays as it's confusing!
-
 export const UserProvider = ({ children }: { children: ReactNode }) => {
 	const { setMerchantMode } = useUi()
 	const [user, setUser] = useState<BrowserSafeCompositeUser | null>(null)
 	const [inventory, setInventory] = useState<BrowserSafeMerchantProduct[] | null>(null)
-	const [hasAttemptedInventoryFetch, setHasAttemptedInventoryFetch] = useState(false)
 	const { createNotification } = useNotifications()
-	const hasCheckedToken = useRef(false)
+	const hasCheckedToken = useRef(false) // Prevent development issues
 
 	const [confirmedMerchants, setConfirmedMerchants] = useState<BrowserSafeMerchantProfile[] | null>(null)
 	const [confirmedCustomers, setConfirmedCustomers] = useState<BrowserSafeCustomerProfile[] | null>(null)
@@ -80,6 +76,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
 					await getRelationships()
 					await getInvitations()
+					await getInventory()
 				} else if (message === 'token expired' || message === 'token invalid' || message === 'user not found') {
 					// Only show notification if they were previously logged in
 					createNotification({
@@ -127,6 +124,29 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 			}
 		}
 
+		async function getInventory() {
+			try {
+				setIsLoading(true)
+				const { inventory, message }: InventoryAdminGETresponse = await (
+					await fetch(apiPaths.inventory.merchantPerspective.base, { credentials: 'include' })
+				).json()
+
+				if (inventory) setInventory(inventory)
+				if (message !== 'success')
+					createNotification({
+						level: 'error',
+						title: 'Error',
+						message: "Couldn't add product to inventory - please try again.",
+					})
+			} catch {
+				createNotification({
+					level: 'error',
+					title: 'Error',
+					message: "Couldn't add product to inventory - please try again.",
+				})
+			}
+		}
+
 		if (!user && !hasCheckedToken.current) {
 			getUser()
 			hasCheckedToken.current = true
@@ -141,8 +161,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
 				inventory,
 				setInventory,
-				hasAttemptedInventoryFetch,
-				setHasAttemptedInventoryFetch,
 
 				confirmedMerchants,
 				setConfirmedMerchants,
