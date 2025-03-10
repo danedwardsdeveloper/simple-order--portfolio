@@ -10,17 +10,88 @@ import {
 	serviceConstraintMessages,
 	serviceConstraints,
 	temporaryVat,
+	tokenMessages,
 } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkRelationship, checkUserExists } from '@/library/database/operations'
-import { orderItems, orders, users } from '@/library/database/schema'
+import { orderItems, orders, products, users } from '@/library/database/schema'
 import { products as productsTable } from '@/library/database/schema'
 import logger from '@/library/logger'
-import { containsIllegalCharacters, isValidDate } from '@/library/utilities'
+import { containsIllegalCharacters, convertEmptyToUndefined, isValidDate } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { OrderInsertValues, TokenMessages } from '@/types'
+import type { BrowserSafeCustomerFacingOrder, BrowserSafeCustomerProduct, OrderInsertValues, TokenMessages } from '@/types'
 import { eq, inArray } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
+
+export interface OrdersGETresponse {
+	message: TokenMessages | typeof basicMessages.success | typeof basicMessages.serverError | 'success, no orders'
+	ordersAsCustomer?: BrowserSafeCustomerFacingOrder[]
+}
+
+const routeDetailGET = `GET ${apiPaths.orders.customerPerspective.base}:`
+
+// Get orders that you have placed as a customer (with search parameters (eventually))
+// Optimisation ToDo: sort with pending first
+export async function GET(request: NextRequest): Promise<NextResponse<OrdersGETresponse>> {
+	try {
+		const { extractedUserId, status, message } = await extractIdFromRequestCookie(request)
+
+		if (!extractedUserId) {
+			logger.warn(routeDetailGET, message)
+			return NextResponse.json({ message }, { status })
+		}
+
+		const { userExists } = await checkUserExists(extractedUserId)
+
+		if (!userExists) {
+			logger.warn(routeDetailGET, tokenMessages.userNotFound)
+			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http404notFound })
+		}
+
+		const foundOrders = convertEmptyToUndefined(await database.select().from(orders).where(eq(orders.customerId, extractedUserId)))
+
+		if (!foundOrders) {
+			logger.info(routeDetailGET, 'success, no orders')
+			return NextResponse.json({ message: 'success, no orders' }, { status: httpStatus.http200ok })
+		}
+
+		const ordersAsCustomer: BrowserSafeCustomerFacingOrder[] = await Promise.all(
+			foundOrders.map(async (order) => {
+				const [merchantProfile] = await database.select().from(users).where(eq(users.id, order.merchantId)).limit(1)
+
+				const orderItemsForOrder = await database.select().from(orderItems).where(eq(orderItems.orderId, order.id))
+
+				const productIds = orderItemsForOrder.map((item) => item.productId)
+				const productsForOrder: BrowserSafeCustomerProduct[] = await database
+					.select({
+						id: products.id,
+						name: products.name,
+						description: products.description,
+						priceInMinorUnits: products.priceInMinorUnits,
+						customVat: products.customVat,
+					})
+					.from(products)
+					.where(inArray(products.id, productIds))
+
+				return {
+					id: order.id,
+					customerBusinessName: merchantProfile.businessName,
+					requestedDeliveryDate: order.requestedDeliveryDate,
+					status: order.status,
+					customerNote: order.customerNote || undefined,
+					products: productsForOrder,
+					createdAt: order.createdAt,
+					updatedAt: order.updatedAt,
+				}
+			}),
+		)
+
+		logger.info(routeDetailGET, `successfully retrieved ${foundOrders.length} orders`)
+		return NextResponse.json({ message: basicMessages.success, ordersAsCustomer }, { status: httpStatus.http200ok })
+	} catch {
+		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
+	}
+}
 
 export interface SelectedProduct {
 	productId: number
@@ -53,6 +124,8 @@ export interface OrdersPOSTresponse {
 	orderId?: number
 }
 
+const routeDetailPOST = `POST ${apiPaths.orders.customerPerspective.base}:`
+
 //  Allows a customer to create a new order
 export async function POST(request: NextRequest): Promise<NextResponse<OrdersPOSTresponse>> {
 	let transactionErrorMessage: string | undefined = undefined
@@ -62,31 +135,36 @@ export async function POST(request: NextRequest): Promise<NextResponse<OrdersPOS
 		const { extractedUserId, status, message } = await extractIdFromRequestCookie(request)
 
 		if (!extractedUserId) {
+			logger.warn(routeDetailPOST, message)
 			return NextResponse.json({ message }, { status })
 		}
 
 		const { userExists, existingDangerousUser } = await checkUserExists(extractedUserId)
 
 		if (!userExists || !existingDangerousUser) {
-			return NextResponse.json({ message: 'user not found' }, { status: httpStatus.http404notFound })
+			logger.warn(routeDetailPOST, tokenMessages.userNotFound)
+			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http404notFound })
 		}
 
 		const { merchantSlug, products, requestedDeliveryDate, customerNote }: OrdersPOSTbody = await request.json()
 
 		if (!merchantSlug) {
+			logger.warn(routeDetailPOST, missingFieldMessages.merchantSlugMissing)
 			return NextResponse.json({ message: missingFieldMessages.merchantSlugMissing }, { status: httpStatus.http400badRequest })
 		}
 
 		if (!products) {
+			logger.warn(routeDetailPOST, missingFieldMessages.productsMissing)
 			return NextResponse.json({ message: missingFieldMessages.productsMissing }, { status: httpStatus.http400badRequest })
 		}
 
 		if (!requestedDeliveryDate) {
+			logger.warn(routeDetailPOST, missingFieldMessages.requestedDeliveryDateMissing)
 			return NextResponse.json({ message: missingFieldMessages.requestedDeliveryDateMissing }, { status: httpStatus.http400badRequest })
 		}
 
 		if (!isValidDate(requestedDeliveryDate)) {
-			logger.error(`POST ${apiPaths.orders.merchantPerspective.base} invalid requestedDeliveryDate format: `, requestedDeliveryDate)
+			logger.warn(routeDetailPOST, invalidFieldsMessages.requestedDelivery, requestedDeliveryDate)
 			return NextResponse.json({ message: invalidFieldsMessages.requestedDelivery }, { status: httpStatus.http400badRequest })
 		}
 
@@ -101,6 +179,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<OrdersPOS
 				customerNoteError = serviceConstraintMessages.customerNoteTooLong
 			}
 			if (customerNoteError) {
+				logger.warn(routeDetailPOST, customerNoteError)
 				return NextResponse.json({ message: customerNoteError }, { status: httpStatus.http400badRequest })
 			}
 		}
@@ -114,12 +193,14 @@ export async function POST(request: NextRequest): Promise<NextResponse<OrdersPOS
 			.where(eq(users.slug, merchantSlug))
 
 		if (!merchantProfile) {
+			logger.warn(routeDetailPOST, authenticationMessages.merchantNotFound)
 			return NextResponse.json({ message: authenticationMessages.merchantNotFound }, { status: httpStatus.http400badRequest })
 		}
 
 		const relationshipExists = await checkRelationship({ merchantId: merchantProfile.userId, customerId: extractedUserId })
 
 		if (!relationshipExists) {
+			logger.warn(routeDetailPOST, relationshipMessages.relationshipMissing)
 			return NextResponse.json({ message: relationshipMessages.relationshipMissing }, { status: httpStatus.http400badRequest })
 		}
 
@@ -169,19 +250,16 @@ export async function POST(request: NextRequest): Promise<NextResponse<OrdersPOS
 			return { newOrderId }
 		})
 
-		logger.info(`${existingDangerousUser.businessName} successfully created a new order from ${merchantProfile.businessName}`)
+		logger.info(
+			routeDetailPOST,
+			`${existingDangerousUser.businessName} successfully created a new order from ${merchantProfile.businessName}`,
+		)
 		return NextResponse.json({ message: basicMessages.success, orderId: newOrderId }, { status: httpStatus.http200ok })
 	} catch (error) {
-		logger.error(`POST ${apiPaths.orders.customerPerspective.base} error: `, transactionErrorMessage || error)
+		logger.error(routeDetailPOST, transactionErrorMessage || error)
 		return NextResponse.json(
 			{ message: transactionErrorMessage || basicMessages.serverError },
 			{ status: transactionErrorCode || httpStatus.http500serverError },
 		)
 	}
-}
-
-// Get orders that you have placed as a customer (with search parameters)
-// Search parameters are a premature optimisation though!
-export async function GET(_request: NextRequest) {
-	return NextResponse.json({ message: basicMessages.success }, { status: httpStatus.http200ok })
 }
