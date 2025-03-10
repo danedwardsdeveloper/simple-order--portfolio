@@ -1,4 +1,5 @@
 import type { orderItems, orders } from '@/library/database/schema'
+import type { BrowserSafeCustomerProduct } from './products'
 
 export type Order = typeof orders.$inferSelect
 export type OrderInsertValues = typeof orders.$inferInsert
@@ -17,6 +18,17 @@ export interface BrowserSafeOrder {
 	customerNote?: string
 	status: OrderStatus
 	items: OrderItem[]
+	createdAt: Date
+	updatedAt: Date
+}
+
+export interface BrowserSafeCustomerFacingOrder {
+	id: number
+	customerBusinessName: string
+	requestedDeliveryDate: Date
+	customerNote?: string
+	status: OrderStatus
+	products: BrowserSafeCustomerProduct[]
 	createdAt: Date
 	updatedAt: Date
 }
