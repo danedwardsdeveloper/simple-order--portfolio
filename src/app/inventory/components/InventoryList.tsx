@@ -1,7 +1,6 @@
 'use client'
 import type { InventoryAdminGETresponse } from '@/app/api/inventory/admin/route'
 import { apiPaths } from '@/library/constants'
-import logger from '@/library/logger'
 import { useNotifications } from '@/providers/notifications'
 import { useUser } from '@/providers/user'
 import { useEffect, useState } from 'react'
@@ -21,9 +20,6 @@ export default function InventoryList() {
 				const { inventory, message }: InventoryAdminGETresponse = await (
 					await fetch(apiPaths.inventory.merchantPerspective.base, { credentials: 'include' })
 				).json()
-
-				logger.debug('Inventory: ', inventory)
-				logger.debug('Message: ', message)
 
 				if (inventory) setInventory(inventory)
 				if (message !== 'success')
