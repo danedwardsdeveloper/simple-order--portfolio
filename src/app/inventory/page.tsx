@@ -26,11 +26,20 @@ export default function InventoryPage() {
 	}
 
 	return (
-		<div className="flex flex-col gap-y-4">
+		<>
 			<h1 className="">Inventory</h1>
-			<InventoryControlPanel />
-			<AddInventoryForm />
-			<InventoryList />
-		</div>
+			<div className="mx-auto w-full max-w-7xl grow flex flex-col lg:flex-row xl:px-2 gap-8">
+				<div className="flex-1 xl:flex order-last lg:order-first">
+					<InventoryList />
+				</div>
+
+				<div className="shrink-0 lg:w-96 order-first lg:order-last">
+					<div className="flex flex-col gap-y-4 ">
+						<InventoryControlPanel />
+						<AddInventoryForm />
+					</div>
+				</div>
+			</div>
+		</>
 	)
 }
