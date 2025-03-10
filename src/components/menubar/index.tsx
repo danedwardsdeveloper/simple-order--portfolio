@@ -5,8 +5,8 @@ import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
 import clsx from 'clsx'
 import Link from 'next/link'
-import { DesktopMenuItem, MobileMenuItem } from './DesktopMenuItem'
 import HomePageLink from './HomePageLink'
+import { DesktopMenuItem, MobileMenuItem } from './MenuItems'
 
 export default function MenuBar() {
 	const { user } = useUser()
@@ -15,7 +15,10 @@ export default function MenuBar() {
 	function MobileMenu() {
 		return (
 			<>
-				<nav className="flex md:hidden fixed inset-x-0 top-0 h-14 bg-white/70 backdrop-blur border-b-2 border-neutral-100 z-menubar">
+				<nav
+					data-component="MobileMenu"
+					className="flex md:hidden fixed inset-x-0 top-0 h-14 bg-white/70 backdrop-blur border-b-2 border-neutral-100 z-menubar"
+				>
 					<div className="w-full mx-auto px-4 lg:px-8 flex items-center justify-between">
 						<HomePageLink />
 						<button
@@ -76,7 +79,10 @@ export default function MenuBar() {
 
 	function DesktopMenu() {
 		return (
-			<nav className="hidden md:flex fixed inset-x-0 top-0  h-14 bg-white/70 backdrop-blur border-b-2 border-neutral-100 z-menubar">
+			<nav
+				data-component="DesktopMenu"
+				className="hidden md:flex fixed inset-x-0 top-0  h-14 bg-white/70 backdrop-blur border-b-2 border-neutral-100 z-menubar"
+			>
 				<div className="w-full max-w-7xl mx-auto px-4 lg:px-8 flex items-center justify-between">
 					{user ? (
 						<>
