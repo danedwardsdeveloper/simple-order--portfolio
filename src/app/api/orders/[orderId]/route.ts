@@ -1,4 +1,4 @@
-import { basicMessages, httpStatus } from '@/library/constants'
+import { apiPaths, basicMessages, httpStatus } from '@/library/constants'
 import { temporaryVat } from '@/library/constants/definitions/vat'
 import { database } from '@/library/database/connection'
 import { checkUserExists } from '@/library/database/operations'
@@ -27,12 +27,14 @@ export interface OrdersOrderIdPOSTbody {
 	quantity: number
 }
 
+// I'm pretty sure this route is not needed. /orders is the route for a customer to create a new order
 export async function POST(
 	request: NextRequest,
 	{ params }: { params: Promise<{ orderId: number }> },
 ): Promise<NextResponse<OrdersOrderIdPOSTresponse>> {
 	try {
-		const orderId = (await params).orderId
+		const unwrappedParams = await params
+		const orderId = unwrappedParams.orderId
 
 		if (!orderId) {
 			return NextResponse.json({ message: 'orderId missing' }, { status: httpStatus.http400badRequest })
@@ -102,15 +104,20 @@ export interface OrdersOrderIdGETresponse {
 	items?: OrderItem[]
 }
 
+const routeDetailGET = `GET ${apiPaths.orders.customerPerspective.orderId}: `
+
+// I'm not sure this route is needed at all. All the details are returned from the generic /orders route anyway
+// Also it returns an empty array
 export async function GET(
 	_request: NextRequest,
 	{ params }: { params: Promise<{ orderId: number }> },
 ): Promise<NextResponse<OrdersOrderIdGETresponse>> {
 	try {
-		logger.debug('Params: ', params)
-		const orderId = (await params).orderId
+		const unwrappedParams = await params
+		const orderId = unwrappedParams.orderId
 
 		if (!orderId) {
+			logger.warn(routeDetailGET, 'orderId missing')
 			return NextResponse.json({ message: 'orderId missing' }, { status: httpStatus.http400badRequest })
 		}
 
