@@ -41,11 +41,13 @@ export default function MerchantFacingOrdersPage() {
 
 	if (isLoading) return <Spinner />
 
-	// ToDo: make this better
-	if (errorMessage) return <p className="md:-mx-3 text-red-600 p-3 border-2 border-red-300 bg-red-50 rounded-xl max-w-xl">{errorMessage}</p>
+	// Handle legitimately no orders butter
 
-	// ToDo: Make this better
-	if (!orders) return <p>No orders found</p>
+	if (errorMessage)
+		return <p className="lg:-mx-3 text-blue-600 p-3 border-2 border-blue-300 bg-blue-50 rounded-xl max-w-xl w-full h-min">{errorMessage}</p>
+
+	if (!orders)
+		return <p className="lg:-mx-3 w-full text-blue-600 p-3 border-2 border-blue-300 bg-red-50 rounded-xl max-w-xl">No orders found</p>
 
 	return (
 		<ul className="flex flex-col gap-y-4 w-full max-w-xl">

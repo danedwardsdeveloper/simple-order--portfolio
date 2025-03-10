@@ -128,7 +128,7 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 				<Spinner />
 			) : (
 				<form onSubmit={handleSubmit}>
-					<ul className="flex flex-col w-full gap-y-4 max-w-xl md:-mx-3">
+					<ul className="flex flex-col w-full gap-y-4 max-w-xl lg:-mx-3">
 						{products?.map((product, index) => (
 							<CustomerFacingProductCard
 								key={product.id}
@@ -141,13 +141,13 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 					</ul>
 					<div className="mt-4 flex flex-col gap-y-4">
 						{errorMessage && (
-							<p className="md:-mx-3 text-red-600 p-3 border-2 border-red-300 bg-red-50 rounded-xl max-w-xl">{errorMessage}</p>
+							<p className="lg:-mx-3 text-red-600 p-3 border-2 border-red-300 bg-red-50 rounded-xl max-w-xl">{errorMessage}</p>
 						)}
 
 						<button
 							type="submit"
 							disabled={Object.values(selectedProducts).every((quantity) => quantity === 0) || isSubmitting}
-							className="button-primary  py-2 w-full max-w-xl md:-mx-3 flex justify-center"
+							className="button-primary  py-2 w-full max-w-xl lg:-mx-3 flex justify-center"
 						>
 							{isSubmitting ? <Spinner colour="text-white" /> : 'Place order'}
 						</button>

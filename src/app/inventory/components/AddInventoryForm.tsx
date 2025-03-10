@@ -91,7 +91,7 @@ export default function AddInventoryForm() {
 	}
 
 	return (
-		<form onSubmit={handleSubmit} className="p-4 border-2 border-zinc-200 rounded-xl flex flex-col gap-y-4 max-w-xl md:-mx-3">
+		<form onSubmit={handleSubmit} className="p-4 border-2 border-zinc-200 rounded-xl flex flex-col gap-y-4 max-w-xl lg:-mx-3">
 			<h2 className="">Add an item</h2>
 
 			<div>
