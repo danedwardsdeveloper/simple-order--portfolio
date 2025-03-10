@@ -5,27 +5,31 @@ import { useUser } from '@/providers/user'
 import Link from 'next/link'
 
 export default function WelcomeMessages() {
-	const { user, inventory, confirmedCustomers } = useUser()
+	const { user, inventory, confirmedCustomers, invitationsSent } = useUser()
 	if (!user) return null
 
 	const messageTypes = {
 		roleNotice: 'role notice',
-		emailConfirmation: 'email confirmation',
+		pleaseConfirmYourEmail: 'please confirm your email',
 		emptyInventory: 'empty inventory',
-		noCustomers: 'no customers',
+		sendFirstInvitation: 'send first invitation',
+		confirmBeforeSendingFirstInvitation: 'confirm before sending first invitation',
 	}
 
 	function formatRole(role: string) {
 		return `${role.charAt(0).toUpperCase()}${role.slice(1)}`
 	}
 
-	const displayAllForTesting = true
+	const notJustACustomer = user.roles !== 'customer'
+	const emailConfirmed = user.emailConfirmed
+	const noInvitedOrConfirmedCustomers = !confirmedCustomers && !invitationsSent
 
 	const showMessage = {
-		[messageTypes.roleNotice]: displayAllForTesting || true,
-		[messageTypes.emailConfirmation]: displayAllForTesting || !user.emailConfirmed,
-		[messageTypes.emptyInventory]: displayAllForTesting || (user.roles !== 'customer' && !inventory),
-		[messageTypes.noCustomers]: displayAllForTesting || (user.roles !== 'customer' && !confirmedCustomers),
+		[messageTypes.roleNotice]: true,
+		[messageTypes.pleaseConfirmYourEmail]: !emailConfirmed,
+		[messageTypes.emptyInventory]: notJustACustomer && !inventory,
+		[messageTypes.sendFirstInvitation]: notJustACustomer && emailConfirmed && noInvitedOrConfirmedCustomers,
+		[messageTypes.confirmBeforeSendingFirstInvitation]: notJustACustomer && !emailConfirmed && noInvitedOrConfirmedCustomers,
 	}
 
 	function EmptyInventoryMessage() {
@@ -38,7 +42,7 @@ export default function WelcomeMessages() {
 		)
 	}
 
-	function NoCustomersMessage() {
+	function SendFirstInvitation() {
 		return (
 			<MessageContainer borderColour="border-blue-300">
 				<Link href="/customers" className="link-primary">
@@ -67,11 +71,11 @@ export default function WelcomeMessages() {
 				</MessageContainer>
 			)}
 
-			{showMessage[messageTypes.emailConfirmation] && <PleaseConfirmYourEmailMessage email={user.email} />}
+			{showMessage[messageTypes.pleaseConfirmYourEmail] && <PleaseConfirmYourEmailMessage email={user.email} />}
 
-			{showMessage[messageTypes.noCustomers] && <ConfirmBeforeInviting />}
+			{showMessage[messageTypes.confirmBeforeSendingFirstInvitation] && <ConfirmBeforeInviting />}
 
-			{showMessage[messageTypes.noCustomers] && <NoCustomersMessage />}
+			{showMessage[messageTypes.sendFirstInvitation] && <SendFirstInvitation />}
 
 			{showMessage[messageTypes.emptyInventory] && <EmptyInventoryMessage />}
 		</>

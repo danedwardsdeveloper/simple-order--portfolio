@@ -10,7 +10,7 @@ import type { InventoryAdminGETresponse } from '../api/inventory/admin/route'
 import WelcomeMessages from './components/WelcomeMessages'
 
 export default function DashboardPage() {
-	const { user, setInventory, hasAttemptedInventoryFetch, setHasAttemptedInventoryFetch, invitationsReceived } = useUser()
+	const { user, setInventory, hasAttemptedInventoryFetch, setHasAttemptedInventoryFetch } = useUser()
 	const [isLoading, setIsLoading] = useState(false)
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies:
@@ -48,11 +48,6 @@ export default function DashboardPage() {
 			<SignedInBreadCrumbs businessName={user.businessName} />
 			<h1>Dashboard</h1>
 			<WelcomeMessages />
-
-			<div className="flex flex-col gap-y-2 mt-8">
-				<h2>Invitations received</h2>
-				{JSON.stringify(invitationsReceived)}
-			</div>
 		</>
 	)
 }
