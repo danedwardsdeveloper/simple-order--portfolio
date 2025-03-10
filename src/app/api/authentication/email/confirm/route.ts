@@ -75,7 +75,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Authentic
 			return { updatedUser }
 		})
 
-		const { userRole } = await getUserRoles(foundDangerousUser.id)
+		const { userRole } = await getUserRoles(foundDangerousUser)
 		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(foundDangerousUser.id)
 
 		const confirmedUser: BrowserSafeCompositeUser = {

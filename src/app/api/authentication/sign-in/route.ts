@@ -74,7 +74,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
 	const cookieStore = await cookies()
 	cookieStore.set(createCookieWithToken(dangerousUser.id, cookieDurations.oneYear))
 
-	const { userRole } = await getUserRoles(dangerousUser.id)
+	const { userRole } = await getUserRoles(dangerousUser)
 
 	const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(dangerousUser.id)
 

@@ -1,11 +1,9 @@
 import { apiPaths, basicMessages, cookieNames, httpStatus, tokenMessages } from '@/library/constants'
-import { database } from '@/library/database/connection'
 import { checkActiveSubscriptionOrTrial, checkUserExists, getUserRoles } from '@/library/database/operations'
-import { users } from '@/library/database/schema'
 import logger from '@/library/logger'
+import { sanitiseDangerousBaseUser } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { BaseBrowserSafeUser, BrowserSafeCompositeUser, TokenMessages } from '@/types'
-import { eq } from 'drizzle-orm'
+import type { BrowserSafeCompositeUser, TokenMessages } from '@/types'
 import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -34,35 +32,25 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 			return NextResponse.json({ message }, { status })
 		}
 
-		const { userExists } = await checkUserExists(extractedUserId)
+		const { userExists, existingDangerousUser } = await checkUserExists(extractedUserId)
+
 		if (!userExists) {
 			logger.info(routeDetail, "User doesn't exist")
 			cookieStore.delete(cookieNames.token)
 			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
 		}
 
-		const [baseUser]: BaseBrowserSafeUser[] = await database
-			.select({
-				firstName: users.firstName,
-				lastName: users.lastName,
-				email: users.email,
-				slug: users.slug,
-				businessName: users.businessName,
-				emailConfirmed: users.emailConfirmed,
-				cachedTrialExpired: users.cachedTrialExpired,
-			})
-			.from(users)
-			.where(eq(users.id, extractedUserId))
-
-		if (!baseUser) {
+		if (!existingDangerousUser) {
 			logger.info(routeDetail, 'User not found')
 			cookieStore.delete(cookieNames.token)
 			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
 		}
 
-		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(extractedUserId, baseUser.cachedTrialExpired)
+		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(extractedUserId, existingDangerousUser.cachedTrialExpired)
 
-		const { userRole } = await getUserRoles(extractedUserId)
+		const { userRole } = await getUserRoles(existingDangerousUser)
+
+		const baseUser = sanitiseDangerousBaseUser(existingDangerousUser)
 
 		const compositeUser: BrowserSafeCompositeUser = {
 			...baseUser,

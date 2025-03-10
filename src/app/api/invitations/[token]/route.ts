@@ -150,7 +150,7 @@ export async function PATCH(
 
 			logger.info(`PATCH ${apiPaths.invitations.accept}: existing user found, relationship created`)
 
-			const { userRole } = await getUserRoles(foundDangerousUser.id)
+			const { userRole } = await getUserRoles(foundDangerousUser)
 
 			const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(foundDangerousUser.id)
 
