@@ -7,7 +7,7 @@
 		"build": "pnpm format && pnpm check && next build",
 		"generate": "drizzle-kit generate",
 		"push": "drizzle-kit push",
-		"studio": "npx drizzle-kit studio",
+		"studio": "npx drizzle-kit studio --config=drizzle.config.ts",
 		"start": "next start",
 		"start:local": "next build && tsx testServer.ts",
 		"lint": "next lint",
