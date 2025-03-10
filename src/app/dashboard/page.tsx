@@ -1,28 +1,16 @@
 'use client'
 import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
-import PleaseConfirmYourEmailMessage from '@/components/PleaseConfirmYourEmailMessage'
 import Spinner from '@/components/Spinner'
-import TemporaryRoleNotice from '@/components/TemporaryRoleNotice'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
 import { apiPaths } from '@/library/constants'
 import logger from '@/library/logger'
 import { useUser } from '@/providers/user'
 import { useEffect, useState } from 'react'
 import type { InventoryAdminGETresponse } from '../api/inventory/admin/route'
-import EmptyInventoryMessage from './components/EmptyInventoryMessage'
-import NoCustomersMessage from './components/NoCustomersMessage'
+import WelcomeMessages from './components/WelcomeMessages'
 
 export default function DashboardPage() {
-	const {
-		user,
-		inventory,
-		setInventory,
-		hasAttemptedInventoryFetch,
-		setHasAttemptedInventoryFetch,
-		confirmedCustomers,
-		invitationsReceived,
-		invitationsSent,
-	} = useUser()
+	const { user, setInventory, hasAttemptedInventoryFetch, setHasAttemptedInventoryFetch, invitationsReceived } = useUser()
 	const [isLoading, setIsLoading] = useState(false)
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies:
@@ -49,7 +37,7 @@ export default function DashboardPage() {
 		}
 
 		getInventory()
-	}, [user])
+	}, [])
 
 	if (!user) return <UnauthorisedLinks />
 
@@ -59,18 +47,11 @@ export default function DashboardPage() {
 		<>
 			<SignedInBreadCrumbs businessName={user.businessName} />
 			<h1>Dashboard</h1>
-			{!user.emailConfirmed && <PleaseConfirmYourEmailMessage email={user.email} />}
-			{user.roles !== 'customer' && !inventory && <EmptyInventoryMessage />}
-			{user.roles !== 'customer' && !confirmedCustomers && <NoCustomersMessage emailConfirmed={user.emailConfirmed} />}
-			<TemporaryRoleNotice />
+			<WelcomeMessages />
 
 			<div className="flex flex-col gap-y-2 mt-8">
 				<h2>Invitations received</h2>
 				{JSON.stringify(invitationsReceived)}
-			</div>
-			<div className="flex flex-col gap-y-2 mt-8">
-				<h2>Invitations sent</h2>
-				{JSON.stringify(invitationsSent)}
 			</div>
 		</>
 	)

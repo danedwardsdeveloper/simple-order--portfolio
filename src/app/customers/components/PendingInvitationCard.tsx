@@ -2,7 +2,7 @@ import { formatTimeAndDate } from '@/library/utilities'
 import type { BrowserSafeInvitationSent } from '@/types'
 import clsx from 'clsx'
 
-export default function InvitedCustomerCard({
+export default function PendingInvitationCard({
 	invitedCustomer,
 	zebraStripe,
 }: { invitedCustomer: BrowserSafeInvitationSent; zebraStripe: boolean }) {
@@ -14,14 +14,7 @@ export default function InvitedCustomerCard({
 			)}
 		>
 			<h3 className="font-medium mb-2">{invitedCustomer.obfuscatedEmail}</h3>
-			<div className="flex flex-col gap-y-1">
-				<span className="text-zinc-600">Invitation sent</span>
-				<span>{formatTimeAndDate(invitedCustomer.lastEmailSentDate)}</span>
-			</div>
-			<div className="flex flex-col gap-y-1">
-				<span className="text-zinc-600">Expiry</span>
-				<span>{formatTimeAndDate(invitedCustomer.expirationDate)}</span>
-			</div>
+			<p>Expires {formatTimeAndDate(invitedCustomer.expirationDate)}</p>
 		</div>
 	)
 }

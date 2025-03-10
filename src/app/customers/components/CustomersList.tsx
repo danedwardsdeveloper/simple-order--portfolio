@@ -3,7 +3,7 @@ import Spinner from '@/components/Spinner'
 import { useUser } from '@/providers/user'
 import { useState } from 'react'
 import ConfirmedCustomerCard from './ConfirmedCustomerCard'
-import InvitedCustomerCard from './InvitedCustomerCard'
+import PendingInvitationCard from './PendingInvitationCard'
 
 export default function CustomersList() {
 	const { confirmedCustomers, invitationsSent } = useUser()
@@ -28,7 +28,7 @@ export default function CustomersList() {
 				</h2>
 			)}
 			{invitationsSent?.map((customer, index) => (
-				<InvitedCustomerCard key={customer.obfuscatedEmail} invitedCustomer={customer} zebraStripe={Boolean(index % 2)} />
+				<PendingInvitationCard key={customer.obfuscatedEmail} invitedCustomer={customer} zebraStripe={Boolean(index % 2)} />
 			))}
 
 			{message && <div>{message}</div>}
