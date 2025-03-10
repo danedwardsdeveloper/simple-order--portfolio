@@ -17,10 +17,18 @@ export default function OrdersPage() {
 	return (
 		<>
 			<SignedInBreadCrumbs businessName={user.businessName} currentPageTitle={dynamicTitle} />
-			<div className="flex flex-col gap-y-4 items-start">
-				<RoleModeButton />
-				<h1>{dynamicTitle}</h1>
-				{merchantMode ? <MerchantFacingOrdersPage /> : <CustomerFacingOrdersPage />}
+
+			<h1>{dynamicTitle}</h1>
+			<div data-component="two-column layout" className="mx-auto w-full grow flex flex-col lg:flex-row gap-8">
+				<div className="flex-1 xl:flex order-last lg:order-first flex flex-col">
+					{merchantMode ? <MerchantFacingOrdersPage /> : <CustomerFacingOrdersPage />}
+				</div>
+
+				<div className="shrink-0 lg:w-96 order-first lg:order-last">
+					<div className="flex flex-col gap-y-4 ">
+						<RoleModeButton />
+					</div>
+				</div>
 			</div>
 		</>
 	)
