@@ -5,6 +5,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.tailwind.css'
 import Providers from '@/components/Providers'
 import Footer from '@/components/footer'
+import Script from 'next/script'
 import type { ReactNode } from 'react'
 
 const socialImagePath = '/images/simple-order-wholesale-order-management-software-website.png'
@@ -56,6 +57,7 @@ export default function RootLayout({
 					{children}
 					<Footer />
 				</Providers>
+				<Script src="https://scripts.simpleanalyticscdn.com/latest.js" />
 			</body>
 		</html>
 	)
