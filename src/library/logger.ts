@@ -24,16 +24,31 @@ const shouldLog = (messageLevel: LogLevel) => {
 	return logLevels[messageLevel] <= logLevels[currentLevel]
 }
 
-const safeStringify = (data: unknown): string => {
+function stringifyUnknownData(data: unknown): string {
 	if (typeof data === 'string') return data
+
 	try {
-		return JSON.stringify(data, null, 2)
+		return JSON.stringify(
+			data,
+			(_key, value) => {
+				if (value instanceof Map || value instanceof Set) {
+					const isMap = value instanceof Map
+					return {
+						__type: isMap ? 'Map' : 'Set',
+						size: value.size,
+						...(isMap ? { entries: Array.from(value.entries()) } : { values: Array.from(value.values()) }),
+					}
+				}
+				return value
+			},
+			2,
+		)
 	} catch {
 		return '[Unserializable data]'
 	}
 }
 
-const stringifyArguments = (...args: unknown[]): string[] => args.map((arg) => (typeof arg === 'string' ? arg : safeStringify(arg)))
+const stringifyArguments = (...args: unknown[]): string[] => args.map((arg) => (typeof arg === 'string' ? arg : stringifyUnknownData(arg)))
 
 const createServerLogger = (type: 'debug' | 'info' | 'warn' | 'error', label: string) => {
 	return (...args: unknown[]) => {
