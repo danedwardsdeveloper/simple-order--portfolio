@@ -1,5 +1,5 @@
 import MerchantsList from './components/MerchantsList'
 
-export default function CustomerFacingOrdersPage() {
+export default function OrdersMadePage() {
 	return <MerchantsList />
 }

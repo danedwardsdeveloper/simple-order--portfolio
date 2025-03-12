@@ -9,14 +9,15 @@ import { useNotifications } from '@/providers/notifications'
 import { useUser } from '@/providers/user'
 import type { BrowserSafeCustomerProduct } from '@/types'
 import { useRouter } from 'next/navigation'
-import { type FormEvent, use, useEffect, useState } from 'react'
+import { type ChangeEvent, type FormEvent, use, useEffect, useState } from 'react'
 import urlJoin from 'url-join'
 import CustomerFacingProductCard from '../components/CustomerFacingProductCard'
 
+// ToDo: extract CreateOrderForm.tsx
 export default function MerchantPage({ params }: { params: Promise<{ merchantSlug: string }> }) {
 	const resolvedParams = use(params)
 	const merchantSlug = resolvedParams.merchantSlug
-	const { user, confirmedMerchants } = useUser()
+	const { user, confirmedMerchants, setOrdersMade } = useUser()
 	const router = useRouter()
 	const merchantDetails = confirmedMerchants?.find((merchant) => merchant.slug === merchantSlug)
 	const { createNotification } = useNotifications()
@@ -24,6 +25,13 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 	const [products, setProducts] = useState<BrowserSafeCustomerProduct[] | null>(null)
 	const [errorMessage, setErrorMessage] = useState('')
 	const [selectedProducts, setSelectedProducts] = useState<Record<string, number>>({})
+	const [requestedDeliveryDate, setRequestedDeliveryDate] = useState<string>(
+		(() => {
+			const tomorrow = new Date()
+			tomorrow.setDate(tomorrow.getDate() + 1)
+			return tomorrow.toISOString().split('T')[0]
+		})(),
+	)
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
 	useEffect(() => {
@@ -57,6 +65,10 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 		}))
 	}
 
+	function handleDateChange(event: ChangeEvent<HTMLInputElement>) {
+		setRequestedDeliveryDate(event.target.value)
+	}
+
 	async function handleSubmit(event: FormEvent) {
 		event.preventDefault()
 		const orderItems = Object.keys(selectedProducts)
@@ -72,18 +84,18 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 		setErrorMessage('')
 
 		try {
-			const { message }: OrdersPOSTresponse = await (
+			const { message, orderId }: OrdersPOSTresponse = await (
 				await fetch(urlJoin(apiPaths.orders.customerPerspective.base), {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
 					},
 					credentials: 'include',
-					body: JSON.stringify({ merchantSlug, products: orderItems }),
+					body: JSON.stringify({ merchantSlug, products: orderItems, requestedDeliveryDate }),
 				})
 			).json()
 
-			if (message === 'success') {
+			if (message === 'success' && orderId) {
 				// Create notification
 				// Reset selections
 				createNotification({
@@ -91,7 +103,17 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 					title: 'Success',
 					message: `Submitted order to ${merchantDetails?.businessName || merchantSlug}`,
 				})
-				// Add order to state
+				setOrdersMade((prevOrders) => [
+					{
+						id: orderId,
+						requestedDeliveryDate: new Date(requestedDeliveryDate),
+						status: 'pending',
+						products: products?.filter((product) => orderItems.some((item) => item.productId === product.id)) || [],
+						createdAt: new Date(),
+						updatedAt: new Date(),
+					},
+					...(prevOrders || []),
+				])
 				setSelectedProducts({})
 				router.push('/orders')
 			} else {
@@ -128,7 +150,19 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 				<Spinner />
 			) : (
 				<form onSubmit={handleSubmit}>
-					<ul className="flex flex-col w-full gap-y-4 max-w-xl lg:-mx-3">
+					<div className="mb-8">
+						<label htmlFor="requestedDeliveryDate" className="block mb-1 text-lg font-medium">
+							Delivery date
+						</label>
+						<input
+							type="date"
+							className="w-full max-w-sm"
+							value={requestedDeliveryDate}
+							onChange={handleDateChange}
+							min={new Date().toISOString().split('T')[0]} // Minimum date of today
+						/>
+					</div>
+					<ul className="flex flex-col w-full gap-y-4 max-w-xl">
 						{products?.map((product, index) => (
 							<CustomerFacingProductCard
 								key={product.id}
@@ -147,7 +181,7 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 						<button
 							type="submit"
 							disabled={Object.values(selectedProducts).every((quantity) => quantity === 0) || isSubmitting}
-							className="button-primary  py-2 w-full max-w-xl lg:-mx-3 flex justify-center"
+							className="button-primary py-2 w-full max-w-xl flex justify-center"
 						>
 							{isSubmitting ? <Spinner colour="text-white" /> : 'Place order'}
 						</button>

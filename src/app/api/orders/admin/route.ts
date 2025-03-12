@@ -5,13 +5,13 @@ import { orderItems, orders, users } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { convertEmptyToUndefined } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { BrowserSafeOrder, TokenMessages } from '@/types'
+import type { BrowserSafeMerchantFacingOrder, TokenMessages } from '@/types'
 import { eq, inArray } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface OrdersAdminGETresponse {
-	message: TokenMessages | typeof basicMessages.success | typeof basicMessages.serverError | 'no orders found'
-	orders?: BrowserSafeOrder[]
+	message: TokenMessages | typeof basicMessages.success | typeof basicMessages.serverError | 'success, no orders'
+	ordersReceived?: BrowserSafeMerchantFacingOrder[]
 }
 
 const routeDetail = `GET ${apiPaths.orders.merchantPerspective.base}:`
@@ -36,8 +36,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersAdmi
 		const merchantOrders = convertEmptyToUndefined(await database.select().from(orders).where(eq(orders.merchantId, extractedUserId)))
 
 		if (!merchantOrders) {
-			logger.info(routeDetail, 'legitimately no orders found')
-			return NextResponse.json({ message: 'no orders found' }, { status: httpStatus.http200ok })
+			logger.info(routeDetail, 'success, legitimately no orders')
+			return NextResponse.json({ message: 'success, no orders' }, { status: httpStatus.http200ok })
 		}
 
 		const orderIds = merchantOrders.map((order) => order.id)
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersAdmi
 
 		const customersMap = new Map(customers.map((customer) => [customer.id, customer]))
 
-		const browserSafeOrders: BrowserSafeOrder[] = merchantOrders.map((order): BrowserSafeOrder => {
+		const mappedOrders: BrowserSafeMerchantFacingOrder[] = merchantOrders.map((order): BrowserSafeMerchantFacingOrder => {
 			return {
 				id: order.id,
 				customerBusinessName: customersMap.get(order.customerId)?.businessName || 'Unknown customer',
@@ -79,7 +79,9 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersAdmi
 			}
 		})
 
-		return NextResponse.json({ message: basicMessages.success, orders: browserSafeOrders }, { status: httpStatus.http200ok })
+		const ordersReceived = convertEmptyToUndefined(mappedOrders)
+
+		return NextResponse.json({ message: basicMessages.success, ordersReceived }, { status: httpStatus.http200ok })
 	} catch (error) {
 		logger.error(routeDetail, 'error: ', error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })

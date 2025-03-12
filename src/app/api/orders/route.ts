@@ -25,7 +25,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 export interface OrdersGETresponse {
 	message: TokenMessages | typeof basicMessages.success | typeof basicMessages.serverError | 'success, no orders'
-	ordersAsCustomer?: BrowserSafeCustomerFacingOrder[]
+	ordersMade?: BrowserSafeCustomerFacingOrder[]
 }
 
 const routeDetailGET = `GET ${apiPaths.orders.customerPerspective.base}:`
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersGETr
 			return NextResponse.json({ message: 'success, no orders' }, { status: httpStatus.http200ok })
 		}
 
-		const ordersAsCustomer: BrowserSafeCustomerFacingOrder[] = await Promise.all(
+		const ordersMade: BrowserSafeCustomerFacingOrder[] = await Promise.all(
 			foundOrders.map(async (order) => {
 				const [merchantProfile] = await database.select().from(users).where(eq(users.id, order.merchantId)).limit(1)
 
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersGETr
 		)
 
 		logger.info(routeDetailGET, `successfully retrieved ${foundOrders.length} orders`)
-		return NextResponse.json({ message: basicMessages.success, ordersAsCustomer }, { status: httpStatus.http200ok })
+		return NextResponse.json({ message: basicMessages.success, ordersMade }, { status: httpStatus.http200ok })
 	} catch {
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
 	}
@@ -163,8 +163,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<OrdersPOS
 			return NextResponse.json({ message: missingFieldMessages.requestedDeliveryDateMissing }, { status: httpStatus.http400badRequest })
 		}
 
-		if (!isValidDate(requestedDeliveryDate)) {
-			logger.warn(routeDetailPOST, invalidFieldsMessages.requestedDelivery, requestedDeliveryDate)
+		const parsedDate = new Date(requestedDeliveryDate)
+
+		if (!isValidDate(parsedDate)) {
+			logger.warn(routeDetailPOST, invalidFieldsMessages.requestedDelivery, parsedDate)
 			return NextResponse.json({ message: invalidFieldsMessages.requestedDelivery }, { status: httpStatus.http400badRequest })
 		}
 
@@ -207,7 +209,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<OrdersPOS
 		const newOrderInsertValues: OrderInsertValues = {
 			customerId: extractedUserId,
 			merchantId: merchantProfile.userId,
-			requestedDeliveryDate,
+			requestedDeliveryDate: parsedDate,
 			customerNote,
 		}
 

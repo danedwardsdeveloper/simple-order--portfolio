@@ -3,8 +3,8 @@ import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
 import RoleModeButton from '@/components/menubar/RoleModeButton'
 import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
-import CustomerFacingOrdersPage from './customerFacingOrdersPage'
-import MerchantFacingOrdersPage from './merchantFacingOrderPage'
+import OrdersMadePage from './ordersMadePage'
+import OrdersReceivedPage from './ordersReceivedPage'
 
 export default function OrdersPage() {
 	const { merchantMode } = useUi()
@@ -21,7 +21,7 @@ export default function OrdersPage() {
 			<h1>{dynamicTitle}</h1>
 			<div data-component="two-column layout" className="mx-auto w-full grow flex flex-col lg:flex-row gap-8">
 				<div className="flex-1 xl:flex order-last lg:order-first flex flex-col">
-					{merchantMode ? <MerchantFacingOrdersPage /> : <CustomerFacingOrdersPage />}
+					{merchantMode ? <OrdersReceivedPage /> : <OrdersMadePage />}
 				</div>
 
 				<div className="shrink-0 lg:w-96 order-first lg:order-last">

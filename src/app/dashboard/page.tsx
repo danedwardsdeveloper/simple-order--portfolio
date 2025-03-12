@@ -6,7 +6,7 @@ import { useUser } from '@/providers/user'
 import WelcomeMessages from './components/WelcomeMessages'
 
 export default function DashboardPage() {
-	const { user, isLoading } = useUser()
+	const { user, isLoading, ordersMade, ordersReceived } = useUser()
 
 	if (!user) return <UnauthorisedLinks />
 
@@ -17,6 +17,22 @@ export default function DashboardPage() {
 			<SignedInBreadCrumbs businessName={user.businessName} />
 			<h1>Dashboard</h1>
 			<WelcomeMessages />
+
+			{/* Temporary data display */}
+			{ordersMade && (
+				<>
+					<h2 className="mt-8 mb-2">Orders made</h2>
+					<p>{JSON.stringify(ordersMade)}</p>
+				</>
+			)}
+
+			{/* Temporary data display */}
+			{ordersReceived && (
+				<>
+					<h2 className="mt-8 mb-2">Orders received</h2>
+					<p>{JSON.stringify(ordersReceived)}</p>
+				</>
+			)}
 		</>
 	)
 }

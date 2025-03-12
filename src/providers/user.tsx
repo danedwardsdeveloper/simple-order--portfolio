@@ -2,14 +2,18 @@
 import type { VerifyTokenGETresponse } from '@/app/api/authentication/verify-token/route'
 import type { InventoryAdminGETresponse } from '@/app/api/inventory/admin/route'
 import type { InvitationsGETresponse } from '@/app/api/invitations/route'
+import type { OrdersAdminGETresponse } from '@/app/api/orders/admin/route'
+import type { OrdersGETresponse } from '@/app/api/orders/route'
 import type { RelationshipsGETresponse } from '@/app/api/relationships/route'
 import { apiPaths, temporaryVat } from '@/library/constants'
 import logger from '@/library/logger'
 import type {
 	BrowserSafeCompositeUser,
+	BrowserSafeCustomerFacingOrder,
 	BrowserSafeCustomerProfile,
 	BrowserSafeInvitationReceived,
 	BrowserSafeInvitationSent,
+	BrowserSafeMerchantFacingOrder,
 	BrowserSafeMerchantProduct,
 	BrowserSafeMerchantProfile,
 } from '@/types'
@@ -26,6 +30,7 @@ interface UserContextType {
 
 	confirmedMerchants: BrowserSafeMerchantProfile[] | null
 	setConfirmedMerchants: Dispatch<SetStateAction<BrowserSafeMerchantProfile[] | null>>
+
 	confirmedCustomers: BrowserSafeCustomerProfile[] | null
 	setConfirmedCustomers: Dispatch<SetStateAction<BrowserSafeCustomerProfile[] | null>>
 
@@ -35,6 +40,12 @@ interface UserContextType {
 	invitationsSent: BrowserSafeInvitationSent[] | null
 	setInvitationsSent: Dispatch<SetStateAction<BrowserSafeInvitationSent[] | null>>
 
+	ordersMade: BrowserSafeCustomerFacingOrder[] | null
+	setOrdersMade: Dispatch<SetStateAction<BrowserSafeCustomerFacingOrder[] | null>>
+
+	ordersReceived: BrowserSafeMerchantFacingOrder[] | null
+	setOrdersReceived: Dispatch<SetStateAction<BrowserSafeMerchantFacingOrder[] | null>>
+
 	vat: number
 	isLoading: boolean
 }
@@ -43,18 +54,25 @@ const UserContext = createContext<UserContextType>({} as UserContextType)
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
 	const { setMerchantMode } = useUi()
-	const [user, setUser] = useState<BrowserSafeCompositeUser | null>(null)
-	const [inventory, setInventory] = useState<BrowserSafeMerchantProduct[] | null>(null)
 	const { createNotification } = useNotifications()
 	const hasCheckedToken = useRef(false) // Prevent development issues
+	const [isLoading, setIsLoading] = useState(true)
+
+	const [user, setUser] = useState<BrowserSafeCompositeUser | null>(null)
+
+	const [inventory, setInventory] = useState<BrowserSafeMerchantProduct[] | null>(null)
 
 	const [confirmedMerchants, setConfirmedMerchants] = useState<BrowserSafeMerchantProfile[] | null>(null)
+
 	const [confirmedCustomers, setConfirmedCustomers] = useState<BrowserSafeCustomerProfile[] | null>(null)
 
 	const [invitationsReceived, setInvitationsReceived] = useState<BrowserSafeInvitationReceived[] | null>(null)
+
 	const [invitationsSent, setInvitationsSent] = useState<BrowserSafeInvitationSent[] | null>(null)
 
-	const [isLoading, setIsLoading] = useState(true)
+	const [ordersMade, setOrdersMade] = useState<BrowserSafeCustomerFacingOrder[] | null>(null)
+
+	const [ordersReceived, setOrdersReceived] = useState<BrowserSafeMerchantFacingOrder[] | null>(null)
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <Run on mount only>
 	useEffect(() => {
@@ -74,11 +92,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 						setMerchantMode(false)
 					}
 
-					await getRelationships()
-					await getInvitations()
-					await getInventory()
+					await Promise.all([getRelationships(), getInvitations(), getInventory(), getOrdersMade(), getOrdersReceived()])
 				} else if (message === 'token expired' || message === 'token invalid' || message === 'user not found') {
-					// Only show notification if they were previously logged in
 					createNotification({
 						level: 'warning',
 						title: 'Signed out',
@@ -125,25 +140,45 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 		}
 
 		async function getInventory() {
+			// ToDo: refactor this
 			try {
-				setIsLoading(true)
 				const { inventory, message }: InventoryAdminGETresponse = await (
 					await fetch(apiPaths.inventory.merchantPerspective.base, { credentials: 'include' })
 				).json()
 
 				if (inventory) setInventory(inventory)
-				if (message !== 'success')
-					createNotification({
-						level: 'error',
-						title: 'Error',
-						message: "Couldn't add product to inventory - please try again.",
-					})
+				if (message !== 'success') logger.error('ToDo')
 			} catch {
-				createNotification({
-					level: 'error',
-					title: 'Error',
-					message: "Couldn't add product to inventory - please try again.",
-				})
+				// Log error
+				logger.error('ToDo')
+			}
+		}
+
+		async function getOrdersMade() {
+			const { ordersMade, message }: OrdersGETresponse = await (
+				await fetch(apiPaths.orders.customerPerspective.base, { credentials: 'include' })
+			).json()
+
+			if (message === 'success' && ordersMade) {
+				setOrdersMade(ordersMade)
+			} else if (message === 'success, no orders') {
+				return
+			} else {
+				logger.error('providers/user getOrdersMade error: ', message)
+			}
+		}
+
+		async function getOrdersReceived() {
+			const { ordersReceived, message }: OrdersAdminGETresponse = await (
+				await fetch(apiPaths.orders.merchantPerspective.base, { credentials: 'include' })
+			).json()
+
+			if (message === 'success' && ordersReceived) {
+				setOrdersReceived(ordersReceived)
+			} else if (message === 'success, no orders') {
+				return
+			} else {
+				logger.error('providers/user getOrdersReceived error: ', message)
 			}
 		}
 
@@ -173,6 +208,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
 				invitationsSent,
 				setInvitationsSent,
+
+				ordersMade,
+				setOrdersMade,
+
+				ordersReceived,
+				setOrdersReceived,
 
 				isLoading,
 				vat: temporaryVat,
