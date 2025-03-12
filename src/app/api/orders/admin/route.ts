@@ -1,11 +1,11 @@
 import { apiPaths, basicMessages, httpStatus, tokenMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkUserExists } from '@/library/database/operations'
-import { orderItems, orders, users } from '@/library/database/schema'
+import { orderItems, orders, products, users } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { convertEmptyToUndefined } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { BrowserSafeOrderReceived, TokenMessages } from '@/types'
+import type { BrowserSafeOrderReceived, OrderItem, TokenMessages } from '@/types'
 import { eq, inArray } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -55,6 +55,20 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersAdmi
 			.from(users)
 			.where(inArray(users.id, customerIds))
 
+		const productIds = [...new Set(allOrderItems.map((item) => item.productId))]
+
+		const productsData = await database
+			.select({
+				id: products.id,
+				name: products.name,
+				description: products.description,
+				priceInMinorUnits: products.priceInMinorUnits,
+				customVat: products.customVat,
+				deletedAt: products.deletedAt,
+			})
+			.from(products)
+			.where(inArray(products.id, productIds))
+
 		const itemsMap = new Map()
 		for (const item of allOrderItems) {
 			if (!itemsMap.has(item.orderId)) {
@@ -64,8 +78,16 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersAdmi
 		}
 
 		const customersMap = new Map(customers.map((customer) => [customer.id, customer]))
+		const productsMap = new Map(productsData.map((product) => [product.id, product]))
 
 		const mappedOrders: BrowserSafeOrderReceived[] = merchantOrders.map((order): BrowserSafeOrderReceived => {
+			const orderItemsList = itemsMap.get(order.id) || []
+			const productIdsForOrder = orderItemsList.map((item: OrderItem) => item.productId)
+
+			const productsForOrder = productIdsForOrder.map((id: number) => productsMap.get(id)).filter(Boolean)
+
+			// Main ToDo: make sure this returns products: BrowserOrderItem[]
+
 			return {
 				id: order.id,
 				customerBusinessName: customersMap.get(order.customerId)?.businessName || 'Unknown customer',
@@ -75,7 +97,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersAdmi
 				customerNote: order.customerNote || undefined,
 				createdAt: order.createdAt,
 				updatedAt: order.updatedAt,
-				items: itemsMap.get(order.id) || [],
+				products: productsForOrder,
 			}
 		})
 

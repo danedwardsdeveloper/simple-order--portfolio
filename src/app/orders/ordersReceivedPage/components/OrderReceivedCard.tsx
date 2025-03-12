@@ -4,7 +4,7 @@ import type { BrowserSafeOrderReceived } from '@/types'
 
 interface Props {
 	orderDetails: BrowserSafeOrderReceived
-	index: number
+	index: number // Number for calculating the zebra stripe colour
 }
 
 export default function OrderReceivedCard({ orderDetails, index }: Props) {
@@ -20,11 +20,11 @@ export default function OrderReceivedCard({ orderDetails, index }: Props) {
 					</time>
 				</div>
 				<ul className="flex-col gap-y-4">
-					{orderDetails.items.map((item) => (
-						<li key={item.id} className="flex gap-x-4">
+					{orderDetails.products.map((item) => (
+						<li key={item.productId} className="flex gap-x-4">
 							<span>{item.name}</span>
-							<span>x {item.description}</span>
-							<span>{formatPrice(item.priceInMinorUnits)}</span>
+							<span>x {item.vat}</span>
+							<span>{formatPrice(item.priceInMinorUnitsWithoutVat)}</span>
 						</li>
 					))}
 				</ul>
