@@ -7,8 +7,9 @@ export default function HeroSection() {
 	return (
 		<div className="relative isolate overflow-hidden bg-gradient-to-b from-indigo-100/20 pt-14">
 			<div
+				data-component="diagonal-graphic"
 				aria-hidden="true"
-				className="absolute inset-y-0 right-1/2 -z-10 -mr-96 w-[200%] origin-top-right skew-x-[-30deg] bg-white shadow-xl shadow-indigo-600/10 ring-1 ring-indigo-50 sm:-mr-80 lg:-mr-96"
+				className="absolute inset-y-0 right-1/2 -z-diagonal-graphic -mr-96 w-[200%] origin-top-right skew-x-[-30deg] bg-white shadow-xl shadow-indigo-600/10 ring-1 ring-indigo-50 sm:-mr-80 lg:-mr-96"
 			/>
 			<div className="mx-auto max-w-7xl px-6 py-8 sm:py-20 lg:px-8">
 				<div className="flex flex-col mx-auto max-w-2xl lg:mx-0 lg:grid lg:max-w-none lg:grid-cols-2 lg:gap-x-16 lg:gap-y-8 xl:grid-cols-1 xl:grid-rows-1 xl:gap-x-8 md:text-right items-start">

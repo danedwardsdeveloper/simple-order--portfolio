@@ -19,7 +19,7 @@ export default function MenuBar() {
 			<>
 				<nav
 					data-component="MobileMenu"
-					className="flex md:hidden fixed inset-x-0 top-0 h-14 bg-white/70  border-b-2 border-neutral-100 z-mobile-menu"
+					className="flex md:hidden fixed inset-x-0 top-0 h-14 bg-white/70  border-b-2 border-neutral-100 z-menu"
 				>
 					<div className="w-full mx-auto px-5 flex items-center justify-between">
 						<HomePageLink />
@@ -73,7 +73,7 @@ export default function MenuBar() {
 				leaveFrom="max-h-96 opacity-100"
 				leaveTo="max-h-0 opacity-0"
 			>
-				<div className="flex flex-col md:hidden fixed inset-x-0 top-14 border-b-2 border-blue-200 z-mobile-menu bg-blue-50 p-5 gap-y-10 py-10 overflow-hidden">
+				<div className="flex flex-col md:hidden fixed inset-x-0 top-14 border-b-2 border-blue-200 z-menu bg-blue-50 p-5 gap-y-10 py-10 overflow-hidden">
 					{user ? (
 						<>
 							<MobileMenuItem onClick={toggleMobileMenuOpen} href="/dashboard" text="Dashboard" />
@@ -112,7 +112,7 @@ export default function MenuBar() {
 		return (
 			<nav
 				data-component="DesktopMenu"
-				className="hidden md:flex fixed inset-x-0 top-0  h-14 bg-white/70 backdrop-blur border-b-2 border-neutral-100 z-menubar"
+				className="hidden md:flex fixed inset-x-0 top-0 h-14 bg-white/70 backdrop-blur border-b-2 border-neutral-100 z-menu"
 			>
 				<div className="w-full max-w-7xl mx-auto px-4 lg:px-8 flex items-center justify-between">
 					{user ? (
