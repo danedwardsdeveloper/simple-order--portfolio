@@ -3,6 +3,7 @@
 import { websiteCopy } from '@/library/constants'
 import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
+import { Transition } from '@headlessui/react'
 import clsx from 'clsx'
 import Link from 'next/link'
 import HomePageLink from './HomePageLink'
@@ -12,20 +13,21 @@ export default function MenuBar() {
 	const { user } = useUser()
 	const { mobileMenuOpen, toggleMobileMenuOpen } = useUi()
 
+	// Add click outside to close
 	function MobileMenu() {
 		return (
 			<>
 				<nav
 					data-component="MobileMenu"
-					className="flex md:hidden fixed inset-x-0 top-0 h-14 bg-white/70 backdrop-blur border-b-2 border-neutral-100 z-menubar"
+					className="flex md:hidden fixed inset-x-0 top-0 h-14 bg-white/70  border-b-2 border-neutral-100 z-mobile-menu"
 				>
-					<div className="w-full mx-auto px-4 lg:px-8 flex items-center justify-between">
+					<div className="w-full mx-auto px-5 flex items-center justify-between">
 						<HomePageLink />
 						<button
 							type="button"
 							onClick={() => toggleMobileMenuOpen()}
 							className={clsx(
-								' px-2 rounded-md border-2 border-blue-200 font-medium',
+								' px-2 rounded-md border-2 border-blue-200 font-medium text-xl',
 								mobileMenuOpen ? 'font-bold border-opacity-100' : ' text-zinc-600 border-opacity-0',
 							)}
 						>
@@ -33,16 +35,45 @@ export default function MenuBar() {
 						</button>
 					</div>
 				</nav>
-				{mobileMenuOpen && <MobilePanel />}
+				<BlurredBackdrop />
+				<MobilePanel />
 			</>
+		)
+	}
+
+	function BlurredBackdrop() {
+		return (
+			<Transition
+				show={mobileMenuOpen}
+				appear={true}
+				enter="transition-opacity duration-300 ease-in-out"
+				enterFrom="opacity-0"
+				enterTo="opacity-100"
+				leave="transition-opacity duration-300 ease-in-out"
+				leaveFrom="opacity-100"
+				leaveTo="opacity-0"
+			>
+				<div
+					data-component="mobile-panel-blurred-backdrop"
+					className="fixed md:hidden inset-0 h-screen w-screen backdrop-blur-sm bg-white/50 z-mobile-blurred-backdrop"
+				/>
+			</Transition>
 		)
 	}
 
 	function MobilePanel() {
 		return (
-			<>
-				<div className="fixed md:hidden inset-0 h-screen w-screen backdrop-blur-sm bg-white/50 z-0" />
-				<div className="flex flex-col md:hidden fixed inset-x-0 top-14 border-b-2 border-blue-200 z-menubar bg-blue-50 p-3 gap-y-6 pb-4">
+			<Transition
+				show={mobileMenuOpen}
+				appear={true}
+				enter="transition-[max-height,opacity] duration-500 ease-out"
+				enterFrom="max-h-0 opacity-0"
+				enterTo="max-h-96 opacity-100"
+				leave="transition-[max-height,opacity] duration-500 ease-in-out"
+				leaveFrom="max-h-96 opacity-100"
+				leaveTo="max-h-0 opacity-0"
+			>
+				<div className="flex flex-col md:hidden fixed inset-x-0 top-14 border-b-2 border-blue-200 z-mobile-menu bg-blue-50 p-5 gap-y-10 py-10 overflow-hidden">
 					{user ? (
 						<>
 							<MobileMenuItem onClick={toggleMobileMenuOpen} href="/dashboard" text="Dashboard" />
@@ -63,17 +94,17 @@ export default function MenuBar() {
 								href={websiteCopy.CTAs.secondary.href}
 								title={websiteCopy.linkDescriptions.howItWorks}
 								onClick={toggleMobileMenuOpen}
-								className="button-secondary text-center"
+								className="button-secondary text-center text-xl"
 							>
 								{websiteCopy.CTAs.secondary.displayText}
 							</Link>
-							<Link href={websiteCopy.CTAs.primary.href} className="button-primary text-center" onClick={toggleMobileMenuOpen}>
+							<Link href={websiteCopy.CTAs.primary.href} className="button-primary text-center text-xl" onClick={toggleMobileMenuOpen}>
 								{websiteCopy.CTAs.primary.displayText}
 							</Link>
 						</>
 					)}
 				</div>
-			</>
+			</Transition>
 		)
 	}
 

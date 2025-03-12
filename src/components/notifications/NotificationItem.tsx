@@ -61,6 +61,7 @@ export default function NotificationItem({ notification, onClose }: Props) {
 				className={clsx(
 					'pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg shadow-lg ring-2 transition data-[closed]:data-[enter]:translate-y-2 data-[enter]:transform data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-100 data-[enter]:ease-out data-[leave]:ease-in data-[closed]:data-[enter]:sm:translate-x-2 data-[closed]:data-[enter]:sm:translate-y-0',
 					colourStyles[notification.level].background,
+					'z-notification-item',
 				)}
 			>
 				<div className="p-4">

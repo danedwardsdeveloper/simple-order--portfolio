@@ -126,3 +126,6 @@
 ## Wednesday 13 March
 
 -  Reduced unnecessary requests from user provider with conditional Promise.all
+-  Save merchantMode in local storage
+-  Fixed mobile panel z-index issues
+-  Added mobile panel animations
