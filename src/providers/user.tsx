@@ -92,7 +92,15 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 						setMerchantMode(false)
 					}
 
-					await Promise.all([getRelationships(), getInvitations(), getInventory(), getOrdersMade(), getOrdersReceived()])
+					const basePromises = [getRelationships(), getInvitations()]
+					const rolePromises: Promise<void>[] =
+						user.roles === 'customer'
+							? [getOrdersMade()]
+							: user.roles === 'merchant'
+								? [getInventory(), getOrdersReceived()]
+								: [getOrdersMade(), getOrdersReceived(), getInventory()] // roles === 'both
+
+					await Promise.all([...basePromises, ...rolePromises])
 				} else if (message === 'token expired' || message === 'token invalid' || message === 'user not found') {
 					createNotification({
 						level: 'warning',
@@ -107,7 +115,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 			}
 		}
 
-		// Optimisation ToDo: send concurrent requests with Promise.all
 		async function getRelationships() {
 			try {
 				const { customers, merchants }: RelationshipsGETresponse = await (
