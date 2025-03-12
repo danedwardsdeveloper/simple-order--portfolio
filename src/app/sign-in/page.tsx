@@ -46,7 +46,6 @@ export default function SignInPage() {
 
 			setUser(user)
 
-			// Enhancement ToDO: change this so that it remembers the last used state/recorded preference
 			if (user.roles === 'both' || user.roles === 'merchant') {
 				setMerchantMode(true)
 			} else {

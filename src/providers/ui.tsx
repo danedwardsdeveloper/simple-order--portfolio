@@ -1,5 +1,6 @@
 'use client'
-import { type Dispatch, type ReactNode, type SetStateAction, createContext, useContext, useState } from 'react'
+import { localStorageItems } from '@/library/constants/definitions/localStorage'
+import { type Dispatch, type ReactNode, type SetStateAction, createContext, useContext, useEffect, useState } from 'react'
 
 interface UiContextType {
 	mobileMenuOpen: boolean
@@ -17,15 +18,27 @@ interface UiContextType {
 
 const UiContext = createContext<UiContextType | undefined>(undefined)
 
-// ToDo: store the merchantMode in local storage or it's very annoying
-
 export function UiProvider({ children }: { children: ReactNode }) {
-	// Default needs to be merchant mode, or new free trials can't invite customers
-	const [merchantMode, setMerchantMode] = useState(true)
+	// Default has to be merchant mode, or new free trials can't invite customers
+	const storedMerchantMode = localStorage.getItem(localStorageItems.merchantMode)
+	const initialMerchantMode = storedMerchantMode === null ? true : storedMerchantMode === 'true'
+	const [merchantMode, setMerchantMode] = useState(initialMerchantMode)
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies:
+	useEffect(() => {
+		if (storedMerchantMode === null) {
+			localStorage.setItem(localStorageItems.merchantMode, initialMerchantMode.toString())
+		}
+	}, [])
+
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
 	function toggleMerchantMode() {
-		setMerchantMode((current) => !current)
+		setMerchantMode((current) => {
+			const newValue = !current
+			localStorage.setItem(localStorageItems.merchantMode, newValue.toString())
+			return newValue
+		})
 	}
 
 	function toggleMobileMenuOpen() {

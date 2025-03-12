@@ -19,7 +19,6 @@ import type {
 } from '@/types'
 import { type Dispatch, type ReactNode, type SetStateAction, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { useNotifications } from './notifications'
-import { useUi } from './ui'
 
 interface UserContextType {
 	user: BrowserSafeCompositeUser | null
@@ -53,7 +52,6 @@ interface UserContextType {
 const UserContext = createContext<UserContextType>({} as UserContextType)
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
-	const { setMerchantMode } = useUi()
 	const { createNotification } = useNotifications()
 	const hasCheckedToken = useRef(false) // Prevent development issues
 	const [isLoading, setIsLoading] = useState(true)
@@ -84,13 +82,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
 				if (user) {
 					setUser(user)
-
-					// Enhancement ToDO: change this so that it remembers the last used state/recorded preference
-					if (user.roles === 'both' || user.roles === 'merchant') {
-						setMerchantMode(true)
-					} else {
-						setMerchantMode(false)
-					}
 
 					const basePromises = [getRelationships(), getInvitations()]
 					const rolePromises: Promise<void>[] =

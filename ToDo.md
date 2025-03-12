@@ -2,11 +2,14 @@
 
 ## Current Task
 
--  Retrieve customer-facing orders from providers/user
+-  Record merchantMode in local storage
 
 ## Things I could do...
 
--  Fix the order creation route
+-  Rename interfaces BrowserSafeOrderMade BrowserSafeOrderReceived
+-  Find more photos for the blog
+-  Add social images for the blog posts
+-  Fix the order creation route (add requestedDeliveryDate etc.)
 -  User-friendly messages for invitation failures
 -  Allow foreign characters é
 -  Fix punctuation issue on free trial form

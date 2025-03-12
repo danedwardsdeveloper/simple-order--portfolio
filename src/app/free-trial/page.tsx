@@ -4,6 +4,7 @@ import { apiPaths, dataTestIdNames, websiteCopy } from '@/library/constants'
 import { emailRegex } from '@/library/email/utilities'
 import logger from '@/library/logger'
 import { allowedCharacters, containsIllegalCharacters } from '@/library/utilities'
+import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
@@ -16,6 +17,7 @@ import type { CreateAccountPOSTbody, CreateAccountPOSTresponse } from '../api/au
 export default function CreateAccountPage() {
 	const router = useRouter()
 	const { setUser } = useUser()
+	const { setMerchantMode } = useUi()
 	const [showPassword, setShowPassword] = useState(false)
 	const [errorMessage, setErrorMessage] = useState('')
 	const [illegalCharacterMessage, setIllegalCharacterMessage] = useState('')
@@ -72,6 +74,8 @@ export default function CreateAccountPage() {
 			logger.debug(message, user)
 
 			if (user) {
+				// Must be merchant mode for new free-trials
+				setMerchantMode(true)
 				setUser(user)
 				router.push('/dashboard')
 			} else {
