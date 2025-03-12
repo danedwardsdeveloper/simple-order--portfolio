@@ -110,3 +110,19 @@
 -  Updated email sending logic for production
 -  Added social image
 -  Took screenshots for project write up
+
+## Monday 11 March
+
+-  Completely forgot about journaling but did a lot of thinking about the UX, and fixed some routes, and created the GET ordersMade route
+
+## Tuesday 12 March
+
+-  Added ordersMade to user provider and fetched data
+-  Added ordersReceived to user provider and fetched data
+-  Added requestedDeliveryDate to order creation form
+-  Added Simple Analytics script
+-  Sorted out order fetching from orders pages & components
+
+## Wednesday 13 March
+
+-  Reduced unnecessary requests from user provider with conditional Promise.all
