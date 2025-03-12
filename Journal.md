@@ -129,3 +129,7 @@
 -  Save merchantMode in local storage
 -  Fixed mobile panel z-index issues
 -  Added mobile panel animations
+-  Renamed interfaces, components and pages OrdersReceived and OrdersMade
+-  Updated custom logger to handle maps and sets
+-  Fixed z-index issues
+-  Returned products data from /api/orders

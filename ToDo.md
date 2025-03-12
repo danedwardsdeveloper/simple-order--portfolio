@@ -2,11 +2,10 @@
 
 ## Current Task
 
--  Record merchantMode in local storage
+-  Make sure `/api/orders` and `/api/orders/admin` return the correct products data with the new `BrowserOrderItem` interface
 
 ## Things I could do...
 
--  Rename interfaces BrowserSafeOrderMade BrowserSafeOrderReceived
 -  Find more photos for the blog
 -  Add social images for the blog posts
 -  Fix the order creation route (add requestedDeliveryDate etc.)
