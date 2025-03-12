@@ -12,7 +12,7 @@ export default function OrdersPage() {
 
 	if (!user) return null
 
-	const dynamicTitle = user.roles === 'both' ? (merchantMode ? 'Orders as merchant' : 'Orders as customer') : 'Orders'
+	const dynamicTitle = user.roles === 'both' ? (merchantMode ? 'Orders received' : 'Orders made') : 'Orders'
 
 	return (
 		<>
