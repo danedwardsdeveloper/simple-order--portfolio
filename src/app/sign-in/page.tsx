@@ -13,10 +13,10 @@ export default function SignInPage() {
 	const { user, setUser } = useUser()
 	const { setMerchantMode } = useUi()
 	const router = useRouter()
-	const [showPassword, setShowPassword] = useState(false)
+	const [showPassword, setShowPassword] = useState(true)
 	const [formData, setFormData] = useState<SignInPOSTbody>({
 		email: '',
-		password: '',
+		password: 'securePassword123',
 	})
 	const [error, setError] = useState('')
 
@@ -86,7 +86,7 @@ export default function SignInPage() {
 							}))
 						}
 						required
-						className="w-full p-2 text-lg bg-slate-50 rounded border-2 border-blue-100 outline-offset-4 focus-visible:outline-orange-400"
+						className="w-full"
 					/>
 				</div>
 
