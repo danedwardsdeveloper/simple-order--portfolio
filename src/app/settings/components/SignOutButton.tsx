@@ -5,15 +5,7 @@ import logger from '@/library/logger'
 import { useUser } from '@/providers/user'
 
 export default function SignOutButton() {
-	const {
-		setUser,
-		setInventory,
-		setConfirmedCustomers,
-		setConfirmedMerchants,
-		setHasAttemptedInventoryFetch,
-		setInvitationsReceived,
-		setInvitationsSent,
-	} = useUser()
+	const { setUser, setInventory, setConfirmedCustomers, setConfirmedMerchants, setInvitationsReceived, setInvitationsSent } = useUser()
 
 	async function handleSignOut() {
 		const response = await fetch(apiPaths.authentication.signOut, {
@@ -32,7 +24,6 @@ export default function SignOutButton() {
 			setConfirmedMerchants(null)
 			setInvitationsReceived(null)
 			setInvitationsSent(null)
-			setHasAttemptedInventoryFetch(false)
 		} else {
 			logger.error('Error signing out: ', message)
 		}
