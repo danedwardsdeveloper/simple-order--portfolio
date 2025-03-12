@@ -19,13 +19,13 @@ import { products as productsTable } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { containsIllegalCharacters, convertEmptyToUndefined, isValidDate } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { BrowserSafeCustomerFacingOrder, BrowserSafeCustomerProduct, OrderInsertValues, TokenMessages } from '@/types'
+import type { BrowserSafeCustomerProduct, BrowserSafeOrderMade, OrderInsertValues, TokenMessages } from '@/types'
 import { eq, inArray } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface OrdersGETresponse {
 	message: TokenMessages | typeof basicMessages.success | typeof basicMessages.serverError | 'success, no orders'
-	ordersMade?: BrowserSafeCustomerFacingOrder[]
+	ordersMade?: BrowserSafeOrderMade[]
 }
 
 const routeDetailGET = `GET ${apiPaths.orders.customerPerspective.base}:`
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersGETr
 			return NextResponse.json({ message: 'success, no orders' }, { status: httpStatus.http200ok })
 		}
 
-		const ordersMade: BrowserSafeCustomerFacingOrder[] = await Promise.all(
+		const ordersMade: BrowserSafeOrderMade[] = await Promise.all(
 			foundOrders.map(async (order) => {
 				const [merchantProfile] = await database.select().from(users).where(eq(users.id, order.merchantId)).limit(1)
 

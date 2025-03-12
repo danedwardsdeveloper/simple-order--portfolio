@@ -10,7 +10,7 @@ export type OrderItemInsertValues = typeof orderItems.$inferInsert
 // This repeats the values from orderStatusEnum but I can't see any other way to get the values
 export type OrderStatus = 'pending' | 'completed' | 'cancelled'
 
-export interface BrowserSafeMerchantFacingOrder {
+export interface BrowserSafeOrderReceived {
 	id: number
 	customerBusinessName: string
 	requestedDeliveryDate: Date
@@ -22,7 +22,7 @@ export interface BrowserSafeMerchantFacingOrder {
 	updatedAt: Date
 }
 
-export interface BrowserSafeCustomerFacingOrder {
+export interface BrowserSafeOrderMade {
 	id: number
 	requestedDeliveryDate: Date
 	customerNote?: string

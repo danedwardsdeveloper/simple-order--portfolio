@@ -5,13 +5,13 @@ import { orderItems, orders, users } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { convertEmptyToUndefined } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { BrowserSafeMerchantFacingOrder, TokenMessages } from '@/types'
+import type { BrowserSafeOrderReceived, TokenMessages } from '@/types'
 import { eq, inArray } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface OrdersAdminGETresponse {
 	message: TokenMessages | typeof basicMessages.success | typeof basicMessages.serverError | 'success, no orders'
-	ordersReceived?: BrowserSafeMerchantFacingOrder[]
+	ordersReceived?: BrowserSafeOrderReceived[]
 }
 
 const routeDetail = `GET ${apiPaths.orders.merchantPerspective.base}:`
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersAdmi
 
 		const customersMap = new Map(customers.map((customer) => [customer.id, customer]))
 
-		const mappedOrders: BrowserSafeMerchantFacingOrder[] = merchantOrders.map((order): BrowserSafeMerchantFacingOrder => {
+		const mappedOrders: BrowserSafeOrderReceived[] = merchantOrders.map((order): BrowserSafeOrderReceived => {
 			return {
 				id: order.id,
 				customerBusinessName: customersMap.get(order.customerId)?.businessName || 'Unknown customer',

@@ -9,13 +9,13 @@ import { apiPaths, temporaryVat } from '@/library/constants'
 import logger from '@/library/logger'
 import type {
 	BrowserSafeCompositeUser,
-	BrowserSafeCustomerFacingOrder,
 	BrowserSafeCustomerProfile,
 	BrowserSafeInvitationReceived,
 	BrowserSafeInvitationSent,
-	BrowserSafeMerchantFacingOrder,
 	BrowserSafeMerchantProduct,
 	BrowserSafeMerchantProfile,
+	BrowserSafeOrderMade,
+	BrowserSafeOrderReceived,
 } from '@/types'
 import { type Dispatch, type ReactNode, type SetStateAction, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { useNotifications } from './notifications'
@@ -39,11 +39,11 @@ interface UserContextType {
 	invitationsSent: BrowserSafeInvitationSent[] | null
 	setInvitationsSent: Dispatch<SetStateAction<BrowserSafeInvitationSent[] | null>>
 
-	ordersMade: BrowserSafeCustomerFacingOrder[] | null
-	setOrdersMade: Dispatch<SetStateAction<BrowserSafeCustomerFacingOrder[] | null>>
+	ordersMade: BrowserSafeOrderMade[] | null
+	setOrdersMade: Dispatch<SetStateAction<BrowserSafeOrderMade[] | null>>
 
-	ordersReceived: BrowserSafeMerchantFacingOrder[] | null
-	setOrdersReceived: Dispatch<SetStateAction<BrowserSafeMerchantFacingOrder[] | null>>
+	ordersReceived: BrowserSafeOrderReceived[] | null
+	setOrdersReceived: Dispatch<SetStateAction<BrowserSafeOrderReceived[] | null>>
 
 	vat: number
 	isLoading: boolean
@@ -68,9 +68,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
 	const [invitationsSent, setInvitationsSent] = useState<BrowserSafeInvitationSent[] | null>(null)
 
-	const [ordersMade, setOrdersMade] = useState<BrowserSafeCustomerFacingOrder[] | null>(null)
+	const [ordersMade, setOrdersMade] = useState<BrowserSafeOrderMade[] | null>(null)
 
-	const [ordersReceived, setOrdersReceived] = useState<BrowserSafeMerchantFacingOrder[] | null>(null)
+	const [ordersReceived, setOrdersReceived] = useState<BrowserSafeOrderReceived[] | null>(null)
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <Run on mount only>
 	useEffect(() => {
