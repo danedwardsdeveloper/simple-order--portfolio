@@ -5,7 +5,7 @@ import { orderItems, orders, products, users } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { convertEmptyToUndefined } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { BrowserSafeOrderReceived, OrderItem, TokenMessages } from '@/types'
+import type { BrowserOrderItem, BrowserSafeOrderReceived, OrderItem, TokenMessages } from '@/types'
 import { eq, inArray } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -64,7 +64,6 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersAdmi
 				description: products.description,
 				priceInMinorUnits: products.priceInMinorUnits,
 				customVat: products.customVat,
-				deletedAt: products.deletedAt,
 			})
 			.from(products)
 			.where(inArray(products.id, productIds))
@@ -82,11 +81,23 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersAdmi
 
 		const mappedOrders: BrowserSafeOrderReceived[] = merchantOrders.map((order): BrowserSafeOrderReceived => {
 			const orderItemsList = itemsMap.get(order.id) || []
-			const productIdsForOrder = orderItemsList.map((item: OrderItem) => item.productId)
 
-			const productsForOrder = productIdsForOrder.map((id: number) => productsMap.get(id)).filter(Boolean)
+			const mappedProducts: BrowserOrderItem[] = orderItemsList
+				.map((orderItem: OrderItem) => {
+					const product = productsMap.get(orderItem.productId)
+					if (!product) return null
 
-			// Main ToDo: make sure this returns products: BrowserOrderItem[]
+					// Optimisation ToDo: this is not type-safe at all - any properties can be added without error
+					return {
+						id: product.id,
+						name: product.name,
+						description: product.description,
+						quantity: orderItem.quantity,
+						priceInMinorUnitsWithoutVat: orderItem.priceInMinorUnitsWithoutVat,
+						vat: orderItem.vat,
+					}
+				})
+				.filter(Boolean)
 
 			return {
 				id: order.id,
@@ -97,7 +108,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersAdmi
 				customerNote: order.customerNote || undefined,
 				createdAt: order.createdAt,
 				updatedAt: order.updatedAt,
-				products: productsForOrder,
+				products: mappedProducts,
 			}
 		})
 
