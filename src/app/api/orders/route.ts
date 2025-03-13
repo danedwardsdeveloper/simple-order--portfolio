@@ -19,13 +19,13 @@ import { products as productsTable } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { containsIllegalCharacters, convertEmptyToUndefined, isValidDate } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { BrowserSafeCustomerProduct, BrowserSafeOrderMade, OrderInsertValues, TokenMessages } from '@/types'
+import type { BrowserSafeCustomerProduct, OrderInsertValues, OrderMade, TokenMessages } from '@/types'
 import { eq, inArray } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface OrdersGETresponse {
 	message: TokenMessages | typeof basicMessages.success | typeof basicMessages.serverError | 'success, no orders'
-	ordersMade?: BrowserSafeOrderMade[]
+	ordersMade?: OrderMade[]
 }
 
 const routeDetailGET = `GET ${apiPaths.orders.customerPerspective.base}:`
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersGETr
 			return NextResponse.json({ message: 'success, no orders' }, { status: httpStatus.http200ok })
 		}
 
-		const ordersMade: BrowserSafeOrderMade[] = await Promise.all(
+		const ordersMade: OrderMade[] = await Promise.all(
 			foundOrders.map(async (order) => {
 				const [merchantProfile] = await database.select().from(users).where(eq(users.id, order.merchantId)).limit(1)
 
@@ -79,9 +79,9 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersGETr
 					requestedDeliveryDate: order.requestedDeliveryDate,
 					status: order.status,
 					customerNote: order.customerNote || undefined,
-					products: productsForOrder,
 					createdAt: order.createdAt,
 					updatedAt: order.updatedAt,
+					products: productsForOrder,
 				}
 			}),
 		)

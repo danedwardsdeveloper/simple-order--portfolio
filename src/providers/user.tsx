@@ -14,8 +14,8 @@ import type {
 	BrowserSafeInvitationSent,
 	BrowserSafeMerchantProduct,
 	BrowserSafeMerchantProfile,
-	BrowserSafeOrderMade,
-	BrowserSafeOrderReceived,
+	OrderMade,
+	OrderReceived,
 } from '@/types'
 import { type Dispatch, type ReactNode, type SetStateAction, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { useNotifications } from './notifications'
@@ -39,11 +39,11 @@ interface UserContextType {
 	invitationsSent: BrowserSafeInvitationSent[] | null
 	setInvitationsSent: Dispatch<SetStateAction<BrowserSafeInvitationSent[] | null>>
 
-	ordersMade: BrowserSafeOrderMade[] | null
-	setOrdersMade: Dispatch<SetStateAction<BrowserSafeOrderMade[] | null>>
+	ordersMade: OrderMade[] | null
+	setOrdersMade: Dispatch<SetStateAction<OrderMade[] | null>>
 
-	ordersReceived: BrowserSafeOrderReceived[] | null
-	setOrdersReceived: Dispatch<SetStateAction<BrowserSafeOrderReceived[] | null>>
+	ordersReceived: OrderReceived[] | null
+	setOrdersReceived: Dispatch<SetStateAction<OrderReceived[] | null>>
 
 	vat: number
 	isLoading: boolean
@@ -68,9 +68,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
 	const [invitationsSent, setInvitationsSent] = useState<BrowserSafeInvitationSent[] | null>(null)
 
-	const [ordersMade, setOrdersMade] = useState<BrowserSafeOrderMade[] | null>(null)
+	const [ordersMade, setOrdersMade] = useState<OrderMade[] | null>(null)
 
-	const [ordersReceived, setOrdersReceived] = useState<BrowserSafeOrderReceived[] | null>(null)
+	const [ordersReceived, setOrdersReceived] = useState<OrderReceived[] | null>(null)
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <Run on mount only>
 	useEffect(() => {

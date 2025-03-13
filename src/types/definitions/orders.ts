@@ -1,5 +1,5 @@
 import type { orderItems, orders } from '@/library/database/schema'
-import type { BrowserSafeCustomerProduct, BrowserSafeMerchantProduct } from './products'
+import type { BrowserSafeMerchantProduct } from './products'
 
 export type Order = typeof orders.$inferSelect
 export type OrderInsertValues = typeof orders.$inferInsert
@@ -15,7 +15,7 @@ export type BrowserOrderItem = Pick<OrderItem, 'priceInMinorUnitsWithoutVat' | '
 // This repeats the values from orderStatusEnum but I can't see any other way to get the values
 export type OrderStatus = 'pending' | 'completed' | 'cancelled'
 
-export interface BrowserSafeOrderReceived {
+export interface OrderReceived {
 	id: number
 	customerBusinessName: string
 	requestedDeliveryDate: Date
@@ -27,12 +27,12 @@ export interface BrowserSafeOrderReceived {
 	updatedAt: Date
 }
 
-export interface BrowserSafeOrderMade {
+export interface OrderMade {
 	id: number
 	requestedDeliveryDate: Date
 	customerNote?: string
 	status: OrderStatus
-	products: BrowserSafeCustomerProduct[]
+	products: BrowserOrderItem[]
 	createdAt: Date
 	updatedAt: Date
 }
