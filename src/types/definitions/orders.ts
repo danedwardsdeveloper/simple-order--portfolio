@@ -9,8 +9,8 @@ export type OrderItemInsertValues = typeof orderItems.$inferInsert
 
 export type MerchantOrderItem = ''
 
-export type BrowserOrderItem = Pick<OrderItem, 'productId' | 'priceInMinorUnitsWithoutVat' | 'quantity' | 'vat'> &
-	Pick<BrowserSafeMerchantProduct, 'name' | 'description'>
+export type BrowserOrderItem = Pick<OrderItem, 'priceInMinorUnitsWithoutVat' | 'quantity' | 'vat'> &
+	Pick<BrowserSafeMerchantProduct, 'id' | 'name' | 'description'>
 
 // This repeats the values from orderStatusEnum but I can't see any other way to get the values
 export type OrderStatus = 'pending' | 'completed' | 'cancelled'
