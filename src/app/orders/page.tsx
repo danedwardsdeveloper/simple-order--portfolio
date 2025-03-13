@@ -1,8 +1,10 @@
 'use client'
 import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
+import TwoColumnContainer from '@/components/TwoColumnContainer'
 import RoleModeButton from '@/components/menubar/RoleModeButton'
 import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
+import VatToggleButton from '../inventory/components/VatToggleButton'
 import OrdersMadePage from './ordersMadePage'
 import OrdersReceivedPage from './ordersReceivedPage'
 
@@ -17,19 +19,17 @@ export default function OrdersPage() {
 	return (
 		<>
 			<SignedInBreadCrumbs businessName={user.businessName} currentPageTitle={dynamicTitle} />
-
 			<h1>{dynamicTitle}</h1>
-			<div data-component="two-column layout" className="mx-auto w-full grow flex flex-col lg:flex-row gap-8">
-				<div className="flex-1 xl:flex order-last lg:order-first flex flex-col">
-					{merchantMode ? <OrdersReceivedPage /> : <OrdersMadePage />}
-				</div>
-
-				<div className="shrink-0 lg:w-96 order-first lg:order-last">
-					<div className="flex flex-col gap-y-4 ">
+			<TwoColumnContainer
+				mainColumn={merchantMode ? <OrdersReceivedPage /> : <OrdersMadePage />}
+				sideColumn={
+					<>
+						<VatToggleButton />
 						<RoleModeButton />
-					</div>
-				</div>
-			</div>
+					</>
+				}
+				sideColumnClasses="gap-y-4"
+			/>
 		</>
 	)
 }
