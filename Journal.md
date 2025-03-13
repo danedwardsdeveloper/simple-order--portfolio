@@ -133,3 +133,10 @@
 -  Updated custom logger to handle maps and sets
 -  Fixed z-index issues
 -  Returned products data from /api/orders
+
+## Thursday 14 March
+
+-  Worded on /api/orders/admin route (now returns correct data)
+-  Merged formatting utility files
+-  Worked on styling an OrderReceivedCard
+-  Created a capitaliseFirstLetter utility

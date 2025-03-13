@@ -2,7 +2,8 @@
 
 ## Current Task
 
--  Make sure `/api/orders` and `/api/orders/admin` return the correct products data with the new `BrowserOrderItem` interface
+-  Work on `BrowserSafeOrderReceived` and /api/orders route so it returns products data with quantities
+-  Create calculateOrderTotal function that accepts `BrowserSafeOrderMade` or `BrowserSafeOrderReceived`
 
 ## Things I could do...
 
