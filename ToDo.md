@@ -2,11 +2,15 @@
 
 ## Current Task
 
--  Work on `BrowserSafeOrderReceived` and /api/orders route so it returns products data with quantities
--  Create calculateOrderTotal function that accepts `BrowserSafeOrderMade` or `BrowserSafeOrderReceived`
+-  Work on `OrderReceived` and /api/orders route so it returns products data with quantities
 
 ## Things I could do...
 
+-  Work on `PATCH /api/orders/admin/[orderId]` route to toggle status and update merchant notes
+-  Work on `PATCH /api/orders/[orderId]` route to update customer note / quantities / products
+
+-  Create a message component with a cool style idea I want to try
+-  Restyle the Notifications to match
 -  Find more photos for the blog
 -  Add social images for the blog posts
 -  Fix the order creation route (add requestedDeliveryDate etc.)
