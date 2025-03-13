@@ -17,22 +17,22 @@ export type OrderStatus = 'pending' | 'completed' | 'cancelled'
 
 export interface OrderReceived {
 	id: number
-	customerBusinessName: string
+	status: OrderStatus
+	businessName: string
 	requestedDeliveryDate: Date
 	adminOnlyNote?: string
 	customerNote?: string
-	status: OrderStatus
-	products: BrowserOrderItem[]
 	createdAt: Date
 	updatedAt: Date
+	products: BrowserOrderItem[]
 }
 
 export interface OrderMade {
 	id: number
+	status: OrderStatus
 	requestedDeliveryDate: Date
 	customerNote?: string
-	status: OrderStatus
-	products: BrowserOrderItem[]
 	createdAt: Date
 	updatedAt: Date
+	products: BrowserOrderItem[]
 }
