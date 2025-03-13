@@ -6,8 +6,8 @@ import { useUser } from '@/providers/user'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import AddInventoryForm from './components/AddInventoryForm'
-import InventoryControlPanel from './components/InventoryControlPanel'
 import InventoryList from './components/InventoryList'
+import VatToggleButton from './components/VatToggleButton'
 
 export default function InventoryPage() {
 	const { user, isLoading } = useUser()
@@ -36,7 +36,7 @@ export default function InventoryPage() {
 				mainColumn={<InventoryList />}
 				sideColumn={
 					<>
-						<InventoryControlPanel />
+						<VatToggleButton />
 						<AddInventoryForm />
 					</>
 				}
