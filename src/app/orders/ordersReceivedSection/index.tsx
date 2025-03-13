@@ -5,8 +5,8 @@ import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
 import OrderReceivedCard from './components/OrderReceivedCard'
 
-export default function OrdersReceivedPage() {
-	const { user, isLoading, ordersReceived, inventory } = useUser()
+export default function OrdersReceivedSection() {
+	const { user, isLoading, ordersReceived } = useUser()
 	const { includeVat } = useUi()
 	if (isLoading) return <Spinner />
 
@@ -27,14 +27,6 @@ export default function OrdersReceivedPage() {
 				<>
 					<h2 className="mt-8 mb-2">Orders received</h2>
 					<p>{JSON.stringify(ordersReceived)}</p>
-				</>
-			)}
-
-			{/* Temporary data display */}
-			{inventory && (
-				<>
-					<h2 className="mt-8 mb-2">Inventory</h2>
-					<p>{JSON.stringify(inventory)}</p>
 				</>
 			)}
 		</>
