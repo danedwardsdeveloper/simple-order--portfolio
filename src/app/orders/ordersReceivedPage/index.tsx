@@ -1,11 +1,13 @@
 'use client'
 import Spinner from '@/components/Spinner'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
+import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
 import OrderReceivedCard from './components/OrderReceivedCard'
 
 export default function OrdersReceivedPage() {
 	const { user, isLoading, ordersReceived, inventory } = useUser()
+	const { includeVat } = useUi()
 	if (isLoading) return <Spinner />
 
 	if (!user) return <UnauthorisedLinks />
@@ -17,7 +19,7 @@ export default function OrdersReceivedPage() {
 		<>
 			<ul className="flex flex-col gap-y-4 w-full max-w-xl">
 				{ordersReceived?.map((order, index) => (
-					<OrderReceivedCard key={order.id} orderDetails={order} index={index} />
+					<OrderReceivedCard key={order.id} orderDetails={order} includeVat={includeVat} index={index} />
 				))}
 			</ul>
 			{/* Temporary data display */}
