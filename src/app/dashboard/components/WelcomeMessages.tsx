@@ -1,6 +1,7 @@
 'use client'
 import MessageContainer from '@/components/MessageContainer'
 import PleaseConfirmYourEmailMessage from '@/components/PleaseConfirmYourEmailMessage'
+import { capitaliseFirstLetter } from '@/library/utilities'
 import { useUser } from '@/providers/user'
 import Link from 'next/link'
 
@@ -14,10 +15,6 @@ export default function WelcomeMessages() {
 		emptyInventory: 'empty inventory',
 		sendFirstInvitation: 'send first invitation',
 		confirmBeforeSendingFirstInvitation: 'confirm before sending first invitation',
-	}
-
-	function formatRole(role: string) {
-		return `${role.charAt(0).toUpperCase()}${role.slice(1)}`
 	}
 
 	const notJustACustomer = user.roles !== 'customer'
@@ -66,7 +63,7 @@ export default function WelcomeMessages() {
 				<MessageContainer borderColour="border-emerald-300">
 					<p>
 						<span className="text-zinc-600">Temporary role notice: </span>
-						{formatRole(user.roles)}
+						{capitaliseFirstLetter(user.roles)}
 					</p>
 				</MessageContainer>
 			)}
