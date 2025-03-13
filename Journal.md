@@ -140,3 +140,4 @@
 -  Merged formatting utility files
 -  Worked on styling an OrderReceivedCard
 -  Created a capitaliseFirstLetter utility
+-  Created TwoColumnContainer

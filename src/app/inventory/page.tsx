@@ -1,5 +1,6 @@
 'use client'
 import Spinner from '@/components/Spinner'
+import TwoColumnContainer from '@/components/TwoColumnContainer'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
 import { useUser } from '@/providers/user'
 import { useRouter } from 'next/navigation'
@@ -30,19 +31,17 @@ export default function InventoryPage() {
 
 	return (
 		<>
-			<h1 className="">Inventory</h1>
-			<div data-component="two-column layout" className="mx-auto w-full grow flex flex-col lg:flex-row gap-8">
-				<div className="flex-1 xl:flex order-last lg:order-first">
-					<InventoryList />
-				</div>
-
-				<div className="shrink-0 lg:w-96 order-first lg:order-last">
-					<div className="flex flex-col gap-y-4 ">
+			<h1>Inventory</h1>
+			<TwoColumnContainer
+				mainColumn={<InventoryList />}
+				sideColumn={
+					<>
 						<InventoryControlPanel />
 						<AddInventoryForm />
-					</div>
-				</div>
-			</div>
+					</>
+				}
+				sideColumnClasses="gap-y-4"
+			/>
 		</>
 	)
 }
