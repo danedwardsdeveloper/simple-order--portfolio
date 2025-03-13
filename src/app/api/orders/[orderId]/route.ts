@@ -106,7 +106,7 @@ export interface OrdersOrderIdGETresponse {
 
 const routeDetailGET = `GET ${apiPaths.orders.customerPerspective.orderId}: `
 
-// I'm not sure this route is needed at all. All the details are returned from the generic /orders route anyway
+// I'm not sure this GET route is needed at all. All the details are returned from the generic /orders route anyway
 // Also it returns an empty array
 export async function GET(
 	_request: NextRequest,
