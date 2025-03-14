@@ -1,6 +1,6 @@
 import { relations } from 'drizzle-orm'
 import { boolean, integer, pgEnum, pgTable, primaryKey, serial, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
-import { orderStatusValues } from '../constants'
+import { orderStatusArray } from '../constants'
 
 export const users = pgTable('users', {
 	id: serial('id').primaryKey(),
@@ -99,7 +99,7 @@ export const testEmailInbox = pgTable('test_email_inbox', {
 	content: text('content').notNull(),
 })
 
-export const orderStatusEnum = pgEnum('order_status', orderStatusValues)
+export const orderStatusEnum = pgEnum('order_status', orderStatusArray)
 
 export const orders = pgTable('orders', {
 	id: serial('id').primaryKey(),

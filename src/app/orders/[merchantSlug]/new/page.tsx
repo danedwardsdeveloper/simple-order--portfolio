@@ -102,8 +102,6 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 					title: 'Success',
 					message: `Submitted order to ${merchantDetails?.businessName || merchantSlug}`,
 				})
-
-				// ToDo: Fix errors here
 				setOrdersMade((prevOrders) => [createdOrder, ...(prevOrders || [])])
 				setSelectedProducts({})
 				router.push('/orders')

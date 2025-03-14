@@ -24,6 +24,7 @@ export const unauthorisedMessages = {
 export const userMessages = {
 	databaseError: 'Sorry, something went wrong. Please try again later.',
 	serverError: 'Sorry, something went wrong. Please try again later.',
+	signIn: 'Please sign in again',
 	noOrdersMade: "You haven't made any orders yet",
 	noOrdersReceived: "You haven't received any orders yet",
 } as const

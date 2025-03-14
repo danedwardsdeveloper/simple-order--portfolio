@@ -1,11 +1,11 @@
-import type { orderStatusValues } from '@/library/constants'
+import type { orderStatus } from '@/library/constants'
 import type { orderItems, orders } from '@/library/database/schema'
 import type { BrowserSafeMerchantProduct } from './products'
 
-export type Order = typeof orders.$inferSelect
+export type BaseOrder = typeof orders.$inferSelect
 export type OrderInsertValues = typeof orders.$inferInsert
 
-export type OrderStatus = (typeof orderStatusValues)[number]
+export type OrderStatus = (typeof orderStatus)[keyof typeof orderStatus]
 
 export type OrderItem = typeof orderItems.$inferSelect
 export type OrderItemInsertValues = typeof orderItems.$inferInsert

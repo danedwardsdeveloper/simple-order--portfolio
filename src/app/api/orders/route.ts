@@ -18,9 +18,9 @@ import { checkRelationship, checkUserExists } from '@/library/database/operation
 import { orderItems, orders, products, users } from '@/library/database/schema'
 import { products as productsTable } from '@/library/database/schema'
 import logger from '@/library/logger'
-import { containsIllegalCharacters, convertEmptyToUndefined, isValidDate } from '@/library/utilities'
+import { containsIllegalCharacters, convertEmptyToUndefined, isValidDate, logAndSanitiseApiResponse } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { BrowserOrderItem, OrderInsertValues, OrderItem, OrderMade, UnauthorisedMessages } from '@/types'
+import type { BrowserOrderItem, OrderInsertValues, OrderItem, OrderMade, SelectedProduct, UnauthorisedMessages } from '@/types'
 import { eq, inArray } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -131,11 +131,6 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersGETr
 	}
 }
 
-export interface SelectedProduct {
-	productId: number
-	quantity: number
-}
-
 export interface OrdersPOSTbody {
 	merchantSlug: string
 	requestedDeliveryDate: Date
@@ -144,10 +139,12 @@ export interface OrdersPOSTbody {
 }
 
 export interface OrdersPOSTresponse {
+	developerMessage?: string
 	message:
 		| UnauthorisedMessages
 		| typeof systemMessages.success
 		| typeof systemMessages.serverError
+		| typeof systemMessages.badRequest
 		| typeof basicMessages.transactionError
 		| typeof missingFieldMessages.merchantSlugMissing
 		| typeof relationshipMessages.relationshipMissing
@@ -189,6 +186,15 @@ export async function POST(request: NextRequest): Promise<NextResponse<OrdersPOS
 		if (!merchantSlug) {
 			logger.warn(routeDetailPOST, missingFieldMessages.merchantSlugMissing)
 			return NextResponse.json({ message: missingFieldMessages.merchantSlugMissing }, { status: httpStatus.http400badRequest })
+		}
+
+		if (merchantSlug === existingDangerousUser.slug) {
+			const developerMessage = logAndSanitiseApiResponse({
+				routeDetail: routeDetailPOST,
+				level: 'level1error',
+				message: 'attempted to order from self',
+			})
+			return NextResponse.json({ message: systemMessages.badRequest, developerMessage }, { status: 400 })
 		}
 
 		if (!products) {

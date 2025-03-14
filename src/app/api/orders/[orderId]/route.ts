@@ -1,135 +1,193 @@
-import { apiPaths, basicMessages, httpStatus } from '@/library/constants'
-import { temporaryVat } from '@/library/constants/definitions/vat'
+import { apiPaths, type basicMessages, orderStatus, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkUserExists } from '@/library/database/operations'
-import { orderItems, orders, products } from '@/library/database/schema'
+import { orderItems, orders } from '@/library/database/schema'
 import logger from '@/library/logger'
+import { isSelectedProductArray, isValidDate, logAndSanitiseApiResponse } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { AuthenticationMessages, BasicMessages, Order, OrderItem, OrderItemInsertValues, Product, TokenMessages } from '@/types'
+import type { BaseOrder, SelectedProduct, TokenMessages } from '@/types'
 import { eq } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
-export interface OrdersOrderIdPOSTresponse {
-	message:
+export interface OrdersOrderIdPATCHresponse {
+	userMessage?:
 		| typeof basicMessages.success
-		| typeof basicMessages.serverError
+		| typeof userMessages.serverError
 		| TokenMessages
 		| 'orderId missing'
 		| 'productId missing'
 		| 'quantity missing'
 		| 'not your order to edit'
-	createdOrderItem?: OrderItem
+	developerMessage?: string
+	// updatedOrder?: OrderItem // ToDo: getOrder details
 }
 
-export interface OrdersOrderIdPOSTbody {
-	orderId: number
-	productId: number
-	quantity: number
+// Should accept details for multiple items
+// requestedDeliveryDate etc.
+export interface OrdersOrderIdPATCHbody {
+	customerNote?: string
+	requestedDeliveryDate?: Date
+	orderItemsToUpdate?: SelectedProduct[]
 }
 
-// I'm pretty sure this route is not needed. /orders is the route for a customer to create a new order
-export async function POST(
+export interface OrdersOrderIdPATCHparams {
+	orderId: string
+}
+
+const routeDetail = `PATCH ${apiPaths.orders.customerPerspective.orderId}:`
+
+export async function PATCH(
 	request: NextRequest,
-	{ params }: { params: Promise<{ orderId: number }> },
-): Promise<NextResponse<OrdersOrderIdPOSTresponse>> {
+	{ params }: { params: Promise<OrdersOrderIdPATCHparams> },
+): Promise<NextResponse<OrdersOrderIdPATCHresponse>> {
 	try {
 		const unwrappedParams = await params
-		const orderId = unwrappedParams.orderId
+		const orderId = Number(unwrappedParams.orderId)
 
+		// Check the orderId exists
 		if (!orderId) {
-			return NextResponse.json({ message: 'orderId missing' }, { status: httpStatus.http400badRequest })
+			const developerMessage = logAndSanitiseApiResponse({
+				message: 'orderId missing',
+				routeDetail,
+			})
+			return NextResponse.json({ developerMessage }, { status: 400 })
 		}
 
-		const { productId, quantity }: OrdersOrderIdPOSTbody = await request.json()
+		const { requestedDeliveryDate, customerNote, orderItemsToUpdate }: OrdersOrderIdPATCHbody = await request.json()
 
-		if (!productId) {
-			return NextResponse.json({ message: 'productId missing' }, { status: httpStatus.http400badRequest })
+		// Check at least one property to update has been provided
+		if (!requestedDeliveryDate && !customerNote && !orderItemsToUpdate) {
+			const developerMessage = logAndSanitiseApiResponse({
+				routeDetail,
+				message: 'At least one property to update must be provided',
+			})
+			return NextResponse.json({ developerMessage }, { status: 400 })
 		}
 
-		if (!quantity) {
-			return NextResponse.json({ message: 'quantity missing' }, { status: httpStatus.http400badRequest })
+		// Validate customerNote
+		// - containsIllegalCharacters
+		// - not too long
+
+		// Validate the requestedDeliveryDate, if provided
+		if (requestedDeliveryDate) {
+			if (!isValidDate(new Date(requestedDeliveryDate))) {
+				const developerMessage = logAndSanitiseApiResponse({
+					routeDetail,
+					message: `requestedDeliveryDate invalid: ${requestedDeliveryDate}`,
+				})
+				return NextResponse.json({ developerMessage }, { status: 400 })
+			}
 		}
 
-		const { extractedUserId, status, message } = await extractIdFromRequestCookie(request)
+		// Validate orderItemsToUpdate
+		if (orderItemsToUpdate) {
+			if (!isSelectedProductArray(orderItemsToUpdate)) {
+				const developerMessage = logAndSanitiseApiResponse({
+					routeDetail,
+					message: 'orderItemsToUpdate is in the wrong format',
+				})
+				return NextResponse.json({ developerMessage }, { status: 400 })
+			}
+		}
+
+		// Validate the user
+		const { extractedUserId, status, message: developerMessage } = await extractIdFromRequestCookie(request)
 
 		if (!extractedUserId) {
-			return NextResponse.json({ message }, { status })
+			return NextResponse.json({ developerMessage }, { status })
 		}
 
 		const { userExists, existingDangerousUser } = await checkUserExists(extractedUserId)
 
 		if (!userExists || !existingDangerousUser) {
-			return NextResponse.json({ message: 'user not found' }, { status: httpStatus.http404notFound })
+			return NextResponse.json({ developerMessage: 'user not found' }, { status: 404 })
 		}
 
-		const [orderToUpdate]: Order[] = await database.select().from(orders).where(eq(orders.customerId, extractedUserId))
+		const [orderToUpdate]: BaseOrder[] = await database.select().from(orders).where(eq(orders.id, orderId))
 
-		logger.debug('Order to update: ', orderToUpdate)
-
-		const orderMatchesProvidedDetails = orderToUpdate.customerId === extractedUserId
-
-		if (!orderMatchesProvidedDetails) {
-			return NextResponse.json({ message: 'not your order to edit' }, { status: httpStatus.http403forbidden })
+		if (!orderToUpdate) {
+			const developerMessage = logAndSanitiseApiResponse({
+				routeDetail,
+				message: `Couldn't find order with ID ${orderId}`,
+			})
+			return NextResponse.json({ developerMessage }, { status: 400 })
 		}
 
-		// Check order exists and is in a modifiable state (e.g., not completed)
-
-		// Validate basic item input (productId, quantity)
-
-		const [product]: Product[] = await database.select().from(products).where(eq(products.id, productId)).limit(1)
-
-		// Ensure product belongs to a merchant with a relationship
-
-		const vat = product.customVat ? product.customVat : temporaryVat
-
-		const orderItemInsertValues: OrderItemInsertValues = {
-			orderId,
-			productId,
-			quantity,
-			priceInMinorUnitsWithoutVat: product.priceInMinorUnits,
-			vat,
+		if (orderToUpdate.customerId !== extractedUserId) {
+			const developerMessage = logAndSanitiseApiResponse({
+				routeDetail,
+				message: `Order with ID ${orderId} was not created by ${existingDangerousUser.businessName}`,
+			})
+			return NextResponse.json({ developerMessage }, { status: 403 })
 		}
 
-		const [createdOrderItem]: OrderItem[] = await database.insert(orderItems).values(orderItemInsertValues).returning()
+		// Check order is not completed
+		if (orderToUpdate.status === orderStatus.completed) {
+			const developerMessage = logAndSanitiseApiResponse({
+				routeDetail,
+				message: `Can't update order with ID ${orderId} because it is ${orderToUpdate.status}`,
+			})
+			return NextResponse.json({ developerMessage }, { status: 403 })
+		}
 
-		return NextResponse.json({ message: basicMessages.success, createdOrderItem }, { status: httpStatus.http200ok })
+		// Check cut-off date has not been exceeded
+
+		// Prepare the update data
+		const orderUpdateData: Pick<OrdersOrderIdPATCHbody, 'customerNote' | 'requestedDeliveryDate'> = {}
+
+		// Check the customerNote is different
+		if (customerNote) {
+			if (customerNote !== orderToUpdate.customerNote) {
+				orderUpdateData.customerNote = customerNote
+			}
+		}
+
+		// Check the requestedDeliveryDate is different
+		if (requestedDeliveryDate) {
+			const newDate = new Date(requestedDeliveryDate)
+			const existingDate = new Date(orderToUpdate.requestedDeliveryDate)
+
+			if (newDate.getTime() !== existingDate.getTime()) {
+				orderUpdateData.requestedDeliveryDate = newDate
+			}
+		}
+
+		// Primary ToDo: work on this route
+
+		const orderItemsUpdateData: Pick<OrdersOrderIdPATCHbody, 'orderItemsToUpdate'> = {}
+
+		const foundOrderItems = await database.select().from(orderItems).where(eq(orderItems.orderId, orderId))
+
+		// foundOrderItems[0].quantity
+		// foundOrderItems[0].productId
+
+		// Check order items are different
+		if (orderItemsToUpdate) {
+			if (!isSelectedProductArray(orderItemsToUpdate)) {
+			}
+			orderItemsUpdateData.orderItemsToUpdate = orderItemsToUpdate
+		}
+
+		if (Object.keys(orderUpdateData).length === 0) {
+			const developerMessage = logAndSanitiseApiResponse({
+				routeDetail,
+				message: 'no data to change',
+			})
+			return NextResponse.json({ developerMessage }, { status: 400 })
+		}
+
+		// Transaction
+
+		// - update order
+		// - update order items, if necessary
+
+		await database.update(orders).set(orderUpdateData).where(eq(orders.id, orderId)).returning()
+
+		// Important ToDo: Update order items if needed
+
+		return NextResponse.json({ developerMessage: 'success' }, { status: 200 })
 	} catch (error) {
 		logger.error(error)
-		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
-	}
-}
-
-export interface OrdersOrderIdGETresponse {
-	message: BasicMessages | AuthenticationMessages | 'orderId missing'
-	items?: OrderItem[]
-}
-
-const routeDetailGET = `GET ${apiPaths.orders.customerPerspective.orderId}: `
-
-// I'm not sure this GET route is needed at all. All the details are returned from the generic /orders route anyway
-// Also it returns an empty array
-export async function GET(
-	_request: NextRequest,
-	{ params }: { params: Promise<{ orderId: number }> },
-): Promise<NextResponse<OrdersOrderIdGETresponse>> {
-	try {
-		const unwrappedParams = await params
-		const orderId = unwrappedParams.orderId
-
-		if (!orderId) {
-			logger.warn(routeDetailGET, 'orderId missing')
-			return NextResponse.json({ message: 'orderId missing' }, { status: httpStatus.http400badRequest })
-		}
-
-		// ToDo: check the order belongs to the person requesting it
-
-		const items = await database.select().from(orderItems).where(eq(orderItems.orderId, orderId))
-
-		// ToDo: transform the data
-
-		return NextResponse.json({ message: basicMessages.success, items }, { status: httpStatus.http200ok })
-	} catch (error) {
-		logger.error(error)
-		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
+		return NextResponse.json({ userMessage: userMessages.databaseError }, { status: 500 })
 	}
 }
