@@ -1,8 +1,7 @@
 ## Current Task
 
--  Prevent making orders from your own store
-
-.
+-  Work on `PATCH /api/orders/[orderId]` route with new responses system
+   .
 
 .
 
@@ -60,9 +59,8 @@
 
 # Today's To-Do List
 
--  Work on `PATCH /api/orders/admin/[orderId]` route
 -  Work on `PATCH /api/orders/admin/[orderId]` front-end implementation
--  Work on `PATCH /api/orders/[orderId]` route
+-
 -  Work on `PATCH /api/orders/[orderId]` front-end implementation
 
 ## Things I could do...
