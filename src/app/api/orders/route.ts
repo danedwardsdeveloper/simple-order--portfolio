@@ -19,7 +19,7 @@ import { products as productsTable } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { containsIllegalCharacters, convertEmptyToUndefined, isValidDate } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { BrowserSafeCustomerProduct, OrderInsertValues, OrderMade, TokenMessages } from '@/types'
+import type { BrowserOrderItem, OrderInsertValues, OrderItem, OrderMade, TokenMessages } from '@/types'
 import { eq, inArray } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -55,38 +55,75 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersGETr
 			return NextResponse.json({ message: 'success, no orders' }, { status: httpStatus.http200ok })
 		}
 
-		const ordersMade: OrderMade[] = await Promise.all(
-			foundOrders.map(async (order) => {
-				const [merchantProfile] = await database.select().from(users).where(eq(users.id, order.merchantId)).limit(1)
+		const orderIds = foundOrders.map((order) => order.id)
 
-				const orderItemsForOrder = await database.select().from(orderItems).where(eq(orderItems.orderId, order.id))
+		const allOrderItems = await database.select().from(orderItems).where(inArray(orderItems.orderId, orderIds))
 
-				const productIds = orderItemsForOrder.map((item) => item.productId)
-				const productsForOrder: BrowserSafeCustomerProduct[] = await database
-					.select({
-						id: products.id,
-						name: products.name,
-						description: products.description,
-						priceInMinorUnits: products.priceInMinorUnits,
-						customVat: products.customVat,
-					})
-					.from(products)
-					.where(inArray(products.id, productIds))
+		const merchantIds = [...new Set(foundOrders.map((order) => order.merchantId))]
 
-				return {
-					id: order.id,
-					customerBusinessName: merchantProfile.businessName,
-					requestedDeliveryDate: order.requestedDeliveryDate,
-					status: order.status,
-					customerNote: order.customerNote || undefined,
-					createdAt: order.createdAt,
-					updatedAt: order.updatedAt,
-					products: productsForOrder,
-				}
-			}),
-		)
+		const merchants = await database
+			.select({
+				id: users.id,
+				businessName: users.businessName,
+			})
+			.from(users)
+			.where(inArray(users.id, merchantIds))
 
-		logger.info(routeDetailGET, `successfully retrieved ${foundOrders.length} orders`)
+		const merchantsMap = new Map(merchants.map((merchant) => [merchant.id, merchant]))
+
+		const productIds = [...new Set(allOrderItems.map((item) => item.productId))]
+
+		const productsData = await database
+			.select({
+				id: products.id,
+				name: products.name,
+				description: products.description,
+			})
+			.from(products)
+			.where(inArray(products.id, productIds))
+
+		const productsMap = new Map(productsData.map((product) => [product.id, product]))
+
+		const itemsMap = new Map()
+		for (const item of allOrderItems) {
+			if (!itemsMap.has(item.orderId)) {
+				itemsMap.set(item.orderId, [])
+			}
+			itemsMap.get(item.orderId).push(item)
+		}
+
+		const ordersMade: OrderMade[] = foundOrders.map((order) => {
+			const orderItemsList = itemsMap.get(order.id) || []
+
+			const mappedProducts: BrowserOrderItem[] = orderItemsList
+				.map((orderItem: OrderItem) => {
+					const product = productsMap.get(orderItem.productId)
+					if (!product) return null
+
+					return {
+						id: product.id,
+						name: product.name,
+						description: product.description,
+						quantity: orderItem.quantity,
+						priceInMinorUnitsWithoutVat: orderItem.priceInMinorUnitsWithoutVat,
+						vat: orderItem.vat,
+					}
+				})
+				.filter(Boolean)
+
+			return {
+				id: order.id,
+				businessName: merchantsMap.get(order.merchantId)?.businessName || 'Unknown business',
+				requestedDeliveryDate: order.requestedDeliveryDate,
+				status: order.status,
+				customerNote: order.customerNote || undefined,
+				createdAt: order.createdAt,
+				updatedAt: order.updatedAt,
+				products: mappedProducts,
+			}
+		})
+
+		logger.info(routeDetailGET, `successfully retrieved ${foundOrders.length} order${foundOrders.length > 1 ? 's' : ''}`)
 		return NextResponse.json({ message: basicMessages.success, ordersMade }, { status: httpStatus.http200ok })
 	} catch {
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
