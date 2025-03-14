@@ -5,12 +5,12 @@ import { orderItems, orders, products, users } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { convertEmptyToUndefined } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { BrowserOrderItem, OrderItem, OrderReceived, TokenMessages } from '@/types'
+import type { BrowserOrderItem, OrderItem, OrderReceived, UnauthorisedMessages } from '@/types'
 import { eq, inArray } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface OrdersAdminGETresponse {
-	message: TokenMessages | typeof basicMessages.success | typeof basicMessages.serverError | 'success, no orders'
+	message: UnauthorisedMessages | typeof basicMessages.success | typeof basicMessages.serverError | 'success, no orders'
 	ordersReceived?: OrderReceived[]
 }
 
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersAdmi
 
 			return {
 				id: order.id,
-				customerBusinessName: customersMap.get(order.customerId)?.businessName || 'Unknown customer',
+				businessName: customersMap.get(order.customerId)?.businessName || 'Unknown customer',
 				status: order.status,
 				requestedDeliveryDate: order.requestedDeliveryDate,
 				adminOnlyNote: order.adminOnlyNote || undefined,
