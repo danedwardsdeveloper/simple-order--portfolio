@@ -1,14 +1,81 @@
-# To-Do List
-
 ## Current Task
 
--  Work on `OrderReceived` and /api/orders route so it returns products data with quantities
+-  Check in code
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+. [Don't get distracted]
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+# Today's To-Do List
+
+-  Fix major type issues on `src/app/orders/[merchantSlug]/new/page.tsx`
+-  Work on `PATCH /api/orders/admin/[orderId]` route
+-  Work on `PATCH /api/orders/admin/[orderId]` front-end implementation
+-  Work on `PATCH /api/orders/[orderId]` route
+-  Work on `PATCH /api/orders/[orderId]` front-end implementation
 
 ## Things I could do...
 
--  Work on `PATCH /api/orders/admin/[orderId]` route to toggle status and update merchant notes
--  Work on `PATCH /api/orders/[orderId]` route to update customer note / quantities / products
-
+-  Work on delivery days
+-  Work on order cutoff time
+-  Delete product button handling
+-  Push added inventory items to the top of the list so you can see them.
+-  Sorting buttons for the inventory
+-  Create a loading state for the MenuBar
+-  Have a SplashScreen that can be full page or just the internal bit
+-  Update the splash screen rendering logic so it's like my developer site, which works really well
 -  Create a message component with a cool style idea I want to try
 -  Restyle the Notifications to match
 -  Find more photos for the blog

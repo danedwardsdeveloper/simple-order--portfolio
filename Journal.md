@@ -142,3 +142,6 @@
 -  Created a capitaliseFirstLetter utility
 -  Created TwoColumnContainer
 -  Created calculateOrderTotal function
+-  Worked on `OrderReceived` and /api/orders route so it returns products data with quantities
+-  Styled OrderReceivedCard
+-  Lots of work on `src/app/api/orders/admin/[orderId]/route.ts` using a new style
