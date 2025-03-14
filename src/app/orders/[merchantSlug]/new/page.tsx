@@ -7,7 +7,7 @@ import { apiPaths } from '@/library/constants'
 import logger from '@/library/logger'
 import { useNotifications } from '@/providers/notifications'
 import { useUser } from '@/providers/user'
-import type { BrowserSafeCustomerProduct } from '@/types'
+import type { BrowserSafeCustomerProduct, OrderStatus } from '@/types'
 import { useRouter } from 'next/navigation'
 import { type ChangeEvent, type FormEvent, use, useEffect, useState } from 'react'
 import urlJoin from 'url-join'
@@ -25,13 +25,12 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 	const [products, setProducts] = useState<BrowserSafeCustomerProduct[] | null>(null)
 	const [errorMessage, setErrorMessage] = useState('')
 	const [selectedProducts, setSelectedProducts] = useState<Record<string, number>>({})
-	const [requestedDeliveryDate, setRequestedDeliveryDate] = useState<string>(
-		(() => {
-			const tomorrow = new Date()
-			tomorrow.setDate(tomorrow.getDate() + 1)
-			return tomorrow.toISOString().split('T')[0]
-		})(),
-	)
+
+	const now = new Date()
+	now.setDate(now.getDate() + 1)
+	const tomorrow = now.toISOString().split('T')[0]
+	const [requestedDeliveryDate, setRequestedDeliveryDate] = useState<string>(tomorrow)
+
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
 	useEffect(() => {
@@ -103,11 +102,14 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 					title: 'Success',
 					message: `Submitted order to ${merchantDetails?.businessName || merchantSlug}`,
 				})
+
+				// ToDo: Fix errors here
 				setOrdersMade((prevOrders) => [
 					{
 						id: orderId,
+						businessName: merchantDetails?.businessName || '',
 						requestedDeliveryDate: new Date(requestedDeliveryDate),
-						status: 'pending',
+						status: 'pending' as OrderStatus,
 						products: products?.filter((product) => orderItems.some((item) => item.productId === product.id)) || [],
 						createdAt: new Date(),
 						updatedAt: new Date(),
@@ -152,15 +154,18 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 				<form onSubmit={handleSubmit}>
 					<div className="mb-8">
 						<label htmlFor="requestedDeliveryDate" className="block mb-1 text-lg font-medium">
-							Delivery date
+							Requested delivery date
 						</label>
-						<input
-							type="date"
-							className="w-full max-w-sm"
-							value={requestedDeliveryDate}
-							onChange={handleDateChange}
-							min={new Date().toISOString().split('T')[0]} // Minimum date of today
-						/>
+						<div className="p-2 text-lg bg-slate-50 rounded border-2 border-blue-100 outline-offset-4 focus-visible:outline-orange-400 w-full max-w-sm">
+							{requestedDeliveryDate === tomorrow && <span className="mr-2">Tomorrow</span>}
+							<input
+								type="date"
+								className="bg-transparent"
+								value={requestedDeliveryDate}
+								onChange={handleDateChange}
+								min={new Date().toISOString().split('T')[0]} // Minimum date of today
+							/>
+						</div>
 					</div>
 					<ul className="flex flex-col w-full gap-y-4 max-w-xl">
 						{products?.map((product, index) => (
