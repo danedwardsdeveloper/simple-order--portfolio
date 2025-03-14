@@ -1,14 +1,14 @@
-import { basicMessages, cookieNames, httpStatus, tokenMessages } from '@/library/constants'
+import { basicMessages, cookieNames, httpStatus, type systemMessages, tokenMessages } from '@/library/constants'
 import { jwtSecret } from '@/library/environment/serverVariables'
 import logger from '@/library/logger'
-import type { TokenMessages } from '@/types'
+import type { UnauthorisedMessages } from '@/types'
 import jwt, { JsonWebTokenError, type JwtPayload, TokenExpiredError } from 'jsonwebtoken'
 import { cookies } from 'next/headers'
 import type { NextRequest } from 'next/server'
 
 export async function extractIdFromRequestCookie(_request: NextRequest): Promise<{
 	extractedUserId?: number
-	message: TokenMessages | typeof basicMessages.success
+	message: UnauthorisedMessages | typeof systemMessages.success
 	status: number
 }> {
 	const cookieStore = await cookies()
