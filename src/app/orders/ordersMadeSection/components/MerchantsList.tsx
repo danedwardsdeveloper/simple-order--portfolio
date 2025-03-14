@@ -16,16 +16,15 @@ export default function MerchantsList() {
 	// ToDo: Don't show 'Place an order' links for merchants with no products
 
 	return (
-		<>
-			<h2>Merchants</h2>
+		<div className="bg-blue-50 p-3 mb-6 rounded-xl">
+			<h2>Place an order</h2>
 			{confirmedMerchants.map((merchant) => (
 				<div key={merchant.slug} className="mt-4 flex gap-x-2 items-end">
-					<h3>{merchant.businessName}</h3>
-					<Link href={`/orders/${merchant.slug}/new`} className="link-primary">
-						Place an order
+					<Link href={`/orders/${merchant.slug}/new`} title={`Place a new order from ${merchant.businessName}`} className="link-primary">
+						{merchant.businessName}
 					</Link>
 				</div>
 			))}
-		</>
+		</div>
 	)
 }
