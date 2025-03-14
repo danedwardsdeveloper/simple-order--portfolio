@@ -10,7 +10,7 @@ export default {
 				'menubar-offset': spacing[14],
 			},
 			zIndex: {
-				'diagonal-graphic': zIndex[0],
+				'diagonal-graphic': zIndex[10], // Use negative
 				'notifications-container': zIndex[10],
 				'notification-item': zIndex[20],
 				'mobile-blurred-backdrop': zIndex[20],
