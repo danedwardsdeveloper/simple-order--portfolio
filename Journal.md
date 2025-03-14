@@ -151,3 +151,7 @@
 -  Checked in code from yesterday
 -  Fixed major type issues on `src/app/orders/[merchantSlug]/new/page.tsx`
 -  Order creation route now returns OrderMade object, but it's really inefficient so far
+-  Created `processDeveloperMessage` function
+-  Prevent making orders from your own store
+-  Worked on `PATCH /api/orders/admin/[orderId]` route with new responses system
+-  Worked on `PATCH /api/orders/[orderId]` route with new responses system
