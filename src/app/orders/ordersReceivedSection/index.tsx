@@ -13,7 +13,7 @@ export default function OrdersReceivedSection() {
 	if (!user) return <UnauthorisedLinks />
 
 	if (!ordersReceived)
-		return <p className="lg:-mx-3 w-full text-blue-600 p-3 border-2 border-blue-300 bg-red-50 rounded-xl max-w-xl">No orders found</p>
+		return <p className="lg:-mx-3 w-full text-blue-600 p-3 border-2 border-blue-300 bg-blue-50 rounded-xl max-w-xl">No orders found</p>
 
 	return (
 		<>
@@ -22,13 +22,6 @@ export default function OrdersReceivedSection() {
 					<OrderReceivedCard key={order.id} orderDetails={order} includeVat={includeVat} index={index} />
 				))}
 			</ul>
-			{/* Temporary data display */}
-			{ordersReceived && (
-				<>
-					<h2 className="mt-8 mb-2">Orders received</h2>
-					<p>{JSON.stringify(ordersReceived)}</p>
-				</>
-			)}
 		</>
 	)
 }

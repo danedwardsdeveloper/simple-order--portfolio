@@ -5,8 +5,8 @@ import RoleModeButton from '@/components/menubar/RoleModeButton'
 import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
 import VatToggleButton from '../inventory/components/VatToggleButton'
-import OrdersMadePage from './ordersMadePage'
-import OrdersReceivedPage from './ordersReceivedPage'
+import OrdersMadePage from './ordersMadeSection'
+import OrdersReceivedPage from './ordersReceivedSection'
 
 export default function OrdersPage() {
 	const { merchantMode } = useUi()
