@@ -1,3 +1,35 @@
+export const systemMessages = {
+	badRequest: 'bad request',
+	serverError: 'server error',
+	databaseError: 'database error',
+	success: 'success',
+	successNoContent: 'success, no content',
+	tokenExpired: 'token expired',
+	tokenInvalid: 'token invalid',
+	tokenMissing: 'token missing',
+	tokenUsed: 'token used',
+	unauthorised: 'unauthorised',
+	userNotFound: 'user not found',
+} as const
+
+export const unauthorisedMessages = {
+	tokenExpired: systemMessages.tokenExpired,
+	tokenInvalid: systemMessages.tokenInvalid,
+	tokenMissing: systemMessages.tokenMissing,
+	tokenUsed: systemMessages.tokenUsed,
+	unauthorised: systemMessages.unauthorised,
+	userNotFound: systemMessages.userNotFound,
+} as const
+
+export const userMessages = {
+	databaseError: 'Sorry, something went wrong. Please try again later.',
+	serverError: 'Sorry, something went wrong. Please try again later.',
+	noOrdersMade: "You haven't made any orders yet",
+	noOrdersReceived: "You haven't received any orders yet",
+} as const
+
+// Everything below this comment is being phased out.
+
 export const basicMessages = {
 	databaseError: 'database error',
 	errorSendingEmail: 'error sending email',
@@ -7,6 +39,7 @@ export const basicMessages = {
 	success: 'success',
 	transactionError: 'transaction error',
 	unknownTransactionError: 'unknown transaction error',
+	error: 'error',
 } as const
 
 export const missingFieldMessages = {
@@ -70,7 +103,3 @@ export const relationshipMessages = {
 export const serviceConstraintMessages = {
 	customerNoteTooLong: 'customerNote too long',
 } as const
-
-// Other potential response messages that could be reused
-// - businessName not found
-// - not a customer of this merchant
