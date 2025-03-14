@@ -40,7 +40,7 @@ export default function AllArticlesPage() {
 							</div>
 							<div className="max-w-xl">
 								<div className="mt-8 flex items-center gap-x-4 text-xs">
-									<time dateTime={new Date(articlesData[slug].date).toISOString().split('T')[0]} className="text-gray-500">
+									<time dateTime={articlesData[slug].date.toString()} className="text-gray-500">
 										{formatDate(articlesData[slug].date)}
 									</time>
 									<span
