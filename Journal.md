@@ -145,3 +145,9 @@
 -  Worked on `OrderReceived` and /api/orders route so it returns products data with quantities
 -  Styled OrderReceivedCard
 -  Lots of work on `src/app/api/orders/admin/[orderId]/route.ts` using a new style
+
+# Friday 15 March
+
+-  Checked in code from yesterday
+-  Fixed major type issues on `src/app/orders/[merchantSlug]/new/page.tsx`
+-  Order creation route now returns OrderMade object, but it's really inefficient so far

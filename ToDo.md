@@ -1,6 +1,6 @@
 ## Current Task
 
--  Check in code
+-  Prevent making orders from your own store
 
 .
 
@@ -60,7 +60,6 @@
 
 # Today's To-Do List
 
--  Fix major type issues on `src/app/orders/[merchantSlug]/new/page.tsx`
 -  Work on `PATCH /api/orders/admin/[orderId]` route
 -  Work on `PATCH /api/orders/admin/[orderId]` front-end implementation
 -  Work on `PATCH /api/orders/[orderId]` route
@@ -68,6 +67,10 @@
 
 ## Things I could do...
 
+-  Think about my new API response idea
+   -  userMessage
+   -  developerMessage
+-  Use ZebraContainer consistently
 -  Work on delivery days
 -  Work on order cutoff time
 -  Delete product button handling

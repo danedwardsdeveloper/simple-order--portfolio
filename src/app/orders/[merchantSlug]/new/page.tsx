@@ -7,7 +7,7 @@ import { apiPaths } from '@/library/constants'
 import logger from '@/library/logger'
 import { useNotifications } from '@/providers/notifications'
 import { useUser } from '@/providers/user'
-import type { BrowserSafeCustomerProduct, OrderStatus } from '@/types'
+import type { BrowserSafeCustomerProduct } from '@/types'
 import { useRouter } from 'next/navigation'
 import { type ChangeEvent, type FormEvent, use, useEffect, useState } from 'react'
 import urlJoin from 'url-join'
@@ -83,7 +83,7 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 		setErrorMessage('')
 
 		try {
-			const { message, orderId }: OrdersPOSTresponse = await (
+			const { message, createdOrder }: OrdersPOSTresponse = await (
 				await fetch(urlJoin(apiPaths.orders.customerPerspective.base), {
 					method: 'POST',
 					headers: {
@@ -94,7 +94,7 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 				})
 			).json()
 
-			if (message === 'success' && orderId) {
+			if (message === 'success' && createdOrder) {
 				// Create notification
 				// Reset selections
 				createNotification({
@@ -104,18 +104,7 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 				})
 
 				// ToDo: Fix errors here
-				setOrdersMade((prevOrders) => [
-					{
-						id: orderId,
-						businessName: merchantDetails?.businessName || '',
-						requestedDeliveryDate: new Date(requestedDeliveryDate),
-						status: 'pending' as OrderStatus,
-						products: products?.filter((product) => orderItems.some((item) => item.productId === product.id)) || [],
-						createdAt: new Date(),
-						updatedAt: new Date(),
-					},
-					...(prevOrders || []),
-				])
+				setOrdersMade((prevOrders) => [createdOrder, ...(prevOrders || [])])
 				setSelectedProducts({})
 				router.push('/orders')
 			} else {

@@ -5,7 +5,7 @@ import { products, users } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { convertEmptyToUndefined } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { BrowserSafeCustomerProduct, TokenMessages } from '@/types'
+import type { BrowserSafeCustomerProduct, UnauthorisedMessages } from '@/types'
 import { and, eq, isNull } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -13,7 +13,7 @@ export interface InventoryMerchantsMerchantSlugGETresponse {
 	message:
 		| typeof basicMessages.success
 		| typeof basicMessages.serverError
-		| TokenMessages
+		| UnauthorisedMessages
 		| typeof authenticationMessages.merchantNotFound
 		| typeof relationshipMessages.relationshipMissing
 		| 'not a customer of this merchant'
@@ -23,7 +23,6 @@ export interface InventoryMerchantsMerchantSlugGETresponse {
 }
 
 // Get all published products for a particular merchant, plus the businessName for convenience
-// This is a GET route using params, so there isn't a body interface
 export async function GET(
 	request: NextRequest,
 	{ params }: { params: Promise<{ merchantSlug: string }> },

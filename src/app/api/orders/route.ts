@@ -9,6 +9,7 @@ import {
 	relationshipMessages,
 	serviceConstraintMessages,
 	serviceConstraints,
+	systemMessages,
 	temporaryVat,
 	tokenMessages,
 } from '@/library/constants'
@@ -19,12 +20,12 @@ import { products as productsTable } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { containsIllegalCharacters, convertEmptyToUndefined, isValidDate } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { BrowserOrderItem, OrderInsertValues, OrderItem, OrderMade, TokenMessages } from '@/types'
+import type { BrowserOrderItem, OrderInsertValues, OrderItem, OrderMade, UnauthorisedMessages } from '@/types'
 import { eq, inArray } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface OrdersGETresponse {
-	message: TokenMessages | typeof basicMessages.success | typeof basicMessages.serverError | 'success, no orders'
+	message: UnauthorisedMessages | typeof basicMessages.success | typeof basicMessages.serverError | 'success, no orders'
 	ordersMade?: OrderMade[]
 }
 
@@ -144,9 +145,9 @@ export interface OrdersPOSTbody {
 
 export interface OrdersPOSTresponse {
 	message:
-		| TokenMessages
-		| typeof basicMessages.success
-		| typeof basicMessages.serverError
+		| UnauthorisedMessages
+		| typeof systemMessages.success
+		| typeof systemMessages.serverError
 		| typeof basicMessages.transactionError
 		| typeof missingFieldMessages.merchantSlugMissing
 		| typeof relationshipMessages.relationshipMissing
@@ -158,7 +159,7 @@ export interface OrdersPOSTresponse {
 		| typeof invalidFieldsMessages.customerNote
 		| typeof invalidFieldsMessages.requestedDelivery
 		| typeof serviceConstraintMessages.customerNoteTooLong
-	orderId?: number
+	createdOrder?: OrderMade
 }
 
 const routeDetailPOST = `POST ${apiPaths.orders.customerPerspective.base}:`
@@ -250,10 +251,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<OrdersPOS
 			customerNote,
 		}
 
-		const { newOrderId } = await database.transaction(async (tx) => {
+		const createdOrder = await database.transaction(async (tx) => {
 			transactionErrorMessage = 'failed to create new order'
 			transactionErrorCode = httpStatus.http503serviceUnavailable
-			const [{ newOrderId }] = await tx.insert(orders).values(newOrderInsertValues).returning({ newOrderId: orders.id })
+			const [createdOrder] = await tx.insert(orders).values(newOrderInsertValues).returning()
 
 			transactionErrorMessage = 'failed to retrieve data from products table'
 			const productsData = await tx
@@ -270,14 +271,12 @@ export async function POST(request: NextRequest): Promise<NextResponse<OrdersPOS
 				const product = productsData.find((product) => product.id === item.productId)
 				if (!product) throw new Error(`Product ${item.productId} not found`)
 
-				const vatRate = product.customVat ?? temporaryVat
-
 				return {
-					orderId: newOrderId,
+					orderId: createdOrder.id,
 					productId: item.productId,
 					quantity: item.quantity,
 					priceInMinorUnitsWithoutVat: product.priceInMinorUnits,
-					vat: vatRate,
+					vat: product.customVat || temporaryVat,
 				}
 			})
 
@@ -286,14 +285,58 @@ export async function POST(request: NextRequest): Promise<NextResponse<OrdersPOS
 
 			transactionErrorMessage = undefined
 			transactionErrorCode = undefined
-			return { newOrderId }
+			return createdOrder
 		})
+
+		const allOrderItems = await database.select().from(orderItems).where(eq(orderItems.orderId, createdOrder.id))
+
+		const productIds = allOrderItems.map((item) => item.productId)
+
+		const productsData = await database
+			.select({
+				id: productsTable.id,
+				name: productsTable.name,
+				description: productsTable.description,
+			})
+			.from(productsTable)
+			.where(inArray(productsTable.id, productIds))
+
+		const productsMap = new Map(productsData.map((product) => [product.id, product]))
+
+		const mappedProducts: BrowserOrderItem[] = allOrderItems
+			.map((orderItem) => {
+				const product = productsMap.get(orderItem.productId)
+				if (!product) return null
+
+				return {
+					id: orderItem.id,
+					orderId: orderItem.orderId,
+					productId: orderItem.productId,
+					name: product.name,
+					description: product.description,
+					quantity: orderItem.quantity,
+					priceInMinorUnitsWithoutVat: orderItem.priceInMinorUnitsWithoutVat,
+					vat: orderItem.vat,
+				}
+			})
+			.filter(Boolean) as BrowserOrderItem[]
+
+		const fullOrder: OrderMade = {
+			id: createdOrder.id,
+			businessName: merchantProfile.businessName,
+			requestedDeliveryDate: createdOrder.requestedDeliveryDate,
+			status: createdOrder.status,
+			customerNote: createdOrder.customerNote || undefined,
+			createdAt: createdOrder.createdAt,
+			updatedAt: createdOrder.updatedAt,
+			products: mappedProducts,
+		}
 
 		logger.info(
 			routeDetailPOST,
 			`${existingDangerousUser.businessName} successfully created a new order from ${merchantProfile.businessName}`,
 		)
-		return NextResponse.json({ message: basicMessages.success, orderId: newOrderId }, { status: httpStatus.http200ok })
+		return NextResponse.json({ message: systemMessages.success, createdOrder: fullOrder }, { status: httpStatus.http200ok })
 	} catch (error) {
 		logger.error(routeDetailPOST, transactionErrorMessage || error)
 		return NextResponse.json(
