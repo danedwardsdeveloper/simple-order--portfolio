@@ -16,7 +16,7 @@ export default function OrderReceivedCard({ orderDetails, includeVat, index }: P
 				index={index}
 				oddStyles="bg-blue-50 border-blue-100"
 				evenStyles="bg-zinc-50 border-zinc-100"
-				baseStyles="flex flex-col gap-y-4 w-full p-4 border-2 rounded-xl"
+				baseStyles="flex flex-col gap-y-6 w-full p-4 border-2 rounded-xl"
 			>
 				{/* Order heading */}
 				<div className="flex justify-between">
