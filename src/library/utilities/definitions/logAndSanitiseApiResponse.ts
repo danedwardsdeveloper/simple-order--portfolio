@@ -31,3 +31,9 @@ export function logAndSanitiseApiResponse({
 
 	return isDevelopment ? message : undefined
 }
+
+export function logAndSanitiseApiError({ routeDetail, error }: { routeDetail: string; error: unknown }): unknown {
+	logger.error(routeDetail, error)
+	const developmentError = error instanceof Error ? error.message : 'unknown error'
+	return isDevelopment ? developmentError : undefined
+}
