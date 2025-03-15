@@ -1,9 +1,14 @@
-import { apiPaths, type basicMessages, orderStatus, userMessages } from '@/library/constants'
+import { apiPaths, type basicMessages, orderStatus, serviceConstraints, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkUserExists } from '@/library/database/operations'
 import { orderItems, orders } from '@/library/database/schema'
-import logger from '@/library/logger'
-import { isSelectedProductArray, isValidDate, logAndSanitiseApiResponse } from '@/library/utilities'
+import {
+	containsIllegalCharacters,
+	isSelectedProductArray,
+	isValidDate,
+	logAndSanitiseApiError,
+	logAndSanitiseApiResponse,
+} from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
 import type { BaseOrder, SelectedProduct, TokenMessages } from '@/types'
 import { eq } from 'drizzle-orm'
@@ -65,8 +70,22 @@ export async function PATCH(
 		}
 
 		// Validate customerNote
-		// - containsIllegalCharacters
-		// - not too long
+		if (customerNote) {
+			if (containsIllegalCharacters(customerNote)) {
+				const developerMessage = logAndSanitiseApiResponse({
+					routeDetail,
+					message: 'customerNote contains illegal characters',
+				})
+				return NextResponse.json({ developerMessage }, { status: 400 })
+			}
+			if (customerNote.length > serviceConstraints.maximumCustomerNoteLength) {
+				const developerMessage = logAndSanitiseApiResponse({
+					routeDetail,
+					message: `customerNote is too long: ${customerNote.length} characters. Maximum: ${serviceConstraints.maximumCustomerNoteLength}`,
+				})
+				return NextResponse.json({ developerMessage }, { status: 400 })
+			}
+		}
 
 		// Validate the requestedDeliveryDate, if provided
 		if (requestedDeliveryDate) {
@@ -130,7 +149,7 @@ export async function PATCH(
 			return NextResponse.json({ developerMessage }, { status: 403 })
 		}
 
-		// Check cut-off date has not been exceeded
+		// Optimisation ToDo: Check cut-off time has not been exceeded
 
 		// Prepare the update data
 		const orderUpdateData: Pick<OrdersOrderIdPATCHbody, 'customerNote' | 'requestedDeliveryDate'> = {}
@@ -152,42 +171,103 @@ export async function PATCH(
 			}
 		}
 
-		// Primary ToDo: work on this route
-
 		const orderItemsUpdateData: Pick<OrdersOrderIdPATCHbody, 'orderItemsToUpdate'> = {}
 
 		const foundOrderItems = await database.select().from(orderItems).where(eq(orderItems.orderId, orderId))
 
-		// foundOrderItems[0].quantity
-		// foundOrderItems[0].productId
-
 		// Check order items are different
+		let hasOrderItemChanges = false
+
 		if (orderItemsToUpdate) {
 			if (!isSelectedProductArray(orderItemsToUpdate)) {
+				const developerMessage = logAndSanitiseApiResponse({
+					routeDetail,
+					message: 'orderItemsToUpdate is in the wrong format',
+				})
+				return NextResponse.json({ developerMessage }, { status: 400 })
 			}
-			orderItemsUpdateData.orderItemsToUpdate = orderItemsToUpdate
+
+			// Check if quantities have changed
+
+			const orderItemUpdates = []
+
+			// Map existing items to make lookup easier
+			const existingOrderItems: Record<number, (typeof foundOrderItems)[0]> = {}
+			for (const item of foundOrderItems) {
+				existingOrderItems[item.productId] = item
+			}
+
+			// Compare new quantities with existing quantities
+			for (const updateItem of orderItemsToUpdate) {
+				const existingItem = existingOrderItems[updateItem.productId]
+
+				if (existingItem) {
+					// Check if quantity changed
+					if (existingItem.quantity !== updateItem.quantity) {
+						hasOrderItemChanges = true
+						orderItemUpdates.push({
+							id: existingItem.id,
+							productId: updateItem.productId,
+							quantity: updateItem.quantity,
+						})
+					}
+				} else {
+					// New item (product not in existing order)
+					hasOrderItemChanges = true
+					orderItemUpdates.push({
+						orderId,
+						productId: updateItem.productId,
+						quantity: updateItem.quantity,
+					})
+				}
+			}
+
+			if (hasOrderItemChanges) {
+				orderItemsUpdateData.orderItemsToUpdate = orderItemUpdates
+			}
 		}
 
-		if (Object.keys(orderUpdateData).length === 0) {
+		if (Object.keys(orderUpdateData).length === 0 && !orderItemsUpdateData.orderItemsToUpdate?.length) {
 			const developerMessage = logAndSanitiseApiResponse({
 				routeDetail,
+				level: 'level2warn',
 				message: 'no data to change',
 			})
 			return NextResponse.json({ developerMessage }, { status: 400 })
 		}
 
-		// Transaction
+		// ToDo: add transaction
 
-		// - update order
-		// - update order items, if necessary
+		// Update the order, if necessary
+		if (Object.keys(orderUpdateData).length > 0) {
+			await database.update(orders).set(orderUpdateData).where(eq(orders.id, orderId)).returning()
+		}
 
-		await database.update(orders).set(orderUpdateData).where(eq(orders.id, orderId)).returning()
-
-		// Important ToDo: Update order items if needed
+		// Update the order items, if necessary
+		if (orderItemsUpdateData.orderItemsToUpdate?.length) {
+			for (const item of orderItemsUpdateData.orderItemsToUpdate) {
+				if (item.productId) {
+					// Update existing item
+					await database.update(orderItems).set({ quantity: item.quantity }).where(eq(orderItems.productId, item.productId))
+				} else {
+					// Insert any additional items
+					await database.insert(orderItems).values({
+						orderId,
+						productId: item.productId,
+						quantity: item.quantity,
+						priceInMinorUnitsWithoutVat: 0, // ToDo: Get the price from somewhere...
+						vat: 0, // ToDo: Get the VAT from somewhere...
+					})
+				}
+			}
+		}
 
 		return NextResponse.json({ developerMessage: 'success' }, { status: 200 })
 	} catch (error) {
-		logger.error(error)
-		return NextResponse.json({ userMessage: userMessages.databaseError }, { status: 500 })
+		const developmentError = logAndSanitiseApiError({
+			routeDetail,
+			error,
+		})
+		return NextResponse.json({ userMessage: userMessages.serverError, developmentError }, { status: 500 })
 	}
 }
