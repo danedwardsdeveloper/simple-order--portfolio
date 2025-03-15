@@ -27,6 +27,15 @@ const shouldLog = (messageLevel: LogLevel) => {
 function stringifyUnknownData(data: unknown): string {
 	if (typeof data === 'string') return data
 
+	if (data instanceof Error) {
+		const errorProps: Record<string, unknown> = {
+			name: data.name,
+			message: data.message,
+		}
+
+		return JSON.stringify(errorProps, null, 2)
+	}
+
 	try {
 		return JSON.stringify(
 			data,
