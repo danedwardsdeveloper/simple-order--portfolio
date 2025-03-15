@@ -17,7 +17,7 @@ export default function OrdersReceivedSection() {
 
 	return (
 		<>
-			<ul className="flex flex-col gap-y-4 w-full max-w-xl">
+			<ul className="flex flex-col gap-y-8 w-full max-w-xl">
 				{ordersReceived?.map((order, index) => (
 					<OrderReceivedCard key={order.id} orderDetails={order} includeVat={includeVat} index={index} />
 				))}
