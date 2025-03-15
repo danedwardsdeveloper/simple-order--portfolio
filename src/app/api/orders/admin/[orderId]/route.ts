@@ -194,11 +194,11 @@ export async function PATCH(
 		})
 		return NextResponse.json({ userMessage: 'Order updated successfully', updatedOrder }, { status: 200 })
 	} catch (error) {
-		logAndSanitiseApiResponse({
-			routeDetail: routeDetail,
+		const developerMessage = logAndSanitiseApiResponse({
 			message: 'caught server error',
+			routeDetail,
 			error,
 		})
-		return NextResponse.json({ developerMessage: userMessages.serverError }, { status: 500 })
+		return NextResponse.json({ userMessage: userMessages.serverError, developerMessage }, { status: 500 })
 	}
 }
