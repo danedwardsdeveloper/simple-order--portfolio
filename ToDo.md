@@ -1,7 +1,6 @@
 ## Current Task
 
--  Work on `PATCH /api/orders/[orderId]` route with new responses system
-   .
+-  Work on `PATCH /api/orders/[orderId]`
 
 .
 

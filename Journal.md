@@ -153,5 +153,10 @@
 -  Order creation route now returns OrderMade object, but it's really inefficient so far
 -  Created `processDeveloperMessage` function
 -  Prevent making orders from your own store
--  Worked on `PATCH /api/orders/admin/[orderId]` route with new responses system
--  Worked on `PATCH /api/orders/[orderId]` route with new responses system
+-  Worked on `PATCH /api/orders/admin/[orderId]/route.ts` with new responses system
+-  Worked on `PATCH /api/orders/[orderId]/route.ts` with new responses system
+
+# Saturday 16 March
+
+-  More work on `PATCH /api/orders/[orderId]/route.ts`. It's pretty much done except you can't add items that weren't on the original order.
+-  Worked on logging system
