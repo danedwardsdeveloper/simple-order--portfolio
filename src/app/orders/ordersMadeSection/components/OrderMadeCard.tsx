@@ -39,6 +39,14 @@ export default function OrderMadeCard({ orderDetails, includeVat, index }: Props
 					{includeVat}
 					{index}
 				</div>
+				<div className="flex justify-end gap-x-4">
+					<button type="button" className="link-danger">
+						Cancel...
+					</button>
+					<button type="button" className="link-primary">
+						Edit
+					</button>
+				</div>
 			</ZebraContainer>
 		</li>
 	)

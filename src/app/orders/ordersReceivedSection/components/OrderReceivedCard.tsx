@@ -1,15 +1,17 @@
 import ZebraContainer from '@/components/ZebraContainer'
+import { orderStatus } from '@/library/constants'
 import { calculateOrderTotal, formatDate, formatPrice } from '@/library/utilities'
-import type { OrderReceived } from '@/types'
-import OrderStatusComponent from '../../components/OrderStatusComponent'
+import type { OrderReceived, OrderStatus } from '@/types'
+import OrderStatusDropdown from './OrderStatusDropdown'
 
 interface Props {
 	orderDetails: OrderReceived
+	onStatusChangeRequest: (orderId: number, currentStatus: OrderStatus, newStatus: OrderStatus) => void
 	includeVat: boolean
-	index: number // Number for calculating the zebra stripe colour
+	index: number // Calculate the zebra stripe
 }
 
-export default function OrderReceivedCard({ orderDetails, includeVat, index }: Props) {
+export default function OrderReceivedCard({ orderDetails, includeVat, index, onStatusChangeRequest }: Props) {
 	return (
 		<li>
 			<ZebraContainer
@@ -23,10 +25,11 @@ export default function OrderReceivedCard({ orderDetails, includeVat, index }: P
 					<h3>{orderDetails.businessName}</h3>
 					<div className="flex gap-x-3">
 						<time dateTime={orderDetails.requestedDeliveryDate.toString()}>{formatDate(orderDetails.requestedDeliveryDate)}</time>
-						<OrderStatusComponent orderStatus={orderDetails.status} />
-						{/* <button type="button" className="text-zinc-600">
-							Edit
-						</button> */}
+						<OrderStatusDropdown
+							statusOptions={[orderStatus.pending, orderStatus.completed]}
+							currentStatus={orderDetails.status}
+							onStatusChange={(newStatus) => onStatusChangeRequest(orderDetails.id, orderDetails.status, newStatus)}
+						/>
 					</div>
 				</div>
 				{/* Merchant note */}
