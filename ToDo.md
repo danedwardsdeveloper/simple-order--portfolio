@@ -1,6 +1,7 @@
 ## Current Task
 
--  Work on `PATCH /api/orders/[orderId]`
+-  Check in code
+-  Fix the weird two column layout issue
 
 .
 
@@ -42,7 +43,7 @@
 
 .
 
-. [Don't get distracted]
+. [Don't get distracted!]
 
 .
 
@@ -58,15 +59,8 @@
 
 # Today's To-Do List
 
--  Work on `PATCH /api/orders/admin/[orderId]` front-end implementation
--
--  Work on `PATCH /api/orders/[orderId]` front-end implementation
-
 ## Things I could do...
 
--  Think about my new API response idea
-   -  userMessage
-   -  developerMessage
 -  Use ZebraContainer consistently
 -  Work on delivery days
 -  Work on order cutoff time

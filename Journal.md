@@ -160,3 +160,5 @@
 
 -  More work on `PATCH /api/orders/[orderId]/route.ts`. It's pretty much done except you can't add items that weren't on the original order.
 -  Worked on logging system
+-  Installed and used ShadCN for the first time
+-  Implemented an order status dropdown for merchants! (This was complicated!)
