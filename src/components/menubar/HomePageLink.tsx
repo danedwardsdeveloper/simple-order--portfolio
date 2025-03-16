@@ -1,7 +1,7 @@
-import clsx from 'clsx'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
+import { mergeClasses } from '@/library/utilities'
 import CompanyLogo from '../Icons'
 
 export default function HomePageLink() {
@@ -10,7 +10,7 @@ export default function HomePageLink() {
 	return (
 		<Link
 			href="/"
-			className={clsx(
+			className={mergeClasses(
 				'flex gap-x-1 items-center h-full  transition-colors duration-300',
 				isActive ? 'text-blue-600 cursor-default' : 'text-zinc-600 hover:text-blue-600 active:text-blue-500',
 			)}

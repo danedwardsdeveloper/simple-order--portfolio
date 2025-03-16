@@ -1,8 +1,7 @@
 import { SignedOutBreadCrumbs } from '@/components/BreadCrumbs'
 import PageContainer from '@/components/PageContainer'
 import { dynamicBaseURL } from '@/library/environment/publicVariables'
-import { formatDate } from '@/library/utilities'
-import clsx from 'clsx'
+import { formatDate, mergeClasses } from '@/library/utilities'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import { articlesData } from './data'
@@ -45,7 +44,7 @@ export default function AllArticlesPage() {
 									</time>
 									<span
 										// href={articlesData[slug].categorySlug}
-										className={clsx(
+										className={mergeClasses(
 											'relative z-10 rounded-full bg-gray-50 px-3 py-1.5 font-medium text-gray-600',
 											// 'hover:bg-gray-100'
 										)}

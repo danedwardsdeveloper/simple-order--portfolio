@@ -1,4 +1,4 @@
-import clsx from 'clsx'
+import { mergeClasses } from '@/library/utilities'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -10,7 +10,7 @@ export function DesktopMenuItem({ href, text }: { href: string; text: string }) 
 	return (
 		<Link
 			href={href}
-			className={clsx(
+			className={mergeClasses(
 				'font-medium text-sm transition-colors duration-300',
 				isActive ? 'text-blue-600 cursor-default' : 'text-zinc-600 hover:text-blue-600 active:text-blue-500',
 			)}
@@ -27,7 +27,7 @@ export function MobileMenuItem({ href, text, onClick }: { href: string; text: st
 		<Link
 			href={href}
 			onClick={onClick}
-			className={clsx(
+			className={mergeClasses(
 				'font-medium text-xl transition-colors duration-300',
 				isActive ? 'text-blue-600 cursor-default' : 'text-zinc-600 hover:text-blue-600 active:text-blue-500',
 			)}

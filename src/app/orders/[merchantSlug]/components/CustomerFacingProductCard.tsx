@@ -1,7 +1,6 @@
 import { dataTestIdNames } from '@/library/constants'
-import { formatPrice } from '@/library/utilities'
+import { formatPrice, mergeClasses } from '@/library/utilities'
 import type { BrowserSafeCustomerProduct } from '@/types'
-import clsx from 'clsx'
 
 interface Props {
 	product: BrowserSafeCustomerProduct
@@ -14,7 +13,7 @@ export default function CustomerFacingProductCard({ product, quantity, onQuantit
 	return (
 		<li
 			data-test-id={dataTestIdNames.merchants.customerFacingProductCard}
-			className={clsx('flex flex-col gap-y-2 w-full p-3 rounded-xl', zebraStripe ? 'bg-blue-50' : 'bg-zinc-50')}
+			className={mergeClasses('flex flex-col gap-y-2 w-full p-3 rounded-xl', zebraStripe ? 'bg-blue-50' : 'bg-zinc-50')}
 		>
 			<h3 className="text-xl font-medium mb-1">{product.name}</h3>
 			<p className="text-zinc-700 max-w-prose">{product.description}</p>

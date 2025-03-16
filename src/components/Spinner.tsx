@@ -1,4 +1,4 @@
-import clsx from 'clsx'
+import { mergeClasses } from '@/library/utilities'
 
 export default function Spinner({
 	colour = 'text-blue-600',
@@ -11,7 +11,7 @@ export default function Spinner({
 }) {
 	return (
 		<svg
-			className={clsx('animate-spin', size, colour, classes)}
+			className={mergeClasses('animate-spin', size, colour, classes)}
 			xmlns="http://www.w3.org/2000/svg"
 			fill="none"
 			viewBox="0 0 24 24"

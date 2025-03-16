@@ -1,7 +1,5 @@
 'use client'
-
-import clsx from 'clsx'
-
+import { mergeClasses } from '@/library/utilities'
 import { useNotifications } from '@/providers/notifications'
 import NotificationItem from './NotificationItem'
 
@@ -12,7 +10,7 @@ export default function NotificationsContainer() {
 		<div
 			data-component="NotificationsContainer"
 			aria-live="assertive"
-			className={clsx(
+			className={mergeClasses(
 				'pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6',
 				'mt-menubar-offset z-notifications-container',
 			)}

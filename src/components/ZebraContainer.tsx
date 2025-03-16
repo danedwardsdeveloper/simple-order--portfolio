@@ -1,4 +1,4 @@
-import clsx from 'clsx'
+import { mergeClasses } from '@/library/utilities'
 import type { ReactNode } from 'react'
 
 interface Props {
@@ -10,5 +10,5 @@ interface Props {
 }
 
 export default function ZebraContainer({ index, oddStyles, evenStyles, baseStyles, children }: Props) {
-	return <div className={clsx(baseStyles, index % 2 ? oddStyles : evenStyles)}>{children}</div>
+	return <div className={mergeClasses(baseStyles, index % 2 ? oddStyles : evenStyles)}>{children}</div>
 }

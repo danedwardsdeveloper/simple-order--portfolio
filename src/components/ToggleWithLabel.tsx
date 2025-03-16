@@ -1,5 +1,5 @@
+import { mergeClasses } from '@/library/utilities'
 import { Field, Label, Switch } from '@headlessui/react'
-import clsx from 'clsx'
 
 interface Props {
 	enabled: boolean
@@ -16,7 +16,7 @@ export default function ToggleWithLabel({ enabled, setEnabled, enabledLabel, dis
 					type="button"
 					onClick={() => setEnabled(true)}
 					disabled={!enabled}
-					className={clsx(
+					className={mergeClasses(
 						'transition-all duration-300 mr-1',
 						!enabled ? 'text-blue-600 cursor-default' : 'text-zinc-500 hover:text-zinc-600 active:text-zinc-700',
 					)}
@@ -39,7 +39,7 @@ export default function ToggleWithLabel({ enabled, setEnabled, enabledLabel, dis
 					type="button"
 					onClick={() => setEnabled(false)}
 					disabled={enabled}
-					className={clsx(
+					className={mergeClasses(
 						'transition-all duration-300 mr-1',
 						enabled ? 'text-blue-600 cursor-default' : 'cursor-pointer text-zinc-500  hover:text-zinc-600 active:text-zinc-700',
 					)}

@@ -162,3 +162,7 @@
 -  Worked on logging system
 -  Installed and used ShadCN for the first time
 -  Implemented an order status dropdown for merchants! (This was complicated!)
+
+# Sunday 17 March
+
+-  Replaced clsx with mergeClasses

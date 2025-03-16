@@ -1,10 +1,10 @@
 'use client'
 
 import { websiteCopy } from '@/library/constants'
+import { mergeClasses } from '@/library/utilities'
 import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
 import { Transition } from '@headlessui/react'
-import clsx from 'clsx'
 import Link from 'next/link'
 import HomePageLink from './HomePageLink'
 import { DesktopMenuItem, MobileMenuItem } from './MenuItems'
@@ -26,7 +26,7 @@ export default function MenuBar() {
 						<button
 							type="button"
 							onClick={() => toggleMobileMenuOpen()}
-							className={clsx(
+							className={mergeClasses(
 								' px-2 rounded-md border-2 border-blue-200 font-medium text-xl',
 								mobileMenuOpen ? 'font-bold border-opacity-100' : ' text-zinc-600 border-opacity-0',
 							)}

@@ -1,12 +1,11 @@
 'use client'
 import type { InventoryDELETEbody, InventoryDELETEresponse } from '@/app/api/inventory/admin/[itemId]/route'
 import logger from '@/library/logger'
-import { formatPrice } from '@/library/utilities'
+import { formatPrice, mergeClasses } from '@/library/utilities'
 import { useNotifications } from '@/providers/notifications'
 import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
 import type { BrowserSafeMerchantProduct } from '@/types'
-import clsx from 'clsx'
 import { useState } from 'react'
 import DeleteProductModal from './DeleteProductModal'
 
@@ -32,7 +31,7 @@ export default function InventoryCard({ product, zebraStripe }: Props) {
 
 	if (isBeingEdited) {
 		return (
-			<li className={clsx('flex flex-col gap-y-2 w-full p-3 rounded-xl', zebraStripe ? 'bg-blue-50' : 'bg-zinc-50')}>
+			<li className={mergeClasses('flex flex-col gap-y-2 w-full p-3 rounded-xl', zebraStripe ? 'bg-blue-50' : 'bg-zinc-50')}>
 				<h1>{`I'm being edited!`}</h1>
 				<button type="button" onClick={() => setIsBeingEdited(false)} className="button-secondary">
 					Cancel
@@ -82,7 +81,7 @@ export default function InventoryCard({ product, zebraStripe }: Props) {
 				onClose={() => setShowDeleteModal(false)}
 				onConfirm={() => handleDelete()}
 			/>
-			<li className={clsx('flex flex-col gap-y-2 w-full p-3 rounded-xl', zebraStripe ? 'bg-blue-50' : 'bg-zinc-50')}>
+			<li className={mergeClasses('flex flex-col gap-y-2 w-full p-3 rounded-xl', zebraStripe ? 'bg-blue-50' : 'bg-zinc-50')}>
 				<h3 className="mb-1">{product.name}</h3>
 				<p className="text-zinc-700 max-w-prose">{product.description}</p>
 				<div className="flex justify-between items-center">

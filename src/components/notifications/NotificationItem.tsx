@@ -1,9 +1,9 @@
 'use client'
+import { mergeClasses } from '@/library/utilities'
 import type { NotificationInterface, NotificationLevels } from '@/types'
 import { Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/20/solid'
 import { CheckCircleIcon, ExclamationCircleIcon, ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/react/24/outline'
-import clsx from 'clsx'
 import type { ComponentType, SVGProps } from 'react'
 
 interface Props {
@@ -58,7 +58,7 @@ export default function NotificationItem({ notification, onClose }: Props) {
 	return (
 		<Transition show={true} appear={true}>
 			<div
-				className={clsx(
+				className={mergeClasses(
 					'pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg shadow-lg ring-2 transition data-[closed]:data-[enter]:translate-y-2 data-[enter]:transform data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-100 data-[enter]:ease-out data-[leave]:ease-in data-[closed]:data-[enter]:sm:translate-x-2 data-[closed]:data-[enter]:sm:translate-y-0',
 					colourStyles[notification.level].background,
 					'z-notification-item',
@@ -67,11 +67,11 @@ export default function NotificationItem({ notification, onClose }: Props) {
 				<div className="p-4">
 					<div className="flex items-start">
 						<div className="shrink-0">
-							<Icon aria-hidden="true" className={clsx('size-6', colourStyles[notification.level].icon)} />
+							<Icon aria-hidden="true" className={mergeClasses('size-6', colourStyles[notification.level].icon)} />
 						</div>
 						<div className="ml-3 w-0 flex-1">
-							<p className={clsx('text-sm font-semibold', colourStyles[notification.level].title)}>{notification.title}</p>
-							<p className={clsx('mt-1 text-sm leading-6', colourStyles[notification.level].message)}>{notification.message}</p>
+							<p className={mergeClasses('text-sm font-semibold', colourStyles[notification.level].title)}>{notification.title}</p>
+							<p className={mergeClasses('mt-1 text-sm leading-6', colourStyles[notification.level].message)}>{notification.message}</p>
 						</div>
 						<div className="ml-4 flex shrink-0">
 							<button

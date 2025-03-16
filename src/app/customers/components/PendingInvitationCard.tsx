@@ -1,6 +1,5 @@
-import { formatTimeAndDate } from '@/library/utilities'
+import { formatTimeAndDate, mergeClasses } from '@/library/utilities'
 import type { BrowserSafeInvitationSent } from '@/types'
-import clsx from 'clsx'
 
 export default function PendingInvitationCard({
 	invitedCustomer,
@@ -8,7 +7,7 @@ export default function PendingInvitationCard({
 }: { invitedCustomer: BrowserSafeInvitationSent; zebraStripe: boolean }) {
 	return (
 		<div
-			className={clsx(
+			className={mergeClasses(
 				'flex flex-col gap-y-4 w-full border-2 rounded-xl p-3 max-w-md',
 				zebraStripe ? 'bg-blue-50 border-blue-100' : 'bg-white border-slate-200',
 			)}
