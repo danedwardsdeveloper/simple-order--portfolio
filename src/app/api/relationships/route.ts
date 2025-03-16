@@ -5,12 +5,12 @@ import { relationships, users } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { convertEmptyToUndefined, obfuscateEmail } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { BrowserSafeCustomerProfile, BrowserSafeMerchantProfile, TokenMessages } from '@/types'
+import type { BrowserSafeCustomerProfile, BrowserSafeMerchantProfile, UnauthorisedMessages } from '@/types'
 import { and, eq, or } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface RelationshipsGETresponse {
-	message: typeof basicMessages.success | typeof basicMessages.serverError | TokenMessages | 'no relationships found'
+	message: typeof basicMessages.success | typeof basicMessages.serverError | UnauthorisedMessages | 'no relationships found'
 	merchants?: BrowserSafeMerchantProfile[]
 	customers?: BrowserSafeCustomerProfile[]
 }

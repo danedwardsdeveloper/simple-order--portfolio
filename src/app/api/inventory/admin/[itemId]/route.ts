@@ -4,7 +4,7 @@ import { checkActiveSubscriptionOrTrial, checkUserExists } from '@/library/datab
 import { products } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { BrowserSafeMerchantProduct, TokenMessages } from '@/types'
+import type { BrowserSafeMerchantProduct, UnauthorisedMessages } from '@/types'
 import { and, eq } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -13,7 +13,7 @@ export interface InventoryDELETEresponse {
 		| typeof basicMessages.success
 		| typeof basicMessages.serverError
 		| typeof authenticationMessages.noActiveTrialSubscription
-		| TokenMessages
+		| UnauthorisedMessages
 		| 'productToDeleteId missing'
 		| "product doesn't exist or isn't yours to delete"
 	softDeletedProduct?: BrowserSafeMerchantProduct

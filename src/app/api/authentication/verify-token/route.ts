@@ -3,12 +3,12 @@ import { checkActiveSubscriptionOrTrial, checkUserExists, getUserRoles } from '@
 import logger from '@/library/logger'
 import { sanitiseDangerousBaseUser } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { BrowserSafeCompositeUser, TokenMessages } from '@/types'
+import type { BrowserSafeCompositeUser, UnauthorisedMessages } from '@/types'
 import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface VerifyTokenGETresponse {
-	message: typeof basicMessages.success | typeof basicMessages.serverError | TokenMessages
+	message: typeof basicMessages.success | typeof basicMessages.serverError | UnauthorisedMessages
 	user?: BrowserSafeCompositeUser
 }
 

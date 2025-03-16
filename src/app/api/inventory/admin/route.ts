@@ -14,12 +14,16 @@ import { products } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { containsIllegalCharacters, containsItems } from '@/library/utilities'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { BrowserSafeMerchantProduct, ProductInsertValues, TokenMessages } from '@/types'
+import type { BrowserSafeMerchantProduct, ProductInsertValues, UnauthorisedMessages } from '@/types'
 import { and, eq, isNull } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface InventoryAdminGETresponse {
-	message: typeof basicMessages.success | typeof basicMessages.serverError | TokenMessages | typeof authenticationMessages.merchantNotFound
+	message:
+		| typeof basicMessages.success
+		| typeof basicMessages.serverError
+		| UnauthorisedMessages
+		| typeof authenticationMessages.merchantNotFound
 	inventory?: BrowserSafeMerchantProduct[]
 }
 
@@ -73,7 +77,7 @@ export interface InventoryAddPOSTresponse {
 		| typeof authenticationMessages.noActiveTrialSubscription
 		| typeof illegalCharactersMessages.name
 		| typeof illegalCharactersMessages.description
-		| TokenMessages
+		| UnauthorisedMessages
 		| typeof missingFieldMessages.priceMissing
 		| 'priceInMinorUnits missing'
 		| 'priceInMinorUnits not a number'

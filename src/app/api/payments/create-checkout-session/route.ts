@@ -4,7 +4,7 @@ import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import logger from '@/library/logger'
 import stripeClient from '@/library/stripe/stripeClient'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { TokenMessages } from '@/types'
+import type { UnauthorisedMessages } from '@/types'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface StripeCreateCheckoutSessionPOSTbody {
@@ -17,7 +17,7 @@ export interface StripeCreateCheckoutSessionPOSTresponse {
 		| typeof basicMessages.serverError
 		| typeof basicMessages.serviceUnavailable
 		| typeof missingFieldMessages.emailMissing
-		| TokenMessages
+		| UnauthorisedMessages
 	redirectUrl?: string
 }
 

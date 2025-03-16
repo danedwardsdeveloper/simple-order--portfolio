@@ -24,7 +24,7 @@ import type {
 	DangerousBaseUser,
 	Invitation,
 	InvitationInsert,
-	TokenMessages,
+	UnauthorisedMessages,
 } from '@/types'
 import { and, eq, inArray } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
@@ -37,7 +37,7 @@ type TransactionErrorMessage =
 
 export interface InvitationsPOSTresponse {
 	message:
-		| TokenMessages
+		| UnauthorisedMessages
 		| TransactionErrorMessage
 		| typeof basicMessages.success
 		| typeof basicMessages.serverError
@@ -197,7 +197,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
 }
 
 export interface InvitationsGETresponse {
-	message: TokenMessages | typeof basicMessages.serverError | typeof basicMessages.success | 'no invitations found'
+	message: UnauthorisedMessages | typeof basicMessages.serverError | typeof basicMessages.success | 'no invitations found'
 	invitationsSent?: BrowserSafeInvitationSent[]
 	invitationsReceived?: BrowserSafeInvitationReceived[]
 }
