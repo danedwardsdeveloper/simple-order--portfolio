@@ -2,14 +2,16 @@ import clsx from 'clsx'
 
 export default function Spinner({
 	colour = 'text-blue-600',
+	size = 'size-7',
 	classes,
 }: {
 	colour?: 'text-blue-600' | 'text-white'
+	size?: 'size-5' | 'size-6' | 'size-7'
 	classes?: string
 }) {
 	return (
 		<svg
-			className={clsx('h-7 w-7 animate-spin', colour, classes)}
+			className={clsx('animate-spin', size, colour, classes)}
 			xmlns="http://www.w3.org/2000/svg"
 			fill="none"
 			viewBox="0 0 24 24"
