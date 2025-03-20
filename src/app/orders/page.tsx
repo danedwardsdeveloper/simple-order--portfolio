@@ -5,6 +5,7 @@ import RoleModeButton from '@/components/menubar/RoleModeButton'
 import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
 import OrdersMadePage from './ordersMadeSection'
+import MerchantsList from './ordersMadeSection/components/MerchantsList'
 import OrdersReceivedPage from './ordersReceivedSection'
 
 export default function OrdersPage() {
@@ -21,7 +22,12 @@ export default function OrdersPage() {
 			<h1>{dynamicTitle}</h1>
 			<TwoColumnContainer
 				mainColumn={merchantMode ? <OrdersReceivedPage /> : <OrdersMadePage />}
-				sideColumn={<RoleModeButton />}
+				sideColumn={
+					<>
+						<RoleModeButton />
+						{!merchantMode && <MerchantsList />}
+					</>
+				}
 				sideColumnClasses="gap-y-4"
 			/>
 		</>
