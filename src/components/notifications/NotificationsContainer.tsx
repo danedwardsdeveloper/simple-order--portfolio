@@ -1,5 +1,5 @@
 'use client'
-import { mergeClasses } from '@/library/utilities'
+import { mergeClasses } from '@/library/utilities/public'
 import { useNotifications } from '@/providers/notifications'
 import NotificationItem from './NotificationItem'
 

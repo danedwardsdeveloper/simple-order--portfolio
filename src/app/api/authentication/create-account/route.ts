@@ -12,11 +12,16 @@ import { database } from '@/library/database/connection'
 import { confirmationTokens, freeTrials, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import { createNewMerchantEmail } from '@/library/email/templates/newMerchant'
-import { emailRegex } from '@/library/email/utilities'
 import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import logger from '@/library/logger'
-import { containsIllegalCharacters, createFreeTrialEndTime, createMerchantSlug } from '@/library/utilities'
-import { sanitiseDangerousBaseUser } from '@/library/utilities'
+import {
+	containsIllegalCharacters,
+	createFreeTrialEndTime,
+	createMerchantSlug,
+	emailRegex,
+	generateUuid,
+	sanitiseDangerousBaseUser,
+} from '@/library/utilities/public'
 import { createCookieWithToken } from '@/library/utilities/server'
 import type {
 	BaseUserInsertValues,
@@ -30,7 +35,6 @@ import bcrypt from 'bcryptjs'
 import { eq, or } from 'drizzle-orm'
 import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
-import { v4 as generateConfirmationToken } from 'uuid'
 
 export interface CreateAccountPOSTbody
 	extends Omit<BaseUserInsertValues, 'hashedPassword' | 'emailConfirmed' | 'cachedTrialExpired' | 'slug'> {
@@ -146,7 +150,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 
 			await tx.insert(freeTrials).values(freeTrialInsert).returning()
 
-			const emailConfirmationToken = generateConfirmationToken()
+			const emailConfirmationToken = generateUuid()
 
 			await tx.insert(confirmationTokens).values({
 				userId: dangerousNewUser.id,

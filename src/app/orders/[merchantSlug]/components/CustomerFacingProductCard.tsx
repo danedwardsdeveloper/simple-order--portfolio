@@ -1,5 +1,5 @@
 import { dataTestIdNames } from '@/library/constants'
-import { formatPrice, mergeClasses } from '@/library/utilities'
+import { formatPrice, mergeClasses } from '@/library/utilities/public'
 import type { BrowserSafeCustomerProduct } from '@/types'
 
 interface Props {

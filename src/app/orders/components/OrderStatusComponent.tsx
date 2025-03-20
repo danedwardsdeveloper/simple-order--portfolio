@@ -1,4 +1,4 @@
-import { capitaliseFirstLetter } from '@/library/utilities'
+import { capitaliseFirstLetter } from '@/library/utilities/public'
 import type { OrderStatus } from '@/types'
 
 export default function OrderStatusComponent({ orderStatus }: { orderStatus: OrderStatus }) {

@@ -2,7 +2,7 @@ import { apiPaths, authenticationMessages, httpStatus, serviceConstraints, unaut
 import { database } from '@/library/database/connection'
 import { checkActiveSubscriptionOrTrial, checkUserExists } from '@/library/database/operations'
 import { orders } from '@/library/database/schema'
-import { containsIllegalCharacters, isOrderStatus, logAndSanitiseApiResponse } from '@/library/utilities'
+import { containsIllegalCharacters, isOrderStatus, logAndSanitiseApiResponse } from '@/library/utilities/public'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
 import type { BaseOrder } from '@/types'
 import { eq } from 'drizzle-orm'

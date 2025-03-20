@@ -1,7 +1,6 @@
 import { months } from '@/library/constants'
-import { createNewDate } from '@/library/utilities'
+import { createNewDate } from '@/library/utilities/public'
 import type { StaticImageData } from 'next/image'
-
 import tempImage from '../../../public/images/simple-order-wholesale-order-management-software-website.png'
 
 interface ArticleDetails {

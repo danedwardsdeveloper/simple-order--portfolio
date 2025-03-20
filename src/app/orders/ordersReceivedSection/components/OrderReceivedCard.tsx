@@ -1,6 +1,6 @@
 import ZebraContainer from '@/components/ZebraContainer'
 import { orderStatus } from '@/library/constants'
-import { calculateOrderTotal, formatDate, formatPrice } from '@/library/utilities'
+import { calculateOrderTotal, formatDate, formatPrice } from '@/library/utilities/public'
 import type { OrderReceived, OrderStatus } from '@/types'
 import OrderStatusDropdown from './OrderStatusDropdown'
 

@@ -1,6 +1,6 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/shadcn/dropdown-menu'
 import { orderStatus } from '@/library/constants'
-import { capitaliseFirstLetter } from '@/library/utilities'
+import { capitaliseFirstLetter } from '@/library/utilities/public'
 import type { OrderStatus } from '@/types'
 import { CheckCircle, ChevronDown, Clock, XCircle } from 'lucide-react'
 

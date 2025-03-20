@@ -1,11 +1,7 @@
-// Log developer messages on the server according to the log level
-
 import { isDevelopment } from '@/library/environment/publicVariables'
-import logger from '@/library/logger'
+import logger from '@/library/logger';
 import type { LogLevel } from '@/types'
 
-// Log the message according to the server console according to the level
-// In production, return undefined to prevent the API from responding with sensitive information
 export function logAndSanitiseApiResponse({
 	routeDetail,
 	message,

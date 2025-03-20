@@ -1,5 +1,5 @@
 import ZebraContainer from '@/components/ZebraContainer'
-import { capitaliseFirstLetter, formatDate } from '@/library/utilities'
+import { capitaliseFirstLetter, formatDate } from '@/library/utilities/public'
 import type { OrderMade } from '@/types'
 
 interface Props {

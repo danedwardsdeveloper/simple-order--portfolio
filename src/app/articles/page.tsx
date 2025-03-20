@@ -1,7 +1,7 @@
 import { SignedOutBreadCrumbs } from '@/components/BreadCrumbs'
 import PageContainer from '@/components/PageContainer'
 import { dynamicBaseURL } from '@/library/environment/publicVariables'
-import { formatDate, mergeClasses } from '@/library/utilities'
+import { formatDate, mergeClasses } from '@/library/utilities/public'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import { articlesData } from './data'

@@ -18,7 +18,7 @@ import { checkRelationship, checkUserExists } from '@/library/database/operation
 import { orderItems, orders, products, users } from '@/library/database/schema'
 import { products as productsTable } from '@/library/database/schema'
 import logger from '@/library/logger'
-import { containsIllegalCharacters, convertEmptyToUndefined, isValidDate, logAndSanitiseApiResponse } from '@/library/utilities'
+import { containsIllegalCharacters, convertEmptyToUndefined, isValidDate, logAndSanitiseApiResponse } from '@/library/utilities/public'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
 import type { BrowserOrderItem, OrderInsertValues, OrderItem, OrderMade, SelectedProduct, UnauthorisedMessages } from '@/types'
 import { eq, inArray } from 'drizzle-orm'

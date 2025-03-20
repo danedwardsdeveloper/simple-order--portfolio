@@ -1,4 +1,4 @@
-import { mergeClasses } from '@/library/utilities'
+import { mergeClasses } from '@/library/utilities/public'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 

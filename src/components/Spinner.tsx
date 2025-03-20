@@ -1,4 +1,4 @@
-import { mergeClasses } from '@/library/utilities'
+import { mergeClasses } from '@/library/utilities/public'
 
 export default function Spinner({
 	colour = 'text-blue-600',

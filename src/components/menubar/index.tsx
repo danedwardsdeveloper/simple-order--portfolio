@@ -1,7 +1,7 @@
 'use client'
 
 import { websiteCopy } from '@/library/constants'
-import { mergeClasses } from '@/library/utilities'
+import { mergeClasses } from '@/library/utilities/public'
 import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
 import { Transition } from '@headlessui/react'

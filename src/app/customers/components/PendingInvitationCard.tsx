@@ -1,4 +1,4 @@
-import { formatTimeAndDate, mergeClasses } from '@/library/utilities'
+import { formatTimeAndDate, mergeClasses } from '@/library/utilities/public'
 import type { BrowserSafeInvitationSent } from '@/types'
 
 export default function PendingInvitationCard({

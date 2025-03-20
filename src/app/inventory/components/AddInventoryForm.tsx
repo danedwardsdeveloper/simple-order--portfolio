@@ -1,7 +1,7 @@
 'use client'
 import type { InventoryAddPOSTbody, InventoryAddPOSTresponse } from '@/app/api/inventory/admin/route'
 import { apiPaths } from '@/library/constants'
-import { containsIllegalCharacters } from '@/library/utilities'
+import { containsIllegalCharacters } from '@/library/utilities/public'
 import { useNotifications } from '@/providers/notifications'
 import { useUser } from '@/providers/user'
 import type { NewNotification } from '@/types'

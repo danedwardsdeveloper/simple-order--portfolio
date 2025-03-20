@@ -1,7 +1,7 @@
 'use client'
 import MessageContainer from '@/components/MessageContainer'
 import PleaseConfirmYourEmailMessage from '@/components/PleaseConfirmYourEmailMessage'
-import { capitaliseFirstLetter } from '@/library/utilities'
+import { capitaliseFirstLetter } from '@/library/utilities/public'
 import { useUser } from '@/providers/user'
 import Link from 'next/link'
 

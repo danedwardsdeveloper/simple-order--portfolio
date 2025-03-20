@@ -4,7 +4,7 @@ import { checkActiveSubscriptionOrTrial, getUserRoles } from '@/library/database
 import { invitations, relationships, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import logger from '@/library/logger'
-import { createMerchantSlug, sanitiseDangerousBaseUser } from '@/library/utilities'
+import { createMerchantSlug, sanitiseDangerousBaseUser, validateUuid } from '@/library/utilities/public'
 import { createCookieWithToken } from '@/library/utilities/server'
 import type {
 	BaseUserInsertValues,
@@ -20,7 +20,6 @@ import bcrypt from 'bcryptjs'
 import { and, eq } from 'drizzle-orm'
 import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
-import { validate } from 'uuid'
 
 export type InvitationsTokenPATCHbody = InvitedCustomerBrowserInputValues
 
@@ -81,7 +80,7 @@ export async function PATCH(
 		return NextResponse.json({ message: tokenMessages.tokenMissing }, { status: httpStatus.http400badRequest })
 	}
 
-	if (!validate(token)) {
+	if (!validateUuid(token)) {
 		return NextResponse.json({ message: tokenMessages.tokenInvalid }, { status: httpStatus.http400badRequest })
 	}
 

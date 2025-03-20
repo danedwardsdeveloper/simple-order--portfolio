@@ -1,4 +1,4 @@
-import { mergeClasses } from '@/library/utilities'
+import { mergeClasses } from '@/library/utilities/public'
 import type { ReactNode } from 'react'
 
 interface Props {

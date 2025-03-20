@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-import { mergeClasses } from '@/library/utilities'
+import { mergeClasses } from '@/library/utilities/public'
 import CompanyLogo from '../Icons'
 
 export default function HomePageLink() {

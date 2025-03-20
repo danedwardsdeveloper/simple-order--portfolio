@@ -1,7 +1,7 @@
 import { apiPaths, basicMessages, cookieNames, httpStatus, tokenMessages } from '@/library/constants'
 import { checkActiveSubscriptionOrTrial, checkUserExists, getUserRoles } from '@/library/database/operations'
 import logger from '@/library/logger'
-import { sanitiseDangerousBaseUser } from '@/library/utilities'
+import { sanitiseDangerousBaseUser } from '@/library/utilities/public'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
 import type { BrowserSafeCompositeUser, UnauthorisedMessages } from '@/types'
 import { cookies } from 'next/headers'

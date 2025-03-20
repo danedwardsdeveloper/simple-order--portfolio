@@ -13,10 +13,9 @@ import { invitations, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import { createExistingUserInvitation } from '@/library/email/templates/invitations/existingUser'
 import { createNewUserInvitation } from '@/library/email/templates/invitations/newUser'
-import { emailRegex } from '@/library/email/utilities'
 import logger from '@/library/logger'
-import { convertEmptyToUndefined, obfuscateEmail } from '@/library/utilities'
-import { createInvitationURL } from '@/library/utilities/definitions/createInvitationURL'
+import { convertEmptyToUndefined, emailRegex, generateUuid, obfuscateEmail } from '@/library/utilities/public'
+import { createInvitationURL } from '@/library/utilities/public/definitions/createInvitationURL'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
 import type {
 	BrowserSafeInvitationReceived,
@@ -28,7 +27,6 @@ import type {
 } from '@/types'
 import { and, eq, inArray } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
-import { v4 as generateConfirmationToken } from 'uuid'
 
 type TransactionErrorMessage =
 	| 'error deleting expired invitation'
@@ -139,7 +137,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
 			const invitationInsert: InvitationInsert = {
 				email: normalisedInvitedEmail,
 				senderUserId: extractedUserId,
-				token: generateConfirmationToken(),
+				token: generateUuid(),
 				expiresAt: newInvitationExpiryDate,
 				lastEmailSent: new Date(),
 				emailAttempts: 1,

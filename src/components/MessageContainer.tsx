@@ -1,4 +1,4 @@
-import { mergeClasses } from '@/library/utilities'
+import { mergeClasses } from '@/library/utilities/public'
 import type { ReactNode } from 'react'
 
 type BorderClasses = 'border-emerald-300' | 'border-blue-300' | 'border-orange-300'

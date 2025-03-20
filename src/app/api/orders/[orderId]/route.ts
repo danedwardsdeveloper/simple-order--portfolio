@@ -8,7 +8,7 @@ import {
 	isValidDate,
 	logAndSanitiseApiError,
 	logAndSanitiseApiResponse,
-} from '@/library/utilities'
+} from '@/library/utilities/public'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
 import type { BaseOrder, SelectedProduct, TokenMessages } from '@/types'
 import { eq } from 'drizzle-orm'

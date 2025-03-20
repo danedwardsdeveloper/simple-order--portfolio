@@ -1,7 +1,7 @@
 'use client'
 import type { InventoryDELETEbody, InventoryDELETEresponse } from '@/app/api/inventory/admin/[itemId]/route'
 import logger from '@/library/logger'
-import { formatPrice, mergeClasses } from '@/library/utilities'
+import { formatPrice, mergeClasses } from '@/library/utilities/public'
 import { useNotifications } from '@/providers/notifications'
 import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
