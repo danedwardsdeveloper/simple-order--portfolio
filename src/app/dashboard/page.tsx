@@ -20,18 +20,18 @@ export default function DashboardPage() {
 
 			{/* Temporary data display */}
 			{ordersMade && (
-				<>
+				<div className="whitespace-pre-wrap break-all">
 					<h2 className="mt-8 mb-2">Orders made</h2>
 					<p>{JSON.stringify(ordersMade)}</p>
-				</>
+				</div>
 			)}
 
 			{/* Temporary data display */}
 			{ordersReceived && (
-				<>
+				<div className="whitespace-pre-wrap break-all">
 					<h2 className="mt-8 mb-2">Orders received</h2>
 					<p>{JSON.stringify(ordersReceived)}</p>
-				</>
+				</div>
 			)}
 		</>
 	)

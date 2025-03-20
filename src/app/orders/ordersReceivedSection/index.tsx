@@ -86,7 +86,7 @@ export default function OrdersReceivedSection() {
 					dataTestId={'ToDo'}
 				/>
 			)}
-			<ul className="flex flex-col gap-y-8 w-full max-w-xl">
+			<ul className="flex flex-col gap-y-8 w-full">
 				{ordersReceived?.map((order, index) => (
 					<OrderReceivedCard
 						key={order.id}

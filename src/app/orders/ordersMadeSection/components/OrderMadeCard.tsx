@@ -34,7 +34,7 @@ export default function OrderMadeCard({ orderDetails, includeVat, index }: Props
 						)}
 					</div>
 				</div>
-				<div className="">
+				<div className="whitespace-pre-wrap break-all">
 					{JSON.stringify(orderDetails)}
 					{includeVat}
 					{index}
