@@ -1,8 +1,7 @@
 ## Current Task
 
--  Style OrdersMadeCard
-
-.
+-  Think about user flows and prioritise what to work on
+   .
 
 .
 

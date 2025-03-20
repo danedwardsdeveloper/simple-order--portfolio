@@ -177,3 +177,4 @@
 -  Organised utilities into folders
 -  Re-exported Drizzle utilities with more expressive names
 -  Fixed weird two-column layout issue
+-  Styled OrderMadeCard
