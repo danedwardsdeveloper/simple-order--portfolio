@@ -4,7 +4,6 @@ import TwoColumnContainer from '@/components/TwoColumnContainer'
 import RoleModeButton from '@/components/menubar/RoleModeButton'
 import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
-import VatToggleButton from '../inventory/components/VatToggleButton'
 import OrdersMadePage from './ordersMadeSection'
 import OrdersReceivedPage from './ordersReceivedSection'
 
@@ -22,12 +21,7 @@ export default function OrdersPage() {
 			<h1>{dynamicTitle}</h1>
 			<TwoColumnContainer
 				mainColumn={merchantMode ? <OrdersReceivedPage /> : <OrdersMadePage />}
-				sideColumn={
-					<>
-						<VatToggleButton />
-						<RoleModeButton />
-					</>
-				}
+				sideColumn={<RoleModeButton />}
 				sideColumnClasses="gap-y-4"
 			/>
 		</>
