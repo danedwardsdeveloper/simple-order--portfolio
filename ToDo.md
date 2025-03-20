@@ -1,6 +1,5 @@
 ## Current Task
 
--  Check in code
 -  Fix the weird two column layout issue
 
 .
@@ -57,9 +56,9 @@
 
 .
 
-# Today's To-Do List
-
 ## Things I could do...
+
+-  Make a more efficient authentication system
 
 -  Use ZebraContainer consistently
 -  Work on delivery days
@@ -90,7 +89,6 @@
 
 ## Refinements & extras (even if they're really important)
 
--  Replace CLSX with tailwindMerge
 -  Add a honeypot to the free trial form
 -  Resend confirmation emails (invite customer, merchant sign-up)
 -  Rate limit the confirmation endpoint by IP

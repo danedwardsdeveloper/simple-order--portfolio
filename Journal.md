@@ -166,3 +166,12 @@
 # Sunday 17 March
 
 -  Replaced clsx with mergeClasses
+-  Fixed route type errors
+
+# Monday 18 - Wednesday 19 March
+
+-  Had a break. Applied for jobs, deployed ClassicReader.org, practiced and studied algorithms
+
+# Thursday 20 March
+
+-
