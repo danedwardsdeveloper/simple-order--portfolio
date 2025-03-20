@@ -1,8 +1,8 @@
 import { websiteCopy } from '@/library/constants'
 import { bareLaunchedDomain, productionBaseURL } from '@/library/environment/publicVariables'
 import { formatTimeAndDate } from '@/library/utilities/public'
+import { createHtmlParagraph } from '@/library/utilities/server'
 import type { EmailTemplate } from '@/types'
-import { createParagraph } from '../../utilities'
 
 export interface NewUserInvitationEmail {
 	merchantBusinessName: string
@@ -26,14 +26,14 @@ export function createNewUserInvitation({
 	const companyLink = `<a href="${productionBaseURL}">${bareLaunchedDomain}</a>`
 
 	const htmlVersion = `
-  ${createParagraph(greeting)}
-  ${createParagraph(intro)}
+  ${createHtmlParagraph(greeting)}
+  ${createHtmlParagraph(intro)}
   ${link}
-  ${createParagraph(securityMessage)}
-  ${createParagraph(thankYou)}
-  ${createParagraph(companyName, 'semibold')}
+  ${createHtmlParagraph(securityMessage)}
+  ${createHtmlParagraph(thankYou)}
+  ${createHtmlParagraph(companyName, 'semibold')}
   ${companyLink}
-  ${createParagraph(websiteCopy.extras.selfContainedDescription)}`
+  ${createHtmlParagraph(websiteCopy.extras.selfContainedDescription)}`
 
 	const textVersion = `${greeting}\n\n
 ${intro}\n\n

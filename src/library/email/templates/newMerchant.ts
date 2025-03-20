@@ -1,5 +1,5 @@
+import { createHtmlParagraph } from '@/library/utilities/server'
 import type { EmailTemplate } from '@/types'
-import { createParagraph } from '../utilities'
 
 interface NewMerchantEmailProps {
 	recipientName: string
@@ -15,19 +15,19 @@ export function createNewMerchantEmail({ recipientName, confirmationURL }: NewMe
 	const companyName = 'Accounts team, Simple Order'
 
 	const htmlVersion = `
-  ${createParagraph(greeting)}
-  ${createParagraph(intro)}
+  ${createHtmlParagraph(greeting)}
+  ${createHtmlParagraph(intro)}
   ${link}
-  ${createParagraph(securityMessage)}
-  ${createParagraph(thankYou)}
-  ${createParagraph(companyName, 'semibold')}`
+  ${createHtmlParagraph(securityMessage)}
+  ${createHtmlParagraph(thankYou)}
+  ${createHtmlParagraph(companyName, 'semibold')}`
 
 	const textVersion = `${greeting}\n\n
 ${intro}\n\n
 ${confirmationURL}\n\n
-  ${createParagraph(securityMessage)}\n\n
-  ${createParagraph(thankYou)}\n\n
-  ${createParagraph(companyName, 'semibold')}`
+  ${createHtmlParagraph(securityMessage)}\n\n
+  ${createHtmlParagraph(thankYou)}\n\n
+  ${createHtmlParagraph(companyName, 'semibold')}`
 
 	return {
 		subject: 'Confirm your email',
