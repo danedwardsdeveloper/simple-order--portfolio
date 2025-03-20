@@ -180,7 +180,7 @@ export async function PATCH(
 					firstName,
 					lastName,
 					businessName,
-					// ToDo: add multiple attempts!
+					// ToDo: add multiple attempts
 					slug: createMerchantSlug(businessName),
 					hashedPassword,
 					emailConfirmed: true, // They've just clicked a link from an email!
