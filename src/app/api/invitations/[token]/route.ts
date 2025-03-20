@@ -5,7 +5,7 @@ import { invitations, relationships, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import logger from '@/library/logger'
 import { createMerchantSlug, sanitiseDangerousBaseUser, validateUuid } from '@/library/utilities/public'
-import { createCookieWithToken } from '@/library/utilities/server'
+import { and, createCookieWithToken, equals } from '@/library/utilities/server'
 import type {
 	BaseUserInsertValues,
 	BrowserSafeCompositeUser,
@@ -17,7 +17,6 @@ import type {
 	TokenMessages,
 } from '@/types'
 import bcrypt from 'bcryptjs'
-import { and, eq } from 'drizzle-orm'
 import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -84,16 +83,19 @@ export async function PATCH(
 		return NextResponse.json({ message: tokenMessages.tokenInvalid }, { status: httpStatus.http400badRequest })
 	}
 
-	const [foundInvitation]: Invitation[] = await database.select().from(invitations).where(eq(invitations.token, token)).limit(1)
+	const [foundInvitation]: Invitation[] = await database.select().from(invitations).where(equals(invitations.token, token)).limit(1)
 
 	if (!foundInvitation) {
 		logger.warn(`PATCH ${apiPaths.invitations.accept}: invitation row not found at all`)
 		return NextResponse.json({ message: 'invitation not found' }, { status: httpStatus.http400badRequest })
 	}
 
-	const [foundDangerousUser]: DangerousBaseUser[] = await database.select().from(users).where(eq(users.email, foundInvitation.email))
+	const [foundDangerousUser]: DangerousBaseUser[] = await database.select().from(users).where(equals(users.email, foundInvitation.email))
 
-	const [foundSenderProfile]: DangerousBaseUser[] = await database.select().from(users).where(eq(users.id, foundInvitation.senderUserId))
+	const [foundSenderProfile]: DangerousBaseUser[] = await database
+		.select()
+		.from(users)
+		.where(equals(users.id, foundInvitation.senderUserId))
 
 	const senderDetails: BrowserSafeMerchantProfile = {
 		slug: foundSenderProfile.slug,
@@ -104,7 +106,7 @@ export async function PATCH(
 		const [existingRelationship] = await database
 			.select()
 			.from(relationships)
-			.where(and(eq(relationships.merchantId, foundSenderProfile.id), eq(relationships.customerId, foundDangerousUser.id)))
+			.where(and(equals(relationships.merchantId, foundSenderProfile.id), equals(relationships.customerId, foundDangerousUser.id)))
 
 		if (existingRelationship) {
 			return NextResponse.json(
@@ -128,14 +130,14 @@ export async function PATCH(
 
 				// Transaction: change user table emailConfirmed to true if not already
 				transactionErrorMessage = 'transaction error ensuring emailConfirmed on existing user is set to true'
-				await tx.update(users).set({ emailConfirmed: true }).where(eq(users.id, foundDangerousUser.id))
+				await tx.update(users).set({ emailConfirmed: true }).where(equals(users.id, foundDangerousUser.id))
 
 				// Transaction: Expire the invitation
 				transactionErrorMessage = 'error expiring invitation'
 				await tx
 					.update(invitations)
 					.set({ usedAt: new Date() })
-					.where(and(eq(invitations.senderUserId, foundInvitation.senderUserId), eq(invitations.token, token)))
+					.where(and(equals(invitations.senderUserId, foundInvitation.senderUserId), equals(invitations.token, token)))
 
 				transactionErrorMessage = null
 				transactionErrorCode = null
@@ -201,7 +203,9 @@ export async function PATCH(
 
 				// Transaction: Delete invitation
 				transactionErrorMessage = 'transaction error deleting invitation'
-				await tx.delete(invitations).where(and(eq(invitations.senderUserId, foundInvitation.senderUserId), eq(invitations.token, token)))
+				await tx
+					.delete(invitations)
+					.where(and(equals(invitations.senderUserId, foundInvitation.senderUserId), equals(invitations.token, token)))
 
 				// Transaction: Send welcome email
 				// Optimisation ToDo: write a much better email

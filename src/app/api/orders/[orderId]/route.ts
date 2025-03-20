@@ -10,8 +10,8 @@ import {
 	logAndSanitiseApiResponse,
 } from '@/library/utilities/public'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
+import { equals } from '@/library/utilities/server'
 import type { BaseOrder, SelectedProduct, TokenMessages } from '@/types'
-import { eq } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface OrdersOrderIdPATCHresponse {
@@ -122,7 +122,7 @@ export async function PATCH(
 			return NextResponse.json({ developerMessage: 'user not found' }, { status: 404 })
 		}
 
-		const [orderToUpdate]: BaseOrder[] = await database.select().from(orders).where(eq(orders.id, orderId))
+		const [orderToUpdate]: BaseOrder[] = await database.select().from(orders).where(equals(orders.id, orderId))
 
 		if (!orderToUpdate) {
 			const developerMessage = logAndSanitiseApiResponse({
@@ -173,7 +173,7 @@ export async function PATCH(
 
 		const orderItemsUpdateData: Pick<OrdersOrderIdPATCHbody, 'orderItemsToUpdate'> = {}
 
-		const foundOrderItems = await database.select().from(orderItems).where(eq(orderItems.orderId, orderId))
+		const foundOrderItems = await database.select().from(orderItems).where(equals(orderItems.orderId, orderId))
 
 		// Check order items are different
 		let hasOrderItemChanges = false
@@ -240,7 +240,7 @@ export async function PATCH(
 
 		// Update the order, if necessary
 		if (Object.keys(orderUpdateData).length > 0) {
-			await database.update(orders).set(orderUpdateData).where(eq(orders.id, orderId)).returning()
+			await database.update(orders).set(orderUpdateData).where(equals(orders.id, orderId)).returning()
 		}
 
 		// Update the order items, if necessary
@@ -248,7 +248,7 @@ export async function PATCH(
 			for (const item of orderItemsUpdateData.orderItemsToUpdate) {
 				if (item.productId) {
 					// Update existing item
-					await database.update(orderItems).set({ quantity: item.quantity }).where(eq(orderItems.productId, item.productId))
+					await database.update(orderItems).set({ quantity: item.quantity }).where(equals(orderItems.productId, item.productId))
 				} else {
 					// Insert any additional items
 					await database.insert(orderItems).values({

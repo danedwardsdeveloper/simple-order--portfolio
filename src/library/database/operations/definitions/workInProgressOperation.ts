@@ -1,7 +1,7 @@
 import { logAndSanitiseApiResponse } from '@/library/utilities/public'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
+import { and, equals, greaterThan } from '@/library/utilities/server'
 import type { DangerousBaseUser } from '@/types'
-import { and, eq, gt } from 'drizzle-orm'
 import type { NextRequest } from 'next/server'
 import { database } from '../../connection'
 import { freeTrials, users } from '../../schema'
@@ -34,7 +34,7 @@ export async function checkAuthentication({
 		return { success: false, developerMessage }
 	}
 
-	const [foundDangerousUser] = await database.select().from(users).where(eq(users.id, extractedUserId))
+	const [foundDangerousUser] = await database.select().from(users).where(equals(users.id, extractedUserId))
 
 	if (!foundDangerousUser) {
 		developerMessage = logAndSanitiseApiResponse({ routeDetail, message: '' })
@@ -53,7 +53,7 @@ export async function checkAuthentication({
 			const [_validFreeTrial] = await database
 				.select()
 				.from(freeTrials)
-				.where(and(gt(freeTrials.endDate, new Date()), eq(freeTrials.userId, foundDangerousUser.id)))
+				.where(and(greaterThan(freeTrials.endDate, new Date()), equals(freeTrials.userId, foundDangerousUser.id)))
 		}
 	}
 

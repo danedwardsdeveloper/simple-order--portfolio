@@ -14,5 +14,3 @@ export * from './definitions/notifications'
 export * from './definitions/confirmationTokens'
 export * from './definitions/dates'
 export * from './definitions/orders'
-
-// ToDo: re-export Drizzle types with more expressive names

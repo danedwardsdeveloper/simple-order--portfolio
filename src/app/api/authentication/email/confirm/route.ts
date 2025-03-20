@@ -5,8 +5,8 @@ import { confirmationTokens, users } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { sanitiseDangerousBaseUser } from '@/library/utilities/public'
 import { createCookieWithToken } from '@/library/utilities/server'
+import { equals } from '@/library/utilities/server'
 import type { BrowserSafeCompositeUser, ConfirmationToken, DangerousBaseUser } from '@/types'
-import { eq } from 'drizzle-orm'
 import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -41,13 +41,16 @@ export async function POST(request: NextRequest): Promise<NextResponse<Authentic
 			return NextResponse.json({ message: tokenMessages.tokenMissing }, { status: httpStatus.http401unauthorised })
 		}
 
-		const [foundToken]: ConfirmationToken[] = await database.select().from(confirmationTokens).where(eq(confirmationTokens.token, token))
+		const [foundToken]: ConfirmationToken[] = await database
+			.select()
+			.from(confirmationTokens)
+			.where(equals(confirmationTokens.token, token))
 
 		if (!foundToken) {
 			return NextResponse.json({ message: tokenMessages.tokenInvalid }, { status: httpStatus.http401unauthorised })
 		}
 
-		const [foundDangerousUser]: DangerousBaseUser[] = await database.select().from(users).where(eq(users.id, foundToken.userId))
+		const [foundDangerousUser]: DangerousBaseUser[] = await database.select().from(users).where(equals(users.id, foundToken.userId))
 
 		if (!foundDangerousUser) {
 			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http404notFound })
@@ -65,10 +68,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<Authentic
 		const { updatedUser } = await database.transaction(async (tx) => {
 			transactionFailureMessage = 'transaction error updating user'
 			transactionFailureStatus = httpStatus.http500serverError
-			const [updatedUser] = await tx.update(users).set({ emailConfirmed: true }).where(eq(users.id, foundDangerousUser.id)).returning()
+			const [updatedUser] = await tx.update(users).set({ emailConfirmed: true }).where(equals(users.id, foundDangerousUser.id)).returning()
 
 			transactionFailureMessage = 'transaction error expiring token'
-			await tx.update(confirmationTokens).set({ usedAt: new Date() }).where(eq(confirmationTokens.id, foundToken.id))
+			await tx.update(confirmationTokens).set({ usedAt: new Date() }).where(equals(confirmationTokens.id, foundToken.id))
 
 			transactionFailureMessage = undefined
 			transactionFailureStatus = undefined

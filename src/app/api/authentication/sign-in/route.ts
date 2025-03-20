@@ -13,9 +13,10 @@ import { users } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { emailRegex, sanitiseDangerousBaseUser } from '@/library/utilities/public'
 import { createCookieWithToken } from '@/library/utilities/server'
+import { equals } from '@/library/utilities/server'
 import type { BrowserSafeCompositeUser, DangerousBaseUser, MissingFieldMessages } from '@/types'
 import bcrypt from 'bcryptjs'
-import { eq } from 'drizzle-orm'
+
 import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
 		return NextResponse.json({ message: authenticationMessages.invalidEmailFormat }, { status: httpStatus.http400badRequest })
 	}
 
-	const [dangerousUser]: DangerousBaseUser[] = await database.select().from(users).where(eq(users.email, email)).limit(1)
+	const [dangerousUser]: DangerousBaseUser[] = await database.select().from(users).where(equals(users.email, email)).limit(1)
 
 	if (!dangerousUser) {
 		logger.warn(routeDetail, tokenMessages.userNotFound)

@@ -4,8 +4,8 @@ import { checkActiveSubscriptionOrTrial, checkUserExists } from '@/library/datab
 import { orders } from '@/library/database/schema'
 import { containsIllegalCharacters, isOrderStatus, logAndSanitiseApiResponse } from '@/library/utilities/public'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
+import { equals } from '@/library/utilities/server'
 import type { BaseOrder } from '@/types'
-import { eq } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
 // Main ToDo: Keep working in this
@@ -132,7 +132,7 @@ export async function PATCH(
 			return NextResponse.json({ developerMessage }, { status: 401 })
 		}
 
-		const [foundOrder] = await database.select().from(orders).where(eq(orders.id, orderId)).limit(1)
+		const [foundOrder] = await database.select().from(orders).where(equals(orders.id, orderId)).limit(1)
 
 		// Check order exists
 		if (!foundOrder) {
@@ -172,7 +172,7 @@ export async function PATCH(
 		const [updatedOrder] = await database
 			.update(orders)
 			.set({ adminOnlyNote, status: orderStatus })
-			.where(eq(orders.id, orderId))
+			.where(equals(orders.id, orderId))
 			.returning({
 				adminOnlyNote: orders.adminOnlyNote,
 				status: orders.status,

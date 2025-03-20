@@ -4,8 +4,9 @@ import { checkActiveSubscriptionOrTrial, checkUserExists } from '@/library/datab
 import { products } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
+import { and, equals } from '@/library/utilities/server'
 import type { BrowserSafeMerchantProduct, UnauthorisedMessages } from '@/types'
-import { and, eq } from 'drizzle-orm'
+
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface InventoryDELETEresponse {
@@ -55,7 +56,7 @@ export async function DELETE(
 		const [softDeletedProduct]: BrowserSafeMerchantProduct[] = await database
 			.update(products)
 			.set({ deletedAt: new Date() })
-			.where(and(eq(products.id, itemId), eq(products.ownerId, extractedUserId)))
+			.where(and(equals(products.id, itemId), equals(products.ownerId, extractedUserId)))
 			.returning({
 				id: products.id,
 				name: products.name,

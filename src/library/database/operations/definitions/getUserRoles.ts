@@ -1,8 +1,8 @@
 import { database } from '@/library/database/connection'
 import { freeTrials, invitations, relationships, subscriptions } from '@/library/database/schema'
 import logger from '@/library/logger'
+import { and, equals, greaterThan } from '@/library/utilities/server'
 import type { DangerousBaseUser, Roles } from '@/types'
-import { and, eq, gt } from 'drizzle-orm'
 
 // Optimisation ToDo: Merge this with checkActiveSubscriptionOrTrial as they check the same tables and are mostly used together
 
@@ -22,7 +22,7 @@ export async function getUserRoles(user: DangerousBaseUser): Promise<{ userRole:
 		const [foundFreeTrial] = await database
 			.select()
 			.from(freeTrials)
-			.where(and(eq(freeTrials.userId, user.id), gt(freeTrials.endDate, new Date())))
+			.where(and(equals(freeTrials.userId, user.id), greaterThan(freeTrials.endDate, new Date())))
 			.limit(1)
 
 		if (foundFreeTrial) isMerchant = true
@@ -31,25 +31,29 @@ export async function getUserRoles(user: DangerousBaseUser): Promise<{ userRole:
 			const [validSubscription] = await database
 				.select()
 				.from(subscriptions)
-				.where(and(gt(subscriptions.currentPeriodEnd, new Date()), eq(subscriptions.userId, user.id)))
+				.where(and(greaterThan(subscriptions.currentPeriodEnd, new Date()), equals(subscriptions.userId, user.id)))
 				.limit(1)
 
 			if (validSubscription) isMerchant = true
 		}
 
 		if (!isMerchant) {
-			const [relationshipsAsMerchant] = await database.select().from(relationships).where(eq(relationships.merchantId, user.id)).limit(1)
+			const [relationshipsAsMerchant] = await database
+				.select()
+				.from(relationships)
+				.where(equals(relationships.merchantId, user.id))
+				.limit(1)
 			if (relationshipsAsMerchant) isMerchant = true
 		}
 
 		let isCustomer = false
 
-		const [foundRelationship] = await database.select().from(relationships).where(eq(relationships.customerId, user.id)).limit(1)
+		const [foundRelationship] = await database.select().from(relationships).where(equals(relationships.customerId, user.id)).limit(1)
 
 		if (foundRelationship) isCustomer = true
 
 		if (!isCustomer) {
-			const [foundInvitation] = await database.select().from(invitations).where(eq(invitations.email, user.email)).limit(1)
+			const [foundInvitation] = await database.select().from(invitations).where(equals(invitations.email, user.email)).limit(1)
 			if (foundInvitation) isCustomer = true
 		}
 
