@@ -1,6 +1,6 @@
 ## Current Task
 
--  Fix the weird two column layout issue
+-  Style OrdersMadeCard
 
 .
 
@@ -59,7 +59,6 @@
 ## Things I could do...
 
 -  Make a more efficient authentication system
-
 -  Use ZebraContainer consistently
 -  Work on delivery days
 -  Work on order cutoff time
