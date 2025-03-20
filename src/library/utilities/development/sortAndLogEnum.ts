@@ -1,3 +1,5 @@
+'use server'
+
 function _sortAndLogEnum(enumObject: Record<string, string>, _name: string) {
 	const _entries = Object.entries(enumObject)
 		.sort(([a], [b]) => a.localeCompare(b))
