@@ -13,13 +13,13 @@ export default function MenuBar() {
 	const { user } = useUser()
 	const { mobileMenuOpen, toggleMobileMenuOpen } = useUi()
 
-	// Add click outside to close
+	// Enhancement ToDo: Add click outside to close
 	function MobileMenu() {
 		return (
 			<>
 				<nav
 					data-component="MobileMenu"
-					className="flex md:hidden fixed inset-x-0 top-0 h-14 bg-white/70  border-b-2 border-neutral-100 z-menu"
+					className="flex md:hidden fixed inset-x-0 top-0 h-14 bg-white/70  border-b-2 border-neutral-100 z-menu backdrop-blur"
 				>
 					<div className="w-full mx-auto px-5 flex items-center justify-between">
 						<HomePageLink />
