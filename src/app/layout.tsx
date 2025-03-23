@@ -4,6 +4,7 @@ import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import type { Metadata, Viewport } from 'next'
 import './globals.tailwind.css'
 import Providers from '@/components/Providers'
+import SplashScreen from '@/components/SplashScreen'
 import Footer from '@/components/footer'
 import Script from 'next/script'
 import type { ReactNode } from 'react'
@@ -53,6 +54,7 @@ export default function RootLayout({
 		<html lang="en-GB" suppressHydrationWarning>
 			<body className="flex flex-col w-full">
 				<Providers>
+					<SplashScreen />
 					<MenuBar />
 					{children}
 					<Footer />
