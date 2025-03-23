@@ -1,6 +1,6 @@
 ## Current Task
 
--  Think about user flows and prioritise what to work on
+-  Work on generalDatabaseOperation
    .
 
 .
@@ -57,6 +57,9 @@
 
 ## Things I could do...
 
+-  Database operation that gets order details
+-  Function that maps order items, and products to an order
+-  Think about user flows and prioritise what to work on
 -  Make a more efficient authentication system
 -  Use ZebraContainer consistently
 -  Work on delivery days

@@ -178,3 +178,13 @@
 -  Re-exported Drizzle utilities with more expressive names
 -  Fixed weird two-column layout issue
 -  Styled OrderMadeCard
+
+# Friday & Saturday
+
+-  Break. Applied for jobs
+
+# Sunday 24 March
+
+-  Added SplashScreen and ContentSplash
+-  Style fixes
+-  Worked on database operation
