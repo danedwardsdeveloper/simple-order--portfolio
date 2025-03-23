@@ -15,9 +15,7 @@ export default function HomePageLink() {
 				isActive ? 'text-blue-600 cursor-default' : 'text-zinc-600 hover:text-blue-600 active:text-blue-500',
 			)}
 		>
-			<div className="size-6 ">
-				<CompanyLogo />
-			</div>
+			<CompanyLogo size="size-6" />
 			<span className="font-medium text-xl md:text-sm">Simple Order</span>
 		</Link>
 	)
