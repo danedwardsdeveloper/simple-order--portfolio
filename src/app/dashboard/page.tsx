@@ -1,6 +1,6 @@
 'use client'
 import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
-import Spinner from '@/components/Spinner'
+import ContentSplash from '@/components/ContentSplash'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
 import { useUser } from '@/providers/user'
 import WelcomeMessages from './components/WelcomeMessages'
@@ -10,7 +10,7 @@ export default function DashboardPage() {
 
 	if (!user) return <UnauthorisedLinks />
 
-	if (isLoading) return <Spinner />
+	if (isLoading) return <ContentSplash />
 
 	return (
 		<>
