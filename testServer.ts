@@ -2,11 +2,8 @@ import path from 'node:path'
 import express, { type Request, type Response } from 'express'
 import next from 'next'
 
-const dev = process.env.NODE_ENV !== 'production'
-const app = next({ dev })
+const app = next({ dev: process.env.NODE_ENV === 'development' })
 const handle = app.getRequestHandler()
-
-const port = process.env.PORT || 3000
 
 app.prepare().then(() => {
 	const server = express()
@@ -21,7 +18,7 @@ app.prepare().then(() => {
 		return handle(req, res)
 	})
 
-	server.listen(port, (err?: Error) => {
+	server.listen(3000, (err?: Error) => {
 		if (err) throw err
 	})
 })
