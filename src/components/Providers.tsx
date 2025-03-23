@@ -1,4 +1,5 @@
 'use client'
+import { LoadingProvider } from '@/providers/loading'
 import dynamic from 'next/dynamic'
 import type { ReactNode } from 'react'
 
@@ -24,7 +25,7 @@ export default function Providers({ children }: { children: ReactNode }) {
 			<NotificationsProvider>
 				<UserProvider>
 					<NotificationsContainer />
-					{children}
+					<LoadingProvider>{children}</LoadingProvider>
 				</UserProvider>
 			</NotificationsProvider>
 		</UiProvider>
