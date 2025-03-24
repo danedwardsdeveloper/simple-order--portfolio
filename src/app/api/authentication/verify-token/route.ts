@@ -1,14 +1,13 @@
-import { apiPaths, basicMessages, cookieNames, httpStatus, tokenMessages } from '@/library/constants'
-import { checkActiveSubscriptionOrTrial, checkUserExists, getUserRoles } from '@/library/database/operations'
+import { apiPaths, basicMessages, cookieNames, httpStatus } from '@/library/constants'
+import { checkAccess, checkActiveSubscriptionOrTrial, getUserRoles } from '@/library/database/operations'
 import logger from '@/library/logger'
 import { sanitiseDangerousBaseUser } from '@/library/utilities/public'
-import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { BrowserSafeCompositeUser, UnauthorisedMessages } from '@/types'
+import type { BrowserSafeCompositeUser } from '@/types'
 import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface VerifyTokenGETresponse {
-	message: typeof basicMessages.success | typeof basicMessages.serverError | UnauthorisedMessages
+	message?: string
 	user?: BrowserSafeCompositeUser
 }
 
@@ -18,39 +17,23 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 	const cookieStore = await cookies()
 
 	try {
-		const { extractedUserId, status, message } = await extractIdFromRequestCookie(request)
+		const { foundDangerousUser } = await checkAccess({
+			request,
+			requireConfirmed: false,
+			requireSubscriptionOrTrial: false,
+			routeDetail,
+		})
 
-		if (message === 'token missing') {
-			logger.info(routeDetail, 'No token provided')
+		if (!foundDangerousUser) {
 			cookieStore.delete(cookieNames.token)
-			return NextResponse.json({ message }, { status })
+			return NextResponse.json({ message: 'Please sign in' }, { status: 400 })
 		}
 
-		if (!extractedUserId) {
-			logger.info(routeDetail, "Couldn't extract user ID")
-			cookieStore.delete(cookieNames.token)
-			return NextResponse.json({ message }, { status })
-		}
+		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(foundDangerousUser.id, foundDangerousUser.cachedTrialExpired)
 
-		const { userExists, existingDangerousUser } = await checkUserExists(extractedUserId)
+		const { userRole } = await getUserRoles(foundDangerousUser)
 
-		if (!userExists) {
-			logger.info(routeDetail, "User doesn't exist")
-			cookieStore.delete(cookieNames.token)
-			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
-		}
-
-		if (!existingDangerousUser) {
-			logger.info(routeDetail, 'User not found')
-			cookieStore.delete(cookieNames.token)
-			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
-		}
-
-		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(extractedUserId, existingDangerousUser.cachedTrialExpired)
-
-		const { userRole } = await getUserRoles(existingDangerousUser)
-
-		const baseUser = sanitiseDangerousBaseUser(existingDangerousUser)
+		const baseUser = sanitiseDangerousBaseUser(foundDangerousUser)
 
 		const compositeUser: BrowserSafeCompositeUser = {
 			...baseUser,
@@ -59,7 +42,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 		}
 
 		logger.success(routeDetail, 'Token validated successfully')
-		return NextResponse.json({ message: basicMessages.success, user: compositeUser }, { status: httpStatus.http200ok })
+		return NextResponse.json({ user: compositeUser }, { status: httpStatus.http200ok })
 	} catch (error) {
 		logger.error(routeDetail, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
