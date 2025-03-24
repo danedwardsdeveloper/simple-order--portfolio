@@ -188,3 +188,13 @@
 -  Added SplashScreen and ContentSplash
 -  Style fixes
 -  Worked on database operation
+
+# Monday 24 March
+
+Lots of work on code quality
+
+-  Working on a `checkAccess` function. This reduces a lot of repetition but I need to think really carefully about it before implementing it on every route
+-  created `mapOrders`. This is probably the most complex piece of the application so it's great to have this completed
+-  created `getOrdersData`. This is another extremely useful function
+-  I currently feel like the entire codebase is a mess, however I'm right at the start of getting it properly cleaned up
+-  All the stuff I'm thinking so carefully about with my API is very difficult, and I feel like most developers just cop out - logging errors to the console, rendering technical messages on the page, lots of really bad practices.
