@@ -1,3 +1,4 @@
+import logger from '@/library/logger'
 import { logAndSanitiseApiResponse } from '@/library/utilities/public'
 import { extractIdFromRequestCookie } from '@/library/utilities/server'
 import { and, equals, greaterThan } from '@/library/utilities/server'
@@ -5,6 +6,7 @@ import type { DangerousBaseUser } from '@/types'
 import type { NextRequest } from 'next/server'
 import { database } from '../../connection'
 import { freeTrials, subscriptions, users } from '../../schema'
+import { checkRelationship } from './checkRelationship'
 import { getUserRoles } from './getUserRoles'
 
 interface Input {
@@ -61,16 +63,26 @@ export async function checkAuthentication({
 	return { success: true, foundDangerousUser }
 }
 
-export async function checkUserAccess({
+interface TempInput {
+	request: NextRequest
+	routeDetail: string
+	requireConfirmed: boolean
+	requireSubscriptionOrTrial: boolean
+	checkRoles: boolean
+	checkRelationshipWith: number
+}
+
+export async function hmmNotSure({
 	request,
 	routeDetail,
 	requireConfirmed = true,
 	requireSubscriptionOrTrial = false,
 	checkRoles = false,
-	checkRelationship = null,
-}) {
+	checkRelationshipWith,
+}: TempInput) {
 	const { extractedUserId } = await extractIdFromRequestCookie(request)
 
+	logger.info(routeDetail, 'Not sure!????')
 	if (!extractedUserId) return { success: false, message: 'Not authenticated' }
 
 	const [foundUser] = await database.select().from(users).where(equals(users.id, extractedUserId))
@@ -115,10 +127,10 @@ export async function checkUserAccess({
 	}
 
 	let relationshipStatus = undefined
-	if (checkRelationship) {
+	if (checkRelationshipWith) {
 		const { relationshipExists } = await checkRelationship({
-			merchantId: userRole === 'merchant' ? foundUser.id : checkRelationship,
-			customerId: userRole === 'customer' ? foundUser.id : checkRelationship,
+			merchantId: userRole === 'merchant' ? foundUser.id : checkRelationshipWith,
+			customerId: userRole === 'customer' ? foundUser.id : checkRelationshipWith,
 		})
 		relationshipStatus = relationshipExists
 	}
