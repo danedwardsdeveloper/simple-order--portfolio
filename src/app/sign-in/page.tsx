@@ -69,9 +69,7 @@ export default function SignInPage() {
 			<h1>Sign In</h1>
 			<form onSubmit={handleSubmit} className="flex flex-col gap-y-4">
 				<div>
-					<label htmlFor="email" className="block mb-1">
-						Email
-					</label>
+					<label htmlFor="email">Email</label>
 					<input
 						data-test-id={dataTestIdNames.signIn.emailInput}
 						id="email"
@@ -90,9 +88,7 @@ export default function SignInPage() {
 				</div>
 
 				<div>
-					<label htmlFor="password" className="block mb-1">
-						Password
-					</label>
+					<label htmlFor="password">Password</label>
 					<div className="relative">
 						<input
 							data-test-id={dataTestIdNames.signIn.passwordInput}
