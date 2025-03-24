@@ -9,8 +9,7 @@ import type { DangerousBaseUser, Roles } from '@/types'
 export async function getUserRoles(user: DangerousBaseUser): Promise<{ userRole: Roles }> {
 	try {
 		// A merchant is signified by:
-		// - an active free-trial OR
-		// - an active subscription OR
+		// - an active free-trial or subscription OR
 		// - a relationship where the user's ID is in the merchant column
 
 		// A customer is signified by:
