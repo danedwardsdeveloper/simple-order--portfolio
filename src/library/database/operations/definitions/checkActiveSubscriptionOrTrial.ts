@@ -7,6 +7,7 @@ async function checkActiveSubscription(userId: number): Promise<boolean> {
 		.select()
 		.from(subscriptions)
 		.where(and(greaterThan(subscriptions.currentPeriodEnd, new Date()), equals(subscriptions.userId, userId)))
+		.limit(1)
 
 	if (validSubscription) return true
 	return false
@@ -25,6 +26,8 @@ export async function checkActiveSubscriptionOrTrial(
 		.select()
 		.from(freeTrials)
 		.where(and(greaterThan(freeTrials.endDate, new Date()), equals(freeTrials.userId, userId)))
+		.limit(1)
+
 	if (validFreeTrial) return { activeSubscriptionOrTrial: true }
 
 	// Check subscriptions table if it was skipped the first time
