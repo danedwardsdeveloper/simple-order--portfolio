@@ -9,7 +9,7 @@ import { useUser } from '@/providers/user'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import urlJoin from 'url-join'
-import CompleteRegistrationForm from '../components/CompleteRegistrationForm'
+import CompleteRegistrationForm from './components/CompleteRegistrationForm'
 
 export default function AcceptInvitationPage() {
 	const { token } = useParams<{ token: string }>()

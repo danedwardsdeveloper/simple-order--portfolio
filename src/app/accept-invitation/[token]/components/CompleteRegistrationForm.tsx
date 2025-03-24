@@ -20,11 +20,10 @@ export default function CompleteRegistrationForm({ token }: { token: string }) {
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [errorMessage, setErrorMessage] = useState('')
 	const [formData, setFormData] = useState<InvitationsTokenPATCHbody>({
-		firstName: 'Charlotte',
-		lastName: 'York',
-		businessName: "Charlotte's Harlots",
-		slug: 'charlottes-harlots',
-		password: 'securePassword123',
+		firstName: '',
+		lastName: '',
+		businessName: '',
+		password: '',
 	})
 
 	async function handleSubmit(event: FormEvent) {
@@ -59,11 +58,16 @@ export default function CompleteRegistrationForm({ token }: { token: string }) {
 		}
 	}
 
+	// Display a welcome message with the merchant's name and an explanation. This is likely the user's first interaction with the site
+
+	// Disable the button until the form is completed properly
+
 	return (
 		<div className="max-w-md mx-auto mt-8 p-4 border rounded-lg">
-			<h1 className="text-xl font-bold mb-4">Complete Your Registration</h1>
-			<form onSubmit={handleSubmit} className="space-y-4">
+			<h1 className="text-xl font-bold mb-4">Complete your registration</h1>
+			<form onSubmit={handleSubmit} className="flex flex-col gap-y-4">
 				<div>
+					<label htmlFor="firstName">First name</label>
 					<input
 						type="text"
 						placeholder="First Name"
@@ -80,6 +84,7 @@ export default function CompleteRegistrationForm({ token }: { token: string }) {
 					/>
 				</div>
 				<div>
+					<label htmlFor="lastName">Last name</label>
 					<input
 						type="text"
 						placeholder="Last Name"
@@ -96,6 +101,7 @@ export default function CompleteRegistrationForm({ token }: { token: string }) {
 					/>
 				</div>
 				<div>
+					<label htmlFor="businessName">Business name</label>
 					<input
 						type="text"
 						placeholder="Business Name"
@@ -112,6 +118,7 @@ export default function CompleteRegistrationForm({ token }: { token: string }) {
 					/>
 				</div>
 				<div>
+					<label htmlFor="password">Password</label>
 					<input
 						type="password"
 						placeholder="Choose Password"
