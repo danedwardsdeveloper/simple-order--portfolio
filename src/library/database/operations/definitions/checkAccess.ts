@@ -16,9 +16,11 @@ interface Input {
 	// checkRelationshipWith: number
 }
 
-export async function checkAccess({ request, routeDetail, requireConfirmed, requireSubscriptionOrTrial }: Input): Promise<{
-	foundDangerousUser?: DangerousBaseUser
-}> {
+interface Output {
+	dangerousUser?: DangerousBaseUser
+}
+
+export async function checkAccess({ request, routeDetail, requireConfirmed, requireSubscriptionOrTrial }: Input): Promise<Output> {
 	const { extractedUserId } = await extractIdFromRequestCookie(request)
 
 	// Delete cookies and sign out?
@@ -29,25 +31,25 @@ export async function checkAccess({ request, routeDetail, requireConfirmed, requ
 		return {}
 	}
 
-	const [foundDangerousUser] = await database.select().from(users).where(equals(users.id, extractedUserId))
+	const [dangerousUser] = await database.select().from(users).where(equals(users.id, extractedUserId))
 
-	if (!foundDangerousUser) {
+	if (!dangerousUser) {
 		logger.error(routeDetail, 'User not found')
 		return {}
 	}
 
-	if (requireConfirmed && !foundDangerousUser.emailConfirmed) {
+	if (requireConfirmed && !dangerousUser.emailConfirmed) {
 		logger.error(routeDetail, 'Email not confirmed')
 		return {}
 	}
 
 	if (requireSubscriptionOrTrial) {
-		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(foundDangerousUser.id, foundDangerousUser.cachedTrialExpired)
+		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(dangerousUser.id, dangerousUser.cachedTrialExpired)
 		if (!activeSubscriptionOrTrial) {
 			logger.error(routeDetail, 'Active trial or subscription not found')
 			return {}
 		}
 	}
 
-	return { foundDangerousUser }
+	return { dangerousUser }
 }
