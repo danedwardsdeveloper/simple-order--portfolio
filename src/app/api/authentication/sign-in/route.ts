@@ -86,6 +86,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<SignInPOS
 		activeSubscriptionOrTrial,
 	}
 
-	logger.info(routeDetail, 'Signed in successfully')
+	logger.success(routeDetail, 'Signed in successfully')
 	return NextResponse.json({ message: basicMessages.success, user }, { status: httpStatus.http200ok })
 }

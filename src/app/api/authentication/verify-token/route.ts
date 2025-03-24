@@ -58,7 +58,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 			activeSubscriptionOrTrial,
 		}
 
-		logger.info(routeDetail, 'Token validated successfully')
+		logger.success(routeDetail, 'Token validated successfully')
 		return NextResponse.json({ message: basicMessages.success, user: compositeUser }, { status: httpStatus.http200ok })
 	} catch (error) {
 		logger.error(routeDetail, error)
