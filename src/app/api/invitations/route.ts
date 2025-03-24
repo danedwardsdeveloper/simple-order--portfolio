@@ -1,22 +1,20 @@
-import {
-	apiPaths,
-	authenticationMessages,
-	basicMessages,
-	durationSettings,
-	httpStatus,
-	missingFieldMessages,
-	tokenMessages,
-} from '@/library/constants'
+import { apiPaths, basicMessages, durationSettings, httpStatus, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { checkActiveSubscriptionOrTrial, checkRelationship, checkUserExists } from '@/library/database/operations'
+import { checkAccess, checkRelationship } from '@/library/database/operations'
 import { invitations, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import { createExistingUserInvitation } from '@/library/email/templates/invitations/existingUser'
 import { createNewUserInvitation } from '@/library/email/templates/invitations/newUser'
 import logger from '@/library/logger'
-import { convertEmptyToUndefined, emailRegex, generateUuid, obfuscateEmail } from '@/library/utilities/public'
-import { createInvitationURL } from '@/library/utilities/public/definitions/createInvitationURL'
-import { extractIdFromRequestCookie } from '@/library/utilities/server'
+import {
+	convertEmptyToUndefined,
+	emailRegex,
+	generateUuid,
+	logAndSanitiseApiError,
+	logAndSanitiseApiResponse,
+	obfuscateEmail,
+} from '@/library/utilities/public'
+import { createInvitationURL } from '@/library/utilities/public'
 import type {
 	BrowserSafeInvitationReceived,
 	BrowserSafeInvitationSent,
@@ -34,19 +32,8 @@ type TransactionErrorMessage =
 	| typeof basicMessages.errorSendingEmail
 
 export interface InvitationsPOSTresponse {
-	message:
-		| UnauthorisedMessages
-		| TransactionErrorMessage
-		| typeof basicMessages.success
-		| typeof basicMessages.serverError
-		| typeof basicMessages.unknownTransactionError
-		| typeof authenticationMessages.invalidEmailFormat
-		| typeof authenticationMessages.emailNotConfirmed
-		| typeof authenticationMessages.noActiveTrialSubscription
-		| typeof missingFieldMessages.invitedEmailMissing
-		| 'attempted to invite self'
-		| 'relationship exists'
-		| 'in-date invitation exists'
+	userMessage?: string
+	developerMessage?: string
 	browserSafeInvitationRecord?: BrowserSafeInvitationSent
 }
 
@@ -54,42 +41,44 @@ export interface InvitationsPOSTbody {
 	invitedEmail: string
 }
 
+const routeDetailPOST = `POST ${apiPaths.invitations.base}`
+
 // Create an invitation
 export async function POST(request: NextRequest): Promise<NextResponse<InvitationsPOSTresponse>> {
 	try {
 		const { invitedEmail }: InvitationsPOSTbody = await request.json()
+
 		if (!invitedEmail) {
-			return NextResponse.json({ message: missingFieldMessages.invitedEmailMissing }, { status: httpStatus.http400badRequest })
+			const developerMessage = logAndSanitiseApiResponse({
+				routeDetail: routeDetailPOST,
+				message: 'invitedEmail missing',
+			})
+			return NextResponse.json({ developerMessage }, { status: 400 })
 		}
 
 		const normalisedInvitedEmail = invitedEmail.trim().toLowerCase()
+
 		if (!emailRegex.test(normalisedInvitedEmail)) {
-			return NextResponse.json({ message: authenticationMessages.invalidEmailFormat }, { status: httpStatus.http400badRequest })
+			const developerMessage = logAndSanitiseApiResponse({
+				routeDetail: routeDetailPOST,
+				message: 'invalid email format',
+			})
+			return NextResponse.json({ developerMessage }, { status: 400 })
 		}
 
-		const { extractedUserId, status, message } = await extractIdFromRequestCookie(request)
-		if (!extractedUserId) {
-			return NextResponse.json({ message }, { status })
+		const { dangerousUser } = await checkAccess({
+			request,
+			routeDetail: routeDetailPOST,
+			requireConfirmed: true,
+			requireSubscriptionOrTrial: true,
+		})
+
+		if (!dangerousUser) {
+			return NextResponse.json({}, { status: 400 })
 		}
 
-		const { userExists, existingDangerousUser } = await checkUserExists(extractedUserId)
-
-		if (!userExists || !existingDangerousUser) {
-			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
-		}
-
-		if (!existingDangerousUser.emailConfirmed) {
-			return NextResponse.json({ message: authenticationMessages.emailNotConfirmed }, { status: httpStatus.http401unauthorised })
-		}
-
-		if (existingDangerousUser.email === normalisedInvitedEmail) {
-			return NextResponse.json({ message: 'attempted to invite self' }, { status: httpStatus.http400badRequest })
-		}
-
-		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(extractedUserId, existingDangerousUser.cachedTrialExpired)
-
-		if (!activeSubscriptionOrTrial) {
-			return NextResponse.json({ message: authenticationMessages.noActiveTrialSubscription }, { status: httpStatus.http401unauthorised })
+		if (dangerousUser.email === normalisedInvitedEmail) {
+			return NextResponse.json({ developerMessage: 'attempted to invite self' }, { status: 400 })
 		}
 
 		const [inviteeWithAccountAlready]: DangerousBaseUser[] | undefined = await database
@@ -100,19 +89,19 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
 
 		if (inviteeWithAccountAlready) {
 			const { relationshipExists } = await checkRelationship({
-				merchantId: extractedUserId,
+				merchantId: dangerousUser.id,
 				customerId: inviteeWithAccountAlready.id,
 			})
 
 			if (relationshipExists) {
-				return NextResponse.json({ message: 'relationship exists' }, { status: httpStatus.http202accepted })
+				return NextResponse.json({ developerMessage: 'relationship exists' }, { status: httpStatus.http202accepted })
 			}
 		}
 
 		const [existingInvitation]: Invitation[] | undefined = await database
 			.select()
 			.from(invitations)
-			.where(and(eq(invitations.senderUserId, extractedUserId), eq(invitations.email, normalisedInvitedEmail)))
+			.where(and(eq(invitations.senderUserId, dangerousUser.id), eq(invitations.email, normalisedInvitedEmail)))
 
 		const inDateInvitationExists = existingInvitation && existingInvitation.expiresAt > new Date()
 
@@ -120,7 +109,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
 			const regeneratedUrlForLogger = createInvitationURL(existingInvitation.token)
 			logger.info('Regenerated in-date invitation: ', regeneratedUrlForLogger)
 
-			return NextResponse.json({ message: 'in-date invitation exists' }, { status: httpStatus.http400badRequest })
+			return NextResponse.json({ developerMessage: 'in-date invitation exists' }, { status: 400 })
 		}
 
 		const newInvitationExpiryDate = new Date(Date.now() + durationSettings.acceptInvitationExpiry)
@@ -129,14 +118,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
 		let transactionErrorCode: number | undefined = httpStatus.http503serviceUnavailable
 
 		const { newInvitation } = await database.transaction(async (tx) => {
-			// Enhancement ToDo:
-			// 8. Transaction: Delete expired invitation if it exists
-			// tx.delete(invitations).where(and(eq(invitations.senderUserId, extractedUserId), eq(invitations.email, normalisedInvitedEmail)))
-
 			// 9. Transaction: create a new invitation row
 			const invitationInsert: InvitationInsert = {
 				email: normalisedInvitedEmail,
-				senderUserId: extractedUserId,
+				senderUserId: dangerousUser.id,
 				token: generateUuid(),
 				expiresAt: newInvitationExpiryDate,
 				lastEmailSent: new Date(),
@@ -153,13 +138,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
 			const dynamicEmailTemplate = inviteeWithAccountAlready
 				? createExistingUserInvitation({
 						recipientEmail: normalisedInvitedEmail,
-						merchantBusinessName: existingDangerousUser.businessName,
+						merchantBusinessName: dangerousUser.businessName,
 						invitationURL,
 						expiryDate: newInvitationExpiryDate,
 					})
 				: createNewUserInvitation({
 						recipientEmail: normalisedInvitedEmail,
-						merchantBusinessName: existingDangerousUser.businessName,
+						merchantBusinessName: dangerousUser.businessName,
 						invitationURL,
 						expiryDate: newInvitationExpiryDate,
 					})
@@ -176,7 +161,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
 
 		if (transactionErrorMessage || transactionErrorCode) {
 			return NextResponse.json(
-				{ message: transactionErrorMessage || basicMessages.unknownTransactionError },
+				{ developerMessage: transactionErrorMessage || basicMessages.unknownTransactionError },
 				{ status: transactionErrorCode || 503 },
 			)
 		}
@@ -187,15 +172,15 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
 			lastEmailSentDate: newInvitation.lastEmailSent,
 		}
 
-		return NextResponse.json({ message: basicMessages.success, browserSafeInvitationRecord }, { status: 200 })
+		return NextResponse.json({ browserSafeInvitationRecord }, { status: 200 })
 	} catch (error) {
-		logger.error(`POST ${apiPaths.invitations.base} error: `, error)
-		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
+		logAndSanitiseApiError({ routeDetail: routeDetailPOST, error })
+		return NextResponse.json({ userMessage: userMessages.serverError }, { status: 500 })
 	}
 }
 
 export interface InvitationsGETresponse {
-	message: UnauthorisedMessages | typeof basicMessages.serverError | typeof basicMessages.success | 'no invitations found'
+	message?: UnauthorisedMessages | typeof basicMessages.serverError | typeof basicMessages.success | 'no invitations found'
 	invitationsSent?: BrowserSafeInvitationSent[]
 	invitationsReceived?: BrowserSafeInvitationReceived[]
 }
@@ -204,25 +189,23 @@ const routeDetailsGET = `GET ${apiPaths.invitations.base}: `
 
 export async function GET(request: NextRequest): Promise<NextResponse<InvitationsGETresponse>> {
 	try {
-		const { extractedUserId, status, message } = await extractIdFromRequestCookie(request)
+		const { dangerousUser } = await checkAccess({
+			request,
+			routeDetail: routeDetailsGET,
+			requireConfirmed: false,
+			requireSubscriptionOrTrial: false,
+		})
 
-		if (!extractedUserId) {
-			logger.warn(routeDetailsGET, "Couldn't extract user ID from cookie")
-			return NextResponse.json({ message }, { status })
-		}
-
-		const { existingDangerousUser } = await checkUserExists(extractedUserId)
-		if (!existingDangerousUser) {
-			logger.warn(routeDetailsGET, 'user not found')
-			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
+		if (!dangerousUser) {
+			return NextResponse.json({}, { status: 400 })
 		}
 
 		const rawInvitationsReceived = convertEmptyToUndefined(
-			await database.select().from(invitations).where(eq(invitations.email, existingDangerousUser.email)),
+			await database.select().from(invitations).where(eq(invitations.email, dangerousUser.email)),
 		)
 
 		const rawInvitationsSent = convertEmptyToUndefined(
-			await database.select().from(invitations).where(eq(invitations.senderUserId, existingDangerousUser.id)),
+			await database.select().from(invitations).where(eq(invitations.senderUserId, dangerousUser.id)),
 		)
 
 		if (!rawInvitationsReceived && !rawInvitationsSent) {
@@ -261,6 +244,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<Invitation
 		return NextResponse.json({ message: basicMessages.success, invitationsReceived, invitationsSent }, { status: 200 })
 	} catch (error) {
 		logger.error(`GET ${apiPaths.invitations.base} error: `, error)
-		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
+		return NextResponse.json({ message: basicMessages.serverError }, { status: 500 })
 	}
 }
+
+// Was 266 lines before refactor
