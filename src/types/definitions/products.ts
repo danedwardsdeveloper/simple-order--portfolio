@@ -12,3 +12,12 @@ export interface SelectedProduct {
 export type BrowserSafeMerchantProduct = Pick<Product, 'id' | 'name' | 'description' | 'priceInMinorUnits' | 'customVat' | 'deletedAt'>
 
 export type BrowserSafeCustomerProduct = Omit<BrowserSafeMerchantProduct, 'deletedAt'>
+
+const _exampleBrowserSafeMerchantProduct: BrowserSafeMerchantProduct = {
+	id: 0,
+	name: '',
+	description: null,
+	priceInMinorUnits: 0,
+	customVat: null,
+	deletedAt: null,
+}
