@@ -4,7 +4,7 @@ import type { Roles } from '@/types'
 export type DangerousBaseUser = typeof users.$inferSelect
 export type BaseUserInsertValues = Required<Omit<typeof users.$inferInsert, 'id'>>
 export type BaseBrowserSafeUser = Omit<DangerousBaseUser, 'id' | 'hashedPassword'>
-export type BaseUserBrowserInputValues = Omit<BaseUserInsertValues, 'hashedPassword' | 'cachedTrialExpired' | 'emailConfirmed'> & {
+export type BaseUserBrowserInputValues = Omit<BaseUserInsertValues, 'hashedPassword' | 'cachedTrialExpired' | 'emailConfirmed' | 'slug'> & {
 	password: string
 }
 export type InvitedCustomerBrowserInputValues = Omit<BaseUserBrowserInputValues, 'email'>
