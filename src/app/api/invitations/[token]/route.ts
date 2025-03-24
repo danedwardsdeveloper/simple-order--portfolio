@@ -235,10 +235,7 @@ export async function PATCH(
 			}
 
 			logger.info(`PATCH ${apiPaths.invitations.accept}: created new user: `, compositeUser)
-			return NextResponse.json(
-				{ message: basicMessages.success, createdUser: compositeUser, senderDetails },
-				{ status: httpStatus.http200ok },
-			)
+			return NextResponse.json({ message: basicMessages.success, createdUser: compositeUser, senderDetails }, { status: 200 })
 		}
 
 		// Neither new nor existing users should reach this return

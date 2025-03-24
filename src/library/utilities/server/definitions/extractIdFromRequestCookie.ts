@@ -14,10 +14,11 @@ export async function extractIdFromRequestCookie(_request: NextRequest): Promise
 	const cookieStore = await cookies()
 	const accessToken = cookieStore.get(cookieNames.token)
 
+	// This might need to change to handle signed-out users
 	if (!accessToken) {
 		return {
 			message: tokenMessages.tokenMissing,
-			status: httpStatus.http200ok,
+			status: 401,
 		}
 	}
 

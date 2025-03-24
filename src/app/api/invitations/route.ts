@@ -187,7 +187,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
 			lastEmailSentDate: newInvitation.lastEmailSent,
 		}
 
-		return NextResponse.json({ message: basicMessages.success, browserSafeInvitationRecord }, { status: httpStatus.http200ok })
+		return NextResponse.json({ message: basicMessages.success, browserSafeInvitationRecord }, { status: 200 })
 	} catch (error) {
 		logger.error(`POST ${apiPaths.invitations.base} error: `, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
@@ -227,7 +227,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<Invitation
 
 		if (!rawInvitationsReceived && !rawInvitationsSent) {
 			logger.info(routeDetailsGET, 'legitimately no invitations found')
-			return NextResponse.json({ message: 'no invitations found' }, { status: httpStatus.http200ok })
+			return NextResponse.json({ message: 'no invitations found' }, { status: 200 })
 		}
 
 		let invitationsReceived: BrowserSafeInvitationReceived[] | undefined
@@ -258,7 +258,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<Invitation
 				}))
 			: undefined
 
-		return NextResponse.json({ message: basicMessages.success, invitationsReceived, invitationsSent }, { status: httpStatus.http200ok })
+		return NextResponse.json({ message: basicMessages.success, invitationsReceived, invitationsSent }, { status: 200 })
 	} catch (error) {
 		logger.error(`GET ${apiPaths.invitations.base} error: `, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })

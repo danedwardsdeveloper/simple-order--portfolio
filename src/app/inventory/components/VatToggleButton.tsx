@@ -1,7 +1,5 @@
 'use client'
-
 import ToggleWithLabel from '@/components/ToggleWithLabel'
-
 import { useUi } from '@/providers/ui'
 
 export default function VatToggleButton() {

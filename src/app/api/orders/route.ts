@@ -53,7 +53,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersGETr
 
 		if (!foundOrders) {
 			logger.info(routeDetailGET, 'success, no orders')
-			return NextResponse.json({ message: 'success, no orders' }, { status: httpStatus.http200ok })
+			return NextResponse.json({ message: 'success, no orders' }, { status: 200 })
 		}
 
 		const orderIds = foundOrders.map((order) => order.id)
@@ -125,7 +125,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersGETr
 		})
 
 		logger.info(routeDetailGET, `successfully retrieved ${foundOrders.length} order${foundOrders.length > 1 ? 's' : ''}`)
-		return NextResponse.json({ message: basicMessages.success, ordersMade }, { status: httpStatus.http200ok })
+		return NextResponse.json({ message: basicMessages.success, ordersMade }, { status: 200 })
 	} catch {
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
 	}
@@ -342,7 +342,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<OrdersPOS
 			routeDetailPOST,
 			`${existingDangerousUser.businessName} successfully created a new order from ${merchantProfile.businessName}`,
 		)
-		return NextResponse.json({ message: systemMessages.success, createdOrder: fullOrder }, { status: httpStatus.http200ok })
+		return NextResponse.json({ message: systemMessages.success, createdOrder: fullOrder }, { status: 200 })
 	} catch (error) {
 		logger.error(routeDetailPOST, transactionErrorMessage || error)
 		return NextResponse.json(

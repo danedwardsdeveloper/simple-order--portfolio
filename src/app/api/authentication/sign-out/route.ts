@@ -18,7 +18,7 @@ export async function POST(): Promise<NextResponse<SignOutPOSTresponse>> {
 
 		cookieStore.delete(cookieNames.token)
 
-		return NextResponse.json({ message: basicMessages.success }, { status: httpStatus.http200ok })
+		return NextResponse.json({ message: basicMessages.success }, { status: 200 })
 	} catch (error) {
 		logger.error(`${apiPaths.authentication.signOut} error: `, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })

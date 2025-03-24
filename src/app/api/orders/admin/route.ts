@@ -37,7 +37,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersAdmi
 
 		if (!merchantOrders) {
 			logger.info(routeDetail, 'success, legitimately no orders')
-			return NextResponse.json({ message: 'success, no orders' }, { status: httpStatus.http200ok })
+			return NextResponse.json({ message: 'success, no orders' }, { status: 200 })
 		}
 
 		const orderIds = merchantOrders.map((order) => order.id)
@@ -114,7 +114,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersAdmi
 
 		const ordersReceived = convertEmptyToUndefined(mappedOrders)
 
-		return NextResponse.json({ message: basicMessages.success, ordersReceived }, { status: httpStatus.http200ok })
+		return NextResponse.json({ message: basicMessages.success, ordersReceived }, { status: 200 })
 	} catch (error) {
 		logger.error(routeDetail, 'error: ', error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })

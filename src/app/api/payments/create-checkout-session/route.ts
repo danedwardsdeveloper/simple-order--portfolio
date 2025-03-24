@@ -63,7 +63,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<StripeCre
 		})
 
 		if (url) {
-			return NextResponse.json({ message: basicMessages.success, redirectUrl: url }, { status: httpStatus.http200ok })
+			return NextResponse.json({ message: basicMessages.success, redirectUrl: url }, { status: 200 })
 		}
 
 		logger.error(`${apiPaths.payments.createCheckoutSession} error: session.url missing`)

@@ -49,7 +49,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<Relationsh
 				),
 		)
 
-		if (!relationshipsResult) return NextResponse.json({ message: 'no relationships found' }, { status: httpStatus.http200ok })
+		if (!relationshipsResult) return NextResponse.json({ message: 'no relationships found' }, { status: 200 })
 
 		const merchants = convertEmptyToUndefined(
 			relationshipsResult
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<Relationsh
 				customers,
 				merchants,
 			},
-			{ status: httpStatus.http200ok },
+			{ status: 200 },
 		)
 	} catch (error) {
 		logger.error(`${apiPaths.relationships} error: `, error)

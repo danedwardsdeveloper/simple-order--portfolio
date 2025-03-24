@@ -22,6 +22,7 @@ export async function checkAccess({ request, routeDetail, requireConfirmed, requ
 	const { extractedUserId } = await extractIdFromRequestCookie(request)
 
 	// Delete cookies and sign out?
+	// Get user roles
 
 	if (!extractedUserId) {
 		logger.error(routeDetail, "Couldn't extract user ID")

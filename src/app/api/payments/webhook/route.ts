@@ -21,7 +21,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<StripeWeb
 
 			await webhookHandler(event)
 
-			return NextResponse.json({ message: 'success' }, { status: httpStatus.http200ok })
+			return NextResponse.json({ message: 'success' }, { status: 200 })
 		} catch (error) {
 			logger.error(`${apiPaths.payments.webhook} error: `, error)
 			return NextResponse.json({ message: basicMessages.serviceUnavailable }, { status: httpStatus.http503serviceUnavailable })

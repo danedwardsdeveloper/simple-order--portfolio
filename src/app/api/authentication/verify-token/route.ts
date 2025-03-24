@@ -42,7 +42,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 		}
 
 		logger.success(routeDetail, 'Token validated successfully')
-		return NextResponse.json({ user: compositeUser }, { status: httpStatus.http200ok })
+		return NextResponse.json({ user: compositeUser }, { status: 200 })
 	} catch (error) {
 		logger.error(routeDetail, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })

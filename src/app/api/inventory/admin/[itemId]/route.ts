@@ -70,7 +70,7 @@ export async function DELETE(
 			return NextResponse.json({ message: "product doesn't exist or isn't yours to delete" }, { status: httpStatus.http401unauthorised })
 		}
 
-		return NextResponse.json({ message: basicMessages.success, softDeletedProduct }, { status: httpStatus.http200ok })
+		return NextResponse.json({ message: basicMessages.success, softDeletedProduct }, { status: 200 })
 	} catch (error) {
 		logger.error(`${apiPaths.inventory.merchantPerspective.itemId} error: `, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })

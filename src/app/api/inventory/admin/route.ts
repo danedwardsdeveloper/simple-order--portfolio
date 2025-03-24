@@ -56,7 +56,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<InventoryA
 
 		const inventory = containsItems(foundInventory) ? foundInventory : undefined
 
-		return NextResponse.json({ message: basicMessages.success, inventory }, { status: httpStatus.http200ok })
+		return NextResponse.json({ message: basicMessages.success, inventory }, { status: 200 })
 	} catch (error) {
 		logger.error(`${apiPaths.inventory.merchantPerspective.base} error: `, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
@@ -190,7 +190,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Inventory
 
 		logger.info('Added product: ', addedProduct)
 
-		return NextResponse.json({ message: basicMessages.success, addedProduct }, { status: httpStatus.http200ok })
+		return NextResponse.json({ message: basicMessages.success, addedProduct }, { status: 200 })
 	} catch (error) {
 		logger.error(`${apiPaths.inventory.merchantPerspective.base}`, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })

@@ -90,7 +90,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Authentic
 		const cookieStore = await cookies()
 		cookieStore.set(createCookieWithToken(foundDangerousUser.id, cookieDurations.oneYear))
 
-		return NextResponse.json({ message: basicMessages.success, confirmedUser }, { status: httpStatus.http200ok })
+		return NextResponse.json({ message: basicMessages.success, confirmedUser }, { status: 200 })
 	} catch (error) {
 		if (transactionFailureStatus && transactionFailureMessage) {
 			logger.error(routeDetail, 'Transaction failure: ', transactionFailureMessage)

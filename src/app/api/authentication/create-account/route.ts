@@ -196,7 +196,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 		cookieStore.set(createCookieWithToken(dangerousNewUser.id, cookieDurations.oneYear))
 
 		logger.info(routeDetail, `Account created for ${compositeUser.firstName}`)
-		return NextResponse.json({ message: basicMessages.success, user: compositeUser }, { status: httpStatus.http200ok })
+		return NextResponse.json({ message: basicMessages.success, user: compositeUser }, { status: 200 })
 	} catch (error) {
 		logger.error(routeDetail, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })

@@ -73,7 +73,7 @@ export async function GET(
 				businessName: dangerousMerchantProfile.businessName,
 				availableProducts,
 			},
-			{ status: httpStatus.http200ok },
+			{ status: 200 },
 		)
 	} catch (error) {
 		logger.error(`${apiPaths.inventory.customerPerspective.merchantSlug} error: `, error)
