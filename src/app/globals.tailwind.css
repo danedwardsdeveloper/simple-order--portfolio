@@ -13,7 +13,7 @@
 	/* ShadCN styles ⬆️ */
 	
 	label {
-		@apply mr-2;
+		@apply mr-2 mb-1 block;
 	}
 
 	h1 {
