@@ -17,7 +17,10 @@ export function logAndSanitiseApiResponse({
 		case 'level2warn':
 			logger.warn(routeDetail, message)
 			break
-		case 'level3info':
+		case 'level3success':
+			logger.success(routeDetail, message)
+			break
+		case 'level4info':
 			logger.info(routeDetail, message)
 			break
 		default:

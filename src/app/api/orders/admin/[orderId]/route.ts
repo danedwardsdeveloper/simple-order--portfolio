@@ -188,7 +188,7 @@ export async function PATCH(
 		}
 
 		logAndSanitiseApiResponse({
-			level: 'level3info',
+			level: 'level4info',
 			routeDetail: routeDetail,
 			message: 'Order updated successfully',
 		})
