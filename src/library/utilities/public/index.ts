@@ -18,4 +18,5 @@ export * from './definitions/priceCalculations'
 export * from './definitions/typeChecking'
 export * from './definitions/logAndSanitiseApiResponse'
 export * from './definitions/emailRegex'
+export * from './definitions/mapOrders'
 
