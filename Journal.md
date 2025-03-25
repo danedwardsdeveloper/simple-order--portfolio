@@ -198,3 +198,9 @@ Lots of work on code quality
 -  created `getOrdersData`. This is another extremely useful function
 -  I currently feel like the entire codebase is a mess, however I'm right at the start of getting it properly cleaned up
 -  All the stuff I'm thinking so carefully about with my API is very difficult, and I feel like most developers just cop out - logging errors to the console, rendering technical messages on the page, lots of really bad practices.
+
+# Tuesday 25 March
+
+-  Organised CSS
+-  Created email templates barrel
+-  Worked on /user-flows page that serves as a visual global to-do list
