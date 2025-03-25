@@ -21,13 +21,9 @@ interface Output {
 }
 
 export async function checkAccess({ request, routeDetail, requireConfirmed, requireSubscriptionOrTrial }: Input): Promise<Output> {
-	const { extractedUserId } = await extractIdFromRequestCookie(request)
+	const { extractedUserId, message } = await extractIdFromRequestCookie(request)
 
-	// Delete cookies and sign out?
-	// Get user roles
-
-	if (!extractedUserId) {
-		logger.error(routeDetail, "Couldn't extract user ID")
+	if (!extractedUserId || message === 'token missing') {
 		return {}
 	}
 
