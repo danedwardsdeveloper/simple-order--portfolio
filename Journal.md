@@ -204,3 +204,5 @@ Lots of work on code quality
 -  Organised CSS
 -  Created email templates barrel
 -  Worked on /user-flows page that serves as a visual global to-do list
+-  Filled out user flows data. Everything seems much more manageable now!
+-  Also started using Jira, which seems cool
