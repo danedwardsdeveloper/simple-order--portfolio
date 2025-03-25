@@ -41,7 +41,7 @@ export default function UserFlowPage() {
 						</h2>
 						<div className="flex flex-col gap-y-6">
 							{flow.steps.map((step, index) => (
-								<Step key={step.title} step={step} isLast={index === flow.steps.length - 1} />
+								<Step key={`${step.title}-${index}`} step={step} isLast={index === flow.steps.length - 1} />
 							))}
 						</div>
 					</div>
