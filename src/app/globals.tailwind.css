@@ -4,45 +4,7 @@
 
 @layer base {
 	/* ShadCN styles ⬇️ */
-	*	{
-		@apply border-border;
-	}
-	body {
-		@apply bg-background text-foreground;
-	}
-	/* ShadCN styles ⬆️ */
-	
-	label {
-		@apply mr-2 mb-1 block;
-	}
-
-	h1 {
-		@apply text-3xl font-semibold mb-8;
-	}
-
-	h2 {
-		@apply text-2xl font-semibold;
-	}
-
-	h3 {
-		@apply text-xl font-medium;
-	}
-
-	input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="date"]) {
-		@apply p-2 text-lg bg-slate-50 rounded border-2 border-blue-100 outline-offset-4 focus-visible:outline-orange-400;
-	}
-
-	input[type="checkbox"] {
-		@apply col-start-1 row-start-1 appearance-none rounded border border-gray-300 bg-white 
-           checked:border-blue-600 checked:bg-blue-600 
-           indeterminate:border-blue-600 indeterminate:bg-blue-600 
-           focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-400 
-           disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 
-           forced-colors:appearance-auto outline-offset-4;
-	}
-	
-	/* ShadCN styles ⬇️ */
-  :root {
+	:root {
 		--background: 0 0% 100%;
 		--foreground: 240 10% 3.9%;
 		--card: 0 0% 100%;
@@ -67,9 +29,46 @@
 		--chart-3: 197 37% 24%;
 		--chart-4: 43 74% 66%;
 		--chart-5: 27 87% 67%;
-		--radius: 0.5rem
+		--radius: 0.5rem;
+	}
+	* {
+		@apply border-border;
+	}
+	body {
+		@apply bg-background text-foreground;
 	}
 	/* ShadCN styles ⬆️ */
+
+	label {
+		@apply mr-2 mb-1 block;
+	}
+
+	h1 {
+		@apply text-3xl font-semibold mb-8;
+	}
+
+	h2 {
+		@apply text-2xl font-semibold;
+	}
+
+	h3 {
+		@apply text-xl font-medium;
+	}
+
+	input:not([type='checkbox']):not([type='radio']):not([type='range']):not(
+			[type='date']
+		) {
+		@apply p-2 text-lg bg-slate-50 rounded border-2 border-blue-100 outline-offset-4 focus-visible:outline-orange-400;
+	}
+
+	input[type='checkbox'] {
+		@apply col-start-1 row-start-1 appearance-none rounded border border-gray-300 bg-white 
+			checked:border-blue-600 checked:bg-blue-600 
+			indeterminate:border-blue-600 indeterminate:bg-blue-600 
+			focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-400 
+			disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 
+			forced-colors:appearance-auto outline-offset-4;
+	}
 }
 
 @layer components {
@@ -89,12 +88,12 @@
 		@apply transition-all duration-300 text-zinc-600;
 	}
 	.link-primary {
-		@apply link hover:text-blue-600 active:text-blue-700
+		@apply link hover:text-blue-600 active:text-blue-700;
 	}
 	.link-secondary {
-		@apply link hover:text-zinc-700 active:text-zinc-800
+		@apply link hover:text-zinc-700 active:text-zinc-800;
 	}
 	.link-danger {
-		@apply link hover:text-red-600 active:text-red-700
+		@apply link hover:text-red-600 active:text-red-700;
 	}
 }
