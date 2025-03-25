@@ -11,7 +11,7 @@ import {
 import { database } from '@/library/database/connection'
 import { confirmationTokens, freeTrials, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
-import { createNewMerchantEmail } from '@/library/email/templates/newMerchant'
+import { createNewMerchantEmail } from '@/library/email/templates'
 import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import logger from '@/library/logger'
 import {

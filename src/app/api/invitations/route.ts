@@ -3,8 +3,7 @@ import { database } from '@/library/database/connection'
 import { checkAccess, checkRelationship } from '@/library/database/operations'
 import { invitations, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
-import { createExistingUserInvitation } from '@/library/email/templates/invitations/existingUser'
-import { createNewUserInvitation } from '@/library/email/templates/invitations/newUser'
+import { createExistingUserInvitation, createNewUserInvitation } from '@/library/email/templates'
 import logger from '@/library/logger'
 import {
 	convertEmptyToUndefined,
