@@ -61,6 +61,7 @@
 		@apply p-2 text-lg bg-slate-50 rounded border-2 border-blue-100 outline-offset-4 focus-visible:outline-orange-400;
 	}
 
+	/* Not in use - could potentially be deleted. 25 March 2025 */
 	input[type='checkbox'] {
 		@apply col-start-1 row-start-1 appearance-none rounded border border-gray-300 bg-white 
 			checked:border-blue-600 checked:bg-blue-600 
