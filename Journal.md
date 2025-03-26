@@ -206,3 +206,13 @@ Lots of work on code quality
 -  Worked on /user-flows page that serves as a visual global to-do list
 -  Filled out user flows data. Everything seems much more manageable now!
 -  Also started using Jira, which seems cool
+
+# Wednesday 26 March
+
+-  Last night I started reading a book called `Testing JavaScript Applications` and it has blown my mind! I need to start writing lots of unit tests. My end-to-end tests before were ambitious, but they couldn't be as reliable as unit tests.
+-  When I woke up this morning my my was much clearer about my new route logging system too. I think I've come up with something quite elegant, and this will work great with my tests.
+-  Learned the joy of JSDoc comments. I have seen these all over before and had no idea I could write them myself!
+-  Refactored `/api/create-account`
+-  Installed Vitest
+-  Wrote first route test file
+-  Will probably need to use Zod as my requirements are quite specific
