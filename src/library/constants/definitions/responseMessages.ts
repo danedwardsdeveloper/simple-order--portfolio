@@ -1,3 +1,16 @@
+/**
+ * Grammarly-check user-friendly messages that can be rendered on the browser
+ */
+export const userMessages = {
+	emailTaken: 'This email address is already in use. Please try a different one or sign in.',
+	businessNameTaken: 'This business name is already taken. Please choose another.',
+	databaseError: 'Sorry, something went wrong. Please try again later.',
+	serverError: 'Sorry, something went wrong. Please try again later.',
+} as const
+
+/**
+ * @deprecated Since 25 March 2025. This system is no longer being used.
+ */
 export const systemMessages = {
 	badRequest: 'bad request',
 	serverError: 'server error',
@@ -12,6 +25,9 @@ export const systemMessages = {
 	userNotFound: 'user not found',
 } as const
 
+/**
+ * @deprecated Since 25 March 2025. This system is no longer being used.
+ */
 export const unauthorisedMessages = {
 	tokenExpired: systemMessages.tokenExpired,
 	tokenInvalid: systemMessages.tokenInvalid,
@@ -21,16 +37,9 @@ export const unauthorisedMessages = {
 	userNotFound: systemMessages.userNotFound,
 } as const
 
-export const userMessages = {
-	databaseError: 'Sorry, something went wrong. Please try again later.',
-	serverError: 'Sorry, something went wrong. Please try again later.',
-	signIn: 'Please sign in again',
-	noOrdersMade: "You haven't made any orders yet",
-	noOrdersReceived: "You haven't received any orders yet",
-} as const
-
-// Everything below this comment is being phased out.
-
+/**
+ * @deprecated Since 25 March 2025. This system is no longer being used.
+ */
 export const basicMessages = {
 	databaseError: 'database error',
 	errorSendingEmail: 'error sending email',
@@ -43,6 +52,9 @@ export const basicMessages = {
 	error: 'error',
 } as const
 
+/**
+ * @deprecated Since 25 March 2025. This system is no longer being used.
+ */
 export const missingFieldMessages = {
 	nameMissing: 'name missing',
 	lastNameMissing: 'lastName missing',
@@ -57,6 +69,9 @@ export const missingFieldMessages = {
 	merchantSlugMissing: 'merchantSlug missing',
 } as const
 
+/**
+ * @deprecated Since 25 March 2025. This system is no longer being used.
+ */
 export const authenticationMessages = {
 	alreadyConfirmed: 'already confirmed',
 	authorisationError: 'authorisation error',
@@ -73,6 +88,9 @@ export const authenticationMessages = {
 	unauthorised: 'unauthorised',
 } as const
 
+/**
+ * @deprecated Since 25 March 2025. This system is no longer being used.
+ */
 export const illegalCharactersMessages = {
 	businessName: 'businessName contains illegal characters',
 	description: 'description contains illegal characters',
@@ -83,11 +101,17 @@ export const illegalCharactersMessages = {
 	customerNote: 'customerNote contains illegal characters',
 } as const
 
+/**
+ * @deprecated Since 25 March 2025. This system is no longer being used.
+ */
 export const invalidFieldsMessages = {
 	customerNote: 'customerNote invalid',
 	requestedDelivery: 'requestedDeliveryDate invalid',
 } as const
 
+/**
+ * @deprecated Since 25 March 2025. This system is no longer being used.
+ */
 export const tokenMessages = {
 	userNotFound: 'user not found',
 	tokenMissing: 'token missing',
@@ -96,11 +120,17 @@ export const tokenMessages = {
 	tokenUsed: 'token used',
 } as const
 
+/**
+ * @deprecated Since 25 March 2025. This system is no longer being used.
+ */
 export const relationshipMessages = {
 	relationshipExists: 'relationship exists',
 	relationshipMissing: 'relationship missing',
 } as const
 
+/**
+ * @deprecated Since 25 March 2025. This system is no longer being used.
+ */
 export const serviceConstraintMessages = {
 	customerNoteTooLong: 'customerNote too long',
 } as const
