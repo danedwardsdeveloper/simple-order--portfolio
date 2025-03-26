@@ -3,6 +3,8 @@ import type { LogLevel } from '@/types'
 export const isProduction = process.env.NODE_ENV === 'production'
 export const isDevelopment = process.env.NODE_ENV === 'development'
 
+export const developmentDatabaseString = 'postgresql://localhost/simple_order_dev'
+
 export const siteIsLaunched = false
 
 export const bareProductionDomain = 'simple-order.fly.dev'
