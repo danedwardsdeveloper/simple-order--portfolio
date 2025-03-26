@@ -5,7 +5,7 @@ import type { InvitationsGETresponse } from '@/app/api/invitations/route'
 import type { OrdersAdminGETresponse } from '@/app/api/orders/admin/route'
 import type { OrdersGETresponse } from '@/app/api/orders/route'
 import type { RelationshipsGETresponse } from '@/app/api/relationships/route'
-import { apiPaths, temporaryVat } from '@/library/constants'
+import { apiPaths, temporaryVat, userMessages } from '@/library/constants'
 import logger from '@/library/logger'
 import type {
 	BrowserSafeCompositeUser,
@@ -89,7 +89,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 							? [getOrdersMade()]
 							: user.roles === 'merchant'
 								? [getInventory(), getOrdersReceived()]
-								: [getOrdersMade(), getOrdersReceived(), getInventory()] // roles === 'both
+								: [getOrdersMade(), getOrdersReceived(), getInventory()]
 
 					await Promise.all([...basePromises, ...rolePromises])
 				} else if (message === 'token expired' || message === 'token invalid' || message === 'user not found') {
@@ -167,16 +167,18 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 		}
 
 		async function getOrdersReceived() {
-			const { ordersReceived, message }: OrdersAdminGETresponse = await (
-				await fetch(apiPaths.orders.merchantPerspective.base, { credentials: 'include' })
-			).json()
+			const response = await fetch(apiPaths.orders.merchantPerspective.base, { credentials: 'include' })
 
-			if (message === 'success' && ordersReceived) {
-				setOrdersReceived(ordersReceived)
-			} else if (message === 'success, no orders') {
-				return
+			const { ordersReceived, userMessage }: OrdersAdminGETresponse = await response.json()
+
+			if (response.ok) {
+				setOrdersReceived(ordersReceived || null)
 			} else {
-				logger.error('providers/user getOrdersReceived error: ', message)
+				createNotification({
+					title: 'Error',
+					level: 'error',
+					message: userMessage || userMessages.serverError,
+				})
 			}
 		}
 
