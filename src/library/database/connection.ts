@@ -1,12 +1,10 @@
 import { sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
-import { isProduction } from '../environment/publicVariables'
-import { developmentDatabaseString, productionDatabaseString } from '../environment/serverVariables'
+import { developmentDatabaseString, isProduction } from '../environment/publicVariables'
+import { productionDatabaseString } from '../environment/serverVariables'
 import logger from '../logger'
 
-const connectionString = isProduction ? productionDatabaseString : developmentDatabaseString
-
-export const database = drizzle(connectionString)
+export const database = drizzle(isProduction ? productionDatabaseString : developmentDatabaseString)
 
 export async function testDatabaseConnection() {
 	try {
