@@ -69,16 +69,14 @@ export default function CreateAccountPage() {
 				body: JSON.stringify(requestBody),
 			})
 
-			const { message, user }: CreateAccountPOSTresponse = await response.json()
-			logger.debug(message, user)
-
+			const { userMessage, user }: CreateAccountPOSTresponse = await response.json()
 			if (user) {
 				// Must be merchant mode for new free-trials
 				setMerchantMode(true)
 				setUser(user)
 				router.push('/dashboard')
-			} else {
-				setErrorMessage(message)
+			} else if (userMessage) {
+				setErrorMessage(userMessage)
 			}
 			return
 		} catch (error) {

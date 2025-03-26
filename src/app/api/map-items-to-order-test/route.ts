@@ -5,18 +5,16 @@ import { type NextRequest, NextResponse } from 'next/server'
 const routeDetail = 'GET map-items-to-order-test:'
 
 export async function GET(request: NextRequest) {
-	// Validate user
-	const { foundDangerousUser } = await checkAccess({
+	const { dangerousUser } = await checkAccess({
 		request,
 		routeDetail,
 		requireConfirmed: false,
 		requireSubscriptionOrTrial: false,
 	})
 
-	if (!foundDangerousUser) return NextResponse.json({ status: 400 })
+	if (!dangerousUser) return NextResponse.json({ status: 400 })
 
-	// Get orders data
-	const { ordersReceivedData } = await getOrdersData({ userId: foundDangerousUser.id, returnType: 'ordersReceived', routeDetail })
+	const { ordersReceivedData } = await getOrdersData({ userId: dangerousUser.id, returnType: 'ordersReceived', routeDetail })
 
 	let ordersReceived = undefined
 
@@ -30,7 +28,7 @@ export async function GET(request: NextRequest) {
 		}).ordersReceived
 	}
 
-	const { ordersMadeData } = await getOrdersData({ userId: foundDangerousUser.id, returnType: 'ordersMade', routeDetail })
+	const { ordersMadeData } = await getOrdersData({ userId: dangerousUser.id, returnType: 'ordersMade', routeDetail })
 
 	let ordersMade = undefined
 

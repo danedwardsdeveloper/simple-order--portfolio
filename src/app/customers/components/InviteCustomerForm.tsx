@@ -23,7 +23,7 @@ export default function InviteCustomerForm() {
 		setLoading(true)
 
 		try {
-			const { message, browserSafeInvitationRecord }: InvitationsPOSTresponse = await (
+			const { userMessage, browserSafeInvitationRecord }: InvitationsPOSTresponse = await (
 				await fetch(apiPaths.invitations.base, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
@@ -31,7 +31,7 @@ export default function InviteCustomerForm() {
 				})
 			).json()
 
-			if (message === 'success' && browserSafeInvitationRecord) {
+			if (browserSafeInvitationRecord) {
 				createNotification({
 					level: 'success',
 					title: 'Success',
@@ -40,9 +40,9 @@ export default function InviteCustomerForm() {
 				// ToDo: check this logic
 				setInvitationsSent((prev) => (prev ? [browserSafeInvitationRecord, ...prev] : []))
 				setInvitedEmail('')
-			} else {
-				setResponseMessage(message)
 			}
+
+			if (userMessage) setResponseMessage(userMessage)
 		} catch (error) {
 			logger.error('Error sending new invitation fetch request', error)
 			setResponseMessage('Unknown error')

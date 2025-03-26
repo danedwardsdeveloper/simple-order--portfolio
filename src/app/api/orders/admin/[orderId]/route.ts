@@ -12,7 +12,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 export interface OrderAdminOrderIdPATCHresponse {
 	developerMessage?: string
-	userMessage?: typeof userMessages.serverError | 'Order updated successfully' | typeof userMessages.signIn
+	userMessage?: typeof userMessages.serverError
 	updatedOrder?: OrderAdminOrderIdPATCHbody
 }
 
@@ -192,7 +192,7 @@ export async function PATCH(
 			routeDetail: routeDetail,
 			message: 'Order updated successfully',
 		})
-		return NextResponse.json({ userMessage: 'Order updated successfully', updatedOrder }, { status: 200 })
+		return NextResponse.json({ updatedOrder }, { status: 200 })
 	} catch (error) {
 		const developerMessage = logAndSanitiseApiResponse({
 			message: 'caught server error',

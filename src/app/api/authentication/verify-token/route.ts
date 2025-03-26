@@ -17,23 +17,23 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 	const cookieStore = await cookies()
 
 	try {
-		const { foundDangerousUser } = await checkAccess({
+		const { dangerousUser } = await checkAccess({
 			request,
 			requireConfirmed: false,
 			requireSubscriptionOrTrial: false,
 			routeDetail,
 		})
 
-		if (!foundDangerousUser) {
+		if (!dangerousUser) {
 			cookieStore.delete(cookieNames.token)
 			return NextResponse.json({ message: 'Please sign in' }, { status: 400 })
 		}
 
-		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(foundDangerousUser.id, foundDangerousUser.cachedTrialExpired)
+		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(dangerousUser.id, dangerousUser.cachedTrialExpired)
 
-		const { userRole } = await getUserRoles(foundDangerousUser)
+		const { userRole } = await getUserRoles(dangerousUser)
 
-		const baseUser = sanitiseDangerousBaseUser(foundDangerousUser)
+		const baseUser = sanitiseDangerousBaseUser(dangerousUser)
 
 		const compositeUser: BrowserSafeCompositeUser = {
 			...baseUser,
