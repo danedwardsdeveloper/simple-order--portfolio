@@ -1,129 +1,111 @@
-import {
-	apiPaths,
-	authenticationMessages,
-	basicMessages,
-	cookieDurations,
-	durationSettings,
-	httpStatus,
-	illegalCharactersMessages,
-	missingFieldMessages,
-} from '@/library/constants'
+import { apiPaths, cookieDurations, durationSettings, httpStatus, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { confirmationTokens, freeTrials, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import { createNewMerchantEmail } from '@/library/email/templates'
 import { dynamicBaseURL } from '@/library/environment/publicVariables'
-import logger from '@/library/logger'
 import {
 	containsIllegalCharacters,
 	createFreeTrialEndTime,
 	createMerchantSlug,
 	emailRegex,
 	generateUuid,
+	initialiseDevelopmentLogger,
 	sanitiseDangerousBaseUser,
 } from '@/library/utilities/public'
-import { createCookieWithToken } from '@/library/utilities/server'
-import type {
-	BaseUserInsertValues,
-	BrowserSafeCompositeUser,
-	DangerousBaseUser,
-	IllegalCharactersMessages,
-	MissingFieldMessages,
-	NewFreeTrial,
-} from '@/types'
+import { createCookieWithToken, equals, or } from '@/library/utilities/server'
+import type { BaseUserInsertValues, BrowserSafeCompositeUser, DangerousBaseUser, NewFreeTrial, UserMessages } from '@/types'
 import bcrypt from 'bcryptjs'
-import { eq, or } from 'drizzle-orm'
 import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
 
-export interface CreateAccountPOSTbody
-	extends Omit<BaseUserInsertValues, 'hashedPassword' | 'emailConfirmed' | 'cachedTrialExpired' | 'slug'> {
+export interface CreateAccountPOSTbody extends Pick<BaseUserInsertValues, 'firstName' | 'lastName' | 'businessName' | 'email'> {
 	password: string
 }
 
 export interface CreateAccountPOSTresponse {
-	message:
-		| typeof missingFieldMessages.lastNameMissing
-		| typeof missingFieldMessages.firstNameMissing
-		| typeof missingFieldMessages.emailMissing
-		| typeof missingFieldMessages.businessNameMissing
-		| typeof missingFieldMessages.passwordMissing
-		| typeof authenticationMessages.invalidEmailFormat
-		| typeof authenticationMessages.emailTaken
-		| typeof authenticationMessages.businessNameTaken
-		| typeof basicMessages.success
-		| typeof basicMessages.serverError
-		| typeof basicMessages.serviceUnavailable
-		| IllegalCharactersMessages
+	developmentMessage?: string
+	userMessage?: UserMessages
 	user?: BrowserSafeCompositeUser
 }
 
-const routeDetail = `POST ${apiPaths.authentication.createAccount}:`
-
 export async function POST(request: NextRequest): Promise<NextResponse<CreateAccountPOSTresponse>> {
+	const developmentLogger = initialiseDevelopmentLogger(`POST ${apiPaths.authentication.createAccount}:`)
+
 	const { firstName, lastName, email, password, businessName }: CreateAccountPOSTbody = await request.json()
 
-	let missingFieldMessage: MissingFieldMessages | null = null
-	if (!firstName) missingFieldMessage = missingFieldMessages.firstNameMissing
-	if (!lastName) missingFieldMessage = missingFieldMessages.lastNameMissing
-	if (!email) missingFieldMessage = missingFieldMessages.emailMissing
-	if (!password) missingFieldMessage = missingFieldMessages.passwordMissing
-	if (!businessName) missingFieldMessage = missingFieldMessages.businessNameMissing
+	let missingFieldMessage = null
 
-	if (missingFieldMessage) {
-		logger.warn(routeDetail, missingFieldMessage)
-		return NextResponse.json({ message: missingFieldMessage }, { status: httpStatus.http400badRequest })
+	if (!firstName) {
+		missingFieldMessage = 'firstName missing'
+	} else if (!lastName) {
+		missingFieldMessage = 'lastName missing'
+	} else if (!email) {
+		missingFieldMessage = 'email missing'
+	} else if (!password) {
+		missingFieldMessage = 'password missing'
+	} else if (!businessName) {
+		missingFieldMessage = 'businessName missing'
 	}
 
-	let illegalCharactersMessage: IllegalCharactersMessages | null = null
-	if (containsIllegalCharacters(firstName)) illegalCharactersMessage = illegalCharactersMessages.firstName
-	if (containsIllegalCharacters(lastName)) illegalCharactersMessage = illegalCharactersMessages.lastName
-	if (containsIllegalCharacters(password)) illegalCharactersMessage = illegalCharactersMessages.password
-	if (containsIllegalCharacters(businessName)) illegalCharactersMessage = illegalCharactersMessages.businessName
+	if (missingFieldMessage) {
+		const developmentMessage = developmentLogger(missingFieldMessage)
+		return NextResponse.json({ developmentMessage }, { status: 400 })
+	}
+
+	let illegalCharactersMessage = null
+	if (containsIllegalCharacters(firstName)) {
+		illegalCharactersMessage = 'firstName contains illegal characters'
+	} else if (containsIllegalCharacters(lastName)) {
+		illegalCharactersMessage = 'lastName contains illegal characters'
+	} else if (containsIllegalCharacters(password)) {
+		illegalCharactersMessage = 'password contains illegal characters'
+	} else if (containsIllegalCharacters(businessName)) {
+		illegalCharactersMessage = 'businessName contains illegal characters'
+	}
 
 	if (illegalCharactersMessage) {
-		logger.warn(routeDetail, illegalCharactersMessage)
-		return NextResponse.json({ message: illegalCharactersMessage }, { status: httpStatus.http400badRequest })
+		const developmentMessage = developmentLogger(illegalCharactersMessage)
+		return NextResponse.json({ developmentMessage }, { status: 400 })
 	}
 
 	const normalisedEmail = email.toLowerCase().trim()
+
 	if (!emailRegex.test(normalisedEmail)) {
-		logger.warn(routeDetail, authenticationMessages.invalidEmailFormat)
-		return NextResponse.json({ message: authenticationMessages.invalidEmailFormat }, { status: httpStatus.http400badRequest })
+		const developmentMessage = developmentLogger('Invalid email format')
+		return NextResponse.json({ developmentMessage }, { status: 400 })
 	}
 
 	try {
 		const [existingUser] = await database
 			.select()
 			.from(users)
-			.where(or(eq(users.email, normalisedEmail), eq(users.businessName, businessName)))
+			.where(or(equals(users.email, normalisedEmail), equals(users.businessName, businessName)))
 			.limit(1)
 
 		if (existingUser) {
 			if (existingUser.email === normalisedEmail) {
-				logger.warn(routeDetail, authenticationMessages.emailTaken)
-				return NextResponse.json({ message: authenticationMessages.emailTaken }, { status: httpStatus.http409conflict })
+				return NextResponse.json({ userMessage: userMessages.emailTaken }, { status: httpStatus.http409conflict })
 			}
 
 			if (existingUser.businessName === businessName) {
-				logger.warn(routeDetail, authenticationMessages.businessNameTaken)
-				return NextResponse.json({ message: authenticationMessages.businessNameTaken }, { status: httpStatus.http409conflict })
+				return NextResponse.json({ userMessage: userMessages.businessNameTaken }, { status: httpStatus.http409conflict })
 			}
 		}
 
-		const saltRounds = 10
-		const hashedPassword = await bcrypt.hash(password, saltRounds)
+		const hashedPassword = await bcrypt.hash(password, 10)
 
-		// ToDo: Use proper codes
-		let transactionErrorMessage: string | null = basicMessages.serverError
+		let transactionErrorMessage: string | null = 'transaction error'
 		let transactionErrorStatusCode: number | null = httpStatus.http503serviceUnavailable
+
+		let confirmationURL: string | null = null
 
 		const { dangerousNewUser } = await database.transaction(async (tx) => {
 			const baseSlug = createMerchantSlug(businessName)
 			let slug = baseSlug
 
 			for (let attempt = 0; attempt < 10; attempt++) {
-				const existingSlug = await tx.select().from(users).where(eq(users.slug, slug)).limit(1)
+				const existingSlug = await tx.select().from(users).where(equals(users.slug, slug)).limit(1)
 
 				if (existingSlug.length === 0) break
 				slug = `${baseSlug}-${attempt + 1}`
@@ -158,11 +140,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 				expiresAt: new Date(Date.now() + durationSettings.confirmEmailExpiry),
 			})
 
-			const confirmationURL = `${dynamicBaseURL}/confirm?token=${emailConfirmationToken}`
-			logger.info('Confirmation URL: ', confirmationURL)
+			confirmationURL = `${dynamicBaseURL}/confirm?token=${emailConfirmationToken}`
 
-			// Optimisation ToDo: style the email and craft the wording carefully
-			transactionErrorMessage = basicMessages.errorSendingEmail
+			transactionErrorMessage = 'error sending email'
 			const emailSentSuccessfully = await sendEmail({
 				recipientEmail: email,
 				...createNewMerchantEmail({
@@ -179,9 +159,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 			return { dangerousNewUser }
 		})
 
-		if (transactionErrorMessage || transactionErrorStatusCode) {
-			logger.warn(routeDetail, transactionErrorMessage)
-			return NextResponse.json({ message: basicMessages.serviceUnavailable }, { status: httpStatus.http503serviceUnavailable })
+		if (transactionErrorMessage && transactionErrorStatusCode) {
+			const developmentMessage = developmentLogger(transactionErrorMessage)
+			return NextResponse.json({ developmentMessage }, { status: transactionErrorStatusCode })
 		}
 
 		const sanitisedBaseUser = sanitiseDangerousBaseUser(dangerousNewUser)
@@ -195,10 +175,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 		const cookieStore = await cookies()
 		cookieStore.set(createCookieWithToken(dangerousNewUser.id, cookieDurations.oneYear))
 
-		logger.info(routeDetail, `Account created for ${compositeUser.firstName}`)
-		return NextResponse.json({ message: basicMessages.success, user: compositeUser }, { status: 200 })
+		developmentLogger(`Account created for ${compositeUser.firstName}.  Confirmation URL: ${confirmationURL}`, 'level3success')
+
+		return NextResponse.json({ user: compositeUser }, { status: 200 })
 	} catch (error) {
-		logger.error(routeDetail, error)
-		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
+		developmentLogger('Caught error', 'level1error', error)
+		return NextResponse.json({ userMessage: userMessages.serverError }, { status: 500 })
 	}
 }
