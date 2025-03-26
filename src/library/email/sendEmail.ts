@@ -6,7 +6,7 @@ import logger from '@/library/logger'
 import type { SendEmailBody, TestEmail, TestEmailInsertValues } from '@/types'
 import { database } from '../database/connection'
 import { testEmailInbox } from '../database/schema'
-import { bareLaunchedDomain, isDevelopment } from '../environment/publicVariables'
+import { bareLaunchedDomain, isProduction } from '../environment/publicVariables'
 import emailClient from './client'
 
 export const sendEmail = async ({ recipientEmail, subject, htmlVersion, textVersion }: SendEmailBody): Promise<boolean> => {
@@ -21,7 +21,7 @@ export const sendEmail = async ({ recipientEmail, subject, htmlVersion, textVers
 		if (!addedToTestEmailInbox) return false
 
 		// In development, don't actually send emails, except to myself
-		if (isDevelopment && !(recipientEmail.trim().toLowerCase() === myPersonalEmail)) {
+		if (!isProduction && !(recipientEmail.trim().toLowerCase() === myPersonalEmail)) {
 			logger.info(`Intercepted email to ${recipientEmail}. No email sent`)
 			return true
 		}
