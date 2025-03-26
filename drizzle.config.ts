@@ -1,18 +1,12 @@
-import logger from '@/library/logger'
+import { databaseConnectionStrings } from '@/library/environment/serverVariables'
 import type { Config } from 'drizzle-kit'
-
-import { developmentDatabaseString, productionDatabaseString } from '@/library/environment/serverVariables'
-
-const useLocalDatabase = true
-
-logger.info(`Using ${useLocalDatabase ? 'local' : 'production'} database`)
 
 export default {
 	dialect: 'postgresql',
 	schema: './src/library/database/schema.ts',
 	out: './drizzle',
 	dbCredentials: {
-		url: useLocalDatabase ? developmentDatabaseString : productionDatabaseString,
+		url: databaseConnectionStrings.test,
 	},
 	verbose: true,
 	strict: true,
