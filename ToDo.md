@@ -1,6 +1,6 @@
 ## Current Task
 
--  Work on checkAccess
+-  Write tests for `/api/create-account`
    .
 
 .
@@ -57,6 +57,7 @@
 
 ## Things I could do...
 
+-  Refactor create-account/route.ts
 -  Database operation that gets order details
 -  Function that maps order items, and products to an order
 -  Think about user flows and prioritise what to work on
