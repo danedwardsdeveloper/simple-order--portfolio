@@ -54,6 +54,26 @@ describe('POST /api/authentication/create-account', () => {
 		const response = await POST(createTestRequest(body))
 		expect(response.status).toBe(400)
 	})
+
+	const successfulBody: CreateAccountPOSTbody = {
+		firstName: 'Dan',
+		lastName: 'Edwards',
+		businessName: 'Golden Bakery',
+		email: 'goldenbakery@notarealwebsite.com',
+		password: 'securePassword123',
+	}
+
+	test('successfully creates an account', async () => {
+		const response = await POST(createTestRequest(successfulBody))
+		expect(response.status).toBe(201)
+	})
+
+	const duplicatedBody = successfulBody
+
+	test('fails to create an account with the same credentials twice', async () => {
+		const response = await POST(createTestRequest(duplicatedBody))
+		expect(response.status).toBe(409)
+	})
 })
 
 /* 
