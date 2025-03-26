@@ -177,7 +177,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 
 		developmentLogger(`Account created for ${compositeUser.firstName}.  Confirmation URL: ${confirmationURL}`, 'level3success')
 
-		return NextResponse.json({ user: compositeUser }, { status: 200 })
+		return NextResponse.json({ user: compositeUser }, { status: httpStatus.http201created })
 	} catch (error) {
 		developmentLogger('Caught error', 'level1error', error)
 		return NextResponse.json({ userMessage: userMessages.serverError }, { status: 500 })
