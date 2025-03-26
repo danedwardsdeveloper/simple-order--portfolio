@@ -1,7 +1,6 @@
 ## Current Task
 
--  Write tests for `/api/create-account`
-   .
+.
 
 .
 
@@ -57,6 +56,9 @@
 
 ## Things I could do...
 
+-  Fill out the rest of my requirements
+-  Create a test database
+-  Database handling for tests
 -  Refactor create-account/route.ts
 -  Database operation that gets order details
 -  Function that maps order items, and products to an order
