@@ -1,6 +1,6 @@
 ## Current Task
 
-      .
+Refactor `/api/orders/route.ts` 1. Save the data it currently returns 2. Refactor 3. Check it returns the same data
 
 .
 
