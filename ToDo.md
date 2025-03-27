@@ -1,6 +1,7 @@
 ## Current Task
 
-.
+-  Refactor `/api/orders/admin`
+   .
 
 .
 
@@ -56,7 +57,9 @@
 
 ## Things I could do...
 
--  Fill out the rest of my requirements
+-  Create a delete user records transactional database operation
+-  Make create-account-route.test.ts more comprehensive
+-  Fill out the rest of my user flows
 -  Create a test database
 -  Database handling for tests
 -  Refactor create-account/route.ts
