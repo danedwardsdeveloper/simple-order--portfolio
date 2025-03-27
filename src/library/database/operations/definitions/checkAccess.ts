@@ -7,20 +7,28 @@ import type { DangerousBaseUser } from '@/types'
 import type { NextRequest } from 'next/server'
 import { checkActiveSubscriptionOrTrial } from './checkActiveSubscriptionOrTrial'
 
-interface Input {
+/**
+ * Validates user access permissions for protected routes
+ * @param {Object} params - The parameters object
+ * @param {NextRequest} params.request - The Next.js request object containing cookies
+ * @param {string} params.routeSignature - Identifier for the route being accessed for logging
+ * @param {boolean} params.requireConfirmed
+ * @param {boolean} params.requireSubscriptionOrTrial
+ */
+export async function checkAccess({
+	request,
+	routeSignature,
+	requireConfirmed,
+	requireSubscriptionOrTrial,
+}: {
 	request: NextRequest
 	routeSignature: string
 	requireConfirmed: boolean
 	requireSubscriptionOrTrial: boolean
-	// checkRoles: boolean
-	// checkRelationshipWith: number
-}
-
-interface Output {
+}): Promise<{
 	dangerousUser?: DangerousBaseUser
-}
-
-export async function checkAccess({ request, routeSignature, requireConfirmed, requireSubscriptionOrTrial }: Input): Promise<Output> {
+	trialExpiry?: Date
+}> {
 	const { extractedUserId, message } = await extractIdFromRequestCookie(request)
 
 	if (!extractedUserId || message === 'token missing') {
@@ -39,13 +47,15 @@ export async function checkAccess({ request, routeSignature, requireConfirmed, r
 		return {}
 	}
 
-	if (requireSubscriptionOrTrial) {
-		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(dangerousUser.id, dangerousUser.cachedTrialExpired)
-		if (!activeSubscriptionOrTrial) {
-			logger.error(routeSignature, 'Active trial or subscription not found')
-			return {}
-		}
+	const { activeSubscriptionOrTrial, trialExpiry } = await checkActiveSubscriptionOrTrial(
+		dangerousUser.id,
+		dangerousUser.cachedTrialExpired,
+	)
+
+	if (requireSubscriptionOrTrial && !activeSubscriptionOrTrial) {
+		logger.error(routeSignature, 'Active trial or subscription not found')
+		return {}
 	}
 
-	return { dangerousUser }
+	return { dangerousUser, trialExpiry }
 }
