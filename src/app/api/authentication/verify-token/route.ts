@@ -29,7 +29,10 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 			return NextResponse.json({ message: 'Please sign in' }, { status: 400 })
 		}
 
-		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(dangerousUser.id, dangerousUser.cachedTrialExpired)
+		const { activeSubscriptionOrTrial, trialExpiry } = await checkActiveSubscriptionOrTrial(
+			dangerousUser.id,
+			dangerousUser.cachedTrialExpired,
+		)
 
 		const { userRole } = await getUserRoles(dangerousUser)
 
@@ -39,6 +42,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 			...baseUser,
 			roles: userRole,
 			activeSubscriptionOrTrial,
+			trialExpiry,
 		}
 
 		logger.success(routeSignature, 'Token validated successfully')
