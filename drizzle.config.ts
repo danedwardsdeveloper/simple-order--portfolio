@@ -1,4 +1,4 @@
-import { databaseConnectionStrings } from '@/library/environment/serverVariables'
+import { developmentDatabaseString } from '@/library/environment/publicVariables'
 import type { Config } from 'drizzle-kit'
 
 export default {
@@ -6,7 +6,7 @@ export default {
 	schema: './src/library/database/schema.ts',
 	out: './drizzle',
 	dbCredentials: {
-		url: databaseConnectionStrings.test,
+		url: developmentDatabaseString,
 	},
 	verbose: true,
 	strict: true,
