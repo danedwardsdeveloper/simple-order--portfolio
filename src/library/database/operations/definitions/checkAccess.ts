@@ -1,10 +1,10 @@
+import { database } from '@/library/database/connection'
+import { users } from '@/library/database/schema'
 import logger from '@/library/logger'
-import { extractIdFromRequestCookie } from '@/library/utilities/server'
 import { equals } from '@/library/utilities/server'
+import { extractIdFromRequestCookie } from '@/library/utilities/server'
 import type { DangerousBaseUser } from '@/types'
 import type { NextRequest } from 'next/server'
-import { database } from '../../connection'
-import { users } from '../../schema'
 import { checkActiveSubscriptionOrTrial } from './checkActiveSubscriptionOrTrial'
 
 interface Input {
