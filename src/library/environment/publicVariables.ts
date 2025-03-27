@@ -7,7 +7,7 @@ export const developmentDatabaseString = 'postgresql://localhost/simple_order_de
 
 export const siteIsLaunched = false
 
-export const bareProductionDomain = 'simple-order.fly.dev'
+export const bareProductionDomain = 'simple-order-management.vercel.app'
 export const bareLaunchedDomain = 'simpleorder.co.uk'
 
 export const productionBaseURL = `https://${bareProductionDomain}`
