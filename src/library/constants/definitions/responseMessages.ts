@@ -1,14 +1,4 @@
 /**
- * Grammarly-check user-friendly messages that can be rendered on the browser
- */
-export const userMessages = {
-	emailTaken: 'This email address is already in use. Please try a different one or sign in.',
-	businessNameTaken: 'This business name is already taken. Please choose another.',
-	databaseError: 'Sorry, something went wrong. Please try again later.',
-	serverError: 'Sorry, something went wrong. Please try again later.',
-} as const
-
-/**
  * @deprecated Since 25 March 2025. This system is no longer being used.
  */
 export const systemMessages = {
