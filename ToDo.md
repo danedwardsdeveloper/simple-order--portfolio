@@ -1,7 +1,6 @@
 ## Current Task
 
--  Refactor `/api/orders/admin`
-   .
+      .
 
 .
 
@@ -57,6 +56,10 @@
 
 ## Things I could do...
 
+-  Get data about trial/subscription for conditional rendering of trial/subscription information
+-  Worked on User Flows diagram
+   -  Write full MVP list
+   -  Investigate properly what has and hasn't been done
 -  Create a delete user records transactional database operation
 -  Make create-account-route.test.ts more comprehensive
 -  Fill out the rest of my user flows
