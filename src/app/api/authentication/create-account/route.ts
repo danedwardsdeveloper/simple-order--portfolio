@@ -179,7 +179,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 
 		return NextResponse.json({ user: compositeUser }, { status: httpStatus.http201created })
 	} catch (error) {
-		developmentLogger('Caught error', 'level1error', error)
+		developmentLogger('Caught error', error)
 		return NextResponse.json({ userMessage: userMessages.serverError }, { status: 500 })
 	}
 }
