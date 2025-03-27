@@ -67,7 +67,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
 
 		const { dangerousUser } = await checkAccess({
 			request,
-			routeDetail: routeDetailPOST,
+			routeSignature: routeDetailPOST,
 			requireConfirmed: true,
 			requireSubscriptionOrTrial: true,
 		})
@@ -190,7 +190,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<Invitation
 	try {
 		const { dangerousUser } = await checkAccess({
 			request,
-			routeDetail: routeDetailsGET,
+			routeSignature: routeDetailsGET,
 			requireConfirmed: false,
 			requireSubscriptionOrTrial: false,
 		})
