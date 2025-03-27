@@ -51,7 +51,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersAdmi
 
 		return NextResponse.json({ ordersReceived }, { status: 200 })
 	} catch (error) {
-		const developmentMessage = developmentLogger('Caught error', 'level1error', error)
+		const developmentMessage = developmentLogger('Caught error', error)
 		return NextResponse.json({ developmentMessage, userMessage: userMessages.serverError }, { status: 500 })
 	}
 }
