@@ -12,6 +12,7 @@ export type InvitedCustomerBrowserInputValues = Omit<BaseUserBrowserInputValues,
 export interface BrowserSafeCompositeUser extends BaseBrowserSafeUser {
 	roles: Roles
 	activeSubscriptionOrTrial: boolean
+	trialExpiry?: Date
 }
 
 export interface BrowserSafeMerchantProfile {
