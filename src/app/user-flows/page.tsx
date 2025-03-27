@@ -34,11 +34,8 @@ export default function UserFlowPage() {
 
 				return (
 					<div key={flow.title} className="mb-20">
-						<h2 className="mb-6">
-							{flow.title}
-							<span className="font-normal text-zinc-300 mx-4">|</span>
-							<span className={mergeClasses('font-normal', percentageColourClass(percentage))}>{percentage}% complete</span>
-						</h2>
+						<h2 className="mb-2">{flow.title}</h2>
+						<h3 className={mergeClasses('mb-6 font-normal', percentageColourClass(percentage))}>{percentage}% complete</h3>
 						<div className="flex flex-col gap-y-6">
 							{flow.steps.map((step, index) => (
 								<Step key={`${step.title}-${index}`} step={step} isLast={index === flow.steps.length - 1} />

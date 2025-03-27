@@ -7,7 +7,7 @@ export default function Step({ step, isLast }: { step: FlowStep; isLast: boolean
 	return (
 		<div
 			className={mergeClasses(
-				'relative rounded-xl p-5 border-2',
+				'relative rounded-xl py-6 px-2 border-2',
 				step.completed ? 'bg-blue-50 border-blue-100' : 'bg-orange-50 border-orange-100',
 			)}
 		>
@@ -35,14 +35,14 @@ export default function Step({ step, isLast }: { step: FlowStep; isLast: boolean
 				</div>
 
 				<div className="flex-grow">
-					<div className="font-medium mb-1">{step.title}</div>
+					<div className="font-medium mb-2">{step.title}</div>
 
 					{step.subSteps && step.subSteps.length > 0 && (
-						<div className="mt-3">
+						<div className="mt-3 flex flex-col gap-y-4">
 							{step.subSteps.map((subStep) => (
-								<div key={subStep} className="flex items-center gap-4 mb-2 text-sm text-gray-700">
-									<div className={mergeClasses('size-1.5 rounded-full shrink-0', step.completed ? 'bg-blue-300' : 'bg-orange-300')} />
-									<div>{subStep}</div>
+								<div key={subStep} className="flex gap-x-2 mb-2 text-sm text-gray-700">
+									<div className={mergeClasses('size-1.5 rounded-full shrink-0 mt-2', step.completed ? 'bg-blue-300' : 'bg-orange-300')} />
+									<p>{subStep}</p>
 								</div>
 							))}
 						</div>
