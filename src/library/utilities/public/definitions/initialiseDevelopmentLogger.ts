@@ -12,17 +12,17 @@ import type { LogLevel } from '@/types'
 export function initialiseDevelopmentLogger(routeSignature: string, defaultLevel: LogLevel = 'level1error') {
 	/**
 	 * Logs a message and returns it only in development environments
-	 * 
-	 * @param message - The message to log
-	 * @param level - Optional log level override
-	 * @param error - Optional error object to log
-	 * @returns The message in development, undefined in production
-	 */
+  * 
+   * @param message - The message to log
+   * @param error - Optional error object to log
+   * @param level - Optional log level override
+   * @returns The message in development, undefined in production
+   */
 	return function developmentLogger(
-	  message: string,
-	  level: LogLevel = defaultLevel,
-	  error?: unknown
-	): string | undefined {
+		message: string,
+		error?: unknown,
+		level: LogLevel = defaultLevel
+	  ): string | undefined {
 	  switch (level) {
 		case 'level0none':
 		  break
