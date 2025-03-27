@@ -13,10 +13,10 @@ export default function SignInPage() {
 	const { user, setUser } = useUser()
 	const { setMerchantMode } = useUi()
 	const router = useRouter()
-	const [showPassword, setShowPassword] = useState(true)
+	const [showPassword, setShowPassword] = useState(false)
 	const [formData, setFormData] = useState<SignInPOSTbody>({
 		email: '',
-		password: 'securePassword123',
+		password: '',
 	})
 	const [error, setError] = useState('')
 
