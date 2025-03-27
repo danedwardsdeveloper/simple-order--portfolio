@@ -102,29 +102,27 @@ export const userFlows: Flow[] = [
 				type: 'user',
 				subSteps: [
 					'Merchant is getting value out of the free trial and wants to pay for a subscription',
-					'Button present at /account',
-					'Not sure of the CTA wording yet',
-					'Also needs to display details about pricing and limitations',
+					"'Subscribe now' button present at /settings",
 				],
-				completed: false,
+				completed: true,
 			},
 			{
 				title: 'Redirect to Stripe',
 				type: 'system',
 				subSteps: ['User is redirected to Stripe-hosted checkout page', 'User pays for subscription'],
-				completed: false,
+				completed: true,
 			},
 			{
 				title: 'Redirected back to site',
 				type: 'notification',
 				subSteps: [
-					'Merchant is redirected back to simpleorder.co.uk/accounts',
+					'Merchant is redirected back to simpleorder.co.uk/settings',
 					'Notification thanks them for their subscription and says that the invoice and receipt has been emailed to them',
 				],
 				completed: false,
 			},
 			{
-				title: 'invoice and receipt',
+				title: 'Invoice and receipt',
 				type: 'email',
 				subSteps: ["An email with the invoice and receipt PDFs are sent to the merchant's email"],
 				completed: false,
@@ -132,13 +130,13 @@ export const userFlows: Flow[] = [
 			{
 				title: 'Subscription details',
 				type: 'system',
-				subSteps: ['Details of the next payment are displayed at /account'],
+				subSteps: ['Details of the next payment are displayed at /settings'],
 				completed: false,
 			},
 			{
 				title: 'Manage subscription button',
 				type: 'system',
-				subSteps: ['A button is present at /account for the merchant to manage their subscription'],
+				subSteps: ['A button is present at /settings for the merchant to manage their subscription', 'The trial expiry notice is gone'],
 				completed: false,
 			},
 		],
@@ -214,29 +212,64 @@ export const userFlows: Flow[] = [
 				type: 'user',
 				completed: false,
 			},
-			// ToDo
+			{
+				title: 'Redirect to Stripe-hosted portal',
+				subSteps: ['Customer can cancel their subscription and return to /settings when finished'],
+				type: 'system',
+				completed: false,
+			},
+			{
+				title: 'Webhook receives data about updated subscription',
+				subSteps: ['Subscription is updated in the database', 'Cancellation email is sent'],
+				type: 'system',
+				completed: false,
+			},
+			{
+				title: '/settings displays the duration remaining on the subscription',
+				type: 'system',
+				completed: false,
+			},
 		],
 	},
 	{
 		title: 'Create an order',
 		steps: [
 			{
-				title: "User clicks a 'New order' button",
+				title: "Customer clicks a 'New order' button on either /dashboard or /orders",
 				type: 'user',
 				completed: false,
 			},
-			// ToDo
+			{
+				title: 'Customer fills out and submits form with requested delivery date, products, quantities, and optional note.',
+				type: 'user',
+				completed: false,
+			},
+			{
+				title: 'Order is added to database',
+				subSteps: ['Success notification thanks the user for placing an order'],
+				type: 'system',
+				completed: false,
+			},
 		],
 	},
 	{
-		title: 'Mark an order as completed',
+		title: 'Merchant marks order as complete',
 		steps: [
 			{
-				title: 'Merchant clicks the order status dropdown',
+				title: "Merchant clicks the order status dropdown and selects 'completed'",
 				type: 'user',
 				completed: false,
 			},
-			// ToDo
+			{
+				title: 'Confirmation modal asks to confirm',
+				type: 'system',
+				completed: false,
+			},
+			{
+				title: 'Order status is updated in the database and displayed on the screen',
+				type: 'system',
+				completed: false,
+			},
 		],
 	},
 ]
