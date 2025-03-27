@@ -1,46 +1,46 @@
-import { apiPaths, basicMessages, httpStatus, missingFieldMessages, tokenMessages } from '@/library/constants'
-import { checkUserExists } from '@/library/database/operations'
+import { apiPaths, userMessages } from '@/library/constants'
+import { checkoutSearchParam, checkoutSearchParamValues } from '@/library/constants/definitions/checkoutSearchParams'
+import { checkAccess } from '@/library/database/operations'
 import { dynamicBaseURL } from '@/library/environment/publicVariables'
-import logger from '@/library/logger'
 import stripeClient from '@/library/stripe/stripeClient'
-import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { UnauthorisedMessages } from '@/types'
+import { initialiseDevelopmentLogger } from '@/library/utilities/public'
 import { type NextRequest, NextResponse } from 'next/server'
 
-export interface StripeCreateCheckoutSessionPOSTbody {
+export interface CheckoutSessionPOSTbody {
 	email: string
 }
 
-export interface StripeCreateCheckoutSessionPOSTresponse {
-	message:
-		| typeof basicMessages.success
-		| typeof basicMessages.serverError
-		| typeof basicMessages.serviceUnavailable
-		| typeof missingFieldMessages.emailMissing
-		| UnauthorisedMessages
+export interface CheckoutSessionPOSTresponse {
+	userMessage?: typeof userMessages.stripeCreateCheckoutError
+	developmentMessage?: string
 	redirectUrl?: string
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse<StripeCreateCheckoutSessionPOSTresponse>> {
+export async function POST(request: NextRequest): Promise<NextResponse<CheckoutSessionPOSTresponse>> {
+	const routeSignature = `POST ${apiPaths.payments.createCheckoutSession}`
+	const developmentLogger = initialiseDevelopmentLogger(routeSignature)
+
 	try {
-		const { email }: StripeCreateCheckoutSessionPOSTbody = await request.json()
+		const { email }: CheckoutSessionPOSTbody = await request.json()
 
-		if (!email) return NextResponse.json({ message: missingFieldMessages.emailMissing }, { status: httpStatus.http400badRequest })
-
-		// Check signed in etc.
-		const { extractedUserId, status, message } = await extractIdFromRequestCookie(request)
-
-		if (!extractedUserId) {
-			return NextResponse.json({ message }, { status })
+		if (!email) {
+			const developmentMessage = developmentLogger('email missing')
+			return NextResponse.json({ developmentMessage }, { status: 400 })
 		}
 
-		const { userExists } = await checkUserExists(extractedUserId)
-		if (!userExists) {
-			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
+		const { dangerousUser } = await checkAccess({
+			request,
+			routeSignature,
+			requireConfirmed: true,
+			requireSubscriptionOrTrial: false,
+		})
+
+		if (!dangerousUser) {
+			return NextResponse.json({}, { status: 401 })
 		}
 
 		const customMetadata = {
-			simpleOrderUserId: extractedUserId.toString(),
+			simpleOrderUserId: dangerousUser.id.toString(),
 		}
 
 		const { url } = await stripeClient.checkout.sessions.create({
@@ -57,19 +57,18 @@ export async function POST(request: NextRequest): Promise<NextResponse<StripeCre
 				},
 			],
 			mode: 'subscription',
-			// Enhancement ToDo: add specific success feedback with &session_id={CHECKOUT_SESSION_ID}
-			success_url: `${dynamicBaseURL}/checkout?success=true`,
-			cancel_url: `${dynamicBaseURL}/checkout?success=false`,
+			success_url: `${dynamicBaseURL}/settings?${checkoutSearchParam}=${checkoutSearchParamValues.success}`,
+			cancel_url: `${dynamicBaseURL}/settings?${checkoutSearchParam}=${checkoutSearchParamValues.incomplete}`,
 		})
 
 		if (url) {
-			return NextResponse.json({ message: basicMessages.success, redirectUrl: url }, { status: 200 })
+			return NextResponse.json({ redirectUrl: url }, { status: 200 })
 		}
 
-		logger.error(`${apiPaths.payments.createCheckoutSession} error: session.url missing`)
-		return NextResponse.json({ message: 'service unavailable' }, { status: httpStatus.http503serviceUnavailable })
+		const developmentMessage = developmentLogger('Redirect URL not received')
+		return NextResponse.json({ developmentMessage, userMessage: userMessages.stripeCreateCheckoutError }, { status: 503 })
 	} catch (error) {
-		logger.error(`${apiPaths.payments.createCheckoutSession} error`, error)
-		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
+		const developmentMessage = developmentLogger('Error getting redirect URL', error)
+		return NextResponse.json({ developmentMessage, userMessage: userMessages.stripeCreateCheckoutError }, { status: 500 })
 	}
 }
