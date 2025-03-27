@@ -216,3 +216,15 @@ Lots of work on code quality
 -  Installed Vitest
 -  Wrote first route test file
 -  Will probably need to use Zod as my requirements are quite specific
+
+# Thursday 27 March
+
+-  Filled out User Flows data
+-  Refactored /api/authentication/sign-out
+-  Added a sign out success notification
+-  Moved UserMessages to new file
+-  Added subscribe button to /settings
+-  Worked on UX for subscriptions
+-  Used search params to display a notification, then wipe the params and remove the item from history
+-  Refactored /api/payments/create-checkout-session
+-  Refactored SubscribeButton - UX is really good now!
