@@ -16,7 +16,7 @@ async function checkActiveSubscription(userId: number): Promise<boolean> {
 export async function checkActiveSubscriptionOrTrial(
 	userId: number,
 	cachedTrialExpired = false,
-): Promise<{ activeSubscriptionOrTrial: boolean }> {
+): Promise<{ activeSubscriptionOrTrial: boolean; trialExpiry?: Date }> {
 	if (cachedTrialExpired) {
 		const validSubscription = await checkActiveSubscription(userId)
 		if (validSubscription) return { activeSubscriptionOrTrial: true }
@@ -28,7 +28,9 @@ export async function checkActiveSubscriptionOrTrial(
 		.where(and(greaterThan(freeTrials.endDate, new Date()), equals(freeTrials.userId, userId)))
 		.limit(1)
 
-	if (validFreeTrial) return { activeSubscriptionOrTrial: true }
+	if (validFreeTrial) {
+		return { activeSubscriptionOrTrial: true, trialExpiry: validFreeTrial.endDate }
+	}
 
 	// Check subscriptions table if it was skipped the first time
 	const validSubscription = await checkActiveSubscription(userId)
