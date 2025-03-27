@@ -31,8 +31,10 @@ export interface OrdersGETresponse {
 
 const routeDetailGET = `GET ${apiPaths.orders.customerPerspective.base}:`
 
-// Get orders that you have placed as a customer (with search parameters (eventually))
-// Optimisation ToDo: sort with pending first
+/**
+ * Get orders that you have placed as a customer (with search parameters (eventually))
+ * Optimisation ToDo: sort with pending first
+ */
 export async function GET(request: NextRequest): Promise<NextResponse<OrdersGETresponse>> {
 	try {
 		const { extractedUserId, status, message } = await extractIdFromRequestCookie(request)
