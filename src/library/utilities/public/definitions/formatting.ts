@@ -34,5 +34,7 @@ export function formatPrice(pence: number): string {
 		return `£${pounds}`
 	}
 
+// ToDo: add commas where needed
+
 	return `£${pounds.toFixed(2)}`
 }
