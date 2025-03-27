@@ -11,7 +11,7 @@ export interface VerifyTokenGETresponse {
 	user?: BrowserSafeCompositeUser
 }
 
-const routeDetail = `GET ${apiPaths.authentication.verifyToken}:`
+const routeSignature = `GET ${apiPaths.authentication.verifyToken}:`
 
 export async function GET(request: NextRequest): Promise<NextResponse<VerifyTokenGETresponse>> {
 	const cookieStore = await cookies()
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 			request,
 			requireConfirmed: false,
 			requireSubscriptionOrTrial: false,
-			routeDetail,
+			routeSignature,
 		})
 
 		if (!dangerousUser) {
@@ -41,10 +41,10 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 			activeSubscriptionOrTrial,
 		}
 
-		logger.success(routeDetail, 'Token validated successfully')
+		logger.success(routeSignature, 'Token validated successfully')
 		return NextResponse.json({ user: compositeUser }, { status: 200 })
 	} catch (error) {
-		logger.error(routeDetail, error)
+		logger.error(routeSignature, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
 	}
 }
