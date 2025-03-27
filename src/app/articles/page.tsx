@@ -1,15 +1,14 @@
 import { SignedOutBreadCrumbs } from '@/components/BreadCrumbs'
 import PageContainer from '@/components/PageContainer'
-import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import { formatDate, mergeClasses } from '@/library/utilities/public'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import { articlesData } from './data'
 
 export const metadata: Metadata = {
-	title: 'Articles | Simple Order wholesale order management software website',
+	title: 'Articles', // ...template
 	alternates: {
-		canonical: `${dynamicBaseURL}/articles`,
+		canonical: '/articles',
 	},
 }
 
