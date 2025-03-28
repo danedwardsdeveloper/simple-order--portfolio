@@ -228,3 +228,8 @@ Lots of work on code quality
 -  Used search params to display a notification, then wipe the params and remove the item from history
 -  Refactored /api/payments/create-checkout-session
 -  Refactored SubscribeButton - UX is really good now!
+
+# Friday 28 March
+
+-  Refactored /api/orders GET and POST
+-  Updated order creation page
