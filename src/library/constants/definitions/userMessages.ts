@@ -10,4 +10,5 @@ export const userMessages = {
 	stripeCreateCheckoutError: "Sorry, we weren't able to redirect you to our payment provider, Stripe. Please try again later.",
 	stripeCheckoutSuccess: 'Thank you for subscribing to SimpleOrder.co.uk!',
 	stripeCheckoutIncomplete: "Your subscription wasn't started. No payment has been taken",
+	orderCreationError: 'Sorry, something went wrong trying to create a new order. Please try again later.',
 } as const
