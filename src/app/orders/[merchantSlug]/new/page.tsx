@@ -3,7 +3,7 @@ import type { InventoryMerchantsMerchantSlugGETresponse } from '@/app/api/invent
 import type { OrdersPOSTresponse } from '@/app/api/orders/route'
 import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
 import Spinner from '@/components/Spinner'
-import { apiPaths } from '@/library/constants'
+import { apiPaths, userMessages } from '@/library/constants'
 import logger from '@/library/logger'
 import { useNotifications } from '@/providers/notifications'
 import { useUser } from '@/providers/user'
@@ -24,6 +24,8 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 	const [isLoading, setIsLoading] = useState(true)
 	const [products, setProducts] = useState<BrowserSafeCustomerProduct[] | null>(null)
 	const [errorMessage, setErrorMessage] = useState('')
+
+	// Might need to useRef here as numbers are occasionally getting wiped. However it could just be a development issues with hot reloading
 	const [selectedProducts, setSelectedProducts] = useState<Record<string, number>>({})
 
 	const now = new Date()
@@ -77,13 +79,11 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 				quantity: selectedProducts[Number(productId)],
 			}))
 
-		logger.debug('Order items: ', orderItems)
-
 		setIsSubmitting(true)
 		setErrorMessage('')
 
 		try {
-			const { message, createdOrder }: OrdersPOSTresponse = await (
+			const { userMessage, createdOrder }: OrdersPOSTresponse = await (
 				await fetch(urlJoin(apiPaths.orders.customerPerspective.base), {
 					method: 'POST',
 					headers: {
@@ -94,9 +94,7 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 				})
 			).json()
 
-			if (message === 'success' && createdOrder) {
-				// Create notification
-				// Reset selections
+			if (createdOrder) {
 				createNotification({
 					level: 'success',
 					title: 'Success',
@@ -105,12 +103,21 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 				setOrdersMade((prevOrders) => [createdOrder, ...(prevOrders || [])])
 				setSelectedProducts({})
 				router.push('/orders')
-			} else {
-				setErrorMessage(`Failed to create order: ${message || 'Unknown error'}`)
 			}
-		} catch (error) {
-			logger.error('Order submission error:', error)
-			setErrorMessage('Failed to submit order. Please try again.')
+
+			if (userMessage) {
+				createNotification({
+					level: 'error',
+					title: 'Error',
+					message: userMessage || userMessages.orderCreationError,
+				})
+			}
+		} catch {
+			createNotification({
+				level: 'error',
+				title: 'Error',
+				message: userMessages.orderCreationError,
+			})
 		} finally {
 			setIsSubmitting(false)
 		}
