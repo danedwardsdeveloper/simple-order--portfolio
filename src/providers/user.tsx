@@ -153,17 +153,21 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 		}
 
 		async function getOrdersMade() {
-			const { ordersMade, message }: OrdersGETresponse = await (
+			const { ordersMade, userMessage, developmentMessage }: OrdersGETresponse = await (
 				await fetch(apiPaths.orders.customerPerspective.base, { credentials: 'include' })
 			).json()
 
-			if (message === 'success' && ordersMade) {
-				setOrdersMade(ordersMade)
-			} else if (message === 'success, no orders') {
-				return
-			} else {
-				logger.error('providers/user getOrdersMade error: ', message)
+			if (ordersMade) setOrdersMade(ordersMade)
+
+			if (userMessage) {
+				createNotification({
+					title: 'Error',
+					message: userMessage,
+					level: 'error',
+				})
 			}
+
+			if (developmentMessage) logger.error('providers/user getOrdersMade error: ', developmentMessage)
 		}
 
 		async function getOrdersReceived() {
