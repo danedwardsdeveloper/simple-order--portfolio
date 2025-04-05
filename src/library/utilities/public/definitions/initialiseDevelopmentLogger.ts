@@ -4,6 +4,7 @@ import type { LogLevel } from '@/types'
 
 /**
  * Creates a logger function for a specific route that logs messages at the specified level and returns the message only in development.
+ * Updated Saturday 5 April 2025
  * 
  * @param routeSignature - Identifier for the route, e.g. 'GET api/orders/[orderId]: '
  * @param defaultLevel -  'level1error'
