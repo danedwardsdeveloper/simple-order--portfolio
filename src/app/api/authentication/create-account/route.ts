@@ -1,4 +1,4 @@
-import { apiPaths, cookieDurations, durationSettings, httpStatus, userMessages } from '@/library/constants'
+import { apiPaths, cookieDurations, durationSettings, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { confirmationTokens, freeTrials, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
@@ -85,18 +85,18 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 
 		if (existingUser) {
 			if (existingUser.email === normalisedEmail) {
-				return NextResponse.json({ userMessage: userMessages.emailTaken }, { status: httpStatus.http409conflict })
+				return NextResponse.json({ userMessage: userMessages.emailTaken }, { status: 409 })
 			}
 
 			if (existingUser.businessName === businessName) {
-				return NextResponse.json({ userMessage: userMessages.businessNameTaken }, { status: httpStatus.http409conflict })
+				return NextResponse.json({ userMessage: userMessages.businessNameTaken }, { status: 409 })
 			}
 		}
 
 		const hashedPassword = await bcrypt.hash(password, 10)
 
 		let transactionErrorMessage: string | null = 'transaction error'
-		let transactionErrorStatusCode: number | null = httpStatus.http503serviceUnavailable
+		let transactionErrorStatusCode: number | null = 503
 
 		let confirmationURL: string | null = null
 
@@ -177,7 +177,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 
 		developmentLogger(`Account created for ${compositeUser.firstName}.  Confirmation URL: ${confirmationURL}`, 'level3success')
 
-		return NextResponse.json({ user: compositeUser }, { status: httpStatus.http201created })
+		return NextResponse.json({ user: compositeUser }, { status: 201 })
 	} catch (error) {
 		developmentLogger('Caught error', error)
 		return NextResponse.json({ userMessage: userMessages.serverError }, { status: 500 })
