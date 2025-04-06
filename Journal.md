@@ -233,3 +233,11 @@ Lots of work on code quality
 
 -  Refactored /api/orders GET and POST
 -  Updated order creation page
+
+# Saturday 29 March - Friday 4 April
+
+-  Had a big break while I worked on a site for a law firm using headless WordPress and Payload CMS
+
+# Saturday 5 April
+
+-  Figured out how to test cookies on API routes use node-fetch! Big breakthrough!

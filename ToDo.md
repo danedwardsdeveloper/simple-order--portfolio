@@ -1,8 +1,6 @@
 ## Current Task
 
-Refactor `/api/orders/route.ts` 1. Save the data it currently returns 2. Refactor 3. Check it returns the same data
-
-.
+-  Find a way to test cookies
 
 .
 
@@ -56,6 +54,8 @@ Refactor `/api/orders/route.ts` 1. Save the data it currently returns 2. Refacto
 
 ## Things I could do...
 
+-  Create an API test route for /create-account
+-  Refactor `/api/orders/route.ts` 1. Save the data it currently returns 2. Refactor 3. Check it returns the same data
 -  Get data about trial/subscription for conditional rendering of trial/subscription information
 -  Worked on User Flows diagram
    -  Write full MVP list
