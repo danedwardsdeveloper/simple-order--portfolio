@@ -24,17 +24,6 @@ export function createCookieOptions(tokenValue: string, duration: CookieDuration
 	}
 }
 
-export function createSessionCookieOptions(tokenValue: string): CookieOptions {
-	return {
-		name: cookieNames.token,
-		value: tokenValue,
-		httpOnly: true,
-		secure: isProduction,
-		sameSite: 'strict',
-		path: '/',
-	}
-}
-
 function generateTokenPayload(userId: number, duration: CookieDurations): JwtPayload {
 	return {
 		sub: String(userId),
