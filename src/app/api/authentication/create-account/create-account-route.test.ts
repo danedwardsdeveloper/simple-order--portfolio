@@ -1,57 +1,83 @@
-import { NextRequest } from 'next/server'
+import { dynamicBaseURL } from '@/library/environment/publicVariables'
+import fetch from 'node-fetch'
 import { describe, expect, test } from 'vitest'
-import { type CreateAccountPOSTbody, POST } from './route'
+import type { CreateAccountPOSTbody } from './route'
 
-describe('POST /api/authentication/create-account', () => {
-	function createTestRequest(body?: CreateAccountPOSTbody): NextRequest {
-		return new NextRequest('http://localhost/api/authentication/create-account', {
+const endpoint = `${dynamicBaseURL}/api/authentication/create-account`
+
+const validBody: CreateAccountPOSTbody = {
+	firstName: 'Jericha',
+	lastName: 'Domain',
+	businessName: `Jericha's Joke Shop`,
+	email: 'jericha@gmail.com',
+	password: 'securePassword123',
+}
+
+describe('Deliberate fails', () => {
+	test('No body', async () => {
+		const response = await fetch(endpoint, {
 			method: 'POST',
-			body: JSON.stringify(body || {}),
-			headers: {
-				'Content-Type': 'application/json',
-			},
 		})
-	}
+		expect(response.status).toBe(500)
+	})
 
-	test('fail with no body', async () => {
-		const request = createTestRequest()
-		const response = await POST(request)
+	test('Empty body', async () => {
+		const response = await fetch(endpoint, {
+			method: 'POST',
+			body: JSON.stringify({}),
+		})
 		expect(response.status).toBe(400)
 	})
 
-	const body: CreateAccountPOSTbody = {
-		password: '',
-		firstName: '',
-		lastName: '',
-		email: '',
-		businessName: '',
-	}
-
-	test('fail with all parameters empty', async () => {
-		const response = await POST(createTestRequest(body))
+	test('firstName only', async () => {
+		const response = await fetch(endpoint, {
+			method: 'POST',
+			body: JSON.stringify({ firstName: 'Jason' }),
+		})
 		expect(response.status).toBe(400)
 	})
 
-	body.firstName = 'Dan'
-
-	test('fail with only firstName', async () => {
-		const response = await POST(createTestRequest(body))
+	test('lastName only', async () => {
+		const response = await fetch(endpoint, {
+			method: 'POST',
+			body: JSON.stringify({ lastName: 'Jason' }),
+		})
 		expect(response.status).toBe(400)
 	})
 
-	body.lastName = 'Edwards'
-
-	test('fail with only firstName and lastName', async () => {
-		const response = await POST(createTestRequest(body))
+	test('invalidEmail', async () => {
+		const body = {
+			...validBody,
+			email: 'invalid@gmail',
+		}
+		const response = await fetch(endpoint, {
+			method: 'POST',
+			body: JSON.stringify(body),
+		})
 		expect(response.status).toBe(400)
 	})
 
-	body.email = 'myemail@gmail.com'
-	body.businessName = 'My@Business'
-	body.password = 'securePassword123'
+	test('firstName contains @', async () => {
+		const body = {
+			...validBody,
+			firstName: 'n@me',
+		}
+		const response = await fetch(endpoint, {
+			method: 'POST',
+			body: JSON.stringify(body),
+		})
+		expect(response.status).toBe(400)
+	})
 
-	test('fail with @ in firstName', async () => {
-		const response = await POST(createTestRequest(body))
+	test('firstName contains >', async () => {
+		const body = {
+			...validBody,
+			firstName: 'n>me',
+		}
+		const response = await fetch(endpoint, {
+			method: 'POST',
+			body: JSON.stringify(body),
+		})
 		expect(response.status).toBe(400)
 	})
 })
