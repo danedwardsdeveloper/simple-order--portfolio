@@ -1,63 +1,49 @@
 import { dynamicBaseURL } from '@/library/environment/publicVariables'
-import fetch from 'node-fetch'
+import fetch, { type Response } from 'node-fetch'
 import { describe, expect, test } from 'vitest'
 
-const endpoint = `${dynamicBaseURL}/api/cookie-test`
+async function makeRequest(body: unknown): Promise<{ response: Response; cookies: string | null }> {
+	const response = await fetch(`${dynamicBaseURL}/api/cookie-test`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(body),
+	})
+	const cookies = response.headers.get('set-cookie')
+	return { response, cookies }
+}
 
 describe('Password test', () => {
 	test('empty body', async () => {
-		const response = await fetch(endpoint, {
-			method: 'POST',
-			body: JSON.stringify({}),
-		})
-		const cookies = response.headers.get('set-cookie')
+		const { response, cookies } = await makeRequest({})
 
 		expect(response.status).toBe(400)
 		expect(cookies).toBeNull()
 	})
 
 	test('incorrect parameter', async () => {
-		const response = await fetch(endpoint, {
-			method: 'POST',
+		const { response, cookies } = await makeRequest({
 			// cspell: disable
-			body: JSON.stringify({ pasword: 'wrongPassword' }),
+			pasword: 'wrongPassword',
 			// cspell: enable
 		})
-		const cookies = response.headers.get('set-cookie')
-
 		expect(response.status).toBe(400)
 		expect(cookies).toBeNull()
 	})
 
 	test('empty password', async () => {
-		const response = await fetch(endpoint, {
-			method: 'POST',
-			body: JSON.stringify({ password: '' }),
-		})
-		const cookies = response.headers.get('set-cookie')
-
+		const { response, cookies } = await makeRequest({ password: '' })
 		expect(response.status).toBe(400)
 		expect(cookies).toBeNull()
 	})
 
 	test('wrong password', async () => {
-		const response = await fetch(endpoint, {
-			method: 'POST',
-			body: JSON.stringify({ password: 'wrongPassword' }),
-		})
-		const cookies = response.headers.get('set-cookie')
-
+		const { response, cookies } = await makeRequest({ password: 'wrongPassword' })
 		expect(response.status).toBe(401)
 		expect(cookies).toBeNull()
 	})
 
 	test('Create a cookie with the correct password', async () => {
-		const response = await fetch(endpoint, {
-			method: 'POST',
-			body: JSON.stringify({ password: 'secretPassword69' }),
-		})
-		const cookies = response.headers.get('set-cookie')
-
+		const { response, cookies } = await makeRequest({ password: 'secretPassword69' })
 		expect(response.status).toBe(200)
 		expect(cookies).toBeDefined()
 		expect(cookies).toContain('token=')

@@ -1,6 +1,7 @@
 import { durationOptions } from '@/library/constants'
 import { initialiseDevelopmentLogger } from '@/library/utilities/public'
 import { createCookieWithToken } from '@/library/utilities/server'
+import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
@@ -27,9 +28,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<CookieTes
 		}
 
 		if (result.data.password === 'secretPassword69') {
-			const response = NextResponse.json({}, { status: 200 })
-			response.cookies.set(createCookieWithToken(1, durationOptions.oneYearInSeconds))
-			return response
+			const cookieStore = await cookies()
+			cookieStore.set(createCookieWithToken(1, durationOptions.oneYearInSeconds))
+			return NextResponse.json({}, { status: 200 })
 		}
 
 		return NextResponse.json({}, { status: 401 })
