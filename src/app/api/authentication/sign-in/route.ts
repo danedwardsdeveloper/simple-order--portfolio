@@ -16,7 +16,6 @@ import { createCookieWithToken } from '@/library/utilities/server'
 import { equals } from '@/library/utilities/server'
 import type { BrowserSafeCompositeUser, DangerousBaseUser, MissingFieldMessages } from '@/types'
 import bcrypt from 'bcryptjs'
-
 import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
 
