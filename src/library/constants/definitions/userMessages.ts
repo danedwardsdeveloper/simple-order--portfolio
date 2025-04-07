@@ -3,6 +3,7 @@
  */
 export const userMessages = {
 	emailTaken: 'This email address is already in use. Please try a different one or sign in.',
+	allowedCharacters: "Please only use letters, numbers, and basic punctuation (', ., !, ?, -)",
 	businessNameTaken: 'This business name is already taken. Please choose another.',
 	databaseError: 'Sorry, something went wrong. Please try again later.',
 	serverError: 'Sorry, something went wrong. Please try again later.',
