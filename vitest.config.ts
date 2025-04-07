@@ -5,13 +5,12 @@ export default defineConfig({
 	test: {
 		include: ['**/test.ts', '**/*.test.ts'],
 		exclude: ['**/node_modules/**'],
-		env: {
-			NODE_ENV: 'development',
-		},
+		slowTestThreshold: 2000,
 	},
 	resolve: {
 		alias: {
 			'@': path.resolve(__dirname, './src'),
+			'@tests': path.resolve(__dirname, './tests'),
 		},
 	},
 })
