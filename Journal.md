@@ -241,3 +241,8 @@ Lots of work on code quality
 # Saturday 5 April
 
 -  Figured out how to test cookies on API routes use node-fetch! Big breakthrough!
+
+# Sunday 6 April
+
+-  Implemented Zod on create-account route
+-  Big progress with testing!
