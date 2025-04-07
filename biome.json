@@ -50,10 +50,11 @@
 		}
 	},
 	"files": {
+		"include": ["tests/**/*.ts", "src/**/*.ts", "src/**/*.tsx"],
 		"ignore": [
 			"node_modules",
 			".next",
-			"public",
+			"/public",
 			"misc",
 			"**/*.tailwind.css",
 			"cspell.json"
