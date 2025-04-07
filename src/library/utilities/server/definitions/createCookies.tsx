@@ -42,7 +42,7 @@ export function createCookieWithToken(userId: number, duration: CookieDurations)
 	}
 }
 
-export function createDeleteCookie(): CookieOptions {
+export function createDeletedCookie(): CookieOptions {
 	return {
 		...baseCookieOptions,
 		value: '',
