@@ -1,4 +1,4 @@
-export const allowedCharactersRegex = /^[a-zA-Z0-9',.!?\- ]+$/
+export const allowedCharactersRegex = /^[\p{L}\p{N}',.!?\- ]+$/u
 
 /**
  * @deprecated Use allowedCharactersRegex / Zod instead
