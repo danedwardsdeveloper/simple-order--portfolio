@@ -15,25 +15,15 @@ export async function deleteUserSequence(email: string): Promise<{ success: bool
 		const userId = userToDelete[0].id
 
 		await database.transaction(async (tx) => {
-			tx.delete(confirmationTokens).where(equals(confirmationTokens.userId, userId))
-
-			tx.delete(freeTrials).where(equals(freeTrials.userId, userId))
-
-			tx.delete(users).where(equals(users.id, userId))
+			await tx.delete(confirmationTokens).where(equals(confirmationTokens.userId, userId))
+			await tx.delete(freeTrials).where(equals(freeTrials.userId, userId))
+			await tx.delete(users).where(equals(users.id, userId))
 		})
 
+		logger.info('Successfully completed deleteUserSequence')
 		return { success: true }
 	} catch (error) {
 		logger.error('deleteUserSequence error: ', error)
 		return { success: false }
 	}
-	// orderItems (depends on orders)
-	// orders (depends on users)
-	// invitations (depends on users)
-	// confirmationTokens (depends on users)
-	// freeTrials (depends on users)
-	// subscriptions (depends on users)
-	// products (depends on users)
-	// relationships (depends on users)
-	// users (can be deleted last since everything else references it)
 }
