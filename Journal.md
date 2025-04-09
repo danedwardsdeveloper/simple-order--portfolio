@@ -246,3 +246,7 @@ Lots of work on code quality
 
 -  Implemented Zod on create-account route
 -  Big progress with testing!
+
+# Monday 7 April
+
+-  Wrote lots of unit tests, including free trial date and mapOrders
