@@ -52,4 +52,5 @@ export interface OrderReceived extends OrderMade {
 	adminOnlyNote?: string
 }
 
+export type OrderFunctionReturnType = 'orderMade' | 'orderReceived'
 export type OrdersFunctionReturnType = 'ordersMade' | 'ordersReceived'
