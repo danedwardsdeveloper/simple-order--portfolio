@@ -250,3 +250,8 @@ Lots of work on code quality
 # Monday 7 April
 
 -  Wrote lots of unit tests, including free trial date and mapOrders
+
+# Tuesday 8 - Thursday 10 April
+
+-  Mainly been working on Archer Finch Legal, which is nearly finished
+-  Wrote first React tests, which is very satisfying. 108 tests so far, all passing!
