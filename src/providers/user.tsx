@@ -20,7 +20,7 @@ import type {
 import { type Dispatch, type ReactNode, type SetStateAction, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { useNotifications } from './notifications'
 
-interface UserContextType {
+export interface UserContextType {
 	user: BrowserSafeCompositeUser | null
 	setUser: Dispatch<SetStateAction<BrowserSafeCompositeUser | null>>
 
@@ -49,7 +49,7 @@ interface UserContextType {
 	isLoading: boolean
 }
 
-const UserContext = createContext<UserContextType>({} as UserContextType)
+export const UserContext = createContext<UserContextType>({} as UserContextType)
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
 	const { createNotification } = useNotifications()
