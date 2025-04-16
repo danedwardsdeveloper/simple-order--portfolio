@@ -59,7 +59,7 @@ export default function RootLayout({
 					{children}
 					<Footer />
 				</Providers>
-				<Script src="https://scripts.simpleanalyticscdn.com/latest.js" />
+				<Script src="https://scripts.simpleanalyticscdn.com/latest.js" strategy="lazyOnload" />
 			</body>
 		</html>
 	)
