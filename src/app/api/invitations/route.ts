@@ -72,9 +72,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
 			requireSubscriptionOrTrial: true,
 		})
 
-		if (!dangerousUser) {
-			return NextResponse.json({}, { status: 400 })
-		}
+		if (!dangerousUser) return NextResponse.json({}, { status: 400 })
 
 		if (dangerousUser.email === normalisedInvitedEmail) {
 			return NextResponse.json({ developerMessage: 'attempted to invite self' }, { status: 400 })
