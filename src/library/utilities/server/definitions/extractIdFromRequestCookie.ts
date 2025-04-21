@@ -6,6 +6,9 @@ import jwt, { JsonWebTokenError, type JwtPayload, TokenExpiredError } from 'json
 import { cookies } from 'next/headers'
 import type { NextRequest } from 'next/server'
 
+/**
+ * @deprecated Use checkAccess instead
+ */
 export async function extractIdFromRequestCookie(_request: NextRequest): Promise<{
 	extractedUserId?: number
 	message: UnauthorisedMessages | typeof systemMessages.success
@@ -13,6 +16,9 @@ export async function extractIdFromRequestCookie(_request: NextRequest): Promise
 }> {
 	const cookieStore = await cookies()
 	const accessToken = cookieStore.get(cookieNames.token)
+
+	// Temp
+	logger.debug('Cookie: ', accessToken)
 
 	// This might need to change to handle signed-out users
 	if (!accessToken) {
