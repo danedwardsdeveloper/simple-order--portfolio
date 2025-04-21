@@ -1,22 +1,15 @@
-import { apiPaths, type authenticationMessages, basicMessages, httpStatus } from '@/library/constants'
+import { apiPaths, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { checkActiveSubscriptionOrTrial, checkUserExists } from '@/library/database/operations'
+import { checkAccess } from '@/library/database/operations'
 import { products } from '@/library/database/schema'
-import logger from '@/library/logger'
-import { extractIdFromRequestCookie } from '@/library/utilities/server'
+import { initialiseDevelopmentLogger } from '@/library/utilities/public'
 import { and, equals } from '@/library/utilities/server'
-import type { BrowserSafeMerchantProduct, UnauthorisedMessages } from '@/types'
-
+import type { BrowserSafeMerchantProduct, UserMessages } from '@/types'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface InventoryDELETEresponse {
-	message:
-		| typeof basicMessages.success
-		| typeof basicMessages.serverError
-		| typeof authenticationMessages.noActiveTrialSubscription
-		| UnauthorisedMessages
-		| 'productToDeleteId missing'
-		| "product doesn't exist or isn't yours to delete"
+	userMessage?: UserMessages
+	developmentMessage?: string
 	softDeletedProduct?: BrowserSafeMerchantProduct
 }
 
@@ -28,35 +21,30 @@ export async function DELETE(
 	request: NextRequest,
 	{ params }: { params: Promise<{ itemId: number }> },
 ): Promise<NextResponse<InventoryDELETEresponse>> {
+	const routeSignature = `DELETE ${apiPaths.inventory.merchantPerspective.itemId}`
+	const developmentLogger = initialiseDevelopmentLogger(routeSignature)
+
 	try {
 		const itemId = (await params).itemId
 
 		if (!itemId) {
-			return NextResponse.json({ message: 'productToDeleteId missing' }, { status: httpStatus.http400badRequest })
+			const developmentMessage = developmentLogger('productToDeleteId missing')
+			return NextResponse.json({ developmentMessage }, { status: 400 })
 		}
 
-		const { extractedUserId, status, message } = await extractIdFromRequestCookie(request)
+		const { dangerousUser } = await checkAccess({
+			request,
+			requireConfirmed: false,
+			requireSubscriptionOrTrial: true,
+			routeSignature,
+		})
 
-		if (!extractedUserId) {
-			return NextResponse.json({ message }, { status })
-		}
-
-		const { userExists, existingDangerousUser } = await checkUserExists(extractedUserId)
-
-		if (!userExists || !existingDangerousUser) {
-			return NextResponse.json({ message: 'user not found' }, { status: httpStatus.http404notFound })
-		}
-
-		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(extractedUserId, existingDangerousUser.cachedTrialExpired)
-
-		if (!activeSubscriptionOrTrial) {
-			return NextResponse.json({ message: 'no active subscription or trial' }, { status: httpStatus.http401unauthorised })
-		}
+		if (!dangerousUser) return NextResponse.json({}, { status: 400 })
 
 		const [softDeletedProduct]: BrowserSafeMerchantProduct[] = await database
 			.update(products)
 			.set({ deletedAt: new Date() })
-			.where(and(equals(products.id, itemId), equals(products.ownerId, extractedUserId)))
+			.where(and(equals(products.id, itemId), equals(products.ownerId, dangerousUser.id)))
 			.returning({
 				id: products.id,
 				name: products.name,
@@ -67,12 +55,14 @@ export async function DELETE(
 			})
 
 		if (!softDeletedProduct) {
-			return NextResponse.json({ message: "product doesn't exist or isn't yours to delete" }, { status: httpStatus.http401unauthorised })
+			const developmentMessage = developmentLogger("product doesn't exist or isn't yours to delete")
+			return NextResponse.json({ developmentMessage }, { status: 401 })
 		}
 
-		return NextResponse.json({ message: basicMessages.success, softDeletedProduct }, { status: 200 })
+		const developmentMessage = developmentLogger(`Successfully soft deleted ${softDeletedProduct.name}`, { level: 'level3success' })
+		return NextResponse.json({ softDeletedProduct, developmentMessage }, { status: 200 })
 	} catch (error) {
-		logger.error(`${apiPaths.inventory.merchantPerspective.itemId} error: `, error)
-		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
+		const developmentMessage = developmentLogger('Caught error', { error })
+		return NextResponse.json({ userMessage: userMessages.serverError, developmentMessage }, { status: 500 })
 	}
 }
