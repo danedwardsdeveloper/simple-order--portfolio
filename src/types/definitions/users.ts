@@ -7,6 +7,11 @@ export type BaseBrowserSafeUser = Omit<DangerousBaseUser, 'id' | 'hashedPassword
 export type BaseUserBrowserInputValues = Omit<BaseUserInsertValues, 'hashedPassword' | 'cachedTrialExpired' | 'emailConfirmed' | 'slug'> & {
 	password: string
 }
+
+export type TestUserInputValues = Omit<BaseUserInsertValues, 'hashedPassword'> & {
+	password: string
+}
+
 export type InvitedCustomerBrowserInputValues = Omit<BaseUserBrowserInputValues, 'email'>
 
 export interface BrowserSafeCompositeUser extends BaseBrowserSafeUser {
