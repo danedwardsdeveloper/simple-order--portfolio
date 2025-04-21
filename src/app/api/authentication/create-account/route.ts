@@ -11,10 +11,9 @@ import {
 	initialiseDevelopmentLogger,
 	sanitiseDangerousBaseUser,
 } from '@/library/utilities/public'
-import { createCookieWithToken, equals, or } from '@/library/utilities/server'
+import { createCookieWithToken, equals, hashPassword, or } from '@/library/utilities/server'
 import { NewUserSchema } from '@/library/validations'
 import type { BaseUserInsertValues, BrowserSafeCompositeUser, DangerousBaseUser, NewFreeTrial, UserMessages } from '@/types'
-import bcrypt from 'bcryptjs'
 import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -31,17 +30,18 @@ export interface CreateAccountPOSTresponse {
 export async function POST(request: NextRequest): Promise<NextResponse<CreateAccountPOSTresponse>> {
 	const developmentLogger = initialiseDevelopmentLogger(`POST ${apiPaths.authentication.createAccount}:`)
 
-	const result = NewUserSchema.safeParse(await request.json())
-	if (!result.success) {
-		const firstError = result.error.errors[0]
-		const message = [firstError.path, firstError.message].join(': ')
-		const developmentMessage = developmentLogger(message)
-		return NextResponse.json({ developmentMessage }, { status: 400 })
-	}
-
-	const { firstName, lastName, businessName, email, password } = result.data
-
 	try {
+		const body = await request.json().catch(() => ({}))
+		const result = NewUserSchema.safeParse(body)
+		if (!result.success) {
+			const firstError = result.error.errors[0]
+			const message = [firstError.path, firstError.message].join(': ')
+			const developmentMessage = developmentLogger(message)
+			return NextResponse.json({ developmentMessage }, { status: 400 })
+		}
+
+		const { firstName, lastName, businessName, email, password } = result.data
+
 		const [existingUser] = await database
 			.select()
 			.from(users)
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 			}
 		}
 
-		const hashedPassword = await bcrypt.hash(password, 10)
+		const hashedPassword = await hashPassword(password)
 
 		let transactionErrorMessage: string | null = 'transaction error'
 		let transactionErrorStatusCode: number | null = 503
@@ -140,11 +140,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 		const cookieStore = await cookies()
 		cookieStore.set(createCookieWithToken(dangerousNewUser.id, cookieDurations.oneYear))
 
-		developmentLogger(`Account created for ${compositeUser.firstName}.  Confirmation URL: ${confirmationURL}`, undefined, 'level3success')
+		developmentLogger(`Account created for ${compositeUser.firstName}.  Confirmation URL: ${confirmationURL}`, {
+			level: 'level3success',
+		})
 
 		return NextResponse.json({ user: compositeUser }, { status: 201 })
 	} catch (error) {
-		developmentLogger('Caught error', error)
-		return NextResponse.json({ userMessage: userMessages.serverError }, { status: 500 })
+		const developmentMessage = developmentLogger('Caught error', { error })
+		return NextResponse.json({ userMessage: userMessages.serverError, developmentMessage }, { status: 500 })
 	}
 }
