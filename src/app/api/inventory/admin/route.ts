@@ -19,7 +19,7 @@ import { and, eq, isNull } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface InventoryAdminGETresponse {
-	message:
+	message?:
 		| typeof basicMessages.success
 		| typeof basicMessages.serverError
 		| UnauthorisedMessages
@@ -44,7 +44,6 @@ export async function GET(request: NextRequest): Promise<NextResponse<InventoryA
 		const foundInventory: BrowserSafeMerchantProduct[] = await database
 			.select({
 				id: products.id,
-				merchantProfileId: products.ownerId,
 				name: products.name,
 				description: products.description,
 				priceInMinorUnits: products.priceInMinorUnits,
@@ -56,7 +55,9 @@ export async function GET(request: NextRequest): Promise<NextResponse<InventoryA
 
 		const inventory = containsItems(foundInventory) ? foundInventory : undefined
 
-		return NextResponse.json({ message: basicMessages.success, inventory }, { status: 200 })
+		if (!inventory) logger.info('Legitimately no products found')
+
+		return NextResponse.json({ inventory }, { status: 200 })
 	} catch (error) {
 		logger.error(`${apiPaths.inventory.merchantPerspective.base} error: `, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
@@ -92,6 +93,7 @@ export interface InventoryAddPOSTresponse {
 	addedProduct?: BrowserSafeMerchantProduct
 }
 
+// POST add an item to the inventory
 export async function POST(request: NextRequest): Promise<NextResponse<InventoryAddPOSTresponse>> {
 	const { name, priceInMinorUnits, customVat, description }: InventoryAddPOSTbody = await request.json()
 
@@ -196,3 +198,5 @@ export async function POST(request: NextRequest): Promise<NextResponse<Inventory
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
 	}
 }
+
+// Saturday 19 April. 201 lines before refactor with Zod.
