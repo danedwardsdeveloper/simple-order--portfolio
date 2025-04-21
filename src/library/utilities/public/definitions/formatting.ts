@@ -1,3 +1,4 @@
+import { serviceConstraints } from '@/library/constants'
 import { format } from 'date-fns'
 
 /**
@@ -24,17 +25,27 @@ export function capitaliseFirstLetter(str: string): string {
 	return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
+// ToDo: use the Zod product schema to reject large numbers more elegantly
 export function formatPrice(pence: number): string {
-	if (pence < 100) {
-		return `${pence}p`
+	if (pence > serviceConstraints.maximumProductValueInMinorUnits) {
+		throw new Error('formatPrice: maximum price exceeded')
 	}
 
-	const pounds = pence / 100
-	if (Number.isInteger(pounds)) {
-		return `£${pounds}`
-	}
+	if (Number.isNaN(pence)) throw new Error('formatPrice: tried to format NaN')
 
-// ToDo: add commas where needed
+	const roundedPence = Math.round(pence)
+	const isNegative = roundedPence < 0
+	const negativeSign = isNegative ? '-' : ''
+	const absoluteRoundedPence = Math.abs(roundedPence)
 
-	return `£${pounds.toFixed(2)}`
+	if (absoluteRoundedPence < 100) return `${negativeSign}${absoluteRoundedPence}p`
+
+	const absolutePounds = absoluteRoundedPence / 100
+
+	if (Number.isInteger(absolutePounds)) return `${negativeSign}£${absolutePounds.toLocaleString('en-GB')}`
+
+	return `${negativeSign}£${absolutePounds.toLocaleString('en-GB', {
+		minimumFractionDigits: 2,
+		maximumFractionDigits: 2,
+	})}`
 }
