@@ -7,8 +7,24 @@ import type { DangerousBaseUser } from '@/types'
 import type { NextRequest } from 'next/server'
 import { checkActiveSubscriptionOrTrial } from './checkActiveSubscriptionOrTrial'
 
+// ToDo: write tests for this function as it is EXTREMELY IMPORTANT!!
+
 /**
+ * New function that replaces extractIdFromRequestCookie and checkUserExists
  * Validates user access permissions for protected routes
+ * 
+ * @example
+ * 	const routeSignature = `GET ${apiPaths.}`
+ 
+ * const { dangerousUser } = await checkAccess({
+			request,
+			requireConfirmed: false,
+			requireSubscriptionOrTrial: false,
+			routeSignature,
+		})
+
+if (!dangerousUser) return NextResponse.json({}, { status: 400 })
+ * 
  * @param {Object} params - The parameters object
  * @param {NextRequest} params.request - The Next.js request object containing cookies
  * @param {string} params.routeSignature - Identifier for the route being accessed for logging
