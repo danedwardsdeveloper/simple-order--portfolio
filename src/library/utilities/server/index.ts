@@ -4,3 +4,4 @@ export { and, equals, greaterThan, isNull, inArray, or }
 export * from './definitions/createCookies'
 export * from './definitions/extractIdFromRequestCookie'
 export * from './definitions/createHtmlParagraph'
+export * from './definitions/hashPassword'
