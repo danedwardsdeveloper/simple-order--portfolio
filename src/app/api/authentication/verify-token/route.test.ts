@@ -1,13 +1,13 @@
 import { cookieDurations } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { deleteUserSequence } from '@/library/database/operations/definitions/deleteUserSequence/deleteUserSequence'
+import { deleteUserSequence } from '@/library/database/operations'
 import { users } from '@/library/database/schema'
 import { createCookieWithToken } from '@/library/utilities/server'
 import { initialiseGETRequestMaker } from '@tests/utilities'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 
 const requestMaker = initialiseGETRequestMaker({
-	url: 'http://localhost:3000/api/authentication/verify-token',
+	path: '/authentication/verify-token',
 })
 
 const badCookie = '123456789'
