@@ -26,6 +26,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 
 		if (!dangerousUser) {
 			cookieStore.delete(cookieNames.token)
+			// Think about UX here...
 			return NextResponse.json({ message: 'Please sign in' }, { status: 400 })
 		}
 
