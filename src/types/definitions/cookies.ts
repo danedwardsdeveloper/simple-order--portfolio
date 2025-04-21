@@ -1,4 +1,8 @@
 import type { cookieDurations, cookieNames } from '@/library/constants'
+import type { Cookie } from 'set-cookie-parser'
+/** Renamed interface for testing
+ */
+export type ParsedSetCookie = Cookie
 
 export type CookieNames = (typeof cookieNames)[keyof typeof cookieNames]
 
