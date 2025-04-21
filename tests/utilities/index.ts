@@ -1,1 +1,6 @@
 export * from './definitions/initialiseRequestMaker'
+export * from './definitions/initialiseGETrequestMaker'
+export * from './definitions/parseCookies'
+export * from './definitions/createUser'
+export * from './definitions/addProducts'
+export * from './definitions/createCookieString'

@@ -1,54 +1,55 @@
-import fetch, { type Response } from 'node-fetch'
+import { developmentBaseURL } from '@/library/environment/publicVariables'
+import type { TestRequestResponse } from '@/types'
+import fetch from 'node-fetch'
+import urlJoin from 'url-join'
+import { parseTokenCookie } from './parseCookies'
 
-export type RequestMaker<BodyType = unknown> = ({
+type RequestMaker<BodyType = unknown> = ({
 	body,
-	cookie,
-}: { body?: BodyType; cookie?: string }) => Promise<{ response: Response; cookies: string | null }>
+	requestCookie,
+}: {
+	body?: BodyType
+	requestCookie?: string
+}) => Promise<TestRequestResponse>
 
+/**
+ * ToDo: add options for segments
+ * @returns A request maker function for API endpoints with a body
+ * @param options Configuration for the request maker
+ * @param options.path API path WITHOUT http://localhost:3000/api
+ * @param options.method HTTP method to use
+ */
 export function initialiseRequestMaker<BodyType = unknown>({
-	url,
+	path,
 	method,
 }: {
-	url: string
-	method: 'GET' | 'POST' | 'PATCH' | 'DELETE'
-	cookie?: string
+	path: string
+	method: 'POST' | 'PATCH' | 'DELETE'
 }): RequestMaker<BodyType> {
-	return async ({ body, cookie }: { body?: BodyType; cookie?: string }): Promise<{ response: Response; cookies: string | null }> => {
+	return async ({
+		body,
+		requestCookie,
+	}: {
+		body?: BodyType
+		requestCookie?: string
+	}): Promise<TestRequestResponse> => {
 		const headers: Record<string, string> = {
 			'Content-Type': 'application/json',
 		}
 
-		if (cookie) headers.Cookie = cookie
+		if (requestCookie) headers.Cookie = requestCookie
+
+		const url = urlJoin(developmentBaseURL, '/api', path)
 
 		const response = await fetch(url, {
 			method,
 			headers,
-			...(method !== 'GET' && body !== undefined ? { body: JSON.stringify(body) } : {}),
+			body: JSON.stringify(body),
 		})
-		const cookies = response.headers.get('set-cookie')
-		return { response, cookies }
-	}
-}
 
-export type GETRequestMaker = (cookie?: string) => Promise<{ response: Response; cookies: string | null }>
+		const cookieHeader = response.headers.get('set-cookie')
+		const setCookie = cookieHeader ? parseTokenCookie(cookieHeader) : null
 
-export function initialiseGETRequestMaker({
-	url,
-}: {
-	url: string
-	cookie?: string
-}): GETRequestMaker {
-	return async (cookie?: string): Promise<{ response: Response; cookies: string | null }> => {
-		const headers: Record<string, string> = {
-			'Content-Type': 'application/json',
-		}
-
-		if (cookie) headers.Cookie = cookie
-
-		const response = await fetch(url, {
-			headers,
-		})
-		const cookies = response.headers.get('set-cookie')
-		return { response, cookies }
+		return { response, setCookie }
 	}
 }
