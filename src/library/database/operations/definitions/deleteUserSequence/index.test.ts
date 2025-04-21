@@ -2,7 +2,7 @@ import { database } from '@/library/database/connection'
 import { users } from '@/library/database/schema'
 import type { BaseUserInsertValues } from '@/types'
 import { beforeAll, describe, expect, test } from 'vitest'
-import { deleteUserSequence } from './deleteUserSequence'
+import { deleteUserSequence } from '.'
 
 describe('deleteUserSequence', async () => {
 	const insertValues: BaseUserInsertValues = {
