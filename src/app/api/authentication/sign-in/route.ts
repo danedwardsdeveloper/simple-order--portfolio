@@ -1,90 +1,76 @@
-import {
-	apiPaths,
-	authenticationMessages,
-	basicMessages,
-	cookieDurations,
-	httpStatus,
-	missingFieldMessages,
-	tokenMessages,
-} from '@/library/constants'
+import { apiPaths, cookieDurations, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkActiveSubscriptionOrTrial, getUserRoles } from '@/library/database/operations'
 import { users } from '@/library/database/schema'
-import logger from '@/library/logger'
-import { emailRegex, sanitiseDangerousBaseUser } from '@/library/utilities/public'
+import { initialiseDevelopmentLogger, sanitiseDangerousBaseUser } from '@/library/utilities/public'
 import { createCookieWithToken } from '@/library/utilities/server'
 import { equals } from '@/library/utilities/server'
-import type { BrowserSafeCompositeUser, DangerousBaseUser, MissingFieldMessages } from '@/types'
+import { SignInSchema } from '@/library/validations'
+import type { BrowserSafeCompositeUser, DangerousBaseUser, UserMessages } from '@/types'
 import bcrypt from 'bcryptjs'
 import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
+import type z from 'zod'
 
-export interface SignInPOSTbody {
-	password: string
-	email: string
-}
+export type SignInPOSTbody = z.infer<typeof SignInSchema>
 
 export interface SignInPOSTresponse {
-	message:
-		| typeof basicMessages.success
-		| typeof missingFieldMessages.emailMissing
-		| typeof missingFieldMessages.passwordMissing
-		| typeof authenticationMessages.invalidEmailFormat
-		| typeof tokenMessages.userNotFound
-		| typeof authenticationMessages.invalidCredentials
+	userMessage?: UserMessages
+	developmentMessage?: string
 	user?: BrowserSafeCompositeUser
 }
 
-const routeDetail = `POST ${apiPaths.authentication.signIn}:`
-
 export async function POST(request: NextRequest): Promise<NextResponse<SignInPOSTresponse>> {
-	const { email, password }: SignInPOSTbody = await request.json()
+	const routeSignature = `POST ${apiPaths.authentication.signIn}:`
+	const developmentLogger = initialiseDevelopmentLogger(routeSignature)
 
-	let missingFieldMessage: MissingFieldMessages | undefined = undefined
-	if (!email) missingFieldMessage = missingFieldMessages.emailMissing
-	if (!password) missingFieldMessage = missingFieldMessages.passwordMissing
+	try {
+		const body = await request.json().catch(() => ({}))
+		const result = SignInSchema.safeParse(body)
 
-	if (missingFieldMessage) {
-		logger.warn(routeDetail, missingFieldMessage)
-		return NextResponse.json({ message: missingFieldMessage }, { status: httpStatus.http400badRequest })
+		if (!result.success) {
+			const firstError = result.error.errors[0]
+			const fieldPath = firstError.path.join('.')
+			const errorMessage = fieldPath ? `${fieldPath}: ${firstError.message}` : firstError.message
+			const developmentMessage = developmentLogger(errorMessage)
+			return NextResponse.json({ developmentMessage }, { status: 400 })
+		}
+
+		const { email, password } = result.data
+
+		const [dangerousUser]: DangerousBaseUser[] = await database.select().from(users).where(equals(users.email, email)).limit(1)
+
+		if (!dangerousUser) {
+			const developmentMessage = developmentLogger(`User with email ${email} not found`)
+			return NextResponse.json({ developmentMessage }, { status: 404 })
+		}
+
+		const isMatch = await bcrypt.compare(password, dangerousUser.hashedPassword)
+
+		if (!isMatch) {
+			const developmentMessage = developmentLogger('Incorrect password')
+			return NextResponse.json({ developmentMessage }, { status: 401 })
+		}
+
+		const cookieStore = await cookies()
+		cookieStore.set(createCookieWithToken(dangerousUser.id, cookieDurations.oneYear))
+
+		const { userRole } = await getUserRoles(dangerousUser)
+
+		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(dangerousUser.id, dangerousUser.cachedTrialExpired)
+
+		const sanitisedBaseUser = sanitiseDangerousBaseUser(dangerousUser)
+
+		const user: BrowserSafeCompositeUser = {
+			...sanitisedBaseUser,
+			roles: userRole,
+			activeSubscriptionOrTrial,
+		}
+
+		const developmentMessage = developmentLogger('Signed in successfully', { level: 'level3success' })
+		return NextResponse.json({ user, developmentMessage }, { status: 200 })
+	} catch (error) {
+		const developmentMessage = developmentLogger('Caught error', { error })
+		return NextResponse.json({ userMessage: userMessages.serverError, developmentMessage }, { status: 500 })
 	}
-
-	const normalisedEmail = email.toLowerCase().trim()
-	if (!emailRegex.test(normalisedEmail)) {
-		logger.warn(routeDetail, authenticationMessages.invalidEmailFormat)
-		return NextResponse.json({ message: authenticationMessages.invalidEmailFormat }, { status: httpStatus.http400badRequest })
-	}
-
-	const [dangerousUser]: DangerousBaseUser[] = await database.select().from(users).where(equals(users.email, email)).limit(1)
-
-	if (!dangerousUser) {
-		logger.warn(routeDetail, tokenMessages.userNotFound)
-		logger.debug(`User with email ${email} not found`)
-		return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http404notFound })
-	}
-
-	const isMatch = await bcrypt.compare(password, dangerousUser.hashedPassword)
-
-	if (!isMatch) {
-		logger.warn(routeDetail, 'incorrect password')
-		return NextResponse.json({ message: authenticationMessages.invalidCredentials }, { status: httpStatus.http401unauthorised })
-	}
-
-	const cookieStore = await cookies()
-	cookieStore.set(createCookieWithToken(dangerousUser.id, cookieDurations.oneYear))
-
-	const { userRole } = await getUserRoles(dangerousUser)
-
-	const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(dangerousUser.id)
-
-	const sanitisedBaseUser = sanitiseDangerousBaseUser(dangerousUser)
-
-	const user: BrowserSafeCompositeUser = {
-		...sanitisedBaseUser,
-		roles: userRole,
-		activeSubscriptionOrTrial,
-	}
-
-	logger.success(routeDetail, 'Signed in successfully')
-	return NextResponse.json({ message: basicMessages.success, user }, { status: 200 })
 }
