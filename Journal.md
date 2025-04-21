@@ -255,3 +255,9 @@ Lots of work on code quality
 
 -  Mainly been working on Archer Finch Legal, which is nearly finished
 -  Wrote first React tests, which is very satisfying. 108 tests so far, all passing!
+
+# Sunday 20 April
+
+Completely forgot about journaling, but I've been working hard
+
+-  Have been writing tons of API tests, which is super helpful. Looking forward to refactoring with Zod once I'm done
