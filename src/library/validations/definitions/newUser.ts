@@ -7,5 +7,5 @@ export const NewUserSchema = z.object({
 	lastName: z.string().min(1, 'Last name required').regex(allowedCharactersRegex, { message: userMessages.allowedCharacters }),
 	businessName: z.string().min(1, 'businessName required').regex(allowedCharactersRegex, { message: userMessages.allowedCharacters }),
 	email: z.string().email('Invalid email address'),
-	password: z.string().min(8, 'At least 8 characters please').max(20, 'Less than 20 characters please'),
+	password: z.string().min(8, 'At least 8 characters please').max(30, 'Less than 20 characters please'),
 })
