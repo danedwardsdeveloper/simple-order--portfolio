@@ -1,6 +1,6 @@
 ## Current Task
 
--  Find a way to test cookies
+-
 
 .
 
