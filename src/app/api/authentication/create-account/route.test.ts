@@ -1,11 +1,10 @@
-import { deleteUserSequence } from '@/library/database/operations/definitions/deleteUserSequence/deleteUserSequence'
-import { dynamicBaseURL } from '@/library/environment/publicVariables'
+import { deleteUserSequence } from '@/library/database/operations'
 import { initialiseRequestMaker } from '@tests/utilities'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import type { CreateAccountPOSTbody } from './route'
 
 const makeRequest = initialiseRequestMaker({
-	url: `${dynamicBaseURL}/api/authentication/create-account`,
+	path: '/authentication/create-account',
 	method: 'POST',
 })
 
@@ -21,7 +20,7 @@ const testRequests: { name: string; content: unknown; expectedStatus: number }[]
 	{
 		name: 'Body missing',
 		content: undefined,
-		expectedStatus: 500,
+		expectedStatus: 400,
 	},
 	{
 		name: 'Empty body',
@@ -79,7 +78,8 @@ const testRequests: { name: string; content: unknown; expectedStatus: number }[]
 		name: 'Password too long',
 		content: {
 			...validBody,
-			password: 'loremipsumdolorsitametconsecteturadipiscingelit',
+			// cspell: disable-next-line
+			password: 'loremipsumdolorsitametconsectes', // 31 characters
 		},
 		expectedStatus: 400,
 	},
@@ -95,7 +95,7 @@ const testRequests: { name: string; content: unknown; expectedStatus: number }[]
 	},
 ]
 
-describe('Account creation', () => {
+describe('Create account', () => {
 	beforeAll(async () => {
 		await deleteUserSequence(validBody.email)
 		await new Promise((resolve) => setTimeout(resolve, 2000))
