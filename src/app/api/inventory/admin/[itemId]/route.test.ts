@@ -1,12 +1,10 @@
 import { cookieDurations } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { deleteUserSequence } from '@/library/database/operations'
-import { freeTrials, products } from '@/library/database/schema'
+import { products } from '@/library/database/schema'
 import { developmentBaseURL } from '@/library/environment/publicVariables'
-import { createFreeTrialEndTime } from '@/library/utilities/public'
 import { createCookieWithToken } from '@/library/utilities/server'
-import type { NewFreeTrial, ProductInsertValues, TestUserInputValues } from '@/types'
-import { createUser, parseTokenCookie } from '@tests/utilities'
+import type { ProductInsertValues, TestUserInputValues } from '@/types'
+import { createUser, deleteUser, parseTokenCookie } from '@tests/utilities'
 import fetch from 'node-fetch'
 import urlJoin from 'url-join'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
@@ -40,7 +38,6 @@ describe('Delete inventory item', () => {
 		email: 'juliadavis@gmail.com',
 		password: 'sally4eva',
 		emailConfirmed: true,
-		slug: 'ToDo',
 		cachedTrialExpired: false,
 	}
 
@@ -48,17 +45,9 @@ describe('Delete inventory item', () => {
 	let validRequestCookie: undefined | string = undefined
 
 	beforeAll(async () => {
-		await deleteUserSequence(juliaDavis.email)
+		await deleteUser(juliaDavis.email)
 
 		const { createdUser } = await createUser(juliaDavis)
-
-		const freeTrailInsertValues: NewFreeTrial = {
-			userId: createdUser.id,
-			startDate: new Date(),
-			endDate: createFreeTrialEndTime(),
-		}
-
-		await database.insert(freeTrials).values(freeTrailInsertValues)
 
 		const cookieObject = createCookieWithToken(createdUser.id, cookieDurations.oneYear)
 		validRequestCookie = `${cookieObject.name}=${cookieObject.value}`
@@ -74,7 +63,7 @@ describe('Delete inventory item', () => {
 		validItemId = createdProduct.id
 	})
 
-	afterAll(async () => await deleteUserSequence(juliaDavis.email))
+	afterAll(async () => await deleteUser(juliaDavis.email))
 
 	for (const { description, options, expectedStatus } of cases) {
 		test(description, async () => {

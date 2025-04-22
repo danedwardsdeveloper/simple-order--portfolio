@@ -1,8 +1,7 @@
 import { database } from '@/library/database/connection'
-import { deleteUserSequence } from '@/library/database/operations'
 import { users } from '@/library/database/schema'
-import type { BaseUserBrowserInputValues, BaseUserInsertValues } from '@/types'
-import { type NodeFetchResponseObject, initialiseRequestMaker } from '@tests/utilities'
+import type { BaseUserBrowserInputValues, BaseUserInsertValues, TestRequestResponse } from '@/types'
+import { deleteUser, initialiseTestRequestMaker } from '@tests/utilities'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
@@ -15,8 +14,8 @@ Body content testing
 401 / 403 logic
 */
 
-const makePOSTrequest = initialiseRequestMaker({
-	path: '/authentication/sign-in',
+const makePOSTrequest = initialiseTestRequestMaker({
+	basePath: '/authentication/sign-in',
 	method: 'POST',
 })
 
@@ -30,7 +29,8 @@ const katyPerry: BaseUserBrowserInputValues = {
 
 interface Case {
 	description: string
-	body: unknown
+	// biome-ignore lint/complexity/noBannedTypes:
+	body: {} | null
 }
 
 interface Suite {
@@ -114,7 +114,7 @@ describe('Sign in', () => {
 	}
 
 	describe('Success case', () => {
-		let responseObject: NodeFetchResponseObject | null = null
+		let responseObject: TestRequestResponse | null = null
 		let katyPerryId: null | number = null
 
 		beforeAll(async () => {
@@ -137,7 +137,7 @@ describe('Sign in', () => {
 		})
 
 		afterAll(async () => {
-			await deleteUserSequence(katyPerry.email)
+			await deleteUser(katyPerry.email)
 		})
 
 		test('Status is 200', () => {

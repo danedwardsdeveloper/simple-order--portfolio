@@ -1,5 +1,5 @@
 import type { ParsedSetCookie } from '@/types'
-import { initialiseRequestMaker } from '@tests/utilities'
+import { initialiseTestRequestMaker } from '@tests/utilities'
 import { describe, expect, test } from 'vitest'
 
 interface Suite {
@@ -11,7 +11,8 @@ interface Suite {
 
 interface Case {
 	description: string
-	body?: unknown
+	// biome-ignore lint/complexity/noBannedTypes:
+	body?: {}
 	requestCookie?: string
 }
 
@@ -46,8 +47,8 @@ const suites: Suite[] = [
 	},
 ]
 
-const makeRequest = initialiseRequestMaker({
-	path: '/authentication/sign-out',
+const makeRequest = initialiseTestRequestMaker({
+	basePath: '/authentication/sign-out',
 	method: 'POST',
 })
 

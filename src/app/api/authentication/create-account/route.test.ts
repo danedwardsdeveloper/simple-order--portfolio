@@ -1,10 +1,9 @@
-import { deleteUserSequence } from '@/library/database/operations'
-import { initialiseRequestMaker } from '@tests/utilities'
+import { deleteUser, initialiseTestRequestMaker } from '@tests/utilities'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import type { CreateAccountPOSTbody } from './route'
 
-const makeRequest = initialiseRequestMaker({
-	path: '/authentication/create-account',
+const makeRequest = initialiseTestRequestMaker({
+	basePath: '/authentication/create-account',
 	method: 'POST',
 })
 
@@ -16,7 +15,8 @@ const validBody: CreateAccountPOSTbody = {
 	password: 'securePassword123',
 }
 
-const testRequests: { name: string; content: unknown; expectedStatus: number }[] = [
+// biome-ignore lint/complexity/noBannedTypes: <explanation>
+const testRequests: { name: string; content: undefined | {}; expectedStatus: number }[] = [
 	{
 		name: 'Body missing',
 		content: undefined,
@@ -97,12 +97,12 @@ const testRequests: { name: string; content: unknown; expectedStatus: number }[]
 
 describe('Create account', () => {
 	beforeAll(async () => {
-		await deleteUserSequence(validBody.email)
+		await deleteUser(validBody.email)
 		await new Promise((resolve) => setTimeout(resolve, 2000))
 	})
 
 	afterAll(async () => {
-		await deleteUserSequence(validBody.email)
+		await deleteUser(validBody.email)
 	})
 
 	for (const testRequest of testRequests) {

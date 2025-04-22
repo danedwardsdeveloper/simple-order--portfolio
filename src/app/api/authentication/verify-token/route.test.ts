@@ -1,47 +1,39 @@
-import { cookieDurations } from '@/library/constants'
-import { database } from '@/library/database/connection'
-import { deleteUserSequence } from '@/library/database/operations'
-import { users } from '@/library/database/schema'
-import { createCookieWithToken } from '@/library/utilities/server'
-import { initialiseGETRequestMaker } from '@tests/utilities'
+import type { TestUserInputValues } from '@/types'
+import { createUser, deleteUser, initialiseTestGETRequestMaker } from '@tests/utilities'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 
-const requestMaker = initialiseGETRequestMaker({
-	path: '/authentication/verify-token',
-})
+const makeRequest = initialiseTestGETRequestMaker('/authentication/verify-token')
 
-const badCookie = '123456789'
-let validCookie: undefined | string = undefined
+// ToDo: make more comprehensive
 
 describe('Verify token', () => {
-	beforeAll(async () => {
-		const [stanSmith] = await database
-			.insert(users)
-			.values({
-				firstName: 'Stan',
-				lastName: 'Smith',
-				businessName: 'CIA',
-				slug: 'cia',
-				email: 'stansmith@gmail.com',
-				hashedPassword: '123456789',
-			})
-			.returning()
+	const stanSmith: TestUserInputValues = {
+		firstName: 'Stan',
+		lastName: 'Smith',
+		businessName: 'CIA',
+		email: 'stansmith@gmail.com',
+		password: '123456789',
+		emailConfirmed: true,
+	}
+	const invalidCookie = '123456789'
+	let validCookie: undefined | string = undefined
 
-		const cookieOptions = createCookieWithToken(stanSmith.id, cookieDurations.oneYear)
-		validCookie = `${cookieOptions.name}=${cookieOptions.value}`
+	beforeAll(async () => {
+		const { requestCookie } = await createUser(stanSmith)
+		validCookie = requestCookie
 	})
 
 	afterAll(async () => {
-		await deleteUserSequence('stansmith@gmail.com')
+		await deleteUser(stanSmith.email)
 	})
 
 	test('Invalid token', async () => {
-		const { response } = await requestMaker(badCookie)
+		const { response } = await makeRequest({ requestCookie: invalidCookie })
 		expect(response.status).toBe(400)
 	})
 
 	test('Valid token', async () => {
-		const { response } = await requestMaker(validCookie)
+		const { response } = await makeRequest({ requestCookie: validCookie })
 		expect(response.status).toBe(200)
 	})
 })
