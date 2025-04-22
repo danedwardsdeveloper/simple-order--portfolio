@@ -1,19 +1,20 @@
-import { apiPaths, basicMessages, cookieNames, httpStatus } from '@/library/constants'
+import { apiPaths, cookieNames, userMessages } from '@/library/constants'
 import { checkAccess, checkActiveSubscriptionOrTrial, getUserRoles } from '@/library/database/operations'
 import logger from '@/library/logger'
-import { sanitiseDangerousBaseUser } from '@/library/utilities/public'
-import type { BrowserSafeCompositeUser } from '@/types'
+import { initialiseDevelopmentLogger, sanitiseDangerousBaseUser } from '@/library/utilities/public'
+import type { BrowserSafeCompositeUser, UserMessages } from '@/types'
 import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface VerifyTokenGETresponse {
-	message?: string
+	developmentMessage?: string
+	userMessage?: UserMessages
 	user?: BrowserSafeCompositeUser
 }
 
-const routeSignature = `GET ${apiPaths.authentication.verifyToken}:`
-
 export async function GET(request: NextRequest): Promise<NextResponse<VerifyTokenGETresponse>> {
+	const routeSignature = `GET ${apiPaths.authentication.verifyToken}:`
+	const developmentLogger = initialiseDevelopmentLogger(routeSignature)
 	const cookieStore = await cookies()
 
 	try {
@@ -26,8 +27,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 
 		if (!dangerousUser) {
 			cookieStore.delete(cookieNames.token)
-			// Think about UX here...
-			return NextResponse.json({ message: 'Please sign in' }, { status: 400 })
+			const developmentMessage = developmentLogger('User not found')
+			return NextResponse.json({ developmentMessage }, { status: 400 })
 		}
 
 		const { activeSubscriptionOrTrial, trialExpiry } = await checkActiveSubscriptionOrTrial(
@@ -50,6 +51,6 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 		return NextResponse.json({ user: compositeUser }, { status: 200 })
 	} catch (error) {
 		logger.error(routeSignature, error)
-		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
+		return NextResponse.json({ userMessage: userMessages.serverError }, { status: 500 })
 	}
 }
