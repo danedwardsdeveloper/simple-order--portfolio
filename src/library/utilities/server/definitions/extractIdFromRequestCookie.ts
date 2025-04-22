@@ -2,12 +2,15 @@ import { basicMessages, cookieNames, httpStatus, type systemMessages, tokenMessa
 import { jwtSecret } from '@/library/environment/serverVariables'
 import logger from '@/library/logger'
 import type { UnauthorisedMessages } from '@/types'
-import jwt, { JsonWebTokenError, type JwtPayload, TokenExpiredError } from 'jsonwebtoken'
+import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
 import type { NextRequest } from 'next/server'
 
+type JwtPayload = jwt.JwtPayload
+const { JsonWebTokenError, TokenExpiredError } = jwt
+
 /**
- * @deprecated Use checkAccess instead
+ * @deprecated Use checkAccess instead. This function is only supposed to be used by checkAccess
  */
 export async function extractIdFromRequestCookie(_request: NextRequest): Promise<{
 	extractedUserId?: number
@@ -16,9 +19,6 @@ export async function extractIdFromRequestCookie(_request: NextRequest): Promise
 }> {
 	const cookieStore = await cookies()
 	const accessToken = cookieStore.get(cookieNames.token)
-
-	// Temp
-	logger.debug('Cookie: ', accessToken)
 
 	// This might need to change to handle signed-out users
 	if (!accessToken) {
@@ -30,9 +30,7 @@ export async function extractIdFromRequestCookie(_request: NextRequest): Promise
 
 	try {
 		const { sub } = jwt.verify(accessToken.value, jwtSecret) as JwtPayload
-		if (!sub) {
-			throw new JsonWebTokenError('Missing sub claim')
-		}
+		if (!sub) throw new JsonWebTokenError('Missing sub claim')
 
 		const extractedUserId = Number(sub)
 		if (Number.isNaN(extractedUserId)) {
