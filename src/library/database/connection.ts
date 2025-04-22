@@ -6,6 +6,9 @@ import logger from '../logger'
 
 export const database = drizzle(isProduction ? productionDatabaseString : developmentDatabaseString)
 
+// Protect tests from accidentally deleting production data
+export const developmentDatabase = drizzle(developmentDatabaseString)
+
 export async function testDatabaseConnection() {
 	try {
 		await database.execute(sql`SELECT 1`)
