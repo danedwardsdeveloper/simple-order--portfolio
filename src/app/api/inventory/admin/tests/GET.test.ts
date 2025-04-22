@@ -1,15 +1,14 @@
-import { deleteUserSequence } from '@/library/database/operations'
-import { createCookieString, createUser, initialiseGETRequestMaker } from '@tests/utilities'
+import { createCookieString, createUser, deleteUser, initialiseTestGETRequestMaker } from '@tests/utilities'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 
-const makeRequest = initialiseGETRequestMaker('/inventory/admin')
+const makeRequest = initialiseTestGETRequestMaker('/inventory/admin')
 
 interface Case {
 	description: string
 	requestCookie: string | undefined
 }
 
-describe('API > Inventory > Admin > GET', async () => {
+describe('Get inventory', async () => {
 	describe('Cookies', () => {
 		const rejectedCases: Case[] = [
 			{
@@ -32,7 +31,7 @@ describe('API > Inventory > Admin > GET', async () => {
 
 		for (const { description, requestCookie } of rejectedCases) {
 			test(description, async () => {
-				const { response } = await makeRequest(requestCookie)
+				const { response } = await makeRequest({ requestCookie })
 				expect(response.status).toBe(401)
 			})
 		}
@@ -55,15 +54,15 @@ describe('API > Inventory > Admin > GET', async () => {
 				validRequestCookie = createCookieString({ userId: createdUser.id })
 			})
 
-			afterAll(async () => deleteUserSequence(lindsayLohan.email))
+			afterAll(async () => deleteUser(lindsayLohan.email))
 
 			test('Returns 200 with valid cookie', async () => {
-				const { response } = await makeRequest(validRequestCookie)
+				const { response } = await makeRequest({ requestCookie: validRequestCookie })
 				expect(response.status).toBe(200)
 			})
 
 			test('Returns empty object when there are no products', async () => {
-				const { response } = await makeRequest(validRequestCookie)
+				const { response } = await makeRequest({ requestCookie: validRequestCookie })
 				const data = await response.json()
 				expect(data).toMatchObject({})
 			})
