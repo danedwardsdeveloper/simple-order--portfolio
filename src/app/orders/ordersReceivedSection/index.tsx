@@ -2,13 +2,11 @@
 import ConfirmationModal from '@/components/ConfirmationModal'
 import Spinner from '@/components/Spinner'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
-import { apiPaths } from '@/library/constants'
-import { capitaliseFirstLetter } from '@/library/utilities/public'
+import { apiRequest, capitaliseFirstLetter } from '@/library/utilities/public'
 import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
 import type { OrderStatus } from '@/types'
 import { useState } from 'react'
-import urlJoin from 'url-join'
 import OrderReceivedCard from './components/OrderReceivedCard'
 
 export default function OrdersReceivedSection() {
@@ -39,11 +37,11 @@ export default function OrdersReceivedSection() {
 		try {
 			const { orderId, newStatus } = pendingStatusChange
 
-			const response = await fetch(urlJoin(apiPaths.orders.merchantPerspective.base, orderId.toString()), {
+			const response = await apiRequest({
+				basePath: 'orders/admin',
+				segment: orderId,
 				method: 'PATCH',
-				body: JSON.stringify({ status: newStatus }),
-				headers: { 'Content-Type': 'application/json' },
-				credentials: 'include',
+				body: { status: newStatus },
 			})
 
 			if (!response.ok) throw new Error('Failed to update status')
