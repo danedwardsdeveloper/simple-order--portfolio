@@ -64,14 +64,14 @@ describe('Get inventory', async () => {
 			test('Returns empty object when there are no products', async () => {
 				const { response } = await makeRequest({ requestCookie: validRequestCookie })
 				const data = await response.json()
-				expect(data).toMatchObject({})
+				expect(data).toEqual({})
 			})
 		})
 	})
 })
 
 /* 
-pnpm vitest src/app/api/inventory/admin/tests/GET
+pnpm vitest src/app/api/inventory/admin/Get.test
 */
 
 /*
