@@ -212,12 +212,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<OrdersPOS
 
 		const developmentMessage = developmentLogger(
 			`${dangerousUser.businessName} successfully created a new order from ${merchantProfile.businessName}`,
-			undefined,
-			'level3success',
+			{ level: 'level3success' },
 		)
 		return NextResponse.json({ developmentMessage, createdOrder }, { status: 200 })
 	} catch (error) {
-		const developmentMessage = developmentLogger(transactionErrorMessage || 'Caught error', error)
+		const developmentMessage = developmentLogger(transactionErrorMessage || 'Caught error', { error })
 		return NextResponse.json({ developmentMessage, userMessage: userMessages.serverError }, { status: transactionErrorCode || 500 })
 	}
 }
