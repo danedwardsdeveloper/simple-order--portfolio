@@ -8,20 +8,12 @@ import logger from '@/library/logger'
 import {
 	convertEmptyToUndefined,
 	emailRegex,
-	generateUuid,
 	logAndSanitiseApiError,
 	logAndSanitiseApiResponse,
 	obfuscateEmail,
 } from '@/library/utilities/public'
-import { createInvitationURL } from '@/library/utilities/public'
-import type {
-	BrowserSafeInvitationReceived,
-	BrowserSafeInvitationSent,
-	DangerousBaseUser,
-	Invitation,
-	InvitationInsert,
-	UnauthorisedMessages,
-} from '@/types'
+import { createInvitation, createInvitationURL } from '@/library/utilities/server'
+import type { BrowserSafeInvitationReceived, BrowserSafeInvitationSent, DangerousBaseUser, Invitation, UnauthorisedMessages } from '@/types'
 import { and, eq, inArray } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -114,22 +106,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
 		let transactionErrorMessage: TransactionErrorMessage | undefined = 'error deleting expired invitation'
 		let transactionErrorCode: number | undefined = httpStatus.http503serviceUnavailable
 
-		const { newInvitation } = await database.transaction(async (tx) => {
-			// 9. Transaction: create a new invitation row
-			const invitationInsert: InvitationInsert = {
-				email: normalisedInvitedEmail,
-				senderUserId: dangerousUser.id,
-				token: generateUuid(),
-				expiresAt: newInvitationExpiryDate,
-				lastEmailSent: new Date(),
-				emailAttempts: 1,
-			}
-
+		const { lastEmailSent } = await database.transaction(async (tx) => {
 			transactionErrorMessage = 'error creating new invitation'
-			const [newInvitation]: Invitation[] = await tx.insert(invitations).values(invitationInsert).returning()
-
-			const invitationURL = createInvitationURL(newInvitation.token)
-			logger.info('Invitation url: ', invitationURL)
+			const { invitationURL, lastEmailSent, newInvitationExpiryDate } = await createInvitation({
+				senderUserId: dangerousUser.id,
+				recipientEmail: normalisedInvitedEmail,
+				tx,
+			})
 
 			transactionErrorMessage = basicMessages.errorSendingEmail
 			const dynamicEmailTemplate = inviteeWithAccountAlready
@@ -150,10 +133,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
 				recipientEmail: normalisedInvitedEmail,
 				...dynamicEmailTemplate,
 			})
+
 			if (!sentEmailSuccessfully) tx.rollback()
 			transactionErrorMessage = undefined
 			transactionErrorCode = undefined
-			return { newInvitation }
+			return { lastEmailSent }
 		})
 
 		if (transactionErrorMessage || transactionErrorCode) {
@@ -166,7 +150,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
 		const browserSafeInvitationRecord: BrowserSafeInvitationSent = {
 			obfuscatedEmail: obfuscateEmail(normalisedInvitedEmail),
 			expirationDate: newInvitationExpiryDate,
-			lastEmailSentDate: newInvitation.lastEmailSent,
+			lastEmailSentDate: lastEmailSent,
 		}
 
 		return NextResponse.json({ browserSafeInvitationRecord }, { status: 200 })
