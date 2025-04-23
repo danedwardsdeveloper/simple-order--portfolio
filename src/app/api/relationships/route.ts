@@ -10,7 +10,7 @@ import { and, eq, or } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface RelationshipsGETresponse {
-	message: typeof basicMessages.success | typeof basicMessages.serverError | UnauthorisedMessages | 'no relationships found'
+	message?: typeof basicMessages.success | typeof basicMessages.serverError | UnauthorisedMessages | 'no relationships found'
 	merchants?: BrowserSafeMerchantProfile[]
 	customers?: BrowserSafeCustomerProfile[]
 }
@@ -21,12 +21,14 @@ export async function GET(request: NextRequest): Promise<NextResponse<Relationsh
 		const { extractedUserId, status, message } = await extractIdFromRequestCookie(request)
 
 		if (!extractedUserId) {
+			logger.error("Couldn't extract user ID")
 			return NextResponse.json({ message }, { status })
 		}
 
 		const { existingDangerousUser } = await checkUserExists(extractedUserId)
 
 		if (!existingDangerousUser) {
+			logger.error('existingDangerousUser not found')
 			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http404notFound })
 		}
 
@@ -49,7 +51,9 @@ export async function GET(request: NextRequest): Promise<NextResponse<Relationsh
 				),
 		)
 
-		if (!relationshipsResult) return NextResponse.json({ message: 'no relationships found' }, { status: 200 })
+		if (!relationshipsResult) {
+			return NextResponse.json({}, { status: 200 })
+		}
 
 		const merchants = convertEmptyToUndefined(
 			relationshipsResult
@@ -69,14 +73,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<Relationsh
 				})),
 		)
 
-		return NextResponse.json(
-			{
-				message: basicMessages.success,
-				customers,
-				merchants,
-			},
-			{ status: 200 },
-		)
+		return NextResponse.json({ customers, merchants }, { status: 200 })
 	} catch (error) {
 		logger.error(`${apiPaths.relationships} error: `, error)
 		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
