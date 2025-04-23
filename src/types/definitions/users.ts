@@ -30,7 +30,14 @@ export interface BrowserSafeCustomerProfile {
 	obfuscatedEmail: string
 }
 
-// Junction table where insert & return type are identical
+/**
+ * Simple inferred type from Drizzle junction table where insert & return type are identical
+ * @example
+const newRelationship: RelationshipJoinRow = {
+	customerId: 1,
+	merchantId: 2,
+}
+ */
 export type RelationshipJoinRow = typeof relationships.$inferSelect
 
 export interface BrowserSafeInvitationSent {
