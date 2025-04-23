@@ -44,6 +44,7 @@ export async function extractIdFromRequestCookie(_request: NextRequest): Promise
 		}
 	} catch (error) {
 		if (error instanceof TokenExpiredError) {
+			logger.error('Token expired')
 			return {
 				message: tokenMessages.tokenExpired,
 				status: httpStatus.http401unauthorised,
