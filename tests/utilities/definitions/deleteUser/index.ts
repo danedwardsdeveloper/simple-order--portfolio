@@ -1,7 +1,17 @@
-import { database, developmentDatabase } from '@/library/database/connection'
-import { confirmationTokens, freeTrials, orderItems, products, users } from '@/library/database/schema'
+import { developmentDatabase } from '@/library/database/connection'
+import {
+	confirmationTokens,
+	freeTrials,
+	invitations,
+	orderItems,
+	orders,
+	products,
+	relationships,
+	subscriptions,
+	users,
+} from '@/library/database/schema'
 import logger from '@/library/logger'
-import { equals, inArray } from '@/library/utilities/server'
+import { equals, inArray, or } from '@/library/utilities/server'
 
 /**
  * For testing only
@@ -9,34 +19,82 @@ import { equals, inArray } from '@/library/utilities/server'
 export async function deleteUser(email: string): Promise<{ success: boolean }> {
 	// Use Zod to check email is valid first
 	try {
+		// Check user exists
+		// Don't destructure straight away or it will fail if the user is not found
 		const userToDelete = await developmentDatabase.select().from(users).where(equals(users.email, email)).limit(1)
 
-		if (userToDelete.length === 0) {
+		if (!userToDelete[0]) {
 			logger.info('No user found with email: ', email)
 			return { success: true }
 		}
 
-		const userId = userToDelete[0].id
+		const { id: idToDelete, email: emailToDelete } = userToDelete[0]
 
-		await database.transaction(async (tx) => {
-			const userProducts = await tx.select({ id: products.id }).from(products).where(equals(products.ownerId, userId))
+		// Delete the user's rows, in order
+		await developmentDatabase.transaction(async (tx) => {
+			// use products to find the orderItems, which must be deleted first
+			const userProducts = await tx.select({ id: products.id }).from(products).where(
+				equals(products.ownerId, idToDelete), //
+			)
 
 			const productIds = userProducts.map((product) => product.id)
 
 			if (productIds.length > 0) {
-				await tx.delete(orderItems).where(inArray(orderItems.productId, productIds))
+				await tx.delete(orderItems).where(
+					inArray(orderItems.productId, productIds), //
+				)
 			}
 
-			await tx.delete(products).where(equals(products.ownerId, userId))
-			await tx.delete(confirmationTokens).where(equals(confirmationTokens.userId, userId))
-			await tx.delete(freeTrials).where(equals(freeTrials.userId, userId))
-			await tx.delete(users).where(equals(users.id, userId))
+			/*
+			Then delete these in any order:
+			products, orders, relationships, invitations, confirmationTokens, freeTrials, subscriptions
+			*/
+			await tx.delete(invitations).where(
+				or(
+					equals(invitations.senderUserId, idToDelete), //
+					equals(invitations.email, emailToDelete),
+				),
+			)
+
+			// I'm not totally sure this will work...
+			await tx.delete(orders).where(
+				or(
+					equals(orders.customerId, idToDelete), //
+					equals(orders.merchantId, idToDelete),
+				),
+			)
+			await tx.delete(relationships).where(
+				or(
+					equals(relationships.customerId, idToDelete), //
+					equals(relationships.merchantId, idToDelete),
+				),
+			)
+			await tx.delete(subscriptions).where(
+				equals(subscriptions.userId, idToDelete), //
+			)
+
+			await tx.delete(products).where(
+				equals(products.ownerId, idToDelete), //
+			)
+
+			await tx.delete(confirmationTokens).where(
+				equals(confirmationTokens.userId, idToDelete), //
+			)
+
+			await tx.delete(freeTrials).where(
+				equals(freeTrials.userId, idToDelete), //
+			)
+
+			// Finally, delete the user
+			await tx.delete(users).where(
+				equals(users.id, idToDelete), //
+			)
 		})
 
-		logger.info('Successfully completed deleteUserSequence')
+		logger.info('Successfully completed deleteUser')
 		return { success: true }
 	} catch (error) {
-		logger.error('deleteUserSequence error: ', error)
+		logger.error('deleteUser error: ', error)
 		return { success: false }
 	}
 }
