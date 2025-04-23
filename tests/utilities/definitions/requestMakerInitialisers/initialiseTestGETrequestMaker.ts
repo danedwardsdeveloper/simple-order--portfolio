@@ -22,22 +22,22 @@ const { response, setCookie } = await getUserDetails({
 	},
 })
  */
-type GETRequestMaker = (options?: ReturnedFunctionOptions) => Promise<TestRequestResponse>
+type GETRequestMaker = ({ requestCookie, segment, searchParam }: ReturnedFunctionOptions) => Promise<TestRequestResponse>
 
 export function initialiseTestGETRequestMaker(basePath: string): GETRequestMaker {
-	return async (options?: ReturnedFunctionOptions): Promise<TestRequestResponse> => {
+	return async ({ requestCookie, segment, searchParam }: ReturnedFunctionOptions = {}): Promise<TestRequestResponse> => {
 		const headers: Record<string, string> = {
 			'Content-Type': 'application/json',
 		}
 
-		if (options?.requestCookie) {
-			headers.Cookie = options.requestCookie
+		if (requestCookie) {
+			headers.Cookie = requestCookie
 		}
 
 		const url = createApiUrl({
 			basePath,
-			segment: options?.segment,
-			searchParam: options?.searchParam,
+			segment: segment,
+			searchParam: searchParam,
 		})
 
 		const response = await fetch(url, {
