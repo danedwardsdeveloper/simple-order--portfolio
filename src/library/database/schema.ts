@@ -31,7 +31,7 @@ export const invitations = pgTable(
 	'invitations',
 	{
 		id: serial('id').primaryKey(),
-		email: text('email').notNull(),
+		email: text('email').notNull(), // Rename this recipientEmail. I've been confused about this several times but it seems obvious after.
 		senderUserId: integer('sender_user_id')
 			.notNull()
 			.references(() => users.id),
