@@ -8,3 +8,5 @@ export interface TestRequestResponse {
 	response: NodeFetchResponse
 	setCookie: ParsedSetCookie | null
 }
+
+export type JsonData = { [key: string]: unknown }
