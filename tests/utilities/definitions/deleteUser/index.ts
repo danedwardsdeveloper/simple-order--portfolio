@@ -30,25 +30,25 @@ export async function deleteUser(email: string): Promise<{ success: boolean }> {
 
 		const { id: idToDelete, email: emailToDelete } = userToDelete[0]
 
-		// Delete the user's rows, in order
+		// Delete the user's data in order
 		await developmentDatabase.transaction(async (tx) => {
-			// use products to find the orderItems, which must be deleted first
-			const userProducts = await tx.select({ id: products.id }).from(products).where(
-				equals(products.ownerId, idToDelete), //
-			)
+			// First, find all orders associated with this user
+			const userOrders = await tx
+				.select({ id: orders.id })
+				.from(orders)
+				.where(or(equals(orders.customerId, idToDelete), equals(orders.merchantId, idToDelete)))
 
-			const productIds = userProducts.map((product) => product.id)
+			const orderIds = userOrders.map((order) => order.id)
 
-			if (productIds.length > 0) {
-				await tx.delete(orderItems).where(
-					inArray(orderItems.productId, productIds), //
-				)
+			// Delete all order items for those orders
+			if (orderIds.length > 0) {
+				await tx.delete(orderItems).where(inArray(orderItems.orderId, orderIds))
 			}
 
-			/*
-			Then delete these in any order:
-			products, orders, relationships, invitations, confirmationTokens, freeTrials, subscriptions
-			*/
+			// Then delete the orders
+			await tx.delete(orders).where(or(equals(orders.customerId, idToDelete), equals(orders.merchantId, idToDelete)))
+
+			// Then delete everything else
 			await tx.delete(invitations).where(
 				or(
 					equals(invitations.senderUserId, idToDelete), //
@@ -56,13 +56,6 @@ export async function deleteUser(email: string): Promise<{ success: boolean }> {
 				),
 			)
 
-			// I'm not totally sure this will work...
-			await tx.delete(orders).where(
-				or(
-					equals(orders.customerId, idToDelete), //
-					equals(orders.merchantId, idToDelete),
-				),
-			)
 			await tx.delete(relationships).where(
 				or(
 					equals(relationships.customerId, idToDelete), //
