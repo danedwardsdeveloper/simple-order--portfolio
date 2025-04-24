@@ -1,11 +1,10 @@
-import { apiPaths, httpStatus, serviceConstraints, temporaryVat, userMessages } from '@/library/constants'
+import { serviceConstraints, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { checkAccess, checkRelationship, getOrdersData } from '@/library/database/operations'
-import { orderItems, orders, users } from '@/library/database/schema'
-import { products as productsTable } from '@/library/database/schema'
+import { checkAccess, checkRelationship, createOrder, getOrdersData } from '@/library/database/operations'
+import { users } from '@/library/database/schema'
 import { containsIllegalCharacters, initialiseDevelopmentLogger, isValidDate, mapOrders } from '@/library/utilities/public'
-import type { OrderInsertValues, OrderMade, SelectedProduct } from '@/types'
-import { eq, inArray } from 'drizzle-orm'
+import { equals } from '@/library/utilities/server'
+import type { OrderMade, SelectedProduct } from '@/types'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface OrdersGETresponse {
@@ -15,34 +14,36 @@ export interface OrdersGETresponse {
 }
 
 /**
- * Get orders that you have placed as a customer (with search parameters (eventually))
- * Optimisation ToDo: sort with pending first
+ * Get orders that you have placed as a customer
  */
 export async function GET(request: NextRequest): Promise<NextResponse<OrdersGETresponse>> {
-	const routeSignature = `GET ${apiPaths.orders.customerPerspective.base}:`
-	const developmentLogger = initialiseDevelopmentLogger(routeSignature)
+	const routeSignatureGET = 'GET /api/orders'
+	const developmentLogger = initialiseDevelopmentLogger(routeSignatureGET)
 
 	try {
 		const { dangerousUser } = await checkAccess({
 			request,
-			routeSignature,
-			requireConfirmed: true, // Not sure about this. Might be too strict
+			routeSignature: routeSignatureGET,
 			requireSubscriptionOrTrial: false,
+
+			// requireConfirmed doesn't matter here
+			// You can't make an order without being confirmed so there will never be anything to see
+			requireConfirmed: false,
 		})
 
 		if (!dangerousUser) {
-			const developmentMessage = developmentLogger('dangerousUser not found or invalid')
+			const developmentMessage = developmentLogger('user not found')
 			return NextResponse.json({ developmentMessage }, { status: 400 })
 		}
 
 		const { ordersMadeData } = await getOrdersData({
 			userId: dangerousUser.id,
 			returnType: 'ordersMade',
-			routeSignature,
+			routeSignature: routeSignatureGET,
 		})
 
 		if (!ordersMadeData) {
-			const developmentMessage = developmentLogger('Legitimately no orders found')
+			const developmentMessage = developmentLogger('Legitimately no orders found', { level: 'level3success' })
 			return NextResponse.json({ developmentMessage }, { status: 200 })
 		}
 
@@ -77,13 +78,15 @@ export interface OrdersPOSTresponse {
  * Allows a customer to create a new order
  */
 export async function POST(request: NextRequest): Promise<NextResponse<OrdersPOSTresponse>> {
-	const routeSignature = `POST ${apiPaths.orders.customerPerspective.base}:`
-	const developmentLogger = initialiseDevelopmentLogger(routeSignature)
+	const routeSignaturePOST = 'POST /api/orders'
+	const developmentLogger = initialiseDevelopmentLogger(routeSignaturePOST)
 
-	let transactionErrorMessage: string | undefined = undefined
-	let transactionErrorCode: number | undefined = undefined
+	let txErrorMessage: string | undefined
+	let txErrorCode: number | undefined
 
 	try {
+		// ToDo: Prevent route from crashing with missing body
+
 		const { merchantSlug, products, requestedDeliveryDate, customerNote }: OrdersPOSTbody = await request.json()
 
 		let badRequestMessage = undefined
@@ -102,7 +105,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<OrdersPOS
 		}
 
 		const { dangerousUser } = await checkAccess({
-			routeSignature,
+			routeSignature: routeSignaturePOST,
 			request,
 			requireConfirmed: true,
 			requireSubscriptionOrTrial: false,
@@ -136,7 +139,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<OrdersPOS
 		}
 
 		// This relationship checking logic can be moved to checkAccess
-		const [merchantProfile] = await database.select().from(users).where(eq(users.slug, merchantSlug)).limit(1)
+		const [merchantProfile] = await database.select().from(users).where(equals(users.slug, merchantSlug)).limit(1)
 
 		if (!merchantProfile) {
 			const developmentMessage = developmentLogger(`merchant with slug ${merchantSlug} not found`)
@@ -150,73 +153,21 @@ export async function POST(request: NextRequest): Promise<NextResponse<OrdersPOS
 			return NextResponse.json({ developmentMessage }, { status: 400 })
 		}
 
-		const newOrderInsertValues: OrderInsertValues = {
+		const createdOrder = await createOrder({
 			customerId: dangerousUser.id,
-			merchantId: merchantProfile.id,
+			merchantProfile,
 			requestedDeliveryDate: parsedDate,
 			customerNote,
-		}
-
-		// This logic is complex but I don't think anything similar is used anywhere else in the application
-		const newOrder = await database.transaction(async (tx) => {
-			transactionErrorMessage = 'failed to create new order'
-			transactionErrorCode = httpStatus.http503serviceUnavailable
-			const [createdOrder] = await tx.insert(orders).values(newOrderInsertValues).returning()
-
-			transactionErrorMessage = 'failed to retrieve data from products table'
-			const productsData = await tx
-				.select()
-				.from(productsTable)
-				.where(
-					inArray(
-						productsTable.id,
-						products.map((product) => product.productId),
-					),
-				)
-
-			const orderItemsData = products.map((item) => {
-				const product = productsData.find((product) => product.id === item.productId)
-				if (!product) throw new Error(`Product ${item.productId} not found`)
-
-				return {
-					orderId: createdOrder.id,
-					productId: item.productId,
-					quantity: item.quantity,
-					priceInMinorUnitsWithoutVat: product.priceInMinorUnits,
-					vat: product.customVat || temporaryVat,
-				}
-			})
-
-			transactionErrorMessage = 'failed to created order_items rows'
-			await tx.insert(orderItems).values(orderItemsData)
-
-			transactionErrorMessage = undefined
-			transactionErrorCode = undefined
-			return createdOrder
+			products,
 		})
-
-		const allOrderItems = await database.select().from(orderItems).where(eq(orderItems.orderId, newOrder.id))
-
-		const productIds = allOrderItems.map((item) => item.productId)
-
-		const productsData = await database.select().from(productsTable).where(inArray(productsTable.id, productIds))
-
-		const [createdOrder = undefined] =
-			mapOrders({
-				orders: [newOrder],
-				orderItems: allOrderItems,
-				products: productsData,
-				merchants: [merchantProfile],
-				returnType: 'ordersMade',
-			}).ordersMade || []
 
 		const developmentMessage = developmentLogger(
 			`${dangerousUser.businessName} successfully created a new order from ${merchantProfile.businessName}`,
 			{ level: 'level3success' },
 		)
-		return NextResponse.json({ developmentMessage, createdOrder }, { status: 200 })
+		return NextResponse.json({ developmentMessage, createdOrder }, { status: 201 })
 	} catch (error) {
-		const developmentMessage = developmentLogger(transactionErrorMessage || 'Caught error', { error })
-		return NextResponse.json({ developmentMessage, userMessage: userMessages.serverError }, { status: transactionErrorCode || 500 })
+		const developmentMessage = developmentLogger(txErrorMessage || 'Caught error', { error })
+		return NextResponse.json({ developmentMessage, userMessage: userMessages.serverError }, { status: txErrorCode || 500 })
 	}
 }
