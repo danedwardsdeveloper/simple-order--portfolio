@@ -1,5 +1,4 @@
-import type { AsyncFunction, DangerousBaseUser } from '@/types'
-import { emilyGilmoreInputValues, lukeDanesInputValues } from '@tests/constants'
+import type { AsyncFunction, DangerousBaseUser, TestUserInputValues } from '@/types'
 import { createUser, deleteUser, initialiseTestGETRequestMaker } from '@tests/utilities'
 import { createRelationship } from '@tests/utilities/definitions/createRelationship'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
@@ -10,6 +9,22 @@ describe('/api/relationships', () => {
 	let validRequestCookie: string | undefined
 	let userOne: DangerousBaseUser | undefined
 	let userTwo: DangerousBaseUser | undefined
+
+	const emilyGilmoreInputValues: TestUserInputValues = {
+		firstName: 'Emily',
+		lastName: 'Gilmore',
+		businessName: 'Emily Gilmore Enterprises',
+		email: 'email@gmail.com',
+		password: 'D@rT0wn!123',
+	}
+
+	const lukeDanesInputValues: TestUserInputValues = {
+		firstName: 'Luke',
+		lastName: 'Danes',
+		businessName: "Luke's Diner",
+		email: 'luke@lukesdiner.com',
+		password: 'C0ffee&P@ncakes',
+	}
 
 	beforeAll(async () => {
 		const { createdUser, requestCookie: createdRequestCookie } = await createUser(emilyGilmoreInputValues)
