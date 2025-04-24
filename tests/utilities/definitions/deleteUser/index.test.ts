@@ -65,15 +65,13 @@ describe('deleteUser', async () => {
 					caseSetUp: async () => {
 						if (!imeldaStaunton) throw new Error('User not created')
 
-						await addProducts({
-							userId: imeldaStaunton.id,
-							items: [
-								{
-									name: 'Soup',
-									priceInMinorUnits: 500,
-								},
-							],
-						})
+						await addProducts([
+							{
+								ownerId: imeldaStaunton.id,
+								name: 'Soup',
+								priceInMinorUnits: 500,
+							},
+						])
 
 						const { success: successfullyCreatedSubscription } = await createSubscription({
 							userId: imeldaStaunton.id,
