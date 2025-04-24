@@ -8,6 +8,8 @@ export interface SelectedProduct {
 	quantity: number
 }
 
+export type AnonymousProduct = Pick<Product, 'name' | 'priceInMinorUnits'>
+
 // Keep the id here as it's useful for React mapping as it's guaranteed to be unique
 export type BrowserSafeMerchantProduct = Pick<Product, 'id' | 'name' | 'description' | 'priceInMinorUnits' | 'customVat' | 'deletedAt'>
 
