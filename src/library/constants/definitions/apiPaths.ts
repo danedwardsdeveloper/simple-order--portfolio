@@ -1,5 +1,6 @@
-// This is only a record of the paths for making fetch requests and logging errors.
-// Full API details are in my Notion project
+/**
+ * @deprecated The file system is the single source of truth now
+ */
 export const apiPaths = {
 	authentication: {
 		createAccount: '/api/authentication/create-account',
@@ -30,13 +31,11 @@ export const apiPaths = {
 		},
 	},
 	orders: {
-		merchantPerspective: {
+		base: '/api/orders',
+		orderId: '/api/orders/[orderId]',
+		admin: {
 			base: '/api/orders/admin',
 			update: '/api/orders/admin/[orderId]',
-		},
-		customerPerspective: {
-			base: '/api/orders',
-			orderId: '/api/orders/[orderId]',
 		},
 	},
 } as const
