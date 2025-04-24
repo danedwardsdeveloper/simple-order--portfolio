@@ -36,6 +36,7 @@ export async function createUser(user: TestUserInputValues): Output {
 	const hashedPassword = await hashPassword(user.password)
 	const insertValues: BaseUserInsertValues = {
 		...user,
+		emailConfirmed: user.emailConfirmed || true,
 		cachedTrialExpired: false,
 		slug: slugify(user.businessName),
 		hashedPassword,
