@@ -1,17 +1,36 @@
 import { database } from '@/library/database/connection'
 import { products } from '@/library/database/schema'
-import type { ProductInsertValues } from '@/types'
+import logger from '@/library/logger'
+import type { Product, ProductInsertValues } from '@/types'
 
-interface TestProductInsertValues {
-	name: string
-	priceInMinorUnits: number
-}
+type Output = Promise<Product[] | undefined>
+/**
+ * @example
+const productsToInsert: ProductInsertValues[] = [
+	{
+		ownerId: 1,
+		name: 'Soup',
+		priceInMinorUnits: 500,
+	},
+]
 
-export async function addProducts({ userId, items }: { userId: number; items: TestProductInsertValues[] }) {
-	const productInsertValues: ProductInsertValues[] = items.map((item) => ({
-		...item,
-		ownerId: userId,
-	}))
+const addedProducts = await addProducts(productsToInsert)
 
-	return await database.insert(products).values(productInsertValues).returning()
+//
+
+const addedProducts = await addProducts([
+	{
+		ownerId: 1,
+		name: 'Soup',
+		priceInMinorUnits: 500,
+	},
+])
+ */
+export async function addProducts(items: ProductInsertValues[]): Output {
+	try {
+		return await database.insert(products).values(items).returning()
+	} catch (error) {
+		logger.error('addProducts caught error', error)
+		return undefined
+	}
 }
