@@ -8,8 +8,9 @@ export type BaseUserBrowserInputValues = Omit<BaseUserInsertValues, 'hashedPassw
 	password: string
 }
 
-export type TestUserInputValues = Omit<BaseUserInsertValues, 'hashedPassword' | 'slug' | 'cachedTrialExpired'> & {
+export type TestUserInputValues = Omit<BaseUserInsertValues, 'hashedPassword' | 'slug' | 'cachedTrialExpired' | 'emailConfirmed'> & {
 	password: string
+	emailConfirmed?: boolean
 }
 
 export type InvitedCustomerBrowserInputValues = Omit<BaseUserBrowserInputValues, 'email'>
