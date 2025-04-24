@@ -267,3 +267,8 @@ Completely forgot about journaling, but I've been working hard
 A bit of a breakthrough today. Have made some really useful utilities like apiRequest (that I can use in every project) that massively reduce repetition. Also made created createApiUrl, that uses urlJoin to create the path without missing/duplicated slashes, and accepts a segment and search parameters using the built in node:URL. I also wrote tests for it and I'm very pleased. I wrote details of a sprint for the week which are focussing on API testing, and I've printed it out and put it in a frame. I've checked off a lot of it already and it's all feeling really positive. Around 120 tests passing so far, which is very satisfying!
 
 -  Evening - 179 tests passing!
+
+# Tuesday 22 - Thursday 24 April
+
+-  Lots of work on test utilities and API tests
+-  Made a createOrder function and tests, which was very difficult
