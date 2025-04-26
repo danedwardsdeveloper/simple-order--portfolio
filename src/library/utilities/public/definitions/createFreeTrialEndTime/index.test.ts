@@ -1,7 +1,7 @@
 import { differenceInDays, isAfter } from 'date-fns'
 import { formatInTimeZone } from 'date-fns-tz'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
-import { createFreeTrialEndTime } from './createFreeTrialEndTime'
+import { createFreeTrialEndTime } from '.'
 
 const testIsFutureDate = (trialEnd: Date) => {
 	const now = new Date()
