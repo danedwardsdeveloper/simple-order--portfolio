@@ -34,10 +34,22 @@ describe('Create order', () => {
 	let customerCookie: string | undefined
 	let addedProducts: Product[] | undefined
 
-	const toDoCases: { caseDescription: string }[] = [
+	type ToDoCase = { caseDescription: string }
+
+	const toDoCases: ToDoCase[] = [
 		{ caseDescription: 'Invalid cookie' },
 		{ caseDescription: 'Expired cookie' },
-		// ToDo...
+		{ caseDescription: 'Email not confirmed ' },
+		{ caseDescription: 'Missing merchantSlug' },
+		{ caseDescription: 'Missing requestedDeliveryDate' },
+		{ caseDescription: 'Invalid requestedDeliveryDate' },
+		{ caseDescription: 'No products' },
+		{ caseDescription: 'Empty products array' },
+		{ caseDescription: 'Customer note too long' },
+		{ caseDescription: 'Illegal characters in customerNote' },
+		{ caseDescription: 'No relationship' },
+		{ caseDescription: 'Self-order' },
+		{ caseDescription: 'Customer can make an order without a free trial or subscription' },
 	]
 
 	for (const { caseDescription } of toDoCases) {
