@@ -1,3 +1,8 @@
+export const http409conflict = 409
+
+/**
+ * @deprecated use individual exports instead
+ */
 export const httpStatus = {
 	http200ok: 200,
 	http201created: 201,
