@@ -1,66 +1,48 @@
 import { database } from '@/library/database/connection'
+import { checkActiveSubscriptionOrTrial } from '@/library/database/operations'
 import { users } from '@/library/database/schema'
-import logger from '@/library/logger'
-import { equals } from '@/library/utilities/server'
-import { extractIdFromRequestCookie } from '@/library/utilities/server'
+import { equals, validateToken } from '@/library/utilities/server'
 import type { DangerousBaseUser } from '@/types'
 import type { NextRequest } from 'next/server'
-import { checkActiveSubscriptionOrTrial } from './checkActiveSubscriptionOrTrial'
 
-// ToDo: write tests for this function as it is EXTREMELY IMPORTANT!!
-
-/**
- * New function that replaces extractIdFromRequestCookie and checkUserExists
- * Validates user access permissions for protected routes
- * 
- * @example
- * 	const routeSignature = `GET ${apiPaths.}`
- 
- * const { dangerousUser } = await checkAccess({
-			request,
-			requireConfirmed: false,
-			requireSubscriptionOrTrial: false,
-			routeSignature,
-		})
-
-if (!dangerousUser) return NextResponse.json({}, { status: 400 })
- * 
- * @param {Object} params - The parameters object
- * @param {NextRequest} params.request - The Next.js request object containing cookies
- * @param {string} params.routeSignature - Identifier for the route being accessed for logging
- * @param {boolean} params.requireConfirmed
- * @param {boolean} params.requireSubscriptionOrTrial
- */
-export async function checkAccess({
-	request,
-	routeSignature,
-	requireConfirmed,
-	requireSubscriptionOrTrial,
-}: {
+type Input = {
 	request: NextRequest
-	routeSignature: string
 	requireConfirmed: boolean
 	requireSubscriptionOrTrial: boolean
-}): Promise<{
-	dangerousUser?: DangerousBaseUser
-	trialExpiry?: Date
-}> {
-	const { extractedUserId, message } = await extractIdFromRequestCookie(request)
+}
 
-	if (!extractedUserId || message === 'token missing') {
-		return {}
+type Output = Promise<
+	| { accessDenied: { message: string; status: number }; dangerousUser?: never; trialExpiry?: never }
+	| { accessDenied?: never; dangerousUser: DangerousBaseUser; trialExpiry?: Date }
+>
+/**
+ * @example
+		const { dangerousUser, accessDenied } = await checkAccess({
+			request,
+			requireConfirmed: true,
+			requireSubscriptionOrTrial: true,
+		})
+
+		if (accessDenied) {
+			const developmentMessage = developmentLogger(accessDenied.message)
+			return NextResponse.json({ developmentMessage }, { status: accessDenied.status })
+		}
+ */
+export async function checkAccess({ request, requireConfirmed, requireSubscriptionOrTrial }: Input): Output {
+	const { tokenInvalid, extractedUserId } = await validateToken(request)
+
+	if (tokenInvalid) {
+		return { accessDenied: { message: tokenInvalid.message, status: 401 } }
 	}
 
 	const [dangerousUser] = await database.select().from(users).where(equals(users.id, extractedUserId))
 
 	if (!dangerousUser) {
-		logger.error(routeSignature, 'User not found')
-		return {}
+		return { accessDenied: { message: 'user not found', status: 400 } }
 	}
 
 	if (requireConfirmed && !dangerousUser.emailConfirmed) {
-		logger.error(routeSignature, 'Email not confirmed')
-		return {}
+		return { accessDenied: { message: 'email not confirmed', status: 403 } }
 	}
 
 	const { activeSubscriptionOrTrial, trialExpiry } = await checkActiveSubscriptionOrTrial(
@@ -69,8 +51,7 @@ export async function checkAccess({
 	)
 
 	if (requireSubscriptionOrTrial && !activeSubscriptionOrTrial) {
-		logger.error(routeSignature, 'Active trial or subscription not found')
-		return {}
+		return { accessDenied: { message: 'active subscription or trial required', status: 403 } }
 	}
 
 	return { dangerousUser, trialExpiry }
