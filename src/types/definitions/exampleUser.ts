@@ -1,3 +1,4 @@
+// This is in the wrong place. It's not a type!
 export const exampleUser: FullBrowserSafeUser = {
 	firstName: '',
 	lastName: '',
