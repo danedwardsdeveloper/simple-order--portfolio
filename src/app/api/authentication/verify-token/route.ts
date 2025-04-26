@@ -1,10 +1,10 @@
-import { apiPaths, cookieNames, userMessages } from '@/library/constants'
+import { cookieNames, userMessages } from '@/library/constants'
 import { checkAccess, checkActiveSubscriptionOrTrial, getUserRoles } from '@/library/database/operations'
-import logger from '@/library/logger'
-import { initialiseDevelopmentLogger, sanitiseDangerousBaseUser } from '@/library/utilities/public'
+import { sanitiseDangerousBaseUser } from '@/library/utilities/public'
+import { initialiseResponder } from '@/library/utilities/server'
 import type { BrowserSafeCompositeUser, UserMessages } from '@/types'
 import { cookies } from 'next/headers'
-import { type NextRequest, NextResponse } from 'next/server'
+import type { NextRequest, NextResponse } from 'next/server'
 
 export interface VerifyTokenGETresponse {
 	developmentMessage?: string
@@ -12,9 +12,11 @@ export interface VerifyTokenGETresponse {
 	user?: BrowserSafeCompositeUser
 }
 
-export async function GET(request: NextRequest): Promise<NextResponse<VerifyTokenGETresponse>> {
-	const routeSignature = `GET ${apiPaths.authentication.verifyToken}:`
-	const developmentLogger = initialiseDevelopmentLogger(routeSignature)
+type Output = Promise<NextResponse<VerifyTokenGETresponse>>
+
+export async function GET(request: NextRequest): Output {
+	const respond = initialiseResponder<VerifyTokenGETresponse>()
+
 	const cookieStore = await cookies()
 
 	try {
@@ -22,13 +24,14 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 			request,
 			requireConfirmed: false,
 			requireSubscriptionOrTrial: false,
-			routeSignature,
 		})
 
 		if (!dangerousUser) {
 			cookieStore.delete(cookieNames.token)
-			const developmentMessage = developmentLogger('User not found')
-			return NextResponse.json({ developmentMessage }, { status: 400 })
+			return respond({
+				status: 400,
+				developmentMessage: 'User not found',
+			})
 		}
 
 		const { activeSubscriptionOrTrial, trialExpiry } = await checkActiveSubscriptionOrTrial(
@@ -47,10 +50,16 @@ export async function GET(request: NextRequest): Promise<NextResponse<VerifyToke
 			trialExpiry,
 		}
 
-		logger.success(routeSignature, 'Token validated successfully')
-		return NextResponse.json({ user: compositeUser }, { status: 200 })
-	} catch (error) {
-		logger.error(routeSignature, error)
-		return NextResponse.json({ userMessage: userMessages.serverError }, { status: 500 })
+		return respond({
+			body: { user: compositeUser },
+			status: 200,
+			developmentMessage: 'Token validated successfully',
+		})
+	} catch (caughtError) {
+		return respond({
+			body: { userMessage: userMessages.serverError },
+			status: 500,
+			caughtError,
+		})
 	}
 }

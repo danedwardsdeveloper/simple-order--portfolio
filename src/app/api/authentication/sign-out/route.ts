@@ -1,32 +1,47 @@
-import { apiPaths, cookieNames, userMessages } from '@/library/constants'
-import { initialiseDevelopmentLogger } from '@/library/utilities/public'
+import { cookieNames, userMessages } from '@/library/constants'
+import { initialiseResponder } from '@/library/utilities/server'
+import type { JsonData } from '@/types'
 import { cookies } from 'next/headers'
-import { type NextRequest, NextResponse } from 'next/server'
+import type { NextRequest, NextResponse } from 'next/server'
 
 export interface SignOutPOSTresponse {
 	userMessage?: typeof userMessages.serverError
 	developmentMessage?: string
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse<SignOutPOSTresponse>> {
-	const developmentLogger = initialiseDevelopmentLogger(`POST ${apiPaths.authentication.signOut}: `)
+type Output = Promise<NextResponse<SignOutPOSTresponse>>
+
+export async function POST(request: NextRequest): Output {
+	const respond = initialiseResponder<SignOutPOSTresponse>()
+
+	let _body: JsonData | undefined
+	try {
+		_body = await request.json()
+		return respond({ status: 400, developmentMessage: 'Body should not be provided' })
+	} catch {}
 
 	try {
-		const _body = await request.json().catch(() => ({}))
 		const cookieStore = await cookies()
 		const tokenCookie = cookieStore.get(cookieNames.token)
 
 		if (!tokenCookie) {
-			const developmentMessage = developmentLogger('token not found')
-			return NextResponse.json({ developmentMessage }, { status: 400 })
+			return respond({
+				status: 400,
+				developmentMessage: 'Token not found',
+			})
 		}
 
 		cookieStore.delete(cookieNames.token)
 
-		const developmentMessage = developmentLogger('Signed out successfully', { level: 'level3success' })
-		return NextResponse.json({ developmentMessage }, { status: 200 })
-	} catch (error) {
-		const developmentMessage = developmentLogger('Caught error', { error })
-		return NextResponse.json({ userMessage: userMessages.serverError, developmentMessage }, { status: 500 })
+		return respond({
+			status: 200,
+			developmentMessage: 'Signed out successfully',
+		})
+	} catch (caughtError) {
+		return respond({
+			body: { userMessage: userMessages.serverError },
+			status: 500,
+			caughtError,
+		})
 	}
 }

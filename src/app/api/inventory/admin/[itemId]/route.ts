@@ -1,4 +1,4 @@
-import { apiPaths, userMessages } from '@/library/constants'
+import { userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkAccess } from '@/library/database/operations'
 import { products } from '@/library/database/schema'
@@ -13,33 +13,33 @@ export interface InventoryDELETEresponse {
 	softDeletedProduct?: BrowserSafeMerchantProduct
 }
 
-export interface InventoryDELETEbody {
-	productToDeleteId: number
-}
+export type InventoryDELETEparams = { itemId: string }
 
 export async function DELETE(
 	request: NextRequest,
-	{ params }: { params: Promise<{ itemId: number }> },
+	{ params }: { params: Promise<InventoryDELETEparams> },
 ): Promise<NextResponse<InventoryDELETEresponse>> {
-	const routeSignature = `DELETE ${apiPaths.inventory.merchantPerspective.itemId}`
-	const developmentLogger = initialiseDevelopmentLogger(routeSignature)
+	const { developmentLogger } = initialiseDevelopmentLogger('/inventory/admin/[itemId]', 'DELETE')
 
 	try {
-		const itemId = (await params).itemId
+		const resolvedParams = await params
+		const itemId = Number.parseInt(resolvedParams.itemId)
 
 		if (!itemId) {
 			const developmentMessage = developmentLogger('productToDeleteId missing')
 			return NextResponse.json({ developmentMessage }, { status: 400 })
 		}
 
-		const { dangerousUser } = await checkAccess({
+		const { dangerousUser, accessDenied } = await checkAccess({
 			request,
-			requireConfirmed: false,
+			requireConfirmed: true,
 			requireSubscriptionOrTrial: true,
-			routeSignature,
 		})
 
-		if (!dangerousUser) return NextResponse.json({}, { status: 400 })
+		if (accessDenied) {
+			const developmentMessage = developmentLogger(accessDenied.message)
+			return NextResponse.json({ developmentMessage }, { status: accessDenied.status })
+		}
 
 		const [softDeletedProduct]: BrowserSafeMerchantProduct[] = await database
 			.update(products)

@@ -4,8 +4,6 @@ import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 
 const makeRequest = initialiseTestGETRequestMaker('/authentication/verify-token')
 
-// ToDo: make more comprehensive
-
 describe('Verify token', () => {
 	const stanSmith: TestUserInputValues = {
 		firstName: 'Stan',
@@ -16,7 +14,7 @@ describe('Verify token', () => {
 		emailConfirmed: true,
 	}
 	const invalidCookie = '123456789'
-	let validCookie: undefined | string = undefined
+	let validCookie: undefined | string
 
 	beforeAll(async () => {
 		const { requestCookie } = await createUser(stanSmith)
@@ -33,8 +31,13 @@ describe('Verify token', () => {
 	})
 
 	test('Valid token', async () => {
+		if (!validCookie) throw new Error('Failed to create valid cookie')
 		const { response } = await makeRequest({ requestCookie: validCookie })
 		expect(response.status).toBe(200)
+	})
+
+	test.skip('Make more comprehensive', () => {
+		//
 	})
 })
 

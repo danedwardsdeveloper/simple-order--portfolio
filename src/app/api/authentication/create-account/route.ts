@@ -1,22 +1,27 @@
-import { apiPaths, cookieDurations, durationSettings, userMessages } from '@/library/constants'
+import { cookieDurations, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { confirmationTokens, freeTrials, users } from '@/library/database/schema'
+import { createConfirmationToken, createFreeTrial } from '@/library/database/operations'
+import { users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import { createNewMerchantEmail } from '@/library/email/templates'
-import { dynamicBaseURL } from '@/library/environment/publicVariables'
-import {
-	createFreeTrialEndTime,
-	createMerchantSlug,
-	generateUuid,
-	initialiseDevelopmentLogger,
-	sanitiseDangerousBaseUser,
-} from '@/library/utilities/public'
-import { createCookieWithToken, equals, hashPassword, or } from '@/library/utilities/server'
+import { createMerchantSlug, sanitiseDangerousBaseUser } from '@/library/utilities/public'
+import { createCookieWithToken, equals, formatFirstError, hashPassword, initialiseResponder, or } from '@/library/utilities/server'
 import { NewUserSchema } from '@/library/validations'
-import type { BaseUserInsertValues, BrowserSafeCompositeUser, DangerousBaseUser, NewFreeTrial, UserMessages } from '@/types'
+import type { BaseUserInsertValues, BrowserSafeCompositeUser, DangerousBaseUser, UserMessages } from '@/types'
 import { cookies } from 'next/headers'
-import { type NextRequest, NextResponse } from 'next/server'
+import type { NextRequest, NextResponse } from 'next/server'
 
+/**
+ * @description Uses the values from BaseUserInsertValues but replaces hashedPassword with password
+ * @example
+const body: CreateAccountPOSTbody = {
+	password: '',
+	firstName: '',
+	lastName: '',
+	email: '',
+	businessName: ''
+}
+ */
 export interface CreateAccountPOSTbody extends Pick<BaseUserInsertValues, 'firstName' | 'lastName' | 'businessName' | 'email'> {
 	password: string
 }
@@ -28,19 +33,25 @@ export interface CreateAccountPOSTresponse {
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse<CreateAccountPOSTresponse>> {
-	const developmentLogger = initialiseDevelopmentLogger(`POST ${apiPaths.authentication.createAccount}:`)
+	const respond = initialiseResponder<CreateAccountPOSTresponse>()
+
+	let body: CreateAccountPOSTbody | undefined
+	try {
+		body = await request.json()
+	} catch {
+		return respond({ status: 400, developmentMessage: 'Missing request body' })
+	}
 
 	try {
-		const body = await request.json().catch(() => ({}))
-		const result = NewUserSchema.safeParse(body)
-		if (!result.success) {
-			const firstError = result.error.errors[0]
-			const message = [firstError.path, firstError.message].join(': ')
-			const developmentMessage = developmentLogger(message)
-			return NextResponse.json({ developmentMessage }, { status: 400 })
+		const { success, error, data } = NewUserSchema.safeParse(body)
+		if (!success) {
+			return respond({
+				status: 400,
+				developmentMessage: formatFirstError(error),
+			})
 		}
 
-		const { firstName, lastName, businessName, email, password } = result.data
+		const { firstName, lastName, businessName, email, password } = data
 
 		const [existingUser] = await database
 			.select()
@@ -49,21 +60,17 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 			.limit(1)
 
 		if (existingUser) {
-			if (existingUser.email === email) {
-				return NextResponse.json({ userMessage: userMessages.emailTaken }, { status: 409 })
-			}
-
-			if (existingUser.businessName === businessName) {
-				return NextResponse.json({ userMessage: userMessages.businessNameTaken }, { status: 409 })
-			}
+			return respond({
+				status: 409,
+				developmentMessage: existingUser.email === email ? userMessages.emailTaken : userMessages.businessNameTaken,
+			})
 		}
 
 		const hashedPassword = await hashPassword(password)
 
-		let transactionErrorMessage: string | null = 'transaction error'
-		let transactionErrorStatusCode: number | null = 503
+		let txError: { message: string; status: number } | undefined = { message: 'transaction error', status: 503 }
 
-		let confirmationURL: string | null = null
+		const confirmationURL: string | null = null
 
 		const { dangerousNewUser } = await database.transaction(async (tx) => {
 			const baseSlug = createMerchantSlug(businessName)
@@ -89,25 +96,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 
 			const [dangerousNewUser]: DangerousBaseUser[] = await tx.insert(users).values(newUserInsertValues).returning()
 
-			const freeTrialInsert: NewFreeTrial = {
-				startDate: new Date(),
-				endDate: createFreeTrialEndTime(),
-				userId: dangerousNewUser.id,
-			}
+			await createFreeTrial({ userId: dangerousNewUser.id, tx })
 
-			await tx.insert(freeTrials).values(freeTrialInsert).returning()
+			const confirmationURL = await createConfirmationToken({ userId: dangerousNewUser.id, queryRunner: tx })
 
-			const emailConfirmationToken = generateUuid()
-
-			await tx.insert(confirmationTokens).values({
-				userId: dangerousNewUser.id,
-				token: emailConfirmationToken,
-				expiresAt: new Date(Date.now() + durationSettings.confirmEmailExpiry),
-			})
-
-			confirmationURL = `${dynamicBaseURL}/confirm?token=${emailConfirmationToken}`
-
-			transactionErrorMessage = 'error sending email'
+			txError = { message: 'error sending email', status: 503 }
 			const emailSentSuccessfully = await sendEmail({
 				recipientEmail: email,
 				...createNewMerchantEmail({
@@ -118,15 +111,15 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 
 			if (!emailSentSuccessfully) tx.rollback()
 
-			transactionErrorMessage = null
-			transactionErrorStatusCode = null
-
+			txError = undefined
 			return { dangerousNewUser }
 		})
 
-		if (transactionErrorMessage && transactionErrorStatusCode) {
-			const developmentMessage = developmentLogger(transactionErrorMessage)
-			return NextResponse.json({ developmentMessage }, { status: transactionErrorStatusCode })
+		if (txError) {
+			return respond({
+				developmentMessage: txError.message,
+				status: txError.status,
+			})
 		}
 
 		const sanitisedBaseUser = sanitiseDangerousBaseUser(dangerousNewUser)
@@ -140,13 +133,18 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 		const cookieStore = await cookies()
 		cookieStore.set(createCookieWithToken(dangerousNewUser.id, cookieDurations.oneYear))
 
-		developmentLogger(`Account created for ${compositeUser.firstName}.  Confirmation URL: ${confirmationURL}`, {
-			level: 'level3success',
-		})
+		// ToDo: confirmationURL is null in the message
 
-		return NextResponse.json({ user: compositeUser }, { status: 201 })
-	} catch (error) {
-		const developmentMessage = developmentLogger('Caught error', { error })
-		return NextResponse.json({ userMessage: userMessages.serverError, developmentMessage }, { status: 500 })
+		return respond({
+			body: { user: compositeUser },
+			status: 201,
+			developmentMessage: `Account created for ${compositeUser.firstName}.  Confirmation URL: ${confirmationURL}`,
+		})
+	} catch (caughtError) {
+		return respond({
+			body: { userMessage: userMessages.serverError },
+			status: 500,
+			caughtError,
+		})
 	}
 }

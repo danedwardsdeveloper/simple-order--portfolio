@@ -1,6 +1,6 @@
 import { database } from '@/library/database/connection'
 import { users } from '@/library/database/schema'
-import type { BaseUserBrowserInputValues, BaseUserInsertValues, TestRequestResponse } from '@/types'
+import type { BaseUserBrowserInputValues, BaseUserInsertValues, JsonData, TestRequestResponse } from '@/types'
 import { deleteUser, initialiseTestRequestMaker } from '@tests/utilities'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
@@ -29,8 +29,7 @@ const katyPerry: BaseUserBrowserInputValues = {
 
 interface Case {
 	description: string
-	// biome-ignore lint/complexity/noBannedTypes:
-	body: {} | null
+	body: JsonData | undefined
 }
 
 interface Suite {
@@ -46,7 +45,7 @@ const suites: Suite[] = [
 		cases: [
 			{
 				description: 'Missing body',
-				body: null,
+				body: undefined,
 			},
 			{
 				description: 'Empty body',
