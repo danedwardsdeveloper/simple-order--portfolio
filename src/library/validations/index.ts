@@ -1,2 +1,1 @@
-export * from './definitions/newUser'
-export * from './definitions/signIn'
+export * from './definitions/user'
