@@ -1,7 +1,7 @@
 import { database } from '@/library/database/connection'
-import { freeTrials, users } from '@/library/database/schema'
+import { users } from '@/library/database/schema'
 import { equals } from '@/library/utilities/server'
-import type { DangerousBaseUser, FreeTrial, TestUserInputValues } from '@/types'
+import type { DangerousBaseUser, TestUserInputValues } from '@/types'
 import { apiTestRequest, deleteUser } from '@tests/utilities'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { createUser } from '.'
@@ -12,20 +12,17 @@ const emilyGilmore: TestUserInputValues = {
 	businessName: 'Emily Gilmore Enterprises',
 	email: 'emilygilmore@gmail.com',
 	emailConfirmed: true,
-	cachedTrialExpired: false,
 	password: 'securePassword123',
 }
 
 describe('Create user', () => {
 	describe('Creates a user with the right shape', () => {
 		let user: DangerousBaseUser | undefined
-		let trial: FreeTrial | undefined
 		let cookie: string | undefined
 
 		beforeAll(async () => {
-			const { createdUser, freeTrial, requestCookie } = await createUser(emilyGilmore)
+			const { createdUser, requestCookie } = await createUser(emilyGilmore)
 			user = createdUser
-			trial = freeTrial
 			cookie = requestCookie
 		})
 
@@ -37,13 +34,6 @@ describe('Create user', () => {
 			if (!user) throw new Error('User not defined')
 			const [foundUser] = await database.select().from(users).where(equals(users.id, user.id)).limit(1)
 			expect(foundUser).toBeDefined()
-		})
-
-		test('Creates a trial', async () => {
-			if (!user) throw new Error('User not defined')
-			if (!trial) throw new Error('Free trial not defined')
-			const [foundTrial] = await database.select().from(freeTrials).where(equals(freeTrials.userId, user.id)).limit(1)
-			expect(foundTrial).toBeDefined()
 		})
 
 		test('Cookie exists', () => {
