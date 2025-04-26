@@ -3,7 +3,6 @@ import { products } from '@/library/database/schema'
 import logger from '@/library/logger'
 import type { Product, ProductInsertValues } from '@/types'
 
-type Output = Promise<Product[] | undefined>
 /**
  * @example
 const productsToInsert: ProductInsertValues[] = [
@@ -26,11 +25,11 @@ const addedProducts = await addProducts([
 	},
 ])
  */
-export async function addProducts(items: ProductInsertValues[]): Output {
+export async function addProducts(items: ProductInsertValues[]): Promise<Product[]> {
 	try {
 		return await database.insert(products).values(items).returning()
 	} catch (error) {
 		logger.error('addProducts caught error', error)
-		return undefined
+		throw error
 	}
 }
