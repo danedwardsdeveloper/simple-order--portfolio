@@ -15,6 +15,21 @@ export type TestUserInputValues = Omit<BaseUserInsertValues, 'hashedPassword' | 
 
 export type InvitedCustomerBrowserInputValues = Omit<BaseUserBrowserInputValues, 'email'>
 
+/**
+ * @example
+const browserSafeCompositeUser: BrowserSafeCompositeUser = {
+	firstName: '',
+	lastName: '',
+	email: '',
+	businessName: '',
+	slug: '',
+	roles: 'merchant',
+	activeSubscriptionOrTrial: false,
+	emailConfirmed: false,
+	cachedTrialExpired: false,
+	trialExpiry: new Date() // optional
+}
+ */
 export interface BrowserSafeCompositeUser extends BaseBrowserSafeUser {
 	roles: Roles
 	activeSubscriptionOrTrial: boolean
