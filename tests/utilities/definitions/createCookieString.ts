@@ -7,7 +7,9 @@ import { serialize } from 'cookie'
 const requestCookie = createCookieString({ userId: 1, expired: true })
  */
 export function createCookieString({ userId, expired = false }: { userId: number; expired?: boolean }) {
-	const cookieOptions = createCookieWithToken(userId, cookieDurations.oneYear)
+	const expiry = expired ? cookieDurations.zero : cookieDurations.oneYear
+	const cookieOptions = createCookieWithToken(userId, expiry)
+
 	return serialize(cookieOptions.name, cookieOptions.value, {
 		httpOnly: cookieOptions.httpOnly,
 		secure: cookieOptions.secure,
