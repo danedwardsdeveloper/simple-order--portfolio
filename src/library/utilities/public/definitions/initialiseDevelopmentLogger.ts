@@ -1,16 +1,17 @@
 import { isDevelopment } from '@/library/environment/publicVariables'
 import logger from '@/library/logger'
 import type { LogLevel } from '@/types'
+import type { HTTP_METHOD } from 'next/dist/server/web/http'
+import urlJoin from 'url-join'
 
 /**
- * Creates a logger function for a specific route that logs messages at the specified level and returns the message only in development.
- * Updated Friday 18 April 2025
- *
- * @param routeSignature - Identifier for the route, e.g. 'GET api/orders/[orderId]: '
- * @param defaultLevel -  'level1error'
- * @returns A function that logs messages and returns them only in development
+ * @deprecated use initialiseResponder instead
  */
-export function initialiseDevelopmentLogger(routeSignature: string) {
+export function initialiseDevelopmentLogger(path: string, method: HTTP_METHOD) {
+	if (path.includes('api')) throw new Error('initialiseDevelopmentLogger: path must not include "api"')
+	const fullPath = urlJoin('/api', path)
+	const routeSignature = `${method} ${fullPath}: `
+
 	/**
 	 * Logs a message and returns it only in development environments
 	 *
@@ -19,7 +20,7 @@ export function initialiseDevelopmentLogger(routeSignature: string) {
 	 * @param level - Optional log level override
 	 * @returns The message in development, undefined in production
 	 */
-	return function developmentLogger(message: string, options?: { error?: Error | unknown; level?: LogLevel }): string | undefined {
+	function developmentLogger(message: string, options?: { error?: Error | unknown; level?: LogLevel }): string | undefined {
 		const error = options?.error || null
 		const level = options?.level || 'default'
 
@@ -48,6 +49,8 @@ export function initialiseDevelopmentLogger(routeSignature: string) {
 
 		return isDevelopment ? message : undefined
 	}
+
+	return { developmentLogger, routeSignature }
 }
 
 /**
