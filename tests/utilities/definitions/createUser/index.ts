@@ -1,8 +1,8 @@
 import { database } from '@/library/database/connection'
-import { freeTrials, users } from '@/library/database/schema'
-import { createFreeTrialEndTime } from '@/library/utilities/public'
+import { users } from '@/library/database/schema'
+import logger from '@/library/logger'
 import { hashPassword } from '@/library/utilities/server'
-import type { BaseUserInsertValues, DangerousBaseUser, FreeTrial, TestUserInputValues } from '@/types'
+import type { BaseUserInsertValues, DangerousBaseUser, TestUserInputValues } from '@/types'
 import slugify from 'slugify'
 import { createCookieString } from '../createCookieString'
 
@@ -16,41 +16,39 @@ import { createCookieString } from '../createCookieString'
 type Output = Promise<{
 	createdUser: DangerousBaseUser
 	requestCookie: string
-	freeTrial: FreeTrial
 }>
 
 /**
- * Creates a new user, cookie string and free trial for testing
+ * Creates a new user and cookie string for testing
  * @example
-const { createdUser, requestCookie, freeTrial } = await createUser({
+const { createdUser, requestCookie } = await createUser({
 	firstName: 'Emily',
 	lastName: 'Gilmore',
 	businessName: 'Emily Gilmore Enterprises',
 	email: 'emilygilmore@gmail.com',
 	emailConfirmed: true,
-	cachedTrialExpired: false,
 	password: 'securePassword123',
 })
  */
 export async function createUser(user: TestUserInputValues): Output {
-	const hashedPassword = await hashPassword(user.password)
-	const insertValues: BaseUserInsertValues = {
-		...user,
-		emailConfirmed: user.emailConfirmed || true,
-		cachedTrialExpired: false,
-		slug: slugify(user.businessName),
-		hashedPassword,
+	try {
+		const hashedPassword = await hashPassword(user.password)
+		const insertValues: BaseUserInsertValues = {
+			...user,
+			emailConfirmed: user.emailConfirmed ?? true, // Do not use || here!!
+			cachedTrialExpired: false,
+			slug: slugify(user.businessName),
+			hashedPassword,
+		}
+		const [createdUser] = await database.insert(users).values(insertValues).returning()
+
+		const requestCookie = createCookieString({
+			userId: createdUser.id,
+		})
+
+		return { createdUser, requestCookie }
+	} catch (error) {
+		logger.error(`Failed to create user for ${user.businessName}`, error)
+		throw error
 	}
-	const [createdUser] = await database.insert(users).values(insertValues).returning()
-
-	const requestCookie = createCookieString({
-		userId: createdUser.id,
-	})
-
-	const [freeTrial] = await database
-		.insert(freeTrials)
-		.values({ userId: createdUser.id, startDate: new Date(), endDate: createFreeTrialEndTime() })
-		.returning()
-
-	return { createdUser, requestCookie, freeTrial }
 }
