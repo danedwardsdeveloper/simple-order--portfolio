@@ -1,44 +1,47 @@
 import {
 	apiPaths,
-	authenticationMessages,
+	type authenticationMessages,
 	basicMessages,
 	httpStatus,
 	illegalCharactersMessages,
 	missingFieldMessages,
 	serviceConstraints,
-	tokenMessages,
+	userMessages,
 } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { checkActiveSubscriptionOrTrial, checkUserExists } from '@/library/database/operations'
+import { checkAccess } from '@/library/database/operations'
 import { products } from '@/library/database/schema'
 import logger from '@/library/logger'
-import { containsIllegalCharacters, containsItems } from '@/library/utilities/public'
-import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { BrowserSafeMerchantProduct, ProductInsertValues, UnauthorisedMessages } from '@/types'
+import { containsIllegalCharacters, convertEmptyToUndefined, initialiseDevelopmentLogger } from '@/library/utilities/public'
+import type { BrowserSafeMerchantProduct, ProductInsertValues, UnauthorisedMessages, UserMessages } from '@/types'
 import { and, eq, isNull } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface InventoryAdminGETresponse {
+	userMessage?: typeof userMessages.serverError
 	message?:
 		| typeof basicMessages.success
 		| typeof basicMessages.serverError
 		| UnauthorisedMessages
 		| typeof authenticationMessages.merchantNotFound
+	developmentMessage?: string
 	inventory?: BrowserSafeMerchantProduct[]
 }
 
 // GET all products for the signed-in merchant
 export async function GET(request: NextRequest): Promise<NextResponse<InventoryAdminGETresponse>> {
+	const { developmentLogger } = initialiseDevelopmentLogger('/inventory/admin', 'GET')
+
 	try {
-		const { extractedUserId, status, message } = await extractIdFromRequestCookie(request)
+		const { dangerousUser, accessDenied } = await checkAccess({
+			request,
+			requireConfirmed: false,
+			requireSubscriptionOrTrial: false,
+		})
 
-		if (!extractedUserId) {
-			return NextResponse.json({ message }, { status })
-		}
-
-		const { userExists } = await checkUserExists(extractedUserId)
-		if (!userExists) {
-			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
+		if (accessDenied) {
+			const developmentMessage = developmentLogger(accessDenied.message)
+			return NextResponse.json({ developmentMessage }, { status: accessDenied.status })
 		}
 
 		const foundInventory: BrowserSafeMerchantProduct[] = await database
@@ -51,130 +54,112 @@ export async function GET(request: NextRequest): Promise<NextResponse<InventoryA
 				deletedAt: products.deletedAt,
 			})
 			.from(products)
-			.where(and(eq(products.ownerId, extractedUserId), isNull(products.deletedAt)))
+			.where(and(eq(products.ownerId, dangerousUser.id), isNull(products.deletedAt)))
 
-		const inventory = containsItems(foundInventory) ? foundInventory : undefined
+		const inventory = convertEmptyToUndefined(foundInventory)
 
-		if (!inventory) logger.info('Legitimately no products found')
+		let developmentMessage: string | undefined
 
-		return NextResponse.json({ inventory }, { status: 200 })
+		if (!inventory) {
+			developmentMessage = developmentLogger('Legitimately no products found', { level: 'level3success' })
+		}
+
+		return NextResponse.json({ inventory, developmentMessage }, { status: 200 })
 	} catch (error) {
-		logger.error(`${apiPaths.inventory.merchantPerspective.base} error: `, error)
-		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
+		const developmentMessage = developmentLogger('Caught error', { error })
+		return NextResponse.json({ userMessage: userMessages.serverError, developmentMessage }, { status: 500 })
 	}
 }
 
 // POST add an item to the inventory
+
+// I think this can be changed to ProductInsertValues
 export type InventoryAddPOSTbody = Omit<ProductInsertValues, 'ownerId' | 'id' | 'createdAt' | 'deletedAt' | 'updatedAt'>
 
 // ToDo: remove unused responses
 export interface InventoryAddPOSTresponse {
-	message:
-		| typeof basicMessages.success
-		| typeof basicMessages.databaseError
-		| typeof basicMessages.serverError
-		| typeof missingFieldMessages.nameMissing
-		| typeof authenticationMessages.merchantNotFound
-		| typeof authenticationMessages.noActiveTrialSubscription
-		| typeof illegalCharactersMessages.name
-		| typeof illegalCharactersMessages.description
-		| UnauthorisedMessages
-		| typeof missingFieldMessages.priceMissing
-		| 'priceInMinorUnits missing'
-		| 'priceInMinorUnits not a number'
-		| 'priceInMinorUnits too high'
-		| 'customVat not a number'
-		| 'customVat too high'
-		| 'customVat is a decimal'
-		| 'customVat is negative'
-		| 'description too long'
-		| 'too many products'
-		| 'product name exists'
+	developmentMessage?: string
+	userMessage?: UserMessages
 	addedProduct?: BrowserSafeMerchantProduct
 }
 
 // POST add an item to the inventory
 export async function POST(request: NextRequest): Promise<NextResponse<InventoryAddPOSTresponse>> {
-	const { name, priceInMinorUnits, customVat, description }: InventoryAddPOSTbody = await request.json()
-
-	let badRequestMessage: InventoryAddPOSTresponse['message'] | undefined
-
-	if (!name) badRequestMessage = missingFieldMessages.nameMissing
-	if (containsIllegalCharacters(name)) badRequestMessage = illegalCharactersMessages.name
-	if (!priceInMinorUnits) badRequestMessage = missingFieldMessages.priceMissing
-	if (Number.isNaN(priceInMinorUnits)) badRequestMessage = 'priceInMinorUnits not a number'
-	if (priceInMinorUnits > serviceConstraints.maximumProductValueInMinorUnits) badRequestMessage = 'priceInMinorUnits too high'
-
-	if (description) {
-		if (containsIllegalCharacters(description)) badRequestMessage = illegalCharactersMessages.description
-		if (description.length > serviceConstraints.maximumProductDescriptionCharacters) badRequestMessage = 'description too long'
-	}
-
-	if (customVat) {
-		if (Number.isNaN(customVat)) badRequestMessage = 'customVat not a number'
-		if (customVat > serviceConstraints.highestVat) badRequestMessage = 'customVat too high'
-		if (customVat < 0) badRequestMessage = 'customVat is negative'
-		if (customVat % 1 !== 0) badRequestMessage = 'customVat is a decimal'
-	}
-
-	// Optimisation ToDo: Make these constraints better
-
-	// if (customVat !== undefined && customVat !== null) {
-	// 	if (Number.isNaN(customVat)) {
-	// 		return res.status(400).json({ message: 'customVat not a number' });
-	// 	} else if (customVat > serviceConstraints.highestVat) {
-	// 		return res.status(400).json({ message: 'customVat too high' });
-	// 	} else if (customVat < 0) {
-	// 		return res.status(400).json({ message: 'customVat is negative' });
-	// 	} else if (customVat % 1 !== 0) {
-	// 		return res.status(400).json({ message: 'customVat is a decimal' });
-	// 	}
-	// }
-
-	if (badRequestMessage) {
-		return NextResponse.json({ message: badRequestMessage }, { status: httpStatus.http400badRequest })
-	}
+	const { developmentLogger } = initialiseDevelopmentLogger('/inventory/admin', 'POST')
 
 	try {
-		const { extractedUserId, status, message } = await extractIdFromRequestCookie(request)
+		const { name, priceInMinorUnits, customVat, description }: InventoryAddPOSTbody = await request.json()
 
-		if (!extractedUserId) {
-			return NextResponse.json({ message }, { status })
+		let badRequestMessage: string | undefined
+
+		if (!name) badRequestMessage = missingFieldMessages.nameMissing
+		if (containsIllegalCharacters(name)) badRequestMessage = illegalCharactersMessages.name
+		if (!priceInMinorUnits) badRequestMessage = missingFieldMessages.priceMissing
+		if (Number.isNaN(priceInMinorUnits)) badRequestMessage = 'priceInMinorUnits not a number'
+		if (priceInMinorUnits > serviceConstraints.maximumProductValueInMinorUnits) badRequestMessage = 'priceInMinorUnits too high'
+
+		if (description) {
+			if (containsIllegalCharacters(description)) badRequestMessage = illegalCharactersMessages.description
+			if (description.length > serviceConstraints.maximumProductDescriptionCharacters) badRequestMessage = 'description too long'
 		}
 
-		const { userExists } = await checkUserExists(extractedUserId)
-		if (!userExists) {
-			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http401unauthorised })
+		if (customVat) {
+			if (Number.isNaN(customVat)) badRequestMessage = 'customVat not a number'
+			if (customVat > serviceConstraints.highestVat) badRequestMessage = 'customVat too high'
+			if (customVat < 0) badRequestMessage = 'customVat is negative'
+			if (customVat % 1 !== 0) badRequestMessage = 'customVat is a decimal'
 		}
 
-		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(extractedUserId)
-		if (!activeSubscriptionOrTrial) {
-			return NextResponse.json({ message: authenticationMessages.noActiveTrialSubscription }, { status: httpStatus.http401unauthorised })
+		if (badRequestMessage) {
+			const developmentMessage = developmentLogger(badRequestMessage)
+			return NextResponse.json({ developmentMessage }, { status: 400 })
 		}
+
+		const { dangerousUser, accessDenied } = await checkAccess({
+			request,
+			requireConfirmed: true,
+			requireSubscriptionOrTrial: true,
+		})
+
+		if (accessDenied) {
+			const developmentMessage = developmentLogger(accessDenied.message)
+			return NextResponse.json({ developmentMessage }, { status: accessDenied.status })
+		}
+
+		const userId = dangerousUser.id
 
 		// Optimisation ToDo: check for duplicates at the same time (existingProducts/existingProduct)
-		const existingProducts = await database.select().from(products).where(eq(products.ownerId, extractedUserId))
+		const existingProducts = await database.select().from(products).where(eq(products.ownerId, userId))
 		if (existingProducts.length >= serviceConstraints.maximumProducts) {
-			return NextResponse.json({ message: 'too many products' }, { status: httpStatus.http400badRequest })
+			const developmentMessage = developmentLogger('too many products')
+			return NextResponse.json({ developmentMessage }, { status: httpStatus.http403forbidden })
 		}
 
 		const [existingProduct] = await database
 			.select()
 			.from(products)
-			.where(and(eq(products.ownerId, extractedUserId), eq(products.name, name)))
+			.where(and(eq(products.ownerId, userId), eq(products.name, name)))
 			.limit(1)
 
 		if (existingProduct) {
-			return NextResponse.json({ message: 'product name exists' }, { status: httpStatus.http400badRequest })
+			return NextResponse.json({ userMessage: userMessages.duplicateProductName }, { status: 409 })
 		}
 
 		const insertValues: ProductInsertValues = {
 			name,
-			ownerId: extractedUserId,
+			ownerId: userId,
 			priceInMinorUnits,
 			description,
 			customVat,
 		}
+
+		// const newAddedProduct = await addProducts([{
+		// 	name,
+		// 	ownerId: userId,
+		// 	priceInMinorUnits,
+		// 	description,
+		// 	customVat,
+		// }])
 
 		const [addedProduct]: BrowserSafeMerchantProduct[] = await database.insert(products).values(insertValues).returning({
 			id: products.id,
@@ -187,15 +172,15 @@ export async function POST(request: NextRequest): Promise<NextResponse<Inventory
 
 		if (!addedProduct) {
 			logger.error(`POST ${apiPaths.inventory.merchantPerspective.base} error: Couldn't add product to database`)
-			return NextResponse.json({ message: basicMessages.databaseError }, { status: httpStatus.http500serverError })
+			return NextResponse.json({ userMessage: userMessages.databaseError }, { status: 503 })
 		}
 
 		logger.info('Added product: ', addedProduct)
 
 		return NextResponse.json({ message: basicMessages.success, addedProduct }, { status: 200 })
 	} catch (error) {
-		logger.error(`${apiPaths.inventory.merchantPerspective.base}`, error)
-		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
+		const developmentMessage = developmentLogger('Caught error', { error })
+		return NextResponse.json({ userMessage: userMessages.serverError, developmentMessage }, { status: 500 })
 	}
 }
 

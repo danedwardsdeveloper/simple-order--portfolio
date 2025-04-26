@@ -1,4 +1,4 @@
-import { apiPaths, type basicMessages, orderStatus, serviceConstraints, userMessages } from '@/library/constants'
+import { type basicMessages, orderStatus, serviceConstraints, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkUserExists } from '@/library/database/operations'
 import { orderItems, orders } from '@/library/database/schema'
@@ -39,7 +39,7 @@ export interface OrdersOrderIdPATCHparams {
 	orderId: string
 }
 
-const routeDetail = `PATCH ${apiPaths.orders.customerPerspective.orderId}:`
+const routeDetail = 'PATCH /api/orders/[orderId]:'
 
 export async function PATCH(
 	request: NextRequest,

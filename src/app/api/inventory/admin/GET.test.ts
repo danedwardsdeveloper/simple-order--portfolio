@@ -1,82 +1,143 @@
-import { createCookieString, createUser, deleteUser, initialiseTestGETRequestMaker } from '@tests/utilities'
+import type { AsyncFunction } from '@/types'
+import { addProducts, createCookieString, createUser, deleteUser, initialiseTestGETRequestMaker } from '@tests/utilities'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
+import type { InventoryAdminGETresponse } from './route'
 
 const makeRequest = initialiseTestGETRequestMaker('/inventory/admin')
 
-interface Case {
-	description: string
-	requestCookie: string | undefined
-}
-
 describe('Get inventory', async () => {
+	const lindsayLohan = {
+		firstName: 'Lindsay',
+		lastName: 'Lohan',
+		email: 'lindsaylohan@gmail.com',
+		slug: `lindsay's-bakery`,
+		password: 'lindsay123',
+		businessName: `Lindsay's Bakery`,
+		emailConfirmed: true,
+		cachedTrialExpired: false,
+	}
+
+	let validRequestCookie: string | undefined
+	let createdUserId: number | undefined
+
+	beforeAll(async () => {
+		const { createdUser } = await createUser(lindsayLohan)
+		validRequestCookie = createCookieString({ userId: createdUser.id })
+		createdUserId = createdUser.id
+	})
+
+	afterAll(async () => deleteUser(lindsayLohan.email))
+
 	describe('Cookies', () => {
-		const rejectedCases: Case[] = [
+		let invalidRequestCookie: undefined | string
+		interface CookieCase {
+			description: string
+			setUp: AsyncFunction
+			expectedStatus?: number
+		}
+
+		const rejectedCases: CookieCase[] = [
 			{
 				description: 'No cookie',
-				requestCookie: undefined,
+				setUp: async () => {
+					invalidRequestCookie = undefined
+				},
 			},
 			{
 				description: 'Invalid cookie format',
-				requestCookie: 'invalidCookie=abc',
-			},
-			{
-				description: 'Correct format, invalid content',
-				requestCookie: 'invalidCookie=ToDo',
+				setUp: async () => {
+					invalidRequestCookie = 'token=abc'
+				},
 			},
 			{
 				description: 'Expired cookie',
-				requestCookie: 'expiredCookie=ToDo',
+				setUp: async () => {
+					if (!createdUserId) throw Error
+					invalidRequestCookie = createCookieString({
+						userId: createdUserId,
+						expired: true,
+					})
+				},
+			},
+			{
+				description: 'Invalid user',
+				setUp: async () => {
+					invalidRequestCookie = createCookieString({
+						userId: 1,
+					})
+				},
+				expectedStatus: 400,
 			},
 		]
 
-		for (const { description, requestCookie } of rejectedCases) {
+		for (const { description, setUp, expectedStatus } of rejectedCases) {
 			test(description, async () => {
-				const { response } = await makeRequest({ requestCookie })
-				expect(response.status).toBe(401)
+				await setUp()
+				const { response } = await makeRequest({ requestCookie: invalidRequestCookie })
+				expect(response.status).toBe(expectedStatus || 401)
 			})
 		}
+	})
 
-		describe('Success cases', () => {
-			const lindsayLohan = {
-				firstName: 'Lindsay',
-				lastName: 'Lohan',
-				email: 'lindsaylohan@gmail.com',
-				slug: `lindsay's-bakery`,
-				password: 'lindsay123',
-				businessName: `Lindsay's Bakery`,
-				emailConfirmed: true,
-				cachedTrialExpired: false,
-			}
-			let validRequestCookie: string | undefined = undefined
+	test('Returns 200 with valid cookie', async () => {
+		const { response } = await makeRequest({ requestCookie: validRequestCookie })
+		expect(response.status).toBe(200)
+	})
 
-			beforeAll(async () => {
-				const { createdUser } = await createUser(lindsayLohan)
-				validRequestCookie = createCookieString({ userId: createdUser.id })
-			})
+	test('When there are no products, the only return property is developmentMessage', async () => {
+		const { response } = await makeRequest({ requestCookie: validRequestCookie })
+		const body = (await response.json()) as InventoryAdminGETresponse
 
-			afterAll(async () => deleteUser(lindsayLohan.email))
+		expect(Object.keys(response).length).toBe(1)
+		expect(body.inventory).toBeUndefined()
+		expect(body.developmentMessage).toBeDefined()
+	})
 
-			test('Returns 200 with valid cookie', async () => {
-				const { response } = await makeRequest({ requestCookie: validRequestCookie })
-				expect(response.status).toBe(200)
-			})
+	describe('With inventory', () => {
+		let body: InventoryAdminGETresponse | undefined
 
-			test('Returns empty object when there are no products', async () => {
-				const { response } = await makeRequest({ requestCookie: validRequestCookie })
-				const data = await response.json()
-				expect(data).toEqual({})
-			})
+		beforeAll(async () => {
+			if (!createdUserId) throw new Error('createdUserId was falsy')
+			await addProducts([
+				{
+					name: 'Sausages',
+					ownerId: createdUserId,
+					priceInMinorUnits: 500,
+					description: '',
+					customVat: 20,
+				},
+			])
+
+			const { response } = await makeRequest({ requestCookie: validRequestCookie })
+			body = (await response.json()) as InventoryAdminGETresponse
 		})
+
+		type InventoryCase = {
+			caseDescription: string
+			assertions: AsyncFunction
+		}
+
+		const inventoryCases: InventoryCase[] = [
+			{
+				caseDescription: "Body has 'inventory' property",
+				assertions: async () => {
+					expect(body).toHaveProperty('inventory')
+				},
+			},
+			{
+				caseDescription: "There's a product called 'Sausages'",
+				assertions: async () => {
+					expect(body?.inventory?.[0]?.name).toEqual('Sausages')
+				},
+			},
+		]
+
+		for (const { caseDescription, assertions } of inventoryCases) {
+			test(caseDescription, async () => await assertions())
+		}
 	})
 })
 
 /* 
-pnpm vitest src/app/api/inventory/admin/Get.test
-*/
-
-/*
-ACCEPTED
-- Email confirmed
-- Email not confirmed
-- Does not return an empty array when there are no products
+pnpm vitest src/app/api/inventory/admin/GET
 */
