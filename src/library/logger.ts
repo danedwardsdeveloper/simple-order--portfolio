@@ -39,7 +39,7 @@ const serverLogger = (verb: LogVerb, label: string) => {
 	return (...args: unknown[]) => {
 		const message = stringifyArguments(...args).join(' ')
 		// biome-ignore lint/suspicious/noConsole:
-		console[verb === 'success' ? 'log' : verb](`${serverColors[verb]}${label} ${message}${serverColors.reset}`)
+		console[verb === 'success' ? 'log' : verb](`\n${serverColors[verb]}${label} ${message}${serverColors.reset}`) // Added new line
 	}
 }
 
