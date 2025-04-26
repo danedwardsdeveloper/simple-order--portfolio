@@ -1,0 +1,25 @@
+import { database } from '@/library/database/connection'
+import { freeTrials } from '@/library/database/schema'
+import logger from '@/library/logger'
+import { createFreeTrialEndTime } from '@/library/utilities/public'
+import type { FreeTrial, Transaction } from '@/types'
+
+type Input = {
+	userId: number
+	tx?: Transaction
+}
+
+export async function createFreeTrial({ userId, tx }: Input): Promise<FreeTrial> {
+	try {
+		const queryRunner = tx ?? database
+		const [freeTrial] = await queryRunner
+			.insert(freeTrials)
+			.values({ userId, startDate: new Date(), endDate: createFreeTrialEndTime() })
+			.returning()
+
+		return freeTrial
+	} catch (error) {
+		logger.error(`createFreeTrial: failed to create free trial for user with ID ${userId}`, error)
+		throw error
+	}
+}
