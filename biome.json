@@ -50,7 +50,12 @@
 		}
 	},
 	"files": {
-		"include": ["tests/**/*.ts", "src/**/*.ts", "src/**/*.tsx"],
+		"include": [
+			"tests/**/*.ts",
+			"src/**/*.ts",
+			"src/**/*.tsx",
+			"workInProgressIdeas"
+		],
 		"ignore": [
 			"node_modules",
 			".next",
