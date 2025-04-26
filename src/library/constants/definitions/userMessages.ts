@@ -12,4 +12,5 @@ export const userMessages = {
 	stripeCheckoutSuccess: 'Thank you for subscribing to SimpleOrder.co.uk!',
 	stripeCheckoutIncomplete: "Your subscription wasn't started. No payment has been taken",
 	orderCreationError: 'Sorry, something went wrong trying to create a new order. Please try again later.',
+	duplicateProductName: 'A product with this name already exists',
 } as const
