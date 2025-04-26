@@ -17,7 +17,7 @@ type ReturnedFunctionOptions = {
 	body?: Record<string, unknown> | null | {}
 }
 
-type RequestMaker = ({ requestCookie, segment, searchParam, body }?: ReturnedFunctionOptions) => Promise<TestRequestResponse>
+type RequestMaker = ({ requestCookie, segment, searchParam, body }: ReturnedFunctionOptions) => Promise<TestRequestResponse>
 
 /**
  * @example
