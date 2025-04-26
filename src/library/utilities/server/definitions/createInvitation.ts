@@ -39,8 +39,7 @@ export async function createInvitation({ senderUserId, recipientEmail, attempts,
 		emailAttempts: attempts || 1,
 	}
 
-	const queryRunner = tx || database
-
+	const queryRunner = tx ?? database
 	const [{ token, expiresAt: newInvitationExpiryDate, lastEmailSent }]: Invitation[] = await queryRunner
 		.insert(invitations)
 		.values(invitationInsert)
