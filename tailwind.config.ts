@@ -5,6 +5,9 @@ export default {
 	content: ['./src/**/*.{ts,tsx}'],
 	theme: {
 		extend: {
+			fontSize: {
+				'base': '1.125rem'
+			},
 			margin: {
 				'menubar-offset': spacing[14],
 			},
