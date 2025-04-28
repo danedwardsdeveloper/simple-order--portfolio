@@ -1,7 +1,7 @@
 import type { TestUserInputValues } from '@/types'
 // Cut and paste these into tests so each test uses a different person and there aren't any conflicts
 
-const joMarchInputValues: TestUserInputValues = {
+const _joMarchInputValues: TestUserInputValues = {
 	firstName: 'Jo',
 	lastName: 'March',
 	businessName: 'March Writers',
@@ -9,7 +9,7 @@ const joMarchInputValues: TestUserInputValues = {
 	password: 'L1ttleW0men!',
 }
 
-const esthePrynneInputValues: TestUserInputValues = {
+const _esthePrynneInputValues: TestUserInputValues = {
 	firstName: 'Esther',
 	lastName: 'Prynne',
 	businessName: 'Scarlet Embroidery',
@@ -17,7 +17,7 @@ const esthePrynneInputValues: TestUserInputValues = {
 	password: 'Sc@rletLett3r',
 }
 
-const cinderellaInputValues: TestUserInputValues = {
+const _cinderellaInputValues: TestUserInputValues = {
 	firstName: 'Cinderella',
 	lastName: 'Charming',
 	businessName: 'Glass Slipper Cleaners',
@@ -25,7 +25,7 @@ const cinderellaInputValues: TestUserInputValues = {
 	password: 'M1dnight!Pumpkin',
 }
 
-const arielInputValues: TestUserInputValues = {
+const _arielInputValues: TestUserInputValues = {
 	firstName: 'Ariel',
 	lastName: 'Triton',
 	businessName: 'Under The Sea Collectibles',
@@ -33,7 +33,7 @@ const arielInputValues: TestUserInputValues = {
 	password: 'Dingleh0pper!',
 }
 
-const belleInputValues: TestUserInputValues = {
+const _belleInputValues: TestUserInputValues = {
 	firstName: 'Belle',
 	lastName: 'Beauty',
 	businessName: 'Provincial Library',
@@ -41,7 +41,7 @@ const belleInputValues: TestUserInputValues = {
 	password: 'B00kw0rm!Rose',
 }
 
-const mulanInputValues: TestUserInputValues = {
+const _mulanInputValues: TestUserInputValues = {
 	firstName: 'Fa',
 	lastName: 'Mulan',
 	businessName: 'Dynasty Warriors',
@@ -49,7 +49,7 @@ const mulanInputValues: TestUserInputValues = {
 	password: 'D1sguise!Honor',
 }
 
-const jasmineInputValues: TestUserInputValues = {
+const _jasmineInputValues: TestUserInputValues = {
 	firstName: 'Jasmine',
 	lastName: 'Sultan',
 	businessName: 'Agrabah Bazaar',
@@ -57,7 +57,7 @@ const jasmineInputValues: TestUserInputValues = {
 	password: 'Carpet!R1de',
 }
 
-const kimWoodburneInputValues: TestUserInputValues = {
+const _kimWoodburneInputValues: TestUserInputValues = {
 	firstName: 'Kim',
 	lastName: 'Woodburne',
 	businessName: 'How Clean Is Your House',
@@ -65,7 +65,7 @@ const kimWoodburneInputValues: TestUserInputValues = {
 	password: 'Cl3@nAndTidy!',
 }
 
-const aggieInputValues: TestUserInputValues = {
+const _aggieInputValues: TestUserInputValues = {
 	firstName: 'Aggie',
 	lastName: 'MacKenzie',
 	businessName: 'Spotless Solutions',
@@ -73,7 +73,7 @@ const aggieInputValues: TestUserInputValues = {
 	password: 'D1rtBust3r!',
 }
 
-const kylieInputValues: TestUserInputValues = {
+const _kylieInputValues: TestUserInputValues = {
 	firstName: 'Kylie',
 	lastName: 'Minogue',
 	businessName: 'Spinning Around Inc',
@@ -81,7 +81,7 @@ const kylieInputValues: TestUserInputValues = {
 	password: 'C@ntGetY0uOutOfMyH3ad',
 }
 
-const britneyInputValues: TestUserInputValues = {
+const _britneyInputValues: TestUserInputValues = {
 	firstName: 'Britney',
 	lastName: 'Spears',
 	businessName: 'Toxic Enterprises',
@@ -89,7 +89,7 @@ const britneyInputValues: TestUserInputValues = {
 	password: 'OopsID1dItAg@in!',
 }
 
-const cherInputValues: TestUserInputValues = {
+const _cherInputValues: TestUserInputValues = {
 	firstName: 'Cher',
 	lastName: '',
 	businessName: 'Believe Productions',
@@ -97,7 +97,7 @@ const cherInputValues: TestUserInputValues = {
 	password: 'LifeAfterL0ve!',
 }
 
-const ruPaulInputValues: TestUserInputValues = {
+const _ruPaulInputValues: TestUserInputValues = {
 	firstName: 'RuPaul',
 	lastName: 'Charles',
 	businessName: 'Drag Race Enterprises',
@@ -105,7 +105,7 @@ const ruPaulInputValues: TestUserInputValues = {
 	password: 'S@shayAw@y!',
 }
 
-const eltonJohnInputValues: TestUserInputValues = {
+const _eltonJohnInputValues: TestUserInputValues = {
 	firstName: 'Elton',
 	lastName: 'John',
 	businessName: 'Rocket Man Productions',
@@ -113,7 +113,7 @@ const eltonJohnInputValues: TestUserInputValues = {
 	password: 'Y3ll0wBrickR0ad!',
 }
 
-const freddieMercuryInputValues: TestUserInputValues = {
+const _freddieMercuryInputValues: TestUserInputValues = {
 	firstName: 'Freddie',
 	lastName: 'Mercury',
 	businessName: 'Queen Enterprises',
@@ -121,7 +121,7 @@ const freddieMercuryInputValues: TestUserInputValues = {
 	password: 'B0hemianRh@psody!',
 }
 
-const ladyGagaInputValues: TestUserInputValues = {
+const _ladyGagaInputValues: TestUserInputValues = {
 	firstName: 'Lady',
 	lastName: 'Gaga',
 	businessName: 'Haus of Gaga',
