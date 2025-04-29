@@ -1,11 +1,19 @@
-import { apiPaths, basicMessages, cookieDurations, cookieNames, httpStatus, relationshipMessages, tokenMessages } from '@/library/constants'
+import {
+	apiPaths,
+	basicMessages,
+	cookieDurations,
+	cookieNames,
+	http409conflict,
+	http422unprocessableContent,
+	userMessages,
+} from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkActiveSubscriptionOrTrial, getUserRoles } from '@/library/database/operations'
 import { invitations, relationships, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import logger from '@/library/logger'
 import { createMerchantSlug, sanitiseDangerousBaseUser, validateUuid } from '@/library/utilities/public'
-import { and, createCookieWithToken, equals } from '@/library/utilities/server'
+import { and, createCookieWithToken, equals, initialiseResponder } from '@/library/utilities/server'
 import type {
 	BaseUserInsertValues,
 	BrowserSafeCompositeUser,
@@ -14,7 +22,7 @@ import type {
 	Invitation,
 	InvitedCustomerBrowserInputValues,
 	RelationshipJoinRow,
-	TokenMessages,
+	UserMessages,
 } from '@/types'
 import bcrypt from 'bcryptjs'
 import { cookies } from 'next/headers'
@@ -25,69 +33,60 @@ export type InvitationsTokenPATCHbody = InvitedCustomerBrowserInputValues
 // PATCH accept an invitation (creates a relationship)
 // Ask for more details if user is new to the site
 // Sign the user in
+// ToDo: use a discriminated union
 export interface InvitationsTokenPATCHresponse {
-	message:
-		| typeof basicMessages.success
-		| typeof basicMessages.serverError
-		| typeof relationshipMessages.relationshipExists
-		| 'missing fields'
-		| TokenMessages
-		| 'invitation not found'
-		| 'please provide details'
+	developmentMessage?: string
+	userMessage?: UserMessages
+	pleaseProvideDetails?: boolean
 	createdUser?: BrowserSafeCompositeUser
 	existingUser?: BrowserSafeCompositeUser
 	senderDetails?: BrowserSafeMerchantProfile
 }
 
-export async function PATCH(
-	request: NextRequest,
-	{ params }: { params: Promise<{ token: string }> },
-): Promise<NextResponse<InvitationsTokenPATCHresponse>> {
-	const cookieStore = await cookies()
+type Output = Promise<NextResponse<InvitationsTokenPATCHresponse>>
 
-	let transactionErrorMessage = undefined
-	let transactionErrorCode = undefined
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ token: string }> }): Output {
+	const respond = initialiseResponder<InvitationsTokenPATCHresponse>()
+
+	const cookieStore = await cookies()
+	const token = (await params).token
+
+	if (!token) {
+		return respond({
+			status: 400,
+			developmentMessage: 'Search param token missing',
+		})
+	}
+
+	let txError: { message: string; status: number } | undefined = { message: 'unknown transaction error', status: 503 }
 
 	const partialDetailsProvided = undefined
 	const allDetailsProvided = undefined
 
-	let firstName = undefined
-	let lastName = undefined
-	let businessName = undefined
-	let password = undefined
-
-	// Parse the body conditionally
-	// Calling request.json() on an empty body throws an error
-	if (request.headers.get('content-length') !== '0' && request.headers.get('content-type')?.includes('application/json')) {
-		const body = await request.json()
-		firstName = body.firstName
-		lastName = body.lastName
-		businessName = body.businessName
-		password = body.password
-	}
+	const { firstName, lastName, businessName, password } = await request.json()
 
 	if (partialDetailsProvided) {
-		logger.info('Not enough details provided to create new account')
-		// ToDo: make this more specific
-		return NextResponse.json({ message: 'missing fields' }, { status: httpStatus.http400badRequest })
-	}
-
-	const token = (await params).token
-
-	if (!token) {
-		logger.warn(`${apiPaths.invitations.accept}: token missing`)
-		return NextResponse.json({ message: tokenMessages.tokenMissing }, { status: httpStatus.http400badRequest })
+		return respond({
+			status: 400,
+			developmentMessage: 'Not enough details to create new account',
+		})
 	}
 
 	if (!validateUuid(token)) {
-		return NextResponse.json({ message: tokenMessages.tokenInvalid }, { status: httpStatus.http400badRequest })
+		return respond({
+			body: { userMessage: userMessages.emailConfirmationTokenInvalid },
+			status: 400,
+			developmentMessage: 'search param token invalid',
+		})
 	}
 
 	const [foundInvitation]: Invitation[] = await database.select().from(invitations).where(equals(invitations.token, token)).limit(1)
 
 	if (!foundInvitation) {
-		logger.warn(`PATCH ${apiPaths.invitations.accept}: invitation row not found at all`)
-		return NextResponse.json({ message: 'invitation not found' }, { status: httpStatus.http400badRequest })
+		return respond({
+			status: 400,
+			developmentMessage: 'invitation row not found',
+		})
 	}
 
 	const [foundDangerousUser]: DangerousBaseUser[] = await database.select().from(users).where(equals(users.email, foundInvitation.email))
@@ -109,19 +108,21 @@ export async function PATCH(
 			.where(and(equals(relationships.merchantId, foundSenderProfile.id), equals(relationships.customerId, foundDangerousUser.id)))
 
 		if (existingRelationship) {
-			return NextResponse.json(
-				{ message: relationshipMessages.relationshipExists, foundSenderProfile },
-				{ status: httpStatus.http409conflict },
-			)
+			return respond({
+				body: { senderDetails: foundSenderProfile },
+				status: http409conflict,
+				developmentMessage: 'relationship exists',
+			})
 		}
 	}
 
 	try {
 		if (foundDangerousUser) {
 			await database.transaction(async (tx) => {
-				// Transaction: Create the relationship
-				transactionErrorMessage = 'transaction error creating relationships'
-				transactionErrorCode = httpStatus.http409conflict
+				txError = {
+					message: 'transaction error creating relationships',
+					status: http409conflict,
+				}
 				const newRelationshipInsert: RelationshipJoinRow = {
 					merchantId: foundInvitation.senderUserId,
 					customerId: foundDangerousUser.id,
@@ -129,18 +130,17 @@ export async function PATCH(
 				await tx.insert(relationships).values(newRelationshipInsert).returning()
 
 				// Transaction: change user table emailConfirmed to true if not already
-				transactionErrorMessage = 'transaction error ensuring emailConfirmed on existing user is set to true'
+				txError.message = 'transaction error ensuring emailConfirmed on existing user is set to true'
 				await tx.update(users).set({ emailConfirmed: true }).where(equals(users.id, foundDangerousUser.id))
 
 				// Transaction: Expire the invitation
-				transactionErrorMessage = 'error expiring invitation'
+				txError.message = 'error expiring invitation'
 				await tx
 					.update(invitations)
 					.set({ usedAt: new Date() })
 					.where(and(equals(invitations.senderUserId, foundInvitation.senderUserId), equals(invitations.token, token)))
 
-				transactionErrorMessage = null
-				transactionErrorCode = null
+				txError = undefined
 			})
 
 			// Create cookie if it wasn't provided
@@ -161,12 +161,15 @@ export async function PATCH(
 				activeSubscriptionOrTrial,
 			}
 
-			return NextResponse.json({ message: basicMessages.success, senderDetails, existingUser }, { status: httpStatus.http201created })
+			return NextResponse.json({ message: basicMessages.success, senderDetails, existingUser }, { status: 201 })
 		}
 
 		if (!foundDangerousUser && !allDetailsProvided) {
-			logger.info('Existing user not found & no details provided to create new account')
-			return NextResponse.json({ message: 'please provide details' }, { status: httpStatus.http422unprocessableContent })
+			return respond({
+				body: { pleaseProvideDetails: true },
+				status: http422unprocessableContent,
+				developmentMessage: 'please provide details',
+			})
 		}
 
 		if (!foundDangerousUser && allDetailsProvided) {
@@ -187,14 +190,16 @@ export async function PATCH(
 					cachedTrialExpired: false, // They haven't started a trial, and they're just a customer at this point
 				}
 
-				transactionErrorMessage = 'transaction error creating new user'
-				transactionErrorCode = httpStatus.http503serviceUnavailable
+				txError = {
+					message: 'transaction error creating new user',
+					status: 503,
+				}
 
 				// Create new user
 				const [createdUser]: DangerousBaseUser[] | undefined = await tx.insert(users).values(newUserInsertValues).returning()
 
 				// Create relationship
-				transactionErrorMessage = 'transaction error creating relationship join row'
+				txError.message = 'transaction error creating relationship join row'
 				const newRelationshipInsert: RelationshipJoinRow = {
 					merchantId: foundInvitation.senderUserId,
 					customerId: createdUser.id,
@@ -202,7 +207,7 @@ export async function PATCH(
 				await tx.insert(relationships).values(newRelationshipInsert).returning()
 
 				// Transaction: Delete invitation
-				transactionErrorMessage = 'transaction error deleting invitation'
+				txError.message = 'transaction error deleting invitation'
 				await tx
 					.delete(invitations)
 					.where(and(equals(invitations.senderUserId, foundInvitation.senderUserId), equals(invitations.token, token)))
@@ -211,7 +216,7 @@ export async function PATCH(
 				// Optimisation ToDo: write a much better email
 				const emailContent = `Hello ${createdUser.firstName}, thank you for signing up to Simple Order.`
 
-				transactionErrorMessage = 'transaction error sending welcome email'
+				txError.message = 'transaction error sending welcome email'
 				const emailSuccess = await sendEmail({
 					recipientEmail: foundInvitation.email,
 					subject: 'Thank you for using Simple Order',
@@ -221,8 +226,7 @@ export async function PATCH(
 
 				if (!emailSuccess) tx.rollback()
 
-				transactionErrorMessage = null
-				transactionErrorCode = null
+				txError = undefined
 				return { createdUser }
 			})
 
@@ -238,14 +242,16 @@ export async function PATCH(
 			return NextResponse.json({ message: basicMessages.success, createdUser: compositeUser, senderDetails }, { status: 200 })
 		}
 
-		// Neither new nor existing users should reach this return
-		logger.error(`PATCH ${apiPaths.invitations.accept}: reached the end of the route handler without successful early return.`)
-		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
-	} catch (error) {
-		logger.error(`PATCH ${apiPaths.invitations.accept} error`, error)
-		return NextResponse.json(
-			{ message: transactionErrorMessage || basicMessages.serverError },
-			{ status: transactionErrorCode || httpStatus.http500serverError },
-		)
+		return respond({
+			body: { userMessage: userMessages.serverError },
+			status: 500,
+		})
+	} catch (caughtError) {
+		return respond({
+			body: { userMessage: userMessages.serverError },
+			status: 500,
+			developmentMessage: txError.message || 'unknown server error',
+			caughtError,
+		})
 	}
 }

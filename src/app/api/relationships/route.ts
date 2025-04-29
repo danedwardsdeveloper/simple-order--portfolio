@@ -1,37 +1,35 @@
-import { apiPaths, basicMessages, httpStatus, tokenMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { checkUserExists } from '@/library/database/operations'
+import { checkAccess } from '@/library/database/operations'
 import { relationships, users } from '@/library/database/schema'
-import logger from '@/library/logger'
 import { convertEmptyToUndefined, obfuscateEmail } from '@/library/utilities/public'
-import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import type { BrowserSafeCustomerProfile, BrowserSafeMerchantProfile, UnauthorisedMessages } from '@/types'
-import { and, eq, or } from 'drizzle-orm'
-import { type NextRequest, NextResponse } from 'next/server'
+import { and, equals, initialiseResponder, or } from '@/library/utilities/server'
+import type { BrowserSafeCustomerProfile, BrowserSafeMerchantProfile } from '@/types'
+import type { NextRequest, NextResponse } from 'next/server'
 
 export interface RelationshipsGETresponse {
-	message?: typeof basicMessages.success | typeof basicMessages.serverError | UnauthorisedMessages | 'no relationships found'
+	developmentMessage?: string
 	merchants?: BrowserSafeMerchantProfile[]
 	customers?: BrowserSafeCustomerProfile[]
 }
 
 // GET confirmed customers & merchants for the signed-in user
 export async function GET(request: NextRequest): Promise<NextResponse<RelationshipsGETresponse>> {
+	const respond = initialiseResponder<RelationshipsGETresponse>()
 	try {
-		const { extractedUserId, status, message } = await extractIdFromRequestCookie(request)
+		const { dangerousUser, accessDenied } = await checkAccess({
+			request,
+			requireConfirmed: false,
+			requireSubscriptionOrTrial: false,
+		})
 
-		if (!extractedUserId) {
-			logger.error("Couldn't extract user ID")
-			return NextResponse.json({ message }, { status })
+		if (accessDenied) {
+			return respond({
+				status: accessDenied.status,
+				developmentMessage: accessDenied.message,
+			})
 		}
 
-		const { existingDangerousUser } = await checkUserExists(extractedUserId)
-
-		if (!existingDangerousUser) {
-			logger.error('existingDangerousUser not found')
-			return NextResponse.json({ message: tokenMessages.userNotFound }, { status: httpStatus.http404notFound })
-		}
-
+		// Not sure about this... it's efficient but confusing and not reuseable
 		const relationshipsResult = convertEmptyToUndefined(
 			await database
 				.select({
@@ -39,20 +37,23 @@ export async function GET(request: NextRequest): Promise<NextResponse<Relationsh
 					businessName: users.businessName,
 					email: users.email,
 					slug: users.slug,
-					isMerchant: eq(relationships.merchantId, users.id),
+					isMerchant: equals(relationships.merchantId, users.id),
 				})
 				.from(relationships)
 				.innerJoin(
 					users,
 					or(
-						and(eq(relationships.merchantId, extractedUserId), eq(relationships.customerId, users.id)),
-						and(eq(relationships.customerId, extractedUserId), eq(relationships.merchantId, users.id)),
+						and(equals(relationships.merchantId, dangerousUser.id), equals(relationships.customerId, users.id)),
+						and(equals(relationships.customerId, dangerousUser.id), equals(relationships.merchantId, users.id)),
 					),
 				),
 		)
 
 		if (!relationshipsResult) {
-			return NextResponse.json({}, { status: 200 })
+			return respond({
+				status: 200,
+				developmentMessage: 'Legitimately no users',
+			})
 		}
 
 		const merchants = convertEmptyToUndefined(
@@ -73,9 +74,14 @@ export async function GET(request: NextRequest): Promise<NextResponse<Relationsh
 				})),
 		)
 
-		return NextResponse.json({ customers, merchants }, { status: 200 })
-	} catch (error) {
-		logger.error(`${apiPaths.relationships} error: `, error)
-		return NextResponse.json({ message: basicMessages.serverError }, { status: httpStatus.http500serverError })
+		return respond({
+			body: { customers, merchants },
+			status: 200,
+		})
+	} catch (caughtError) {
+		return respond({
+			status: 500,
+			caughtError,
+		})
 	}
 }

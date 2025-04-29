@@ -1,12 +1,11 @@
 import { serviceConstraints, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { checkActiveSubscriptionOrTrial, checkUserExists } from '@/library/database/operations'
+import { checkAccess } from '@/library/database/operations'
 import { orders } from '@/library/database/schema'
-import { containsIllegalCharacters, initialiseDevelopmentLogger, isOrderStatus } from '@/library/utilities/public'
-import { extractIdFromRequestCookie } from '@/library/utilities/server'
-import { equals } from '@/library/utilities/server'
+import { containsIllegalCharacters, isOrderStatus } from '@/library/utilities/public'
+import { equals, initialiseResponder } from '@/library/utilities/server'
 import type { BaseOrder } from '@/types'
-import { type NextRequest, NextResponse } from 'next/server'
+import type { NextRequest, NextResponse } from 'next/server'
 
 export interface OrderAdminOrderIdPATCHresponse {
 	developmentMessage?: string
@@ -27,92 +26,93 @@ export interface OrderAdminOrderIdPATCHparams {
 	orderId: string // Next.js params are always strings
 }
 
+type OutputPATCH = Promise<NextResponse<OrderAdminOrderIdPATCHresponse>>
+
 // Allows a merchant to change the status or note on an order they've received
-export async function PATCH(
-	request: NextRequest,
-	{ params }: { params: Promise<OrderAdminOrderIdPATCHparams> },
-): Promise<NextResponse<OrderAdminOrderIdPATCHresponse>> {
-	const developmentLogger = initialiseDevelopmentLogger('PATCH api/orders/admin/[orderId]: ')
+export async function PATCH(request: NextRequest, { params }: { params: Promise<OrderAdminOrderIdPATCHparams> }): OutputPATCH {
+	const respond = initialiseResponder<OrderAdminOrderIdPATCHresponse>()
+
 	try {
 		const orderId = Number((await params).orderId)
 		const { adminOnlyNote, status: orderStatus }: OrderAdminOrderIdPATCHbody = await request.json()
 
 		if (!orderId) {
-			const developmentMessage = developmentLogger('orderId missing')
-			return NextResponse.json({ developmentMessage }, { status: 400 })
+			return respond({
+				status: 400,
+				developmentMessage: 'orderId missing',
+			})
 		}
 
 		// Check at least one property to update has been provided
 		if (!orderStatus && !adminOnlyNote) {
-			const developmentMessage = developmentLogger(
-				'neither orderStatus nor adminOnlyNote provided. At least one property to update must be provided',
-			)
-			return NextResponse.json({ developmentMessage }, { status: 400 })
+			return respond({
+				status: 400,
+				developmentMessage: 'neither orderStatus nor adminOnlyNote provided. At least one property to update must be provided',
+			})
 		}
 
 		if (!Number.isFinite(orderId)) {
-			const developmentMessage = developmentLogger(`orderId not a valid number: ${orderId}`)
-			return NextResponse.json({ developmentMessage }, { status: 400 })
+			return respond({
+				status: 400,
+				developmentMessage: `orderId not a valid number: ${orderId}`,
+			})
 		}
 
 		// Validate orderStatus, if provided
-		if (orderStatus) {
-			if (!isOrderStatus(orderStatus)) {
-				const developmentMessage = developmentLogger(`orderStatus invalid: ${orderStatus}`)
-				return NextResponse.json({ developmentMessage }, { status: 400 })
-			}
+		if (orderStatus && !isOrderStatus(orderStatus)) {
+			return respond({
+				status: 400,
+				developmentMessage: `orderStatus invalid: ${orderStatus}`,
+			})
 		}
 
 		// Validate adminOnlyNote, if provided
 		if (adminOnlyNote) {
 			if (adminOnlyNote.length > serviceConstraints.maximumCustomerNoteLength) {
-				const developmentMessage = developmentLogger(`adminOnlyNote too long: ${adminOnlyNote.length} characters`)
-				return NextResponse.json({ developmentMessage }, { status: 400 })
+				return respond({
+					status: 400,
+					developmentMessage: `adminOnlyNote too long: ${adminOnlyNote.length} characters`,
+				})
 			}
 
 			if (containsIllegalCharacters(adminOnlyNote)) {
-				const developmentMessage = developmentLogger('adminOnlyNote contains illegal characters')
-				return NextResponse.json({ developmentMessage }, { status: 400 })
+				return respond({
+					status: 400,
+					developmentMessage: 'adminOnlyNote contains illegal characters',
+				})
 			}
 		}
 
-		// Extract user ID from token
-		const { extractedUserId, status, message: cookieMessage } = await extractIdFromRequestCookie(request)
+		const { dangerousUser, accessDenied } = await checkAccess({
+			request,
+			requireConfirmed: true,
+			requireSubscriptionOrTrial: true,
+		})
 
-		if (!extractedUserId) {
-			const developmentMessage = developmentLogger(cookieMessage)
-			return NextResponse.json({ developmentMessage }, { status })
-		}
-
-		const { existingDangerousUser } = await checkUserExists(extractedUserId)
-
-		if (!existingDangerousUser) {
-			const developmentMessage = developmentLogger('user not found')
-			return NextResponse.json({ developmentMessage }, { status: 401 })
-		}
-
-		// Check user has valid trial or subscription
-		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(extractedUserId, existingDangerousUser?.cachedTrialExpired)
-
-		if (!activeSubscriptionOrTrial) {
-			const developmentMessage = developmentLogger('No active trial or subscription')
-			return NextResponse.json({ developmentMessage }, { status: 401 })
+		if (accessDenied) {
+			return respond({
+				status: accessDenied.status,
+				developmentMessage: accessDenied.message,
+			})
 		}
 
 		const [foundOrder] = await database.select().from(orders).where(equals(orders.id, orderId)).limit(1)
 
 		// Check order exists
 		if (!foundOrder) {
-			const developmentMessage = developmentLogger(`Order with ID ${orderId} not found`)
-			return NextResponse.json({ developmentMessage }, { status: 400 })
+			return respond({
+				status: 400,
+				developmentMessage: `Order with ID ${orderId} not found`,
+			})
 		}
 
 		// Check order belongs to user
-		if (foundOrder.merchantId !== extractedUserId) {
-			const developmentMessage = developmentLogger(
-				`Order with ID ${orderId} does not belong to ${existingDangerousUser.businessName} (user ID: ${extractedUserId})`,
-			)
-			return NextResponse.json({ developmentMessage }, { status: 403 })
+		if (foundOrder.merchantId !== dangerousUser.id) {
+			return respond({
+				body: {},
+				status: 403,
+				developmentMessage: `Order with ID ${orderId} does not belong to ${dangerousUser.businessName} (user ID: ${dangerousUser.id})`,
+			})
 		}
 
 		// Check there is actually a difference before updating
@@ -123,8 +123,10 @@ export async function PATCH(
 		if (orderStatus && foundOrder.status !== orderStatus) hasChanges = true
 
 		if (!hasChanges) {
-			const developmentMessage = developmentLogger('Nothing to update')
-			return NextResponse.json({ developmentMessage }, { status: 400 })
+			return respond({
+				status: 400,
+				developmentMessage: 'Nothing to update',
+			})
 		}
 
 		// Update the order
@@ -138,14 +140,22 @@ export async function PATCH(
 			})
 
 		if (!updatedOrder) {
-			const developmentMessage = developmentLogger('Failed to update order')
-			return NextResponse.json({ developmentMessage }, { status: 503 })
+			return respond({
+				status: 503,
+				developmentMessage: 'Failed to update order',
+			})
 		}
 
-		const developmentMessage = developmentLogger('Order updated successfully', { level: 'level3success' })
-		return NextResponse.json({ updatedOrder, developmentMessage }, { status: 200 })
-	} catch (error) {
-		const developmentMessage = developmentLogger('Caught error', { error })
-		return NextResponse.json({ userMessage: userMessages.serverError, developmentMessage }, { status: 500 })
+		return respond({
+			body: { updatedOrder },
+			status: 200,
+			developmentMessage: 'Order updated successfully',
+		})
+	} catch (caughtError) {
+		return respond({
+			body: { userMessage: userMessages.serverError },
+			status: 500,
+			caughtError,
+		})
 	}
 }

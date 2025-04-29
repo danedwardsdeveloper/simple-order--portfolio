@@ -1,26 +1,14 @@
-import { apiPaths, basicMessages, durationSettings, httpStatus, userMessages } from '@/library/constants'
+import { durationSettings, http202accepted, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkAccess, checkRelationship } from '@/library/database/operations'
 import { invitations, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import { createExistingUserInvitation, createNewUserInvitation } from '@/library/email/templates'
 import logger from '@/library/logger'
-import {
-	convertEmptyToUndefined,
-	emailRegex,
-	logAndSanitiseApiError,
-	logAndSanitiseApiResponse,
-	obfuscateEmail,
-} from '@/library/utilities/public'
-import { createInvitation, createInvitationURL } from '@/library/utilities/server'
-import type { BrowserSafeInvitationReceived, BrowserSafeInvitationSent, DangerousBaseUser, Invitation, UnauthorisedMessages } from '@/types'
-import { and, eq, inArray } from 'drizzle-orm'
+import { convertEmptyToUndefined, emailRegex, obfuscateEmail } from '@/library/utilities/public'
+import { and, createInvitation, createInvitationURL, equals, inArray, initialiseResponder } from '@/library/utilities/server'
+import type { BrowserSafeInvitationReceived, BrowserSafeInvitationSent, DangerousBaseUser, Invitation, UserMessages } from '@/types'
 import { type NextRequest, NextResponse } from 'next/server'
-
-type TransactionErrorMessage =
-	| 'error deleting expired invitation'
-	| 'error creating new invitation'
-	| typeof basicMessages.errorSendingEmail
 
 export interface InvitationsPOSTresponse {
 	userMessage?: string
@@ -32,39 +20,42 @@ export interface InvitationsPOSTbody {
 	invitedEmail: string
 }
 
-const routeDetailPOST = `POST ${apiPaths.invitations.base}`
+type OutputPOST = Promise<NextResponse<InvitationsPOSTresponse>>
 
 // Create an invitation
-export async function POST(request: NextRequest): Promise<NextResponse<InvitationsPOSTresponse>> {
+export async function POST(request: NextRequest): OutputPOST {
+	const respond = initialiseResponder<InvitationsPOSTresponse>()
 	try {
 		const { invitedEmail }: InvitationsPOSTbody = await request.json()
 
 		if (!invitedEmail) {
-			const developerMessage = logAndSanitiseApiResponse({
-				routeDetail: routeDetailPOST,
-				message: 'invitedEmail missing',
+			return respond({
+				status: 400,
+				developmentMessage: 'invitedEmail missing',
 			})
-			return NextResponse.json({ developerMessage }, { status: 400 })
 		}
 
 		const normalisedInvitedEmail = invitedEmail.trim().toLowerCase()
 
 		if (!emailRegex.test(normalisedInvitedEmail)) {
-			const developerMessage = logAndSanitiseApiResponse({
-				routeDetail: routeDetailPOST,
-				message: 'invalid email format',
+			return respond({
+				status: 400,
+				developmentMessage: 'invalid email format',
 			})
-			return NextResponse.json({ developerMessage }, { status: 400 })
 		}
 
-		const { dangerousUser } = await checkAccess({
+		const { dangerousUser, accessDenied } = await checkAccess({
 			request,
-			routeSignature: routeDetailPOST,
 			requireConfirmed: true,
 			requireSubscriptionOrTrial: true,
 		})
 
-		if (!dangerousUser) return NextResponse.json({}, { status: 400 })
+		if (accessDenied) {
+			return respond({
+				status: accessDenied.status,
+				developmentMessage: accessDenied.message,
+			})
+		}
 
 		if (dangerousUser.email === normalisedInvitedEmail) {
 			return NextResponse.json({ developerMessage: 'attempted to invite self' }, { status: 400 })
@@ -73,7 +64,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
 		const [inviteeWithAccountAlready]: DangerousBaseUser[] | undefined = await database
 			.select()
 			.from(users)
-			.where(eq(users.email, normalisedInvitedEmail))
+			.where(equals(users.email, normalisedInvitedEmail))
 			.limit(1)
 
 		if (inviteeWithAccountAlready) {
@@ -83,38 +74,42 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
 			})
 
 			if (relationshipExists) {
-				return NextResponse.json({ developerMessage: 'relationship exists' }, { status: httpStatus.http202accepted })
+				return NextResponse.json({ developerMessage: 'relationship exists' }, { status: http202accepted })
 			}
 		}
 
 		const [existingInvitation]: Invitation[] | undefined = await database
 			.select()
 			.from(invitations)
-			.where(and(eq(invitations.senderUserId, dangerousUser.id), eq(invitations.email, normalisedInvitedEmail)))
+			.where(and(equals(invitations.senderUserId, dangerousUser.id), equals(invitations.email, normalisedInvitedEmail)))
 
 		const inDateInvitationExists = existingInvitation && existingInvitation.expiresAt > new Date()
 
 		if (inDateInvitationExists) {
-			const regeneratedUrlForLogger = createInvitationURL(existingInvitation.token)
-			logger.info('Regenerated in-date invitation: ', regeneratedUrlForLogger)
+			logger.info(
+				'Regenerated in-date invitation: ', //
+				createInvitationURL(existingInvitation.token),
+			)
 
-			return NextResponse.json({ developerMessage: 'in-date invitation exists' }, { status: 400 })
+			return respond({
+				status: 400,
+				developmentMessage: 'in-date invitation exists',
+			})
 		}
 
 		const newInvitationExpiryDate = new Date(Date.now() + durationSettings.acceptInvitationExpiry)
 
-		let transactionErrorMessage: TransactionErrorMessage | undefined = 'error deleting expired invitation'
-		let transactionErrorCode: number | undefined = httpStatus.http503serviceUnavailable
+		let txError: { message: string; status: number } | undefined = { message: 'unknown transaction error', status: 503 }
 
 		const { lastEmailSent } = await database.transaction(async (tx) => {
-			transactionErrorMessage = 'error creating new invitation'
+			txError = { message: 'error creating new invitation', status: 503 }
 			const { invitationURL, lastEmailSent, newInvitationExpiryDate } = await createInvitation({
 				senderUserId: dangerousUser.id,
 				recipientEmail: normalisedInvitedEmail,
 				tx,
 			})
 
-			transactionErrorMessage = basicMessages.errorSendingEmail
+			txError.message = 'error sending email'
 			const dynamicEmailTemplate = inviteeWithAccountAlready
 				? createExistingUserInvitation({
 						recipientEmail: normalisedInvitedEmail,
@@ -135,16 +130,15 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
 			})
 
 			if (!sentEmailSuccessfully) tx.rollback()
-			transactionErrorMessage = undefined
-			transactionErrorCode = undefined
+			txError = undefined
 			return { lastEmailSent }
 		})
 
-		if (transactionErrorMessage || transactionErrorCode) {
-			return NextResponse.json(
-				{ developerMessage: transactionErrorMessage || basicMessages.unknownTransactionError },
-				{ status: transactionErrorCode || 503 },
-			)
+		if (txError) {
+			return respond({
+				status: txError.status,
+				developmentMessage: txError.message,
+			})
 		}
 
 		const browserSafeInvitationRecord: BrowserSafeInvitationSent = {
@@ -153,45 +147,56 @@ export async function POST(request: NextRequest): Promise<NextResponse<Invitatio
 			lastEmailSentDate: lastEmailSent,
 		}
 
-		return NextResponse.json({ browserSafeInvitationRecord }, { status: 200 })
-	} catch (error) {
-		logAndSanitiseApiError({ routeDetail: routeDetailPOST, error })
-		return NextResponse.json({ userMessage: userMessages.serverError }, { status: 500 })
+		return respond({
+			body: { browserSafeInvitationRecord },
+			status: 200,
+		})
+	} catch (caughtError) {
+		return respond({
+			body: { userMessage: userMessages.serverError },
+			status: 500,
+			caughtError,
+		})
 	}
 }
 
 export interface InvitationsGETresponse {
-	message?: UnauthorisedMessages | typeof basicMessages.serverError | typeof basicMessages.success | 'no invitations found'
+	userMessage?: UserMessages
 	invitationsSent?: BrowserSafeInvitationSent[]
 	invitationsReceived?: BrowserSafeInvitationReceived[]
 }
 
-const routeDetailsGET = `GET ${apiPaths.invitations.base}: `
+type OutputGET = Promise<NextResponse<InvitationsGETresponse>>
 
-export async function GET(request: NextRequest): Promise<NextResponse<InvitationsGETresponse>> {
+export async function GET(request: NextRequest): OutputGET {
+	const respond = initialiseResponder<InvitationsGETresponse>()
 	try {
-		const { dangerousUser } = await checkAccess({
+		const { dangerousUser, accessDenied } = await checkAccess({
 			request,
-			routeSignature: routeDetailsGET,
 			requireConfirmed: false,
 			requireSubscriptionOrTrial: false,
 		})
 
-		if (!dangerousUser) {
-			return NextResponse.json({}, { status: 400 })
+		if (accessDenied) {
+			return respond({
+				status: accessDenied.status,
+				developmentMessage: accessDenied.message,
+			})
 		}
 
 		const rawInvitationsReceived = convertEmptyToUndefined(
-			await database.select().from(invitations).where(eq(invitations.email, dangerousUser.email)),
+			await database.select().from(invitations).where(equals(invitations.email, dangerousUser.email)),
 		)
 
 		const rawInvitationsSent = convertEmptyToUndefined(
-			await database.select().from(invitations).where(eq(invitations.senderUserId, dangerousUser.id)),
+			await database.select().from(invitations).where(equals(invitations.senderUserId, dangerousUser.id)),
 		)
 
 		if (!rawInvitationsReceived && !rawInvitationsSent) {
-			logger.info(routeDetailsGET, 'legitimately no invitations found')
-			return NextResponse.json({ message: 'no invitations found' }, { status: 200 })
+			return respond({
+				status: 200,
+				developmentMessage: 'legitimately no invitations found',
+			})
 		}
 
 		let invitationsReceived: BrowserSafeInvitationReceived[] | undefined
@@ -222,10 +227,16 @@ export async function GET(request: NextRequest): Promise<NextResponse<Invitation
 				}))
 			: undefined
 
-		return NextResponse.json({ message: basicMessages.success, invitationsReceived, invitationsSent }, { status: 200 })
-	} catch (error) {
-		logger.error(`GET ${apiPaths.invitations.base} error: `, error)
-		return NextResponse.json({ message: basicMessages.serverError }, { status: 500 })
+		return respond({
+			body: { invitationsReceived, invitationsSent },
+			status: 200,
+		})
+	} catch (caughtError) {
+		return respond({
+			body: { userMessage: userMessages.serverError },
+			status: 500,
+			caughtError,
+		})
 	}
 }
 

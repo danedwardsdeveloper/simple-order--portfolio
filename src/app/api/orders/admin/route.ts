@@ -1,6 +1,7 @@
-import { apiPaths, httpStatus, userMessages } from '@/library/constants'
+import { http204noContent, userMessages } from '@/library/constants'
 import { checkAccess, getOrdersData } from '@/library/database/operations'
-import { initialiseDevelopmentLogger, mapOrders } from '@/library/utilities/public'
+import { mapOrders } from '@/library/utilities/public'
+import { initialiseResponder } from '@/library/utilities/server'
 import type { OrderReceived } from '@/types'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -10,22 +11,24 @@ export interface OrdersAdminGETresponse {
 	ordersReceived?: OrderReceived[]
 }
 
+type Output = Promise<NextResponse<OrdersAdminGETresponse>>
+
 // Get Orders received as a merchant, with search parameters
-export async function GET(request: NextRequest): Promise<NextResponse<OrdersAdminGETresponse>> {
-	const routeSignature = `GET ${apiPaths.orders.merchantPerspective.base}:`
-	const developmentLogger = initialiseDevelopmentLogger(routeSignature)
+export async function GET(request: NextRequest): Output {
+	const respond = initialiseResponder<OrdersAdminGETresponse>()
 
 	try {
-		const { dangerousUser } = await checkAccess({
+		const { dangerousUser, accessDenied } = await checkAccess({
 			request,
-			routeSignature,
 			requireConfirmed: false,
 			requireSubscriptionOrTrial: false,
 		})
 
-		if (!dangerousUser) {
-			const developmentMessage = developmentLogger('Authentication error')
-			return NextResponse.json({ developmentMessage }, { status: 400 })
+		if (accessDenied) {
+			return respond({
+				status: accessDenied.status,
+				developmentMessage: accessDenied.message,
+			})
 		}
 
 		// Optimisation ToDo: add search parameters
@@ -33,12 +36,14 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersAdmi
 		const { ordersReceivedData } = await getOrdersData({
 			userId: dangerousUser.id,
 			returnType: 'ordersReceived',
-			routeSignature,
+			routeSignature: 'GET /api/orders/admin',
 		})
 
 		if (!ordersReceivedData) {
-			const developmentMessage = developmentLogger('Legitimately no orders', 'level4info')
-			return NextResponse.json({ developmentMessage }, { status: httpStatus.http204noContent })
+			return respond({
+				status: http204noContent,
+				developmentMessage: 'Legitimately no orders',
+			})
 		}
 
 		const { ordersReceived } = mapOrders({
@@ -50,8 +55,11 @@ export async function GET(request: NextRequest): Promise<NextResponse<OrdersAdmi
 		})
 
 		return NextResponse.json({ ordersReceived }, { status: 200 })
-	} catch (error) {
-		const developmentMessage = developmentLogger('Caught error', error)
-		return NextResponse.json({ developmentMessage, userMessage: userMessages.serverError }, { status: 500 })
+	} catch (caughtError) {
+		return respond({
+			body: { userMessage: userMessages.serverError },
+			status: 500,
+			caughtError,
+		})
 	}
 }

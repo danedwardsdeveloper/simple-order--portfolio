@@ -1,29 +1,16 @@
-import { type basicMessages, orderStatus, serviceConstraints, userMessages } from '@/library/constants'
+import { orderStatus, serviceConstraints, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { checkUserExists } from '@/library/database/operations'
+import { checkAccess } from '@/library/database/operations'
 import { orderItems, orders } from '@/library/database/schema'
-import {
-	containsIllegalCharacters,
-	isSelectedProductArray,
-	isValidDate,
-	logAndSanitiseApiError,
-	logAndSanitiseApiResponse,
-} from '@/library/utilities/public'
-import { extractIdFromRequestCookie } from '@/library/utilities/server'
+import { containsIllegalCharacters, isSelectedProductArray, isValidDate } from '@/library/utilities/public'
+import { initialiseResponder } from '@/library/utilities/server'
 import { equals } from '@/library/utilities/server'
-import type { BaseOrder, SelectedProduct, TokenMessages } from '@/types'
-import { type NextRequest, NextResponse } from 'next/server'
+import type { BaseOrder, SelectedProduct } from '@/types'
+import type { NextRequest, NextResponse } from 'next/server'
 
 export interface OrdersOrderIdPATCHresponse {
-	userMessage?:
-		| typeof basicMessages.success
-		| typeof userMessages.serverError
-		| TokenMessages
-		| 'orderId missing'
-		| 'productId missing'
-		| 'quantity missing'
-		| 'not your order to edit'
-	developerMessage?: string
+	userMessage?: typeof userMessages.serverError
+	developmentMessage?: string
 	// updatedOrder?: OrderItem // ToDo: getOrder details
 }
 
@@ -35,118 +22,103 @@ export interface OrdersOrderIdPATCHbody {
 	orderItemsToUpdate?: SelectedProduct[]
 }
 
-export interface OrdersOrderIdPATCHparams {
+export type OrdersOrderIdPATCHparams = Promise<{
 	orderId: string
-}
+}>
 
-const routeDetail = 'PATCH /api/orders/[orderId]:'
+type Output = Promise<NextResponse<OrdersOrderIdPATCHresponse>>
 
-export async function PATCH(
-	request: NextRequest,
-	{ params }: { params: Promise<OrdersOrderIdPATCHparams> },
-): Promise<NextResponse<OrdersOrderIdPATCHresponse>> {
+export async function PATCH(request: NextRequest, { params }: { params: OrdersOrderIdPATCHparams }): Output {
+	const respond = initialiseResponder<OrdersOrderIdPATCHresponse>()
 	try {
-		const unwrappedParams = await params
-		const orderId = Number(unwrappedParams.orderId)
+		const orderId = Number((await params).orderId)
 
-		// Check the orderId exists
 		if (!orderId) {
-			const developerMessage = logAndSanitiseApiResponse({
-				message: 'orderId missing',
-				routeDetail,
+			return respond({
+				status: 400,
+				developmentMessage: 'orderId missing',
 			})
-			return NextResponse.json({ developerMessage }, { status: 400 })
 		}
 
 		const { requestedDeliveryDate, customerNote, orderItemsToUpdate }: OrdersOrderIdPATCHbody = await request.json()
 
-		// Check at least one property to update has been provided
 		if (!requestedDeliveryDate && !customerNote && !orderItemsToUpdate) {
-			const developerMessage = logAndSanitiseApiResponse({
-				routeDetail,
-				message: 'At least one property to update must be provided',
+			return respond({
+				status: 400,
+				developmentMessage: 'At least one property to update must be provided',
 			})
-			return NextResponse.json({ developerMessage }, { status: 400 })
 		}
 
-		// Validate customerNote
+		// Use Zod
 		if (customerNote) {
 			if (containsIllegalCharacters(customerNote)) {
-				const developerMessage = logAndSanitiseApiResponse({
-					routeDetail,
-					message: 'customerNote contains illegal characters',
+				return respond({
+					status: 400,
+					developmentMessage: 'customerNote contains illegal characters',
 				})
-				return NextResponse.json({ developerMessage }, { status: 400 })
 			}
 			if (customerNote.length > serviceConstraints.maximumCustomerNoteLength) {
-				const developerMessage = logAndSanitiseApiResponse({
-					routeDetail,
-					message: `customerNote is too long: ${customerNote.length} characters. Maximum: ${serviceConstraints.maximumCustomerNoteLength}`,
+				return respond({
+					status: 400,
+					developmentMessage: `customerNote is too long: ${customerNote.length} characters. Maximum: ${serviceConstraints.maximumCustomerNoteLength}`,
 				})
-				return NextResponse.json({ developerMessage }, { status: 400 })
 			}
 		}
 
 		// Validate the requestedDeliveryDate, if provided
 		if (requestedDeliveryDate) {
 			if (!isValidDate(new Date(requestedDeliveryDate))) {
-				const developerMessage = logAndSanitiseApiResponse({
-					routeDetail,
-					message: `requestedDeliveryDate invalid: ${requestedDeliveryDate}`,
+				return respond({
+					status: 400,
+					developmentMessage: `requestedDeliveryDate invalid: ${requestedDeliveryDate}`,
 				})
-				return NextResponse.json({ developerMessage }, { status: 400 })
 			}
 		}
 
 		// Validate orderItemsToUpdate
-		if (orderItemsToUpdate) {
-			if (!isSelectedProductArray(orderItemsToUpdate)) {
-				const developerMessage = logAndSanitiseApiResponse({
-					routeDetail,
-					message: 'orderItemsToUpdate is in the wrong format',
-				})
-				return NextResponse.json({ developerMessage }, { status: 400 })
-			}
+		if (orderItemsToUpdate && !isSelectedProductArray(orderItemsToUpdate)) {
+			return respond({
+				status: 400,
+				developmentMessage: 'orderItemsToUpdate is in the wrong format',
+			})
 		}
 
-		// Validate the user
-		const { extractedUserId, status, message: developerMessage } = await extractIdFromRequestCookie(request)
+		const { dangerousUser, accessDenied } = await checkAccess({
+			request,
+			requireConfirmed: true,
+			requireSubscriptionOrTrial: false, // Free for customers
+		})
 
-		if (!extractedUserId) {
-			return NextResponse.json({ developerMessage }, { status })
-		}
-
-		const { userExists, existingDangerousUser } = await checkUserExists(extractedUserId)
-
-		if (!userExists || !existingDangerousUser) {
-			return NextResponse.json({ developerMessage: 'user not found' }, { status: 404 })
+		if (accessDenied) {
+			return respond({
+				status: accessDenied.status,
+				developmentMessage: accessDenied.message,
+			})
 		}
 
 		const [orderToUpdate]: BaseOrder[] = await database.select().from(orders).where(equals(orders.id, orderId))
 
 		if (!orderToUpdate) {
-			const developerMessage = logAndSanitiseApiResponse({
-				routeDetail,
-				message: `Couldn't find order with ID ${orderId}`,
+			return respond({
+				body: {},
+				status: 400,
+				developmentMessage: `Couldn't find order with ID ${orderId}`,
 			})
-			return NextResponse.json({ developerMessage }, { status: 400 })
 		}
 
-		if (orderToUpdate.customerId !== extractedUserId) {
-			const developerMessage = logAndSanitiseApiResponse({
-				routeDetail,
-				message: `Order with ID ${orderId} was not created by ${existingDangerousUser.businessName}`,
+		if (orderToUpdate.customerId !== dangerousUser.id) {
+			return respond({
+				status: 403,
+				developmentMessage: `Order with ID ${orderId} was not created by ${dangerousUser.businessName}`,
 			})
-			return NextResponse.json({ developerMessage }, { status: 403 })
 		}
 
 		// Check order is not completed
 		if (orderToUpdate.status === orderStatus.completed) {
-			const developerMessage = logAndSanitiseApiResponse({
-				routeDetail,
-				message: `Can't update order with ID ${orderId} because it is ${orderToUpdate.status}`,
+			return respond({
+				status: 403,
+				developmentMessage: `Can't update order with ID ${orderId} because it is ${orderToUpdate.status}`,
 			})
-			return NextResponse.json({ developerMessage }, { status: 403 })
 		}
 
 		// Optimisation ToDo: Check cut-off time has not been exceeded
@@ -180,11 +152,10 @@ export async function PATCH(
 
 		if (orderItemsToUpdate) {
 			if (!isSelectedProductArray(orderItemsToUpdate)) {
-				const developerMessage = logAndSanitiseApiResponse({
-					routeDetail,
-					message: 'orderItemsToUpdate is in the wrong format',
+				return respond({
+					status: 400,
+					developmentMessage: 'orderItemsToUpdate is in the wrong format',
 				})
-				return NextResponse.json({ developerMessage }, { status: 400 })
 			}
 
 			// Check if quantities have changed
@@ -228,12 +199,10 @@ export async function PATCH(
 		}
 
 		if (Object.keys(orderUpdateData).length === 0 && !orderItemsUpdateData.orderItemsToUpdate?.length) {
-			const developerMessage = logAndSanitiseApiResponse({
-				routeDetail,
-				level: 'level2warn',
-				message: 'no data to change',
+			return respond({
+				status: 400,
+				developmentMessage: 'no data to change',
 			})
-			return NextResponse.json({ developerMessage }, { status: 400 })
 		}
 
 		// ToDo: add transaction
@@ -262,12 +231,15 @@ export async function PATCH(
 			}
 		}
 
-		return NextResponse.json({ developerMessage: 'success' }, { status: 200 })
-	} catch (error) {
-		const developmentError = logAndSanitiseApiError({
-			routeDetail,
-			error,
+		return respond({
+			status: 200,
+			developmentMessage: 'Success',
 		})
-		return NextResponse.json({ userMessage: userMessages.serverError, developmentError }, { status: 500 })
+	} catch (caughtError) {
+		return respond({
+			body: { userMessage: userMessages.serverError },
+			status: 500,
+			caughtError,
+		})
 	}
 }

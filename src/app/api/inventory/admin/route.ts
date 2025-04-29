@@ -1,18 +1,18 @@
 import {
-	apiPaths,
 	type authenticationMessages,
-	basicMessages,
-	httpStatus,
+	type basicMessages,
+	http403forbidden,
+	http409conflict,
+	http503serviceUnavailable,
 	illegalCharactersMessages,
-	missingFieldMessages,
 	serviceConstraints,
 	userMessages,
 } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkAccess } from '@/library/database/operations'
 import { products } from '@/library/database/schema'
-import logger from '@/library/logger'
 import { containsIllegalCharacters, convertEmptyToUndefined, initialiseDevelopmentLogger } from '@/library/utilities/public'
+import { initialiseResponder } from '@/library/utilities/server'
 import type { BrowserSafeMerchantProduct, ProductInsertValues, UnauthorisedMessages, UserMessages } from '@/types'
 import { and, eq, isNull } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
@@ -71,9 +71,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<InventoryA
 	}
 }
 
-// POST add an item to the inventory
+// POST
 
-// I think this can be changed to ProductInsertValues
 export type InventoryAddPOSTbody = Omit<ProductInsertValues, 'ownerId' | 'id' | 'createdAt' | 'deletedAt' | 'updatedAt'>
 
 // ToDo: remove unused responses
@@ -83,18 +82,28 @@ export interface InventoryAddPOSTresponse {
 	addedProduct?: BrowserSafeMerchantProduct
 }
 
+type OutputPOST = Promise<NextResponse<InventoryAddPOSTresponse>>
+
 // POST add an item to the inventory
-export async function POST(request: NextRequest): Promise<NextResponse<InventoryAddPOSTresponse>> {
-	const { developmentLogger } = initialiseDevelopmentLogger('/inventory/admin', 'POST')
+export async function POST(request: NextRequest): OutputPOST {
+	const respond = initialiseResponder<InventoryAddPOSTresponse>()
+
+	let body: InventoryAddPOSTbody | undefined
 
 	try {
-		const { name, priceInMinorUnits, customVat, description }: InventoryAddPOSTbody = await request.json()
+		body = (await request.json()) as InventoryAddPOSTbody
+	} catch {
+		return respond({ status: 400, developmentMessage: 'Request body missing' })
+	}
+
+	try {
+		const { name, priceInMinorUnits, customVat, description } = body
 
 		let badRequestMessage: string | undefined
 
-		if (!name) badRequestMessage = missingFieldMessages.nameMissing
-		if (containsIllegalCharacters(name)) badRequestMessage = illegalCharactersMessages.name
-		if (!priceInMinorUnits) badRequestMessage = missingFieldMessages.priceMissing
+		if (!name) badRequestMessage = 'name missing'
+		if (containsIllegalCharacters(name)) badRequestMessage = 'name contains illegal characters'
+		if (!priceInMinorUnits) badRequestMessage = 'priceInMinorUnits missing'
 		if (Number.isNaN(priceInMinorUnits)) badRequestMessage = 'priceInMinorUnits not a number'
 		if (priceInMinorUnits > serviceConstraints.maximumProductValueInMinorUnits) badRequestMessage = 'priceInMinorUnits too high'
 
@@ -111,8 +120,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<Inventory
 		}
 
 		if (badRequestMessage) {
-			const developmentMessage = developmentLogger(badRequestMessage)
-			return NextResponse.json({ developmentMessage }, { status: 400 })
+			return respond({
+				status: 400,
+				developmentMessage: badRequestMessage,
+			})
 		}
 
 		const { dangerousUser, accessDenied } = await checkAccess({
@@ -122,17 +133,22 @@ export async function POST(request: NextRequest): Promise<NextResponse<Inventory
 		})
 
 		if (accessDenied) {
-			const developmentMessage = developmentLogger(accessDenied.message)
-			return NextResponse.json({ developmentMessage }, { status: accessDenied.status })
+			return respond({
+				status: accessDenied.status,
+				developmentMessage: accessDenied.message,
+			})
 		}
 
 		const userId = dangerousUser.id
 
 		// Optimisation ToDo: check for duplicates at the same time (existingProducts/existingProduct)
 		const existingProducts = await database.select().from(products).where(eq(products.ownerId, userId))
+
 		if (existingProducts.length >= serviceConstraints.maximumProducts) {
-			const developmentMessage = developmentLogger('too many products')
-			return NextResponse.json({ developmentMessage }, { status: httpStatus.http403forbidden })
+			return respond({
+				status: http403forbidden,
+				developmentMessage: 'too many products',
+			})
 		}
 
 		const [existingProduct] = await database
@@ -142,7 +158,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<Inventory
 			.limit(1)
 
 		if (existingProduct) {
-			return NextResponse.json({ userMessage: userMessages.duplicateProductName }, { status: 409 })
+			return respond({
+				status: http409conflict,
+				developmentMessage: 'product name not unique',
+			})
 		}
 
 		const insertValues: ProductInsertValues = {
@@ -171,16 +190,23 @@ export async function POST(request: NextRequest): Promise<NextResponse<Inventory
 		})
 
 		if (!addedProduct) {
-			logger.error(`POST ${apiPaths.inventory.merchantPerspective.base} error: Couldn't add product to database`)
-			return NextResponse.json({ userMessage: userMessages.databaseError }, { status: 503 })
+			return respond({
+				body: { userMessage: userMessages.databaseError },
+				status: http503serviceUnavailable,
+			})
 		}
 
-		logger.info('Added product: ', addedProduct)
-
-		return NextResponse.json({ message: basicMessages.success, addedProduct }, { status: 200 })
-	} catch (error) {
-		const developmentMessage = developmentLogger('Caught error', { error })
-		return NextResponse.json({ userMessage: userMessages.serverError, developmentMessage }, { status: 500 })
+		return respond({
+			body: { addedProduct },
+			status: 201,
+			developmentMessage: `Added ${addedProduct.name}`,
+		})
+	} catch (caughtError) {
+		return respond({
+			body: { userMessage: userMessages.serverError },
+			status: 500,
+			caughtError,
+		})
 	}
 }
 
