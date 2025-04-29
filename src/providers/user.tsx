@@ -5,8 +5,9 @@ import type { InvitationsGETresponse } from '@/app/api/invitations/route'
 import type { OrdersAdminGETresponse } from '@/app/api/orders/admin/route'
 import type { OrdersGETresponse } from '@/app/api/orders/route'
 import type { RelationshipsGETresponse } from '@/app/api/relationships/route'
-import { apiPaths, temporaryVat, userMessages } from '@/library/constants'
+import { apiPaths, temporaryVat } from '@/library/constants'
 import logger from '@/library/logger'
+import { apiRequest } from '@/library/utilities/public'
 import type {
 	BrowserSafeCompositeUser,
 	BrowserSafeCustomerProfile,
@@ -76,28 +77,31 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 	useEffect(() => {
 		async function getUser() {
 			setIsLoading(true)
+
 			try {
-				const response = await fetch(apiPaths.authentication.verifyToken, { credentials: 'include' })
-				const { user, message }: VerifyTokenGETresponse = await response.json()
+				const { user } = await apiRequest<VerifyTokenGETresponse>({
+					basePath: '/authentication/verify-token',
+				})
 
 				if (user) {
 					setUser(user)
 
 					const basePromises = [getRelationships(), getInvitations()]
-					const rolePromises: Promise<void>[] =
-						user.roles === 'customer'
-							? [getOrdersMade()]
-							: user.roles === 'merchant'
-								? [getInventory(), getOrdersReceived()]
-								: [getOrdersMade(), getOrdersReceived(), getInventory()]
+					const customerPromises = [getOrdersMade()]
+					const merchantPromises = [getInventory(), getOrdersReceived()]
+					const bothPromises = [...customerPromises, ...merchantPromises]
+
+					let rolePromises: Promise<void>[] = []
+
+					if (user.roles === 'customer') {
+						rolePromises = customerPromises
+					} else if (user.roles === 'merchant') {
+						rolePromises = merchantPromises
+					} else {
+						rolePromises = bothPromises
+					}
 
 					await Promise.all([...basePromises, ...rolePromises])
-				} else if (message === 'token expired' || message === 'token invalid' || message === 'user not found') {
-					createNotification({
-						level: 'warning',
-						title: 'Signed out',
-						message: 'You have been signed out.',
-					})
 				}
 			} catch (error) {
 				logger.error(`User provider ${apiPaths.authentication.verifyToken}`, error)
@@ -108,9 +112,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
 		async function getRelationships() {
 			try {
-				const { customers, merchants }: RelationshipsGETresponse = await (
-					await fetch(apiPaths.relationships, { credentials: 'include' })
-				).json()
+				const { customers, merchants } = await apiRequest<RelationshipsGETresponse>({
+					basePath: '/relationships',
+				})
+
 				setConfirmedMerchants(merchants || null)
 				setConfirmedCustomers(customers || null)
 			} catch (error) {
@@ -125,13 +130,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 					credentials: 'include',
 				})
 
-				const { invitationsSent, invitationsReceived, message }: InvitationsGETresponse = await invitationsResponse.json()
+				const { invitationsSent, invitationsReceived }: InvitationsGETresponse = await invitationsResponse.json()
 
 				setInvitationsSent(invitationsSent || null)
 				setInvitationsReceived(invitationsReceived || null)
-				if (!invitationsResponse.ok) {
-					logger.warn(`User provider ${invitationsURL}: request unsuccessful`, message)
-				}
 			} catch (error) {
 				logger.error(`User provider ${invitationsURL}: `, error)
 			}
@@ -140,12 +142,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 		async function getInventory() {
 			// ToDo: refactor this
 			try {
-				const { inventory, message }: InventoryAdminGETresponse = await (
-					await fetch(apiPaths.inventory.merchantPerspective.base, { credentials: 'include' })
-				).json()
+				const { inventory } = await apiRequest<InventoryAdminGETresponse>({
+					basePath: '/inventory/admin',
+				})
 
 				if (inventory) setInventory(inventory)
-				if (message !== 'success') logger.error('ToDo')
 			} catch {
 				// Log error
 				logger.error('ToDo')
@@ -153,42 +154,22 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 		}
 
 		async function getOrdersMade() {
-			const { ordersMade, userMessage, developmentMessage }: OrdersGETresponse = await (
-				await fetch(apiPaths.orders.customerPerspective.base, { credentials: 'include' })
-			).json()
+			const { ordersMade } = await apiRequest<OrdersGETresponse>({ basePath: '/orders' })
 
 			if (ordersMade) setOrdersMade(ordersMade)
-
-			if (userMessage) {
-				createNotification({
-					title: 'Error',
-					message: userMessage,
-					level: 'error',
-				})
-			}
-
-			if (developmentMessage) logger.error('providers/user getOrdersMade error: ', developmentMessage)
 		}
 
 		async function getOrdersReceived() {
-			const response = await fetch(apiPaths.orders.merchantPerspective.base, { credentials: 'include' })
+			const { ordersReceived } = await apiRequest<OrdersAdminGETresponse>({
+				basePath: '/orders/admin',
+			})
 
-			const { ordersReceived, userMessage }: OrdersAdminGETresponse = await response.json()
-
-			if (response.ok) {
-				setOrdersReceived(ordersReceived || null)
-			} else {
-				createNotification({
-					title: 'Error',
-					level: 'error',
-					message: userMessage || userMessages.serverError,
-				})
-			}
+			if (ordersReceived) setOrdersReceived(ordersReceived)
 		}
 
 		if (!user && !hasCheckedToken.current) {
-			getUser()
 			hasCheckedToken.current = true
+			getUser()
 		}
 	}, [])
 
