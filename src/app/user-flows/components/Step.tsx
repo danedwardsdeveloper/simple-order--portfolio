@@ -40,7 +40,7 @@ export default function Step({ step, isLast }: { step: FlowStep; isLast: boolean
 					{step.subSteps && step.subSteps.length > 0 && (
 						<div className="mt-3 flex flex-col gap-y-4">
 							{step.subSteps.map((subStep) => (
-								<div key={subStep} className="flex gap-x-2 mb-2 text-sm text-gray-700">
+								<div key={subStep} className="flex gap-x-2 mb-2 text-gray-700">
 									<div className={mergeClasses('size-1.5 rounded-full shrink-0 mt-2', step.completed ? 'bg-blue-300' : 'bg-orange-300')} />
 									<p>{subStep}</p>
 								</div>
@@ -53,7 +53,7 @@ export default function Step({ step, isLast }: { step: FlowStep; isLast: boolean
 							{step.completed ? <SquareCheckBig className="size-5 " /> : <Square className="size-5 " />}
 							<span>{step.completed ? 'Completed' : 'ToDo'}</span>
 						</div>
-						{step.notes && <p className="text-zinc-600 w-full p-2 rounded-md text-sm">{step.notes}</p>}
+						{step.notes && <p className="text-zinc-600 w-full p-2 rounded-md">{step.notes}</p>}
 					</div>
 				</div>
 			</div>

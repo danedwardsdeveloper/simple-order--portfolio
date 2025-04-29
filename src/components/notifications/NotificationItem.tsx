@@ -70,8 +70,8 @@ export default function NotificationItem({ notification, onClose }: Props) {
 							<Icon aria-hidden="true" className={mergeClasses('size-6', colourStyles[notification.level].icon)} />
 						</div>
 						<div className="ml-3 w-0 flex-1">
-							<p className={mergeClasses('text-sm font-semibold', colourStyles[notification.level].title)}>{notification.title}</p>
-							<p className={mergeClasses('mt-1 text-sm leading-6', colourStyles[notification.level].message)}>{notification.message}</p>
+							<p className={mergeClasses('font-semibold', colourStyles[notification.level].title)}>{notification.title}</p>
+							<p className={mergeClasses('mt-1 leading-6', colourStyles[notification.level].message)}>{notification.message}</p>
 						</div>
 						<div className="ml-4 flex shrink-0">
 							<button

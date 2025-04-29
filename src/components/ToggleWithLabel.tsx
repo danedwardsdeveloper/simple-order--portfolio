@@ -11,7 +11,7 @@ interface Props {
 export default function ToggleWithLabel({ enabled, setEnabled, enabledLabel, disabledLabel }: Props) {
 	return (
 		<Field className="flex items-center">
-			<Label as="span" className="mr-3 text-sm">
+			<Label as="span" className="mr-3">
 				<button
 					type="button"
 					onClick={() => setEnabled(true)}
@@ -34,7 +34,7 @@ export default function ToggleWithLabel({ enabled, setEnabled, enabledLabel, dis
 					className="pointer-events-none inline-block size-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out group-data-[checked]:translate-x-5"
 				/>
 			</Switch>
-			<Label as="span" className="ml-3 text-sm">
+			<Label as="span" className="ml-3 ">
 				<button
 					type="button"
 					onClick={() => setEnabled(false)}

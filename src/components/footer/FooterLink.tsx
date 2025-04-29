@@ -6,11 +6,11 @@ export default function FooterLink({ href, name }: { href: string; name: string 
 	const pathname = usePathname()
 
 	if (pathname === href) {
-		return <span className="text-sm/6 text-blue-600 font-medium">{name}</span>
+		return <span className="leading-6 text-blue-600 font-medium">{name}</span>
 	}
 
 	return (
-		<Link href={href} className="text-sm/6 link-primary">
+		<Link href={href} className="leading-6 link-primary">
 			{name}
 		</Link>
 	)

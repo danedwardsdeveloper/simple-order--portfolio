@@ -16,7 +16,7 @@ export default function HomePageLink() {
 			)}
 		>
 			<CompanyLogo size="size-6" />
-			<span className="font-medium text-xl md:text-sm">Simple Order</span>
+			<span className="font-medium text-xl text-base">Simple Order</span>
 		</Link>
 	)
 }

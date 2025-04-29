@@ -52,7 +52,7 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en-GB" suppressHydrationWarning>
-			<body className="flex flex-col w-full">
+			<body className="flex flex-col w-full text-base">
 				<Providers>
 					<SplashScreen />
 					<MenuBar />
