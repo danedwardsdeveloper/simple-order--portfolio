@@ -6,7 +6,7 @@ export default {
 	theme: {
 		extend: {
 			fontSize: {
-				'base': '1.125rem'
+				'base': '1.125rem',
 			},
 			margin: {
 				'menubar-offset': spacing[14],
