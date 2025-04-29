@@ -17,9 +17,17 @@ type Output = Promise<NextResponse<VerifyTokenGETresponse>>
 export async function GET(request: NextRequest): Output {
 	const respond = initialiseResponder<VerifyTokenGETresponse>()
 
-	const cookieStore = await cookies()
-
 	try {
+		const cookieStore = await cookies()
+		const tokenCookie = cookieStore.get(cookieNames.token)
+
+		if (!tokenCookie) {
+			return respond({
+				status: 200,
+				developmentMessage: 'Not signed in',
+			})
+		}
+
 		const { dangerousUser } = await checkAccess({
 			request,
 			requireConfirmed: false,
