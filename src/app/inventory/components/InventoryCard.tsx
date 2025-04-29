@@ -1,5 +1,5 @@
 'use client'
-import type { InventoryDELETEbody, InventoryDELETEresponse } from '@/app/api/inventory/admin/[itemId]/route'
+import type { InventoryDELETEparams, InventoryDELETEresponse } from '@/app/api/inventory/admin/[itemId]/route'
 import logger from '@/library/logger'
 import { formatPrice, mergeClasses } from '@/library/utilities/public'
 import { useNotifications } from '@/providers/notifications'
@@ -40,9 +40,10 @@ export default function InventoryCard({ product, zebraStripe }: Props) {
 		)
 	}
 
+	// Main ToDo: Fix this mess
 	async function handleDelete() {
-		const body: InventoryDELETEbody = {
-			productToDeleteId: product.id,
+		const body: InventoryDELETEparams = {
+			itemId: String(product.id),
 		}
 
 		const response = await fetch('ToDo!', {
@@ -89,7 +90,7 @@ export default function InventoryCard({ product, zebraStripe }: Props) {
 						<span className="text-lg">
 							<DisplayPrice />
 						</span>
-						<span className="text-zinc-500 text-sm">{includeVat && `Including ${vatInteger}% VAT`}</span>
+						<span className="text-zinc-500">{includeVat && `Including ${vatInteger}% VAT`}</span>
 					</div>
 					<div className="flex gap-x-4">
 						<button type="button" className="link-danger" onClick={() => setShowDeleteModal(true)}>
