@@ -24,8 +24,10 @@ type Output = Promise<
 		})
 
 		if (accessDenied) {
-			const developmentMessage = developmentLogger(accessDenied.message)
-			return NextResponse.json({ developmentMessage }, { status: accessDenied.status })
+			return respond({
+				status: accessDenied.status,
+				developmentMessage: accessDenied.message
+			})
 		}
  */
 export async function checkAccess({ request, requireConfirmed, requireSubscriptionOrTrial }: Input): Output {
