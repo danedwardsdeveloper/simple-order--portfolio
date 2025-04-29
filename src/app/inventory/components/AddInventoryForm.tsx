@@ -55,7 +55,7 @@ export default function AddInventoryForm() {
 			customVat,
 		}
 
-		const { message, addedProduct }: InventoryAddPOSTresponse = await (
+		const { userMessage, addedProduct }: InventoryAddPOSTresponse = await (
 			await fetch(apiPaths.inventory.merchantPerspective.base, {
 				method: 'POST',
 				headers: {
@@ -83,7 +83,7 @@ export default function AddInventoryForm() {
 			})
 			return
 		}
-		setErrorMessage(message)
+		if (userMessage) setErrorMessage(userMessage)
 	}
 
 	const handleInputChange = (field: keyof InventoryAddFormData, value: string) => {
@@ -97,9 +97,7 @@ export default function AddInventoryForm() {
 			<div>
 				<div className="mb-1">
 					<label htmlFor="name">Name</label>
-					{illegalCharacterWarnings.name && (
-						<span className="text-red-600 text-sm mt-2">Only letters, numbers, and {`',.!? -`} are allowed.</span>
-					)}
+					{illegalCharacterWarnings.name && <span className="text-red-600 mt-2">Only letters, numbers, and {`',.!? -`} are allowed.</span>}
 				</div>
 				<input
 					id="name"
@@ -114,9 +112,7 @@ export default function AddInventoryForm() {
 				<label htmlFor="description" className="block mb-1">
 					Description
 				</label>
-				{illegalCharacterWarnings.description && (
-					<p className="text-red-600 text-sm mt-2">Only letters, numbers, and {`',.!? -`} are allowed.</p>
-				)}
+				{illegalCharacterWarnings.description && <p className="text-red-600 mt-2">Only letters, numbers, and {`',.!? -`} are allowed.</p>}
 				<input
 					id="description"
 					type="text"
