@@ -55,9 +55,13 @@ describe('/api/relationships', () => {
 		},
 		{
 			caseDescription: 'Expired cookie',
-			requestCookie: validRequestCookie,
+			requestCookie: validRequestCookie, // ToDo!
 		},
 	]
+
+	test.skip('Permissions tests - email confirmed etc. ', async () => {
+		//
+	})
 
 	describe('Invalid cases', () => {
 		for (const { caseDescription, requestCookie } of invalidCases) {
@@ -80,9 +84,10 @@ describe('/api/relationships', () => {
 
 		const acceptedCases: AcceptedCase[] = [
 			{
-				caseDescription: 'Returns absolutely nothing when no relationships exist',
+				caseDescription: 'Only returns a developmentMessage when there are legitimately no users',
 				caseAssertions: async () => {
-					expect(jsonBody).toEqual({})
+					expect(Object.keys(jsonBody).length).toBe(1)
+					expect(jsonBody).toHaveProperty('developmentMessage')
 				},
 			},
 			{

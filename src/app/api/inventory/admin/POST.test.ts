@@ -1,5 +1,7 @@
 import { createFreeTrial } from '@/library/database/operations'
-import type { AnonymousProduct, TestUserInputValues } from '@/types'
+import { createFreeTrialEndTime } from '@/library/utilities/public'
+import { createSubscription } from '@/library/utilities/server'
+import type { AnonymousProduct, AsyncFunction, JsonData, TestUserInputValues } from '@/types'
 import { createUser, deleteUser, initialiseTestRequestMaker } from '@tests/utilities'
 import { afterEach, beforeAll, describe, expect, test } from 'vitest'
 
@@ -22,15 +24,14 @@ COOKIE TESTS
 
 type Case = {
 	caseDescription: string
+	setUp?: AsyncFunction
+	assertions?: AsyncFunction
+	tearDown?: AsyncFunction
 }
 
 const toDos: Case[] = [
-	{ caseDescription: 'Empty body' },
-	{ caseDescription: `Email isn't confirmed` },
-	{ caseDescription: 'Invalid request body' },
 	{ caseDescription: 'Expired token' },
 	{ caseDescription: 'Duplicate product name' },
-	{ caseDescription: 'Missing name field' },
 	{ caseDescription: 'Missing price field' },
 	{ caseDescription: 'Rejects when there are too many products' },
 	{ caseDescription: 'Name contains illegal characters' },
@@ -43,13 +44,12 @@ const toDos: Case[] = [
 	{ caseDescription: 'Custom VAT is a decimal' },
 	{ caseDescription: 'Custom VAT is negative' },
 	{ caseDescription: 'User not found' },
-	{ caseDescription: 'No active subscription or trial' },
 	{ caseDescription: 'Zero or negative price value' },
 	{ caseDescription: 'Empty string for name after trimming' },
 	{ caseDescription: 'Success case' },
 ]
 
-describe('POST /inventory/admin', () => {
+describe('POST /api/inventory/admin', () => {
 	for (const { caseDescription } of toDos) {
 		test.skip(caseDescription, () => {
 			//
@@ -106,10 +106,26 @@ email confirmed, subscription → ACCEPTED
 		emailConfirmed?: boolean
 		freeTrial?: boolean
 		subscription?: boolean
+		invalidBody?: AnonymousProduct | JsonData
 		expectedStatus: number
 	}[]
 
 	const permissionCases: PermissionCases = [
+		{
+			caseDescription: 'Empty body',
+			expectedStatus: 500, // ToDo: stop the route from crashing
+			invalidBody: {},
+		},
+		{
+			caseDescription: 'Invalid body',
+			expectedStatus: 500,
+			invalidBody: { invalid: 'body' },
+		},
+		{
+			caseDescription: 'Missing name',
+			expectedStatus: 400,
+			invalidBody: { ...strawberryJam, name: '' },
+		},
 		{
 			caseDescription: 'email not confirmed, no trial, no subscription',
 			expectedStatus: 403,
@@ -130,6 +146,19 @@ email confirmed, subscription → ACCEPTED
 			emailConfirmed: true,
 			expectedStatus: 403,
 		},
+		// Success cases
+		{
+			caseDescription: 'email confirmed, yes subscription',
+			emailConfirmed: true,
+			subscription: true,
+			expectedStatus: 201,
+		},
+		{
+			caseDescription: 'email confirmed, yes trial',
+			emailConfirmed: true,
+			freeTrial: true,
+			expectedStatus: 201,
+		},
 	]
 
 	describe('Permissions', () => {
@@ -141,7 +170,7 @@ email confirmed, subscription → ACCEPTED
 			await deleteUser(elizabethBennetInputValues.email)
 		})
 
-		for (const { skip = false, caseDescription, emailConfirmed, freeTrial, subscription, expectedStatus } of permissionCases) {
+		for (const { skip = false, caseDescription, emailConfirmed, freeTrial, subscription, invalidBody, expectedStatus } of permissionCases) {
 			test.skipIf(skip)(caseDescription, async () => {
 				const { createdUser, requestCookie } = await createUser({
 					...elizabethBennetInputValues,
@@ -149,13 +178,19 @@ email confirmed, subscription → ACCEPTED
 				})
 
 				if (freeTrial) await createFreeTrial({ userId: createdUser.id })
+
 				if (subscription) {
-					// await createSubscription({userId: createdUser.id})
+					await createSubscription({
+						userId: createdUser.id,
+						stripeCustomerId: 'abcdefg',
+						currentPeriodStart: new Date(),
+						currentPeriodEnd: createFreeTrialEndTime(),
+					})
 				}
 
 				const { response } = await makeRequest({
 					requestCookie,
-					body: strawberryJam,
+					body: invalidBody || strawberryJam,
 				})
 
 				expect(response.status).toBe(expectedStatus)

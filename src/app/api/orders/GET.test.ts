@@ -56,7 +56,7 @@ describe('GET /api/orders', () => {
 			const { response } = await makeRequest({
 				requestCookie: caseRequestCookie,
 			})
-			expect(response.status).toBe(400)
+			expect(response.status).toBe(401)
 		})
 	}
 
