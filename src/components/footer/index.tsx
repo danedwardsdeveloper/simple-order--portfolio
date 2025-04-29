@@ -1,3 +1,4 @@
+import type { ArticleSlug } from '@/types'
 import CompanyLogo from '../Icons'
 import FooterLink from './FooterLink'
 
@@ -8,18 +9,22 @@ type NavigationMap = {
 	}>
 }
 
+function articlePath(slug: ArticleSlug) {
+	return `/articles/${slug}`
+}
+
 const navigationMap: NavigationMap = {
 	Company: [
-		{ name: 'How it works', href: '/articles/how-it-works' },
-		{ name: 'About', href: '/articles/about' },
+		{ name: 'How it works', href: articlePath('how-it-works') },
+		{ name: 'About', href: articlePath('about') },
 		{ name: 'Articles', href: '/articles' },
 		{ name: 'Sign in', href: '/sign-in' },
 	],
 	Legal: [
-		{ name: 'Terms of service', href: '/articles/terms-of-service' },
-		{ name: 'Privacy policy', href: '/articles/privacy-policy' },
-		{ name: 'Cookie policy', href: '/articles/cookie-policy' },
-		{ name: 'GDPR compliance', href: '/articles/gdpr-compliance' },
+		{ name: 'Terms of service', href: articlePath('terms-of-service') },
+		{ name: 'Privacy policy', href: articlePath('privacy-policy') },
+		{ name: 'Cookie policy', href: articlePath('cookie-policy') },
+		{ name: 'GDPR compliance', href: articlePath('gdpr-compliance') },
 	],
 }
 
@@ -28,7 +33,7 @@ function LinksColumn({ section }: { section: keyof typeof navigationMap }) {
 
 	return (
 		<div className="mt-16 xl:mt-0">
-			<h3 className="text-sm/6 font-semibold text-gray-950">{section}</h3>
+			<h3 className="leading-6 font-semibold text-gray-950">{section}</h3>
 			<ul className="mt-6 space-y-4">
 				{links.map((item) => (
 					<li key={item.name}>
@@ -56,7 +61,7 @@ export default function Footer() {
 			</div>
 
 			<div className="mt-12 border-t border-gray-900/10 pt-8 md:flex md:items-center md:justify-between">
-				<p className="mt-8 text-sm/6 text-gray-600 md:order-1 md:mt-0">&copy; {new Date().getFullYear()}, Simple Order</p>
+				<p className="mt-8 leading-6 text-gray-600 md:order-1 md:mt-0">&copy; {new Date().getFullYear()}, Simple Order</p>
 			</div>
 		</footer>
 	)
