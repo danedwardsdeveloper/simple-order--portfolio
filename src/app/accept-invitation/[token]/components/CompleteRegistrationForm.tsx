@@ -1,14 +1,11 @@
 'use client'
-
 import type { InvitationsTokenPATCHbody, InvitationsTokenPATCHresponse } from '@/app/api/invitations/[token]/route'
-import { apiPaths } from '@/library/constants'
-import { dynamicBaseURL } from '@/library/environment/publicVariables'
+import { apiRequest } from '@/library/utilities/public'
 import { useNotifications } from '@/providers/notifications'
 import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
 import { useRouter } from 'next/navigation'
 import { type FormEvent, useState } from 'react'
-import urlJoin from 'url-join'
 
 // Important ToDo: If there's an error it removes the form (super awful UX!)
 
@@ -31,15 +28,14 @@ export default function CompleteRegistrationForm({ token }: { token: string }) {
 		setIsSubmitting(true)
 
 		try {
-			const { message, senderDetails, createdUser }: InvitationsTokenPATCHresponse = await (
-				await fetch(urlJoin(dynamicBaseURL, apiPaths.invitations.base, token), {
-					method: 'PATCH',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify(formData),
-				})
-			).json()
+			const { userMessage, senderDetails, createdUser } = await apiRequest<InvitationsTokenPATCHresponse>({
+				basePath: '/invitations',
+				segment: token,
+				method: 'PATCH',
+				body: formData,
+			})
 
-			if (message === 'success' && createdUser && senderDetails) {
+			if (createdUser && senderDetails) {
 				setMerchantMode(false)
 				setUser(createdUser)
 				createNotification({
@@ -49,7 +45,7 @@ export default function CompleteRegistrationForm({ token }: { token: string }) {
 				})
 				router.push('/dashboard')
 			} else {
-				setErrorMessage(message)
+				if (userMessage) setErrorMessage(userMessage)
 			}
 		} catch {
 			setErrorMessage('An error occurred while submitting your details')

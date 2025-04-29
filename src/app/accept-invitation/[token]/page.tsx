@@ -1,14 +1,12 @@
 'use client'
 import type { InvitationsTokenPATCHresponse } from '@/app/api/invitations/[token]/route'
 import Spinner from '@/components/Spinner'
-import { apiPaths } from '@/library/constants'
-import { dynamicBaseURL } from '@/library/environment/publicVariables'
+import { apiRequest } from '@/library/utilities/public'
 import { useNotifications } from '@/providers/notifications'
 import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import urlJoin from 'url-join'
 import CompleteRegistrationForm from './components/CompleteRegistrationForm'
 
 export default function AcceptInvitationPage() {
@@ -34,16 +32,16 @@ export default function AcceptInvitationPage() {
 
 		try {
 			setStatus('checking')
-			const { message, senderDetails, createdUser, existingUser }: InvitationsTokenPATCHresponse = await (
-				await fetch(urlJoin(dynamicBaseURL, apiPaths.invitations.base, token), {
-					method: 'PATCH',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({}),
-				})
-			).json()
+			// ToDo: fix this mess
+			const { userMessage, senderDetails, createdUser, existingUser } = await apiRequest<InvitationsTokenPATCHresponse>({
+				basePath: '/invitations',
+				method: 'PATCH',
+			})
 
 			setMerchantMode(false)
+
 			if (createdUser || existingUser) setUser(createdUser || existingUser || null)
+
 			if (senderDetails) {
 				setSenderBusinessName(senderDetails.businessName)
 				setConfirmedMerchants((prevMerchants) => [...(prevMerchants || []), senderDetails])
