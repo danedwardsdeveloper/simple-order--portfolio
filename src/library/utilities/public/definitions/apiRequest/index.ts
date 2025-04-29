@@ -15,22 +15,8 @@ interface Props extends CreateApiUrlParams {
 /**
  * Makes a request to the Simple Order API with good defaults
  * @example
-const response = await apiRequest({ basePath: 'orders' })
-
-const _exampleProps: Props = {
-	domain: 'production',
-	basePath: 'orders',
-	segment: '14',
-	searchParam: { key: 'limit', value: '10' },
-	includeCredentials: true,
-	applicationJson: true,
-	method: 'POST',
-	body: {
-		product: 'Cheese',
-	},
-}
  */
-export async function apiRequest({
+export async function apiRequest<T>({
 	domain = 'dynamic',
 	basePath,
 	segment,
@@ -39,15 +25,11 @@ export async function apiRequest({
 	applicationJson = true,
 	method = 'GET',
 	body,
-}: Props): Promise<Response> {
+}: Props): Promise<T> {
 	if (typeof window === 'undefined') throw new Error('Attempted to use fetch on the server. Use node-fetch instead')
 
-	const url = createApiUrl({
-		domain,
-		basePath,
-		segment,
-		searchParam,
-	})
+	const url = createApiUrl({ domain, basePath, segment, searchParam })
+
 	const options: RequestInit = {
 		method,
 		headers: applicationJson ? { 'Content-Type': 'application/json' } : {},
@@ -55,5 +37,6 @@ export async function apiRequest({
 		credentials: includeCredentials ? 'include' : 'omit',
 	}
 
-	return await fetch(url, options)
+	const response = await fetch(url, options)
+	return (await response.json()) as T
 }
