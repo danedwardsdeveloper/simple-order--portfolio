@@ -5,17 +5,17 @@ import { confirmationTokens, users } from '@/library/database/schema'
 import { sanitiseDangerousBaseUser } from '@/library/utilities/public'
 import { createCookieWithToken, initialiseResponder } from '@/library/utilities/server'
 import { equals } from '@/library/utilities/server'
-import type { BrowserSafeCompositeUser, ConfirmationToken, DangerousBaseUser, UserMessages } from '@/types'
+import type { BrowserSafeCompositeUser, ConfirmationToken, DangerousBaseUser } from '@/types'
 import { cookies } from 'next/headers'
 import type { NextRequest, NextResponse } from 'next/server'
 
 export interface ConfirmEmailPOSTresponse {
 	developmentMessage?: string
-	userMessage?: UserMessages
+	userMessage?: typeof userMessages.emailAlreadyConfirmed | typeof userMessages.serverError
 	confirmedUser?: BrowserSafeCompositeUser
 }
 
-export interface AuthenticationEmailConfirmPOSTbody {
+export interface ConfirmEmailPOSTbody {
 	token: string
 }
 
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest): Output {
 	let transactionFailureMessage = undefined
 	let transactionFailureStatus = undefined
 	try {
-		const { token }: AuthenticationEmailConfirmPOSTbody = await request.json()
+		const { token }: ConfirmEmailPOSTbody = await request.json()
 
 		if (!token) {
 			return respond({
@@ -60,8 +60,8 @@ export async function POST(request: NextRequest): Output {
 
 		if (foundDangerousUser.emailConfirmed) {
 			return respond({
+				body: { userMessage: userMessages.emailAlreadyConfirmed },
 				status: 202,
-				developmentMessage: 'Email already confirmed',
 			})
 		}
 
