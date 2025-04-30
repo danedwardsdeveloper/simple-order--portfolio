@@ -1,10 +1,10 @@
-import { apiPaths, userMessages } from '@/library/constants'
+import { userMessages } from '@/library/constants'
 import { checkoutSearchParam, checkoutSearchParamValues } from '@/library/constants/definitions/checkoutSearchParams'
 import { checkAccess } from '@/library/database/operations'
 import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import stripeClient from '@/library/stripe/stripeClient'
-import { initialiseDevelopmentLogger } from '@/library/utilities/public'
-import { type NextRequest, NextResponse } from 'next/server'
+import { initialiseResponder } from '@/library/utilities/server'
+import type { NextRequest, NextResponse } from 'next/server'
 
 export interface CheckoutSessionPOSTbody {
 	email: string
@@ -17,30 +17,33 @@ export interface CheckoutSessionPOSTresponse {
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse<CheckoutSessionPOSTresponse>> {
-	const routeSignature = `POST ${apiPaths.payments.createCheckoutSession}`
-	const developmentLogger = initialiseDevelopmentLogger(routeSignature)
+	const respond = initialiseResponder<CheckoutSessionPOSTresponse>()
 
 	try {
 		const { email }: CheckoutSessionPOSTbody = await request.json()
 
 		if (!email) {
-			const developmentMessage = developmentLogger('email missing')
-			return NextResponse.json({ developmentMessage }, { status: 400 })
+			return respond({
+				status: 400,
+				developmentMessage: 'email missing',
+			})
 		}
 
-		const { dangerousUser } = await checkAccess({
+		const { dangerousUser, accessDenied } = await checkAccess({
 			request,
-			routeSignature,
 			requireConfirmed: true,
-			requireSubscriptionOrTrial: false,
+			requireSubscriptionOrTrial: true,
 		})
 
-		if (!dangerousUser) {
-			return NextResponse.json({}, { status: 401 })
+		if (accessDenied) {
+			return respond({
+				status: accessDenied.status,
+				developmentMessage: accessDenied.message,
+			})
 		}
 
 		const customMetadata = {
-			simpleOrderUserId: dangerousUser.id.toString(),
+			simpleOrderUserId: String(dangerousUser.id),
 		}
 
 		const { url } = await stripeClient.checkout.sessions.create({
@@ -62,13 +65,23 @@ export async function POST(request: NextRequest): Promise<NextResponse<CheckoutS
 		})
 
 		if (url) {
-			return NextResponse.json({ redirectUrl: url }, { status: 200 })
+			return respond({
+				body: { redirectUrl: url },
+				status: 200,
+				developmentMessage: 'Success',
+			})
 		}
 
-		const developmentMessage = developmentLogger('Redirect URL not received')
-		return NextResponse.json({ developmentMessage, userMessage: userMessages.stripeCreateCheckoutError }, { status: 503 })
-	} catch (error) {
-		const developmentMessage = developmentLogger('Error getting redirect URL', error)
-		return NextResponse.json({ developmentMessage, userMessage: userMessages.stripeCreateCheckoutError }, { status: 500 })
+		return respond({
+			body: { userMessage: userMessages.stripeCreateCheckoutError },
+			status: 503,
+			developmentMessage: 'Redirect URL not received',
+		})
+	} catch (caughtError) {
+		return respond({
+			body: { userMessage: userMessages.stripeCreateCheckoutError },
+			status: 500,
+			caughtError,
+		})
 	}
 }

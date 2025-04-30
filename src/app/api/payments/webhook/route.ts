@@ -1,37 +1,52 @@
+import { http503serviceUnavailable, userMessages } from '@/library/constants'
 import { stripeWebhookSecret } from '@/library/environment/serverVariables'
 import stripeClient from '@/library/stripe/stripeClient'
 import { webhookHandler } from '@/library/stripe/webhookHandler'
-import { initialiseDevelopmentLogger } from '@/library/utilities/public'
+import { initialiseResponder } from '@/library/utilities/server'
 import { headers } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
 
 interface StripeWebhookPOSTresponse {
+	// message: 'success' is required by Stripe. Do not change!
 	message: 'success' | 'service unavailable' | 'server error'
+
+	userMessage?: typeof userMessages.serverError
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse<StripeWebhookPOSTresponse>> {
-	const developmentLogger = initialiseDevelopmentLogger('/payments/webhook', 'POST')
+type Output = Promise<NextResponse<StripeWebhookPOSTresponse>>
+
+export async function POST(request: NextRequest): Output {
+	const respond = initialiseResponder<StripeWebhookPOSTresponse>()
+
 	try {
 		const rawBody = await request.text()
 		const headersList = await headers()
 		const stripeSignature = headersList.get('stripe-signature')
 
 		if (stripeWebhookSecret && stripeSignature) {
-			try {
-				const event = stripeClient.webhooks.constructEvent(rawBody, stripeSignature, stripeWebhookSecret)
+			const event = stripeClient.webhooks.constructEvent(rawBody, stripeSignature, stripeWebhookSecret)
 
-				await webhookHandler(event)
+			await webhookHandler(event)
 
-				return NextResponse.json({ message: 'success' }, { status: 200 })
-			} catch (error) {
-				const developmentMessage = developmentLogger('Caught error', { error })
-				return NextResponse.json({ developmentMessage, message: 'service unavailable' }, { status: 503 })
-			}
+			NextResponse.json({ message: 'success' }, { status: 200 })
+			respond({
+				body: { message: 'success' },
+				status: 200,
+			})
 		}
-		const developmentMessage = developmentLogger('Failed to handle webhook')
-		return NextResponse.json({ developmentMessage, message: 'server error' }, { status: 500 })
-	} catch (error) {
-		const developmentMessage = developmentLogger('Caught error', { error })
-		return NextResponse.json({ developmentMessage, message: 'server error' }, { status: 500 })
+
+		return respond({
+			body: { message: 'service unavailable' },
+			status: http503serviceUnavailable,
+		})
+	} catch (caughtError) {
+		return respond({
+			body: {
+				message: 'server error', //
+				userMessage: userMessages.serverError,
+			},
+			status: 500,
+			caughtError,
+		})
 	}
 }
