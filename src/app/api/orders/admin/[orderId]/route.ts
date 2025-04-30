@@ -20,7 +20,7 @@ const body: OrderAdminOrderIdPATCHbody = {
 	status: 'cancelled', // 'completed' | 'pending' - optional
 }
  */
-export type OrderAdminOrderIdPATCHbody = Partial<Pick<BaseOrder, 'adminOnlyNote' | 'status'>>
+export type OrderAdminOrderIdPATCHbody = Pick<BaseOrder, 'id'> & Partial<Pick<BaseOrder, 'adminOnlyNote' | 'status'>>
 
 export interface OrderAdminOrderIdPATCHparams {
 	orderId: string // Next.js params are always strings
@@ -135,6 +135,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 			.set({ adminOnlyNote, status: orderStatus })
 			.where(equals(orders.id, orderId))
 			.returning({
+				id: orders.id,
 				adminOnlyNote: orders.adminOnlyNote,
 				status: orders.status,
 			})
