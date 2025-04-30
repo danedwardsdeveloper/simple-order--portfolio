@@ -13,7 +13,9 @@ export interface InventoryDELETEresponse {
 	softDeletedProduct?: BrowserSafeMerchantProduct
 }
 
-export type InventoryDELETEparams = { itemId: string }
+export type InventoryDELETEsegment = string
+
+type InventoryDELETEparams = { itemId: InventoryDELETEsegment }
 
 export async function DELETE(
 	request: NextRequest,
