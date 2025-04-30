@@ -1,7 +1,8 @@
+import type {} from '@/app/api/invitations/[token]/route'
 import type { HTTP_METHOD } from 'next/dist/server/web/http'
 import { type CreateApiUrlParams, createApiUrl } from '../createApiUrl'
 
-interface Props extends CreateApiUrlParams {
+interface Props<Body = unknown> extends CreateApiUrlParams {
 	// basePath: string
 	// domain?: 'production' | 'development' | 'dynamic'
 	// segment?: string | number | undefined
@@ -9,14 +10,28 @@ interface Props extends CreateApiUrlParams {
 	includeCredentials?: boolean
 	applicationJson?: boolean
 	method?: HTTP_METHOD
-	body?: Record<string, unknown>
+	body?: Body
 }
 
 /**
- * Makes a request to the Simple Order API with good defaults
+ * Makes a type-safe request to the Simple Order API with good defaults
+ * - Handles URL segments and search params too
+ * The returned object is typed
+ * - Add a second type argument to type the body
  * @example
+const { userMessage, senderDetails, createdUser } = await apiRequest<RouteResponse, RouteBody>({
+	basePath: '/invitations',
+	segment: 43,
+	method: 'PATCH',
+	body: {
+		firstName: '',
+		lastName: '',
+		businessName: '',
+		password: ''
+	},
+})
  */
-export async function apiRequest<T>({
+export async function apiRequest<Return, Body = Record<string, unknown>>({
 	domain = 'dynamic',
 	basePath,
 	segment,
@@ -25,7 +40,7 @@ export async function apiRequest<T>({
 	applicationJson = true,
 	method = 'GET',
 	body,
-}: Props): Promise<T> {
+}: Props<Body>): Promise<Return> {
 	if (typeof window === 'undefined') throw new Error('Attempted to use fetch on the server. Use node-fetch instead')
 
 	const url = createApiUrl({ domain, basePath, segment, searchParam })
@@ -38,5 +53,5 @@ export async function apiRequest<T>({
 	}
 
 	const response = await fetch(url, options)
-	return (await response.json()) as T
+	return (await response.json()) as Return
 }
