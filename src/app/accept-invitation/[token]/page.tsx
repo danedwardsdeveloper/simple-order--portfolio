@@ -32,48 +32,31 @@ export default function AcceptInvitationPage() {
 
 		try {
 			setStatus('checking')
-			// ToDo: fix this mess
-			const { userMessage, senderDetails, createdUser, existingUser } = await apiRequest<InvitationsTokenPATCHresponse>({
+			const { pleaseProvideDetails, senderDetails, createdUser, existingUser } = await apiRequest<InvitationsTokenPATCHresponse>({
 				basePath: '/invitations',
 				method: 'PATCH',
 			})
 
-			setMerchantMode(false)
+			setMerchantMode(false) // Not sure about this??
 
-			if (createdUser || existingUser) setUser(createdUser || existingUser || null)
+			if (createdUser || existingUser) {
+				setUser(createdUser || existingUser || null)
 
-			if (senderDetails) {
-				setSenderBusinessName(senderDetails.businessName)
-				setConfirmedMerchants((prevMerchants) => [...(prevMerchants || []), senderDetails])
+				if (senderDetails) {
+					setSenderBusinessName(senderDetails.businessName)
+					setConfirmedMerchants((prevMerchants) => [...(prevMerchants || []), senderDetails])
+				}
+
+				createNotification({
+					level: 'success',
+					title: 'Success',
+					message: `You are now a confirmed customer of ${senderDetails?.businessName}`,
+				})
+				router.push('/orders')
 			}
 
-			switch (message) {
-				case 'success':
-					createNotification({
-						level: 'success',
-						title: 'Success',
-						message: `You are now a confirmed customer of ${senderDetails?.businessName}`,
-					})
-					router.push('/orders')
-					break
-				case 'please provide details':
-					setStatus('please provide details')
-					break
-				case 'relationship exists':
-					setStatus('relationship exists')
-					break
-				case 'invitation not found':
-				case 'missing fields':
-				case 'server error':
-				case 'token expired':
-				case 'token invalid':
-				case 'token missing':
-				case 'user not found':
-					setStatus('error')
-					break
-				default:
-					setStatus('error')
-					setErrorMessage('An error occurred while processing your invitation')
+			if (pleaseProvideDetails) {
+				setStatus('please provide details')
 			}
 		} catch {
 			setStatus('error')
