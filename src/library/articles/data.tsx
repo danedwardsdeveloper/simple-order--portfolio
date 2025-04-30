@@ -1,20 +1,20 @@
 import { april, february } from '@/library/constants'
-import { validatedImages } from '@/library/images'
 import { createDate } from '@/library/utilities/public'
-import type { ArticlesCollection } from '@/types'
+import { type ArticlesCollection, articleCategories } from '@/types'
 import Link from 'next/link'
+import { metaImages } from '../images'
 
 export const articlesData: ArticlesCollection = {
 	'how-it-works': {
+		slug: 'how-it-works',
 		displayTitle: 'Simple Order: How it works',
-		metaTitle: 'How Simple Order works: how to use our simple order management website',
-		displayDescription:
-			'See how Simple Order works for your wholesale business. Our straightforward platform helps you manage customer orders without the complexity of other systems.',
+		metaTitle: 'How Simple Order works: how to use our order management website',
+		displayDescription: 'Our straightforward platform helps you manage customer orders without the complexity of other systems.',
 		metaDescription:
-			'See how Simple Order works for your wholesale business. Our straightforward platform helps you manage customer orders without the complexity of other systems.',
+			'How Simple Order works for your wholesale business. Our straightforward platform helps you manage customer orders without the complexity of other systems.',
 		publishedAt: createDate(20, february, 2025),
-		featuredImage: { src: validatedImages.defaultSocialImage, alt: 'ToDo!' },
-		categorySlug: 'Help',
+		featuredImage: metaImages.florist,
+		category: articleCategories.legal,
 		content: [
 			<p>Simple Order is a website for wholesalers to manage their customer orders.</p>,
 			<p>The platform handles the order process while you maintain your existing payment methods and delivery arrangements.</p>,
@@ -69,66 +69,17 @@ export const articlesData: ArticlesCollection = {
 			<p>Need help? Our support team is ready to get you started.</p>,
 		],
 	},
-	'privacy-policy': {
-		utilityPage: true,
-		displayTitle: 'Privacy policy',
-		metaTitle: 'Privacy policy',
-		displayDescription:
-			'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-		metaDescription:
-			'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-		featuredImage: { src: validatedImages.chocolatiers, alt: '' },
-		categorySlug: 'Legal',
-		publishedAt: createDate(5, february, 2025),
-		content: [
-			'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-
-			'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-		],
-	},
-	'terms-of-service': {
-		utilityPage: true,
-		displayTitle: 'Terms of service',
-		metaTitle: 'Terms of service',
-		displayDescription:
-			'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-		metaDescription:
-			'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-		featuredImage: { src: validatedImages.autoParts, alt: '' },
-		categorySlug: 'Legal',
-		publishedAt: createDate(5, february, 2025),
-		content: [
-			'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-
-			'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-		],
-	},
-	'cookie-policy': {
-		utilityPage: true,
-		displayTitle: 'Cookie policy',
-		metaTitle: 'Cookie policy',
-		displayDescription:
-			'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-		metaDescription:
-			'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-		featuredImage: { src: validatedImages.furnitureManufacturer, alt: '' },
-		categorySlug: 'Legal',
-		publishedAt: createDate(29, february, 2025),
-		content: [
-			'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-
-			'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-		],
-	},
 	about: {
 		utilityPage: true,
+		slug: 'about',
 		displayTitle: 'About Simple Order',
-		metaTitle: 'About Simple Order',
-		displayDescription: 'Simple Order helps UK bakeries and wholesalers manage customer orders without the complexity.',
+		metaTitle: 'About Simple Order | Wholesale order management',
+		displayDescription:
+			'Discover who we are, why we built Simple Order, and how our affordable platform helps UK wholesalers manage orders with ease.',
 		metaDescription:
 			'Simple Order offers an affordable £19.50/month order management system for UK wholesalers. Founded by Dan Edwards in 2025, we simplify wholesale ordering.',
-		featuredImage: { src: validatedImages.florist, alt: '' },
-		categorySlug: 'Help',
+		featuredImage: metaImages.baristas,
+		category: articleCategories.gettingStarted,
 		publishedAt: createDate(29, february, 2025),
 		updatedAt: createDate(28, april, 2025),
 		content: [
@@ -172,15 +123,16 @@ export const articlesData: ArticlesCollection = {
 	},
 	'gdpr-compliance': {
 		utilityPage: true,
-		displayTitle: 'GDPR Compliance',
-		metaTitle: "GDPR Compliance - Simple Order's Data Protection Commitment",
+		slug: 'gdpr-compliance',
+		displayTitle: 'GDPR compliance',
+		metaTitle: "GDPR compliance | Simple Order's Data Protection Commitment",
 		displayDescription:
-			'Learn how Simple Order protects your data and complies with GDPR regulations to ensure your business information is secure and properly managed.',
+			'How we protect your data and comply with GDPR regulations to ensure your business information is secure and properly managed.',
 		metaDescription:
 			"Simple Order's GDPR compliance statement explains how we collect, process, and protect your data in accordance with EU data protection laws.",
 		publishedAt: createDate(28, april, 2025),
-		categorySlug: 'Legal',
-		featuredImage: { src: validatedImages.threeBakers, alt: 'Wholesaler checking order details on tablet' },
+		category: articleCategories.legal,
+		featuredImage: metaImages.threeBakers,
 		content: [
 			<h2>Our Commitment to Data Protection</h2>,
 			<p>
@@ -374,6 +326,60 @@ export const articlesData: ArticlesCollection = {
 				Email: <a href="mailto:privacy@simpleorder.co.uk">privacy@simpleorder.co.uk</a>
 			</p>,
 			<p>Last updated: 28 April 2025</p>,
+		],
+	},
+	'cookie-policy': {
+		utilityPage: true,
+		slug: 'cookie-policy',
+		displayTitle: 'Cookie policy',
+		metaTitle: 'Cookie policy | Simple Order wholesale order management',
+		displayDescription:
+			'Simple Order respects your privacy and only uses essential cookies that our wholesale order platform needs to function.',
+		metaDescription:
+			'Simple Order cookie policy - we only use essential cookies required for our wholesale order management platform functionality.',
+		featuredImage: metaImages.furnitureManufacturer,
+		category: articleCategories.legal,
+		publishedAt: createDate(29, february, 2025),
+		content: [
+			'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+
+			'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+		],
+	},
+	'privacy-policy': {
+		utilityPage: true,
+		slug: 'privacy-policy',
+		displayTitle: 'Privacy policy',
+		metaTitle: 'Privacy policy | Simple Order wholesale order management',
+		displayDescription:
+			'How Simple Order collects, processes, and protects your data while providing our wholesale order management service. Your privacy matters to us.',
+		metaDescription:
+			'The Simple Order privacy policy explains how we handle your data - your rights, our security measures, and data protection compliance.',
+		featuredImage: metaImages.default,
+		category: articleCategories.legal,
+		publishedAt: createDate(5, february, 2025),
+		content: [
+			'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+
+			'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+		],
+	},
+	'terms-of-service': {
+		utilityPage: true,
+		slug: 'terms-of-service',
+		displayTitle: 'Terms of service',
+		metaTitle: 'Terms of service | Simple Order wholesale order management',
+		displayDescription:
+			'The agreement between Simple Order and users of our wholesale order management platform. Review our terms before using our service.',
+		metaDescription:
+			'Simple Order terms of service - the rules and conditions for using our wholesale order management platform - pricing, refund policy, user responsibilities.',
+		featuredImage: metaImages.autoParts,
+		category: articleCategories.legal,
+		publishedAt: createDate(5, february, 2025),
+		content: [
+			'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+
+			'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
 		],
 	},
 }
