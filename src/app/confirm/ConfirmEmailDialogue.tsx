@@ -1,15 +1,17 @@
 'use client'
 import Spinner from '@/components/Spinner'
-import { apiPaths, dataTestIdNames } from '@/library/constants'
+import { dataTestIdNames, userMessages } from '@/library/constants'
+import { searchParamNames } from '@/library/constants/definitions/searchParams'
+import { apiRequest } from '@/library/utilities/public'
 import { useNotifications } from '@/providers/notifications'
 import { useUser } from '@/providers/user'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import type { AuthenticationEmailConfirmPOSTbody, AuthenticationEmailConfirmPOSTresponse } from '../api/authentication/email/confirm/route'
+import type { ConfirmEmailPOSTbody, ConfirmEmailPOSTresponse } from '../api/authentication/email/confirm/route'
 
-export default function ConfirmEmailResponse() {
+export default function ConfirmEmailDialogue() {
 	const searchParams = useSearchParams()
-	const token = searchParams.get('token')
+	const token = searchParams.get(searchParamNames.emailConfirmationToken)
 	const hasCheckedToken = useRef(false)
 	const { setUser } = useUser()
 	const { createNotification } = useNotifications()
@@ -22,43 +24,47 @@ export default function ConfirmEmailResponse() {
 		async function confirmEmail() {
 			if (!token) return
 			try {
-				const { message, confirmedUser }: AuthenticationEmailConfirmPOSTresponse = await (
-					await fetch(apiPaths.authentication.email.confirm, {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ token } satisfies AuthenticationEmailConfirmPOSTbody),
-					})
-				).json()
+				const { confirmedUser, userMessage } = await apiRequest<ConfirmEmailPOSTresponse, ConfirmEmailPOSTbody>({
+					basePath: '/authentication/email/confirm',
+					method: 'POST',
+					body: { token },
+				})
 
-				if (confirmedUser) setUser(confirmedUser)
-				if (message === 'success') {
+				if (confirmedUser) {
+					setUser(confirmedUser)
 					createNotification({
 						level: 'success',
 						title: 'Success',
 						message: 'Thank you for confirming your email',
 					})
 					router.push('/dashboard')
-				} else if (message === 'already confirmed') {
+				}
+
+				if (userMessage === userMessages.emailAlreadyConfirmed) {
 					createNotification({
 						level: 'info',
 						title: 'Already confirmed',
 						message: 'Your email address was already confirmed',
 					})
 					router.push('/dashboard')
-				} else {
-					setMessage(message)
+				}
+
+				if (userMessage === userMessages.serverError) {
+					setMessage(userMessage)
 				}
 			} catch {
-				setMessage('An error occurred while confirming your email')
+				setMessage(userMessages.serverError)
 			} finally {
 				setIsLoading(false)
 			}
+
+			if (token && !hasCheckedToken.current) {
+				confirmEmail()
+				hasCheckedToken.current = true
+			}
 		}
 
-		if (token && !hasCheckedToken.current) {
-			confirmEmail()
-			hasCheckedToken.current = true
-		}
+		confirmEmail()
 	}, [token])
 
 	if (isLoading)
