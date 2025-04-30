@@ -7,47 +7,44 @@ import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { Fragment } from 'react'
 
-export function generateStaticParams() {
-	return Object.keys(articlesData).map((slug) => ({ slug }))
+type ResolvedParams = { article: string }
+type Params = Promise<ResolvedParams>
+type StaticParams = Promise<ResolvedParams[]>
+
+export async function generateStaticParams(): StaticParams {
+	return Object.keys(articlesData).map((article) => ({ article }))
 }
 
-export async function generateMetadata({
-	params,
-}: {
-	params: Promise<{ slug: string }>
-}): Promise<Metadata | null> {
-	const { slug } = await params
-	if (!isArticleSlug(slug)) return null
-	const article = articlesData[slug]
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+	const { article } = await params
+	if (!isArticleSlug(article)) return notFound()
+	const articleData = articlesData[article]
 
-	if (!article) notFound()
+	if (!articleData) notFound()
 
-	const { metaTitle, metaDescription } = article
+	const { metaTitle, metaDescription } = articleData
 
 	return {
 		title: metaTitle,
 		description: metaDescription,
 		alternates: {
-			canonical: `${dynamicBaseURL}/articles/${slug}`,
+			canonical: `${dynamicBaseURL}/articles/${article}`,
 		},
 	}
 }
 
-export default async function Page({
-	params,
-}: {
-	params: Promise<{ slug: string }>
-}) {
-	const { slug } = await params
-	if (!isArticleSlug(slug)) return null
-	const article = articlesData[slug]
-	if (!article) return null
+export default async function ArticlePage({ params }: { params: Params }) {
+	const { article } = await params
+	if (!isArticleSlug(article)) return notFound()
+
+	const articleData = articlesData[article]
+	if (!articleData) return notFound()
 
 	const {
 		displayTitle,
 		content,
 		featuredImage: { src, alt },
-	} = article
+	} = articleData
 
 	return (
 		<>
