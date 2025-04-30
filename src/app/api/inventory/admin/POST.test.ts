@@ -1,202 +1,223 @@
+import { http409conflict } from '@/library/constants'
 import { createFreeTrial } from '@/library/database/operations'
-import { createFreeTrialEndTime } from '@/library/utilities/public'
-import { createSubscription } from '@/library/utilities/server'
-import type { AnonymousProduct, AsyncFunction, JsonData, TestUserInputValues } from '@/types'
-import { createUser, deleteUser, initialiseTestRequestMaker } from '@tests/utilities'
-import { afterEach, beforeAll, describe, expect, test } from 'vitest'
-
-// add an item to the inventory
+import type { AnonymousProduct, AsyncFunction, DangerousBaseUser, JsonData, TestUserInputValues } from '@/types'
+import { addProducts, createCookieString, createUser, deleteUser, initialiseTestRequestMaker } from '@tests/utilities'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest'
 
 const makeRequest = initialiseTestRequestMaker({
 	basePath: '/inventory/admin',
 	method: 'POST',
 })
 
-// Main ToDo: Get all these tests passing
+const invalidRequestCookie = 'token=abcdefg'
+const userNotFoundCookie = createCookieString({ userId: 1 })
+const expiredRequestCookie = createCookieString({ userId: 1, expired: true })
+const elizabethBennetInputValues: TestUserInputValues = {
+	firstName: 'Elizabeth',
+	lastName: 'Bennet',
+	businessName: 'Longbourn Estate',
+	email: 'lizzie@longbourn.com',
+	password: 'PrideN0tPr3judice',
+	emailConfirmed: true,
+}
+const strawberryJam: AnonymousProduct = {
+	name: 'Strawberry jam',
+	priceInMinorUnits: 213,
+	description: 'A delicious homemade conserve made',
+	customVat: 15,
+}
 
-/*
-COOKIE TESTS
-- Missing
-- Malformed
-- Expired
-- User not found
-*/
+function getElizabethBennet(): DangerousBaseUser {
+	if (!elizabethBennet) throw new Error('Elizabeth Bennet not defined')
+	return elizabethBennet
+}
+
+function getJsonData(): JsonData {
+	if (!jsonData) throw new Error('jsonData not defined')
+	return jsonData
+}
+
+let elizabethBennet: DangerousBaseUser | undefined
+let validRequestCookie: string | undefined
+let jsonData: JsonData | undefined
+
+type Suite = {
+	suiteDescription: string
+	suiteSetUp?: AsyncFunction
+	suiteBeforeEach?: AsyncFunction
+	suiteAfterEach?: AsyncFunction
+	suiteTearDown?: AsyncFunction
+	suiteExpectedStatus: number
+	cases: Case[]
+}
+
+type RuntimeString = () => string | undefined
 
 type Case = {
 	caseDescription: string
-	setUp?: AsyncFunction
+	caseSetUp?: AsyncFunction
+	requestCookie?: string | null | RuntimeString
+	requestBody?: JsonData | null
 	assertions?: AsyncFunction
-	tearDown?: AsyncFunction
+	caseExpectedStatus?: number
+	caseTearDown?: AsyncFunction
 }
 
-const toDos: Case[] = [
-	{ caseDescription: 'Expired token' },
-	{ caseDescription: 'Duplicate product name' },
-	{ caseDescription: 'Missing price field' },
-	{ caseDescription: 'Rejects when there are too many products' },
-	{ caseDescription: 'Name contains illegal characters' },
-	{ caseDescription: 'Description contains illegal characters' },
-	{ caseDescription: 'Description too long' },
-	{ caseDescription: 'Price not a number' },
-	{ caseDescription: 'Price too high' },
-	{ caseDescription: 'Custom VAT not a number' },
-	{ caseDescription: 'Custom VAT too high' },
-	{ caseDescription: 'Custom VAT is a decimal' },
-	{ caseDescription: 'Custom VAT is negative' },
-	{ caseDescription: 'User not found' },
-	{ caseDescription: 'Zero or negative price value' },
-	{ caseDescription: 'Empty string for name after trimming' },
-	{ caseDescription: 'Success case' },
+const suites: Suite[] = [
+	{
+		suiteDescription: 'Permissions',
+		suiteExpectedStatus: 400,
+		cases: [
+			{
+				caseDescription: 'No cookie',
+				requestCookie: null,
+				requestBody: strawberryJam,
+			},
+			{
+				caseDescription: 'Valid cookie, no body',
+				requestCookie: () => validRequestCookie,
+				requestBody: strawberryJam,
+			},
+			{
+				caseDescription: 'Invalid cookie',
+				requestCookie: invalidRequestCookie,
+				requestBody: strawberryJam,
+			},
+			{
+				caseDescription: 'Expired cookie',
+				requestCookie: expiredRequestCookie,
+			},
+			{
+				caseDescription: 'User not found',
+				requestCookie: userNotFoundCookie,
+				requestBody: strawberryJam,
+				assertions: async () => {
+					expect(getJsonData()).toEqual({ developmentMessage: 'user not found' })
+				},
+			},
+			{
+				caseDescription: 'Valid cookie, valid body, email confirmed, no trial or subscription',
+				requestCookie: () => validRequestCookie,
+				requestBody: strawberryJam,
+				caseExpectedStatus: 403,
+			},
+			{
+				caseDescription: 'Valid cookie, valid body, email confirmed, in-date trial',
+				caseSetUp: async () => {
+					await createFreeTrial({ userId: getElizabethBennet().id })
+				},
+				requestCookie: () => validRequestCookie,
+				requestBody: strawberryJam,
+				caseExpectedStatus: 201,
+			},
+		],
+	},
+	{
+		suiteDescription: 'Rejected with valid credentials & access',
+		suiteExpectedStatus: 400,
+		suiteSetUp: async () => {
+			await deleteUser(elizabethBennetInputValues.email)
+		},
+		suiteBeforeEach: async () => {
+			const { createdUser, requestCookie } = await createUser(elizabethBennetInputValues)
+			elizabethBennet = createdUser
+			validRequestCookie = requestCookie
+
+			await createFreeTrial({ userId: createdUser.id })
+		},
+		suiteAfterEach: async () => {
+			await deleteUser(elizabethBennetInputValues.email)
+		},
+		cases: [
+			{
+				caseDescription: 'Rejects the 101th product',
+				caseSetUp: async () => {
+					const { id } = getElizabethBennet()
+
+					const oneHundredJams = Array.from({ length: 100 }, (_, i) => ({
+						...strawberryJam,
+						name: `Strawberry Jam ${i + 1}`,
+						ownerId: id,
+					}))
+
+					await addProducts(oneHundredJams)
+				},
+				requestCookie: () => validRequestCookie,
+				requestBody: strawberryJam,
+				caseExpectedStatus: 403,
+				assertions: async () => {
+					expect(getJsonData()).toEqual({ developmentMessage: 'too many products' })
+				},
+			},
+			{
+				caseDescription: 'Reject a product with a duplicated name',
+				caseSetUp: async () => {
+					await addProducts([{ ...strawberryJam, ownerId: getElizabethBennet().id }])
+				},
+				requestCookie: () => validRequestCookie,
+				requestBody: strawberryJam,
+				caseExpectedStatus: http409conflict,
+			},
+		],
+	},
 ]
 
-describe('POST /api/inventory/admin', () => {
-	for (const { caseDescription } of toDos) {
-		test.skip(caseDescription, () => {
-			//
-		})
-	}
-
-	/*
-	let elizabethBennet: DangerousBaseUser | undefined
-	let validRequestCookie: string | undefined
-
+describe('POST /api/inventory/admin', async () => {
 	beforeAll(async () => {
+		const { createdUser, requestCookie } = await createUser(elizabethBennetInputValues)
 		elizabethBennet = createdUser
 		validRequestCookie = requestCookie
-		if (!elizabethBennet) throw new Error('Failed to create user')
-		if (!validRequestCookie) throw new Error('Failed to create cookie')
-	})
-	*/
-
-	const elizabethBennetInputValues: TestUserInputValues = {
-		firstName: 'Elizabeth',
-		lastName: 'Bennet',
-		businessName: 'Longbourn Estate',
-		email: 'lizzie@longbourn.com',
-		password: 'PrideN0tPr3judice',
-		emailConfirmed: false, // Important!
-	}
-
-	const strawberryJam: AnonymousProduct = {
-		name: 'Strawberry jam',
-		priceInMinorUnits: 213,
-		description: 'A delicious homemade conserve made',
-		customVat: 15,
-	}
-
-	describe.skip('Cookies', () => {
-		//
 	})
 
-	describe.skip('Database content', () => {
-		//
+	afterAll(async () => {
+		await deleteUser(elizabethBennetInputValues.email)
 	})
 
-	/*
-			PERMISSION TESTS
-Accepted
-email confirmed, trial → ACCEPTED
-email confirmed, subscription → ACCEPTED
-			- 
-			*/
-
-	type PermissionCases = {
-		skip?: boolean
-		caseDescription: string
-		emailConfirmed?: boolean
-		freeTrial?: boolean
-		subscription?: boolean
-		invalidBody?: AnonymousProduct | JsonData
-		expectedStatus: number
-	}[]
-
-	const permissionCases: PermissionCases = [
-		{
-			caseDescription: 'Empty body',
-			expectedStatus: 500, // ToDo: stop the route from crashing
-			invalidBody: {},
-		},
-		{
-			caseDescription: 'Invalid body',
-			expectedStatus: 500,
-			invalidBody: { invalid: 'body' },
-		},
-		{
-			caseDescription: 'Missing name',
-			expectedStatus: 400,
-			invalidBody: { ...strawberryJam, name: '' },
-		},
-		{
-			caseDescription: 'email not confirmed, no trial, no subscription',
-			expectedStatus: 403,
-		},
-		{
-			caseDescription: 'email not confirmed, yes trial',
-			freeTrial: true,
-			expectedStatus: 403,
-		},
-		{
-			skip: true,
-			caseDescription: 'email not confirmed, yes subscription',
-			subscription: true,
-			expectedStatus: 400,
-		},
-		{
-			caseDescription: 'email confirmed, no trial, no subscription',
-			emailConfirmed: true,
-			expectedStatus: 403,
-		},
-		// Success cases
-		{
-			caseDescription: 'email confirmed, yes subscription',
-			emailConfirmed: true,
-			subscription: true,
-			expectedStatus: 201,
-		},
-		{
-			caseDescription: 'email confirmed, yes trial',
-			emailConfirmed: true,
-			freeTrial: true,
-			expectedStatus: 201,
-		},
-	]
-
-	describe('Permissions', () => {
-		beforeAll(async () => {
-			await deleteUser(elizabethBennetInputValues.email)
-		})
-
-		afterEach(async () => {
-			await deleteUser(elizabethBennetInputValues.email)
-		})
-
-		for (const { skip = false, caseDescription, emailConfirmed, freeTrial, subscription, invalidBody, expectedStatus } of permissionCases) {
-			test.skipIf(skip)(caseDescription, async () => {
-				const { createdUser, requestCookie } = await createUser({
-					...elizabethBennetInputValues,
-					emailConfirmed: Boolean(emailConfirmed),
-				})
-
-				if (freeTrial) await createFreeTrial({ userId: createdUser.id })
-
-				if (subscription) {
-					await createSubscription({
-						userId: createdUser.id,
-						stripeCustomerId: 'abcdefg',
-						currentPeriodStart: new Date(),
-						currentPeriodEnd: createFreeTrialEndTime(),
-					})
-				}
-
-				const { response } = await makeRequest({
-					requestCookie,
-					body: invalidBody || strawberryJam,
-				})
-
-				expect(response.status).toBe(expectedStatus)
+	for (const { suiteDescription, suiteSetUp, suiteBeforeEach, suiteExpectedStatus, suiteAfterEach, suiteTearDown, cases } of suites) {
+		describe(suiteDescription, async () => {
+			beforeAll(async () => {
+				if (suiteSetUp) await suiteSetUp()
 			})
-		}
-	})
+
+			beforeEach(async () => {
+				if (suiteBeforeEach) await suiteBeforeEach()
+			})
+
+			afterEach(async () => {
+				if (suiteAfterEach) await suiteAfterEach()
+			})
+
+			afterAll(async () => {
+				if (suiteTearDown) await suiteTearDown()
+			})
+
+			for (const { caseDescription, caseSetUp, requestCookie, requestBody, assertions, caseExpectedStatus, caseTearDown } of cases) {
+				test(caseDescription, async () => {
+					if (caseSetUp) await caseSetUp()
+
+					getElizabethBennet()
+					if (!validRequestCookie) throw new Error('Valid request cookie not defined')
+
+					const resolvedCookie =
+						requestCookie === null
+							? undefined //
+							: typeof requestCookie === 'function'
+								? requestCookie() //
+								: requestCookie
+
+					const data = await makeRequest({ requestCookie: resolvedCookie, body: requestBody })
+
+					jsonData = (await data.response.json()) as JsonData
+
+					if (assertions) await assertions()
+
+					expect(data.response.status).toEqual(caseExpectedStatus || suiteExpectedStatus)
+
+					if (caseTearDown) await caseTearDown()
+				})
+			}
+		})
+	}
 })
 
 /* 
