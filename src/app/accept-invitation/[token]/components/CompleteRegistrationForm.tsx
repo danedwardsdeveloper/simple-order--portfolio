@@ -28,7 +28,7 @@ export default function CompleteRegistrationForm({ token }: { token: string }) {
 		setIsSubmitting(true)
 
 		try {
-			const { userMessage, senderDetails, createdUser } = await apiRequest<InvitationsTokenPATCHresponse>({
+			const { userMessage, senderDetails, createdUser } = await apiRequest<InvitationsTokenPATCHresponse, InvitationsTokenPATCHbody>({
 				basePath: '/invitations',
 				segment: token,
 				method: 'PATCH',
