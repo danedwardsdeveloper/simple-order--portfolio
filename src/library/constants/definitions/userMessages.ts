@@ -13,4 +13,5 @@ export const userMessages = {
 	stripeCheckoutIncomplete: "Your subscription wasn't started. No payment has been taken",
 	orderCreationError: 'Sorry, something went wrong trying to create a new order. Please try again later.',
 	emailConfirmationTokenInvalid: 'ToDo',
+	emailAlreadyConfirmed: 'This email address has already been confirmed.',
 } as const
