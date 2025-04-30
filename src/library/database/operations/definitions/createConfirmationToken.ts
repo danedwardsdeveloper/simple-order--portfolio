@@ -1,4 +1,5 @@
 import { durationSettings } from '@/library/constants'
+import { searchParamNames } from '@/library/constants/definitions/searchParams'
 import { confirmationTokens } from '@/library/database/schema'
 import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import logger from '@/library/logger'
@@ -20,7 +21,7 @@ export async function createConfirmationToken({ userId, queryRunner }: Input): P
 			expiresAt: new Date(Date.now() + durationSettings.confirmEmailExpiry),
 		})
 
-		return `${dynamicBaseURL}/confirm?token=${emailConfirmationToken}`
+		return `${dynamicBaseURL}/confirm?${searchParamNames.emailConfirmationToken}=${emailConfirmationToken}`
 	} catch (error) {
 		logger.error('createConfirmationToken caught error', error)
 		throw error
