@@ -1,13 +1,13 @@
 'use client'
 import Spinner from '@/components/Spinner'
 import { Suspense } from 'react'
-import ConfirmEmailResponse from './ConfirmEmailResponse'
+import ConfirmEmailDialogue from './ConfirmEmailDialogue'
 
 export default function ConfirmEmailPage() {
 	return (
 		<>
 			<Suspense fallback={<Spinner />}>
-				<ConfirmEmailResponse />
+				<ConfirmEmailDialogue />
 			</Suspense>
 		</>
 	)
