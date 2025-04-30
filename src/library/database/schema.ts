@@ -1,6 +1,7 @@
 import { relations } from 'drizzle-orm'
 import { boolean, integer, pgEnum, pgTable, primaryKey, serial, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
 import { orderStatusArray } from '../constants'
+import { searchParamNames } from '../constants/definitions/searchParams'
 
 export const users = pgTable('users', {
 	id: serial('id').primaryKey(),
@@ -35,7 +36,7 @@ export const invitations = pgTable(
 		senderUserId: integer('sender_user_id')
 			.notNull()
 			.references(() => users.id),
-		token: uuid('token').notNull().unique().defaultRandom(),
+		token: uuid(searchParamNames.emailConfirmationToken).notNull().unique().defaultRandom(),
 		usedAt: timestamp('used_at'),
 		expiresAt: timestamp('expires_at').notNull(),
 		emailAttempts: integer('email_attempts').notNull().default(0),
@@ -49,7 +50,7 @@ export const confirmationTokens = pgTable('confirmation_tokens', {
 	userId: integer('user_id')
 		.notNull()
 		.references(() => users.id),
-	token: text('token').notNull(),
+	token: text(searchParamNames.emailConfirmationToken).notNull(),
 	expiresAt: timestamp('expires_at').notNull(),
 	usedAt: timestamp('used_at'),
 })
