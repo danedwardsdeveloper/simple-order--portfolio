@@ -1,7 +1,6 @@
 'use client'
-import type { InventoryDELETEparams, InventoryDELETEresponse } from '@/app/api/inventory/admin/[itemId]/route'
-import logger from '@/library/logger'
-import { formatPrice, mergeClasses } from '@/library/utilities/public'
+import type { InventoryDELETEresponse, InventoryDELETEsegment } from '@/app/api/inventory/admin/[itemId]/route'
+import { apiRequest, formatPrice, mergeClasses } from '@/library/utilities/public'
 import { useNotifications } from '@/providers/notifications'
 import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
@@ -40,24 +39,16 @@ export default function InventoryCard({ product, zebraStripe }: Props) {
 		)
 	}
 
-	// Main ToDo: Fix this mess
 	async function handleDelete() {
-		const body: InventoryDELETEparams = {
-			itemId: String(product.id),
-		}
+		const segment: InventoryDELETEsegment = String(product.id)
 
-		const response = await fetch('ToDo!', {
+		const { softDeletedProduct, userMessage } = await apiRequest<InventoryDELETEresponse>({
+			basePath: '/inventory/admin',
+			segment,
 			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(body),
 		})
 
-		const { message }: InventoryDELETEresponse = await response.json()
-		if (message === 'success') {
-			// ToDo: delete the product from the context
-
+		if (softDeletedProduct) {
 			createNotification({
 				title: 'Success',
 				level: 'success',
@@ -65,12 +56,14 @@ export default function InventoryCard({ product, zebraStripe }: Props) {
 			})
 			return
 		}
-		logger.error('Product not deleted')
-		createNotification({
-			title: 'Error',
-			level: 'error',
-			message: `Failed to delete ${product.name}`,
-		})
+
+		if (userMessage) {
+			createNotification({
+				title: 'Error',
+				level: 'error',
+				message: `Failed to delete ${product.name}`,
+			})
+		}
 		return
 	}
 

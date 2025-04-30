@@ -1,8 +1,11 @@
 'use client'
+import type { OrderAdminOrderIdPATCHbody, OrderAdminOrderIdPATCHresponse } from '@/app/api/orders/admin/[orderId]/route'
 import ConfirmationModal from '@/components/ConfirmationModal'
 import Spinner from '@/components/Spinner'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
+import { userMessages } from '@/library/constants'
 import { apiRequest, capitaliseFirstLetter } from '@/library/utilities/public'
+import { useNotifications } from '@/providers/notifications'
 import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
 import type { OrderStatus } from '@/types'
@@ -10,6 +13,7 @@ import { useState } from 'react'
 import OrderReceivedCard from './components/OrderReceivedCard'
 
 export default function OrdersReceivedSection() {
+	const { createNotification } = useNotifications()
 	const { user, isLoading, ordersReceived, setOrdersReceived } = useUser()
 	const [confirmationModalOpen, setConfirmationModalOpen] = useState(false)
 	const [pendingStatusChange, setPendingStatusChange] = useState<{
@@ -37,21 +41,45 @@ export default function OrdersReceivedSection() {
 		try {
 			const { orderId, newStatus } = pendingStatusChange
 
-			const response = await apiRequest({
+			const { updatedOrder, userMessage } = await apiRequest<OrderAdminOrderIdPATCHresponse, OrderAdminOrderIdPATCHbody>({
 				basePath: 'orders/admin',
 				segment: orderId,
 				method: 'PATCH',
-				body: { status: newStatus },
+				body: { status: newStatus, id: orderId },
 			})
 
-			if (!response.ok) throw new Error('Failed to update status')
-
-			if (ordersReceived) {
-				setOrdersReceived(ordersReceived.map((order) => (order.id === orderId ? { ...order, status: newStatus } : order)))
+			// Create failure notification
+			if (userMessage) {
+				createNotification({
+					level: 'error',
+					title: 'Error',
+					message: userMessage,
+				})
 			}
+
+			if (updatedOrder) {
+				setOrdersReceived((prevOrders) => {
+					if (!prevOrders) return prevOrders
+
+					return prevOrders.map((order) =>
+						order.id === updatedOrder.id
+							? {
+									...order,
+									adminOnlyNote: updatedOrder.adminOnlyNote || undefined,
+									status: updatedOrder.status || order.status,
+								}
+							: order,
+					)
+				})
+			}
+
 			setConfirmationModalOpen(false)
 		} catch {
-			// Handle error (show notification, etc.)
+			createNotification({
+				level: 'error',
+				title: 'Error',
+				message: userMessages.serverError,
+			})
 		} finally {
 			setIsUpdating(false)
 		}

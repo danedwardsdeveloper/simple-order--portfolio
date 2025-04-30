@@ -1,6 +1,6 @@
 'use client'
-import { apiPaths, dataTestIdNames } from '@/library/constants'
-import logger from '@/library/logger'
+import { dataTestIdNames, userMessages } from '@/library/constants'
+import { apiRequest } from '@/library/utilities/public'
 import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
@@ -25,38 +25,30 @@ export default function SignInPage() {
 		setError('')
 
 		try {
-			const { message, user }: SignInPOSTresponse = await (
-				await fetch(apiPaths.authentication.signIn, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify(formData),
-				})
-			).json()
+			const { userMessage, user } = await apiRequest<SignInPOSTresponse, SignInPOSTbody>({
+				basePath: '/authentication/sign-in',
+				method: 'POST',
+				body: formData,
+			})
 
-			if (message !== 'success') {
-				setError('Sorry, something went wrong')
-			}
+			if (user) {
+				setUser(user)
 
-			if (!user) {
-				setError('No account found with this email')
+				if (user.roles === 'both' || user.roles === 'merchant') {
+					setMerchantMode(true)
+				} else {
+					setMerchantMode(false)
+				}
+
+				router.push('/dashboard')
 				return
 			}
 
-			setUser(user)
-
-			if (user.roles === 'both' || user.roles === 'merchant') {
-				setMerchantMode(true)
-			} else {
-				setMerchantMode(false)
+			if (userMessage) {
+				setError(userMessage)
 			}
-
-			router.push('/dashboard')
-			return
-		} catch (error) {
-			logger.error(error)
-			setError('Sorry something went wrong')
+		} catch {
+			setError(userMessages.serverError)
 		}
 	}
 
