@@ -20,15 +20,16 @@ export default function AllArticlesPage() {
 			<SignedOutBreadCrumbs currentPageTitle="Articles" />
 			<h1>Articles</h1>
 			<div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-20 lg:mx-0 lg:max-w-none lg:grid-cols-2">
-				{sortedArticles.map((slug, index) => {
+				{sortedArticles.map((articleData, index) => {
 					const {
 						publishedAt,
 						updatedAt,
-						categorySlug,
+						category,
 						displayTitle,
+						slug,
 						displayDescription,
 						featuredImage: { src, alt },
-					} = articlesData[slug]
+					} = articlesData[articleData]
 
 					return (
 						<Link
@@ -37,7 +38,7 @@ export default function AllArticlesPage() {
 							className="flex flex-col items-start group hover:opacity-80 duration-300 transition-opacity"
 						>
 							<div className="relative w-full">
-								<Image alt={alt} src={src} priority={index < 2} className="w-full rounded-md bg-gray-100 object-cover" />
+								<Image alt={alt} src={src} priority={index < 2} placeholder="blur" className="w-full rounded-md bg-gray-100 object-cover" />
 								<div className="absolute inset-0 rounded-md ring-1 ring-inset ring-gray-900/10" />
 							</div>
 							<div className="max-w-xl">
@@ -46,13 +47,13 @@ export default function AllArticlesPage() {
 										{formatDate(updatedAt || publishedAt)}
 									</time>
 									<span
-										// href={categorySlug}
+										// href={`/articles/categories/{category.slug}/${slug}`}
 										className={mergeClasses(
 											'relative z-10 rounded-full bg-gray-50 px-3 py-1.5 font-medium text-gray-600',
 											// 'hover:bg-gray-100'
 										)}
 									>
-										{categorySlug}
+										{category.display}
 									</span>
 								</div>
 								<div className="group relative">
