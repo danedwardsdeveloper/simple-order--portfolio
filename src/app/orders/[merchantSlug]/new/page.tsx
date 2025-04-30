@@ -1,10 +1,10 @@
 'use client'
-import type { InventoryMerchantsMerchantSlugGETresponse } from '@/app/api/inventory/merchants/[merchantSlug]/route'
-import type { OrdersPOSTresponse } from '@/app/api/orders/route'
+import type { InventoryMerchantSlugGETresponse } from '@/app/api/inventory/merchants/[merchantSlug]/route'
+import type { OrdersPOSTbody, OrdersPOSTresponse } from '@/app/api/orders/route'
 import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
 import Spinner from '@/components/Spinner'
 import { apiPaths, userMessages } from '@/library/constants'
-import logger from '@/library/logger'
+import { apiRequest } from '@/library/utilities/public'
 import { useNotifications } from '@/providers/notifications'
 import { useUser } from '@/providers/user'
 import type { BrowserSafeCustomerProduct } from '@/types'
@@ -29,9 +29,10 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 	const [selectedProducts, setSelectedProducts] = useState<Record<string, number>>({})
 
 	const now = new Date()
-	now.setDate(now.getDate() + 1)
-	const tomorrow = now.toISOString().split('T')[0]
-	const [requestedDeliveryDate, setRequestedDeliveryDate] = useState<string>(tomorrow)
+	const tomorrow = new Date(now)
+	tomorrow.setDate(now.getDate() + 1)
+
+	const [requestedDeliveryDate, setRequestedDeliveryDate] = useState<Date>(tomorrow)
 
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -39,7 +40,7 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 		async function getData() {
 			try {
 				setIsLoading(true)
-				const { availableProducts, message }: InventoryMerchantsMerchantSlugGETresponse = await (
+				const { availableProducts, userMessage }: InventoryMerchantSlugGETresponse = await (
 					await fetch(urlJoin(apiPaths.inventory.customerPerspective.base, merchantSlug), { credentials: 'include' })
 				).json()
 
@@ -49,9 +50,9 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 					setErrorMessage("This merchant doesn't have any available products at the moment")
 				}
 
-				if (!availableProducts) setErrorMessage(message)
-			} catch (error) {
-				logger.error('unknown error: ', error)
+				if (userMessage) setErrorMessage(userMessage)
+			} catch {
+				setErrorMessage(userMessages.serverError)
 			} finally {
 				setIsLoading(false)
 			}
@@ -67,7 +68,7 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 	}
 
 	function handleDateChange(event: ChangeEvent<HTMLInputElement>) {
-		setRequestedDeliveryDate(event.target.value)
+		setRequestedDeliveryDate(new Date(event.target.value))
 	}
 
 	async function handleSubmit(event: FormEvent) {
@@ -83,16 +84,11 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 		setErrorMessage('')
 
 		try {
-			const { userMessage, createdOrder }: OrdersPOSTresponse = await (
-				await fetch(urlJoin(apiPaths.orders.customerPerspective.base), {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					credentials: 'include',
-					body: JSON.stringify({ merchantSlug, products: orderItems, requestedDeliveryDate }),
-				})
-			).json()
+			const { createdOrder, userMessage } = await apiRequest<OrdersPOSTresponse, OrdersPOSTbody>({
+				basePath: '/orders',
+				method: 'POST',
+				body: { merchantSlug, products: orderItems, requestedDeliveryDate },
+			})
 
 			if (createdOrder) {
 				createNotification({
@@ -109,7 +105,7 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 				createNotification({
 					level: 'error',
 					title: 'Error',
-					message: userMessage || userMessages.orderCreationError,
+					message: userMessage,
 				})
 			}
 		} catch {
@@ -155,7 +151,7 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 							<input
 								type="date"
 								className="bg-transparent"
-								value={requestedDeliveryDate}
+								value={String(requestedDeliveryDate)}
 								onChange={handleDateChange}
 								min={new Date().toISOString().split('T')[0]} // Minimum date of today
 							/>
