@@ -1,6 +1,5 @@
 import { relations } from 'drizzle-orm'
-import { boolean, integer, pgEnum, pgTable, primaryKey, serial, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
-import { orderStatusArray } from '../constants'
+import { boolean, integer, pgTable, primaryKey, serial, text, time, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
 import { searchParamNames } from '../constants/definitions/searchParams'
 
 export const users = pgTable('users', {
@@ -12,7 +11,7 @@ export const users = pgTable('users', {
 	slug: text('slug').notNull().unique(),
 	hashedPassword: text('hashed_password').notNull(),
 	emailConfirmed: boolean('email_confirmed').notNull().default(false),
-	cachedTrialExpired: boolean('cached_trial_expired').notNull().default(false),
+	cutoffTime: time('cutoff_time', { precision: 0 }),
 })
 
 export const relationships = pgTable(
@@ -100,8 +99,6 @@ export const testEmailInbox = pgTable('test_email_inbox', {
 	content: text('content').notNull(),
 })
 
-export const orderStatusEnum = pgEnum('order_status', orderStatusArray)
-
 export const orders = pgTable('orders', {
 	id: serial('id').primaryKey(),
 	customerId: integer('customer_id')
@@ -110,12 +107,19 @@ export const orders = pgTable('orders', {
 	merchantId: integer('merchant_id')
 		.notNull()
 		.references(() => users.id),
-	status: orderStatusEnum('status').notNull().default('pending'),
+	statusId: integer('status_id')
+		.notNull()
+		.references(() => orderStatuses.id),
 	requestedDeliveryDate: timestamp('requested_delivery_date').notNull(),
 	adminOnlyNote: text('admin_only_note'),
 	customerNote: text('customer_note'),
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export const orderStatuses = pgTable('order_statuses', {
+	id: serial('id').primaryKey(),
+	name: text('name').notNull().unique(),
 })
 
 export const orderItems = pgTable('order_items', {

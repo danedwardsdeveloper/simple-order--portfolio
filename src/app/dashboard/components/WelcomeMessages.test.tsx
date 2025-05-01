@@ -18,7 +18,6 @@ const baseUser: BrowserSafeCompositeUser = {
 	roles: 'merchant',
 	activeSubscriptionOrTrial: false,
 	emailConfirmed: false,
-	cachedTrialExpired: false,
 }
 
 const baseContext: UserContextType = {

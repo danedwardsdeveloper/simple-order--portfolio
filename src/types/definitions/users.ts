@@ -2,13 +2,13 @@ import type { relationships, users } from '@/library/database/schema'
 import type { Roles } from '@/types'
 
 export type DangerousBaseUser = typeof users.$inferSelect
-export type BaseUserInsertValues = Required<Omit<typeof users.$inferInsert, 'id'>>
+export type BaseUserInsertValues = Required<Omit<typeof users.$inferInsert, 'id' | 'cutoffTime'>>
 export type BaseBrowserSafeUser = Omit<DangerousBaseUser, 'id' | 'hashedPassword'>
-export type BaseUserBrowserInputValues = Omit<BaseUserInsertValues, 'hashedPassword' | 'cachedTrialExpired' | 'emailConfirmed' | 'slug'> & {
+export type BaseUserBrowserInputValues = Omit<BaseUserInsertValues, 'hashedPassword' | 'emailConfirmed' | 'slug'> & {
 	password: string
 }
 
-export type TestUserInputValues = Omit<BaseUserInsertValues, 'hashedPassword' | 'slug' | 'cachedTrialExpired' | 'emailConfirmed'> & {
+export type TestUserInputValues = Omit<BaseUserInsertValues, 'hashedPassword' | 'slug' | 'emailConfirmed'> & {
 	password: string
 	emailConfirmed?: boolean
 }
@@ -26,7 +26,6 @@ const browserSafeCompositeUser: BrowserSafeCompositeUser = {
 	roles: 'merchant',
 	activeSubscriptionOrTrial: false,
 	emailConfirmed: false,
-	cachedTrialExpired: false,
 	trialExpiry: new Date() // optional
 }
  */

@@ -122,7 +122,6 @@ describe('Sign in', () => {
 				hashedPassword: await bcrypt.hash(katyPerry.password, 10),
 				emailConfirmed: true,
 				slug: 'dark-horse-enterprises-inc',
-				cachedTrialExpired: false,
 			}
 			const [katyPerryRow] = await database.insert(users).values(insertValues).returning()
 			katyPerryId = katyPerryRow.id

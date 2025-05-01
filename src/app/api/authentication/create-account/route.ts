@@ -91,7 +91,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 				businessName,
 				slug,
 				emailConfirmed: false,
-				cachedTrialExpired: false,
 			}
 
 			const [dangerousNewUser]: DangerousBaseUser[] = await tx.insert(users).values(newUserInsertValues).returning()

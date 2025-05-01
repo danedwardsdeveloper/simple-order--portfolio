@@ -36,7 +36,6 @@ export async function createUser(user: TestUserInputValues): Output {
 		const insertValues: BaseUserInsertValues = {
 			...user,
 			emailConfirmed: user.emailConfirmed ?? true, // Do not use || here!!
-			cachedTrialExpired: false,
 			slug: slugify(user.businessName),
 			hashedPassword,
 		}

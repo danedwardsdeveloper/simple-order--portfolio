@@ -187,7 +187,6 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 					slug: createMerchantSlug(businessName),
 					hashedPassword,
 					emailConfirmed: true, // They've just clicked a link from an email!
-					cachedTrialExpired: false, // They haven't started a trial, and they're just a customer at this point
 				}
 
 				txError = {

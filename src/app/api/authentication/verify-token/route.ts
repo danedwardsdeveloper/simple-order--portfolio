@@ -42,10 +42,7 @@ export async function GET(request: NextRequest): Output {
 			})
 		}
 
-		const { activeSubscriptionOrTrial, trialExpiry } = await checkActiveSubscriptionOrTrial(
-			dangerousUser.id,
-			dangerousUser.cachedTrialExpired,
-		)
+		const { activeSubscriptionOrTrial, trialExpiry } = await checkActiveSubscriptionOrTrial(dangerousUser.id)
 
 		const { userRole } = await getUserRoles(dangerousUser)
 

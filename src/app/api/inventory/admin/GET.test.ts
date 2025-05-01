@@ -14,7 +14,6 @@ describe('Get inventory', async () => {
 		password: 'lindsay123',
 		businessName: `Lindsay's Bakery`,
 		emailConfirmed: true,
-		cachedTrialExpired: false,
 	}
 
 	let validRequestCookie: string | undefined
