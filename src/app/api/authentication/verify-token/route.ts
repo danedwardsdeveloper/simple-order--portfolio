@@ -42,7 +42,7 @@ export async function GET(request: NextRequest): Output {
 			})
 		}
 
-		const { activeSubscriptionOrTrial, trialExpiry } = await checkActiveSubscriptionOrTrial(dangerousUser.id)
+		const { trialEnd, subscriptionEnd } = await checkActiveSubscriptionOrTrial(dangerousUser.id)
 
 		const { userRole } = await getUserRoles(dangerousUser)
 
@@ -51,8 +51,8 @@ export async function GET(request: NextRequest): Output {
 		const compositeUser: BrowserSafeCompositeUser = {
 			...baseUser,
 			roles: userRole,
-			activeSubscriptionOrTrial,
-			trialExpiry,
+			trialEnd,
+			subscriptionEnd,
 		}
 
 		return respond({
