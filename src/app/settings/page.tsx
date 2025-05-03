@@ -3,18 +3,21 @@ import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
 import Spinner from '@/components/Spinner'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
 import { checkoutSearchParam, checkoutSearchParamValues, userMessages } from '@/library/constants'
+import { apiRequest } from '@/library/utilities/public'
 import { useNotifications } from '@/providers/notifications'
 import { useUser } from '@/providers/user'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useRef } from 'react'
+import type { VerifyTokenGETresponse } from '../api/authentication/verify-token/route'
+import PortalButton from './components/PortalButton'
 import SignOutButton from './components/SignOutButton'
+import TrialExpiryInformation from './components/TrialExpiryInformation'
 import UserInformation from './components/UserInformation'
-import TrialExpiryInformation from './components/trialExpiryInformation'
 
 export default function SettingsPage() {
 	const searchParams = useSearchParams()
 	const subscriptionQuery = searchParams.get(checkoutSearchParam)
-	const { user } = useUser()
+	const { user, setUser } = useUser()
 	const { createNotification } = useNotifications()
 	const router = useRouter()
 	const notificationShown = useRef(false)
@@ -25,10 +28,20 @@ export default function SettingsPage() {
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <run once on mount>
 	useEffect(() => {
+		async function refreshUser() {
+			const { user } = await apiRequest<VerifyTokenGETresponse>({
+				basePath: '/authentication/verify-token',
+			})
+
+			if (user) setUser(user)
+		}
+
 		if (subscriptionQuery && !notificationShown.current) {
 			notificationShown.current = true
 
 			if (subscriptionQuery === checkoutSearchParamValues.success) {
+				refreshUser()
+
 				createNotification({
 					level: 'success',
 					title: 'Success',
@@ -36,7 +49,10 @@ export default function SettingsPage() {
 				})
 				clearParams()
 			}
+
 			if (subscriptionQuery === checkoutSearchParamValues.incomplete) {
+				refreshUser()
+
 				createNotification({
 					level: 'info',
 					title: 'Subscription not started',
@@ -49,6 +65,8 @@ export default function SettingsPage() {
 
 	if (!user) return <UnauthorisedLinks />
 
+	const { trialEnd, subscriptionEnd } = user
+
 	return (
 		<Suspense fallback={<Spinner />}>
 			<SignedInBreadCrumbs businessName={user.businessName} currentPageTitle="Settings" />
@@ -56,7 +74,8 @@ export default function SettingsPage() {
 				<h1>Settings</h1>
 
 				<UserInformation />
-				<TrialExpiryInformation expiry={user.trialExpiry} />
+				<TrialExpiryInformation trialEnd={trialEnd} subscriptionEnd={subscriptionEnd} />
+				<PortalButton subscriptionEnd={user.subscriptionEnd} />
 				<SignOutButton />
 			</div>
 		</Suspense>

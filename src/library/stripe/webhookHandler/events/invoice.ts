@@ -1,12 +1,12 @@
+import { database } from '@/library/database/connection'
+import { subscriptions, users } from '@/library/database/schema'
+import { sendEmail } from '@/library/email/sendEmail'
+import { sendInvoiceEmail } from '@/library/email/sendInvoice'
+import { myPersonalEmail } from '@/library/environment/serverVariables'
+import logger from '@/library/logger'
+import { equals, or } from '@/library/utilities/server'
 import type { SubscriptionInsertValues } from '@/types'
-import { eq, or } from 'drizzle-orm'
 import type Stripe from 'stripe'
-import { database } from '../database/connection'
-import { subscriptions, users } from '../database/schema'
-import { sendEmail } from '../email/sendEmail'
-import { sendInvoiceEmail } from '../email/sendInvoice'
-import { myPersonalEmail } from '../environment/serverVariables'
-import logger from '../logger'
 
 export async function handleInvoice(invoice: Stripe.Invoice) {
 	try {
@@ -20,12 +20,12 @@ export async function handleInvoice(invoice: Stripe.Invoice) {
 			.from(users)
 			.where(
 				userId && email
-					? or(eq(users.id, Number(userId)), eq(users.email, email))
+					? or(equals(users.id, Number(userId)), equals(users.email, email))
 					: userId
-						? eq(users.id, Number(userId))
+						? equals(users.id, Number(userId))
 						: email
-							? eq(users.email, email)
-							: eq(users.id, -1), // Dummy condition that won't match if no identifiers
+							? equals(users.email, email)
+							: equals(users.id, -1), // Dummy condition that won't match if no identifiers
 			)
 
 		if (!foundUser) {
@@ -42,7 +42,7 @@ export async function handleInvoice(invoice: Stripe.Invoice) {
 		const [existingSubscription] = await database
 			.select()
 			.from(subscriptions)
-			.where(eq(subscriptions.userId, subscriptionData.userId))
+			.where(equals(subscriptions.userId, subscriptionData.userId))
 			.limit(1)
 
 		let updatedSubscription = null
@@ -55,9 +55,8 @@ export async function handleInvoice(invoice: Stripe.Invoice) {
 					stripeCustomerId: subscriptionData.stripeCustomerId,
 					currentPeriodStart: subscriptionData.currentPeriodStart,
 					currentPeriodEnd: subscriptionData.currentPeriodEnd,
-					cancelledAt: null,
 				})
-				.where(eq(subscriptions.id, existingSubscription.id))
+				.where(equals(subscriptions.id, existingSubscription.id))
 				.returning()
 
 			logger.info(`Updated existing subscription for user ${foundUser.id}`)

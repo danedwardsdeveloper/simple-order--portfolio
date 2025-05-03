@@ -1,35 +1,27 @@
 'use client'
-import type { CheckoutSessionPOSTbody, CheckoutSessionPOSTresponse } from '@/app/api/payments/create-checkout-session/route'
+import type { CheckoutSessionPOSTresponse } from '@/app/api/payments/create-checkout-session/route'
 import Spinner from '@/components/Spinner'
-import { apiPaths, userMessages } from '@/library/constants'
+import { userMessages } from '@/library/constants'
+import { apiRequest } from '@/library/utilities/public'
 import { useNotifications } from '@/providers/notifications'
-import { useUser } from '@/providers/user'
 import { ArrowUpRightIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 export default function SubscribeButton() {
-	const { user } = useUser()
 	const { createNotification } = useNotifications()
 	const [isLoading, setIsLoading] = useState(false)
 	const [isRedirecting, setIsRedirecting] = useState(false)
 	const router = useRouter()
 
-	if (!user) return null
-
 	async function handleClick() {
-		if (!user) return null
-
 		try {
 			setIsLoading(true)
-			const { redirectUrl, userMessage }: CheckoutSessionPOSTresponse = await (
-				await fetch(apiPaths.payments.createCheckoutSession, {
-					method: 'POST',
-					body: JSON.stringify({
-						email: user.email,
-					} satisfies CheckoutSessionPOSTbody),
-				})
-			).json()
+
+			const { redirectUrl, userMessage } = await apiRequest<CheckoutSessionPOSTresponse>({
+				basePath: '/payments/create-checkout-session',
+				method: 'POST',
+			})
 
 			if (redirectUrl) {
 				setIsRedirecting(true)
@@ -58,6 +50,7 @@ export default function SubscribeButton() {
 	return (
 		<button
 			type="button"
+			data-component="SubscribeButton"
 			onClick={handleClick}
 			className="button-primary w-full h-10 flex justify-center items-center gap-x-2"
 			disabled={isLoading || isRedirecting}
