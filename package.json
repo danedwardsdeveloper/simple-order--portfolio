@@ -4,7 +4,7 @@
 		"dev": "next dev --turbo",
 		"format": "biome format . --write",
 		"check": "biome check . --write --unsafe",
-		"stripe-listen": "stripe listen --forward-to localhost:3000/api/stripe/webhook",
+		"stripe": "stripe listen --events customer.subscription.created,customer.subscription.updated,invoice.paid,invoice.payment_failed,customer.subscription.deleted --forward-to localhost:3000/api/payments/webhook",
 		"build": "pnpm format && pnpm check && next build",
 		"generate": "drizzle-kit generate",
 		"push": "drizzle-kit push",
