@@ -55,7 +55,8 @@
 			"tests/**/*.ts",
 			"src/**/*.ts",
 			"src/**/*.tsx",
-			"workInProgressIdeas"
+			"workInProgressIdeas",
+			"drizzle.config.ts"
 		],
 		"ignore": [
 			"node_modules",

@@ -5,9 +5,7 @@ export default {
 	dialect: 'postgresql',
 	schema: './src/library/database/schema.ts',
 	out: './drizzle',
-	dbCredentials: {
-		url: developmentDatabaseString,
-	},
+	dbCredentials: { url: developmentDatabaseString },
 	verbose: true,
 	strict: true,
 } satisfies Config
