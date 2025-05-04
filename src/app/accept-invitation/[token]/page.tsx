@@ -11,7 +11,10 @@ import CompleteRegistrationForm from './components/CompleteRegistrationForm'
 
 export default function AcceptInvitationPage() {
 	const { token } = useParams<{ token: string }>()
-	const hasCheckedInvitation = useRef(false) // Prevent double fetching in development
+
+	// Prevent repeat fetching in development
+	const hasCheckedInvitation = useRef(false)
+
 	const [status, setStatus] = useState<'checking' | 'please provide details' | 'error' | 'relationship exists'>('checking')
 	const [errorMessage, setErrorMessage] = useState('')
 	const [senderBusinessName, setSenderBusinessName] = useState('')
@@ -19,6 +22,8 @@ export default function AcceptInvitationPage() {
 	const { setUser, setConfirmedMerchants } = useUser()
 	const { createNotification } = useNotifications()
 	const router = useRouter()
+
+	// Main ToDo: Make this a great experience
 
 	useEffect(() => {
 		if (!hasCheckedInvitation.current) {
@@ -34,6 +39,7 @@ export default function AcceptInvitationPage() {
 			setStatus('checking')
 			const { pleaseProvideDetails, senderDetails, createdUser, existingUser } = await apiRequest<InvitationsTokenPATCHresponse>({
 				basePath: '/invitations',
+				segment: token,
 				method: 'PATCH',
 			})
 
