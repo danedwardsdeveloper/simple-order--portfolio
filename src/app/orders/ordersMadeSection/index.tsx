@@ -18,9 +18,15 @@ export default function OrdersMadeSection() {
 
 	return (
 		<ul className="flex flex-col gap-y-4 w-full max-w-xl">
-			{ordersMade?.map((order, index) => (
-				<OrderMadeCard key={order.id} orderDetails={order} includeVat={includeVat} index={index} />
-			))}
+			{ordersMade
+				.sort((a, b) => {
+					const dateA = new Date(a.requestedDeliveryDate)
+					const dateB = new Date(b.requestedDeliveryDate)
+					return dateB.getTime() - dateA.getTime()
+				})
+				.map((order, index) => (
+					<OrderMadeCard key={order.id} orderDetails={order} includeVat={includeVat} index={index} />
+				))}
 		</ul>
 	)
 }
