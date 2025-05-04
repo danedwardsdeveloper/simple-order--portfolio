@@ -11,8 +11,8 @@ export async function handleSubscriptionUpdated(subscription: Stripe.Subscriptio
 
 		await database.update(subscriptions).set({ cancelledAt: new Date() })
 
-		subscription.cancellation_details?.comment
-		subscription.cancellation_details?.feedback
+		// subscription.cancellation_details?.comment
+		// subscription.cancellation_details?.feedback
 
 		// Send email with cancellation details to user and myself
 	} catch (error) {
