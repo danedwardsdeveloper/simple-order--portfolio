@@ -1,14 +1,20 @@
+'use client'
+import { useUser } from '@/providers/user'
 import type { ReactNode } from 'react'
 import SubscribeButton from './SubscriptionButton'
 
-export default function TrialExpiryInformation({ trialEnd, subscriptionEnd }: { trialEnd?: Date; subscriptionEnd?: Date }) {
+export default function TrialExpiryInformation() {
+	const { user } = useUser()
 	// ToDo: What to render when subscription is cancelled but has time remaining
 
-	if (subscriptionEnd) return null
+	if (!user) return null
+
+	// They have an active subscription - show nothing
+	if (user.subscriptionEnd && !user.subscriptionCancelled) return null
 
 	const currentDate = new Date()
 
-	const timeDifference = trialEnd ? new Date(trialEnd).getTime() - currentDate.getTime() : 0
+	const timeDifference = user.trialEnd ? new Date(user.trialEnd).getTime() - currentDate.getTime() : 0
 	const dayDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24))
 
 	function ContainerWithSubscribeButton({ children }: { children: ReactNode }) {
