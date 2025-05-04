@@ -3,12 +3,12 @@ import type { OrderAdminOrderIdPATCHbody, OrderAdminOrderIdPATCHresponse } from 
 import ConfirmationModal from '@/components/ConfirmationModal'
 import Spinner from '@/components/Spinner'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
-import { userMessages } from '@/library/constants'
+import { orderStatusNameToId, userMessages } from '@/library/constants'
 import { apiRequest, capitaliseFirstLetter } from '@/library/utilities/public'
 import { useNotifications } from '@/providers/notifications'
 import { useUi } from '@/providers/ui'
 import { useUser } from '@/providers/user'
-import type { OrderStatus } from '@/types'
+import type { OrderStatusName } from '@/types'
 import { useState } from 'react'
 import OrderReceivedCard from './components/OrderReceivedCard'
 
@@ -18,8 +18,8 @@ export default function OrdersReceivedSection() {
 	const [confirmationModalOpen, setConfirmationModalOpen] = useState(false)
 	const [pendingStatusChange, setPendingStatusChange] = useState<{
 		orderId: number
-		currentStatus: OrderStatus
-		newStatus: OrderStatus
+		currentStatus: OrderStatusName
+		newStatus: OrderStatusName
 	} | null>(null)
 	const [isUpdating, setIsUpdating] = useState(false)
 	const { includeVat } = useUi()
@@ -29,7 +29,7 @@ export default function OrdersReceivedSection() {
 	if (!ordersReceived)
 		return <p className="lg:-mx-3 w-full text-blue-600 p-3 border-2 border-blue-300 bg-blue-50 rounded-xl max-w-xl">No orders found</p>
 
-	function initiateStatusChange(orderId: number, currentStatus: OrderStatus, newStatus: OrderStatus) {
+	function initiateStatusChange(orderId: number, currentStatus: OrderStatusName, newStatus: OrderStatusName) {
 		setPendingStatusChange({ orderId, currentStatus, newStatus })
 		setConfirmationModalOpen(true)
 	}
@@ -41,11 +41,13 @@ export default function OrdersReceivedSection() {
 		try {
 			const { orderId, newStatus } = pendingStatusChange
 
+			const newOrderStatusId = orderStatusNameToId[newStatus]
+
 			const { updatedOrder, userMessage } = await apiRequest<OrderAdminOrderIdPATCHresponse, OrderAdminOrderIdPATCHbody>({
 				basePath: 'orders/admin',
 				segment: orderId,
 				method: 'PATCH',
-				body: { status: newStatus, id: orderId },
+				body: { statusId: newOrderStatusId, id: orderId },
 			})
 
 			// Create failure notification
@@ -66,7 +68,7 @@ export default function OrdersReceivedSection() {
 							? {
 									...order,
 									adminOnlyNote: updatedOrder.adminOnlyNote || undefined,
-									status: updatedOrder.status || order.status,
+									statusName: updatedOrder.statusName || order.statusName,
 								}
 							: order,
 					)
