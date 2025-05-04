@@ -1,4 +1,3 @@
-import type {} from '@/app/api/invitations/[token]/route'
 import type { HTTP_METHOD } from 'next/dist/server/web/http'
 import { type CreateApiUrlParams, createApiUrl } from '../createApiUrl'
 
@@ -18,6 +17,8 @@ interface Props<Body = unknown> extends CreateApiUrlParams {
  * - Handles URL segments and search params too
  * The returned object is typed
  * - Add a second type argument to type the body
+ *  ToDo: make it reject bodies without a type argument
+ * ToDo: return the status.ok too for convenience
  * @example
 const { userMessage, senderDetails, createdUser } = await apiRequest<RouteResponse, RouteBody>({
 	basePath: '/invitations',
