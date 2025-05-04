@@ -7,6 +7,6 @@
 	"ignorePatterns": [
 		"**/*.test.ts",
 		"**/*.test.tsx",
-		"src/library/articles/data.tsx"
+		"src/app/articles/data.tsx"
 	]
 }

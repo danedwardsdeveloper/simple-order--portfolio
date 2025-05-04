@@ -5,7 +5,7 @@
 	},
 	"linter": {
 		"enabled": true,
-		"ignore": ["src/library/articles/data.tsx"],
+		"ignore": ["src/app/articles/data.tsx"],
 		"rules": {
 			"recommended": true,
 			"suspicious": {
