@@ -1,4 +1,4 @@
-import { temporaryVat } from '@/library/constants'
+import { orderStatusNameToId, temporaryVat } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { orderItems, orders, products as productsTable } from '@/library/database/schema'
 import logger from '@/library/logger'
@@ -26,6 +26,7 @@ export async function createOrder({ customerId, merchantProfile, requestedDelive
 			merchantId: merchantProfile.id,
 			requestedDeliveryDate,
 			customerNote,
+			statusId: orderStatusNameToId.Pending,
 		}
 		const newOrder = await database.transaction(async (tx) => {
 			txErrorMessage = 'failed to create new order'
