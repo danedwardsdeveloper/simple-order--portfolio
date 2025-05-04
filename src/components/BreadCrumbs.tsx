@@ -60,6 +60,7 @@ export function SignedInBreadCrumbs({ businessName, trail, currentPageTitle }: S
 			<ol className="flex items-center space-x-4">
 				<li>
 					<div className="flex items-center">
+						{/* ToDo: This should not be a link if it's the only item */}
 						<Link href="/dashboard" className="link-primary">
 							{businessName}
 						</Link>
