@@ -1,6 +1,6 @@
+import { defaultCutOffTime, defaultLeadTimeDays, searchParamNames } from '@/library/constants'
 import { relations } from 'drizzle-orm'
-import { boolean, integer, pgTable, primaryKey, serial, text, time, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
-import { searchParamNames } from '../constants/definitions/searchParams'
+import { boolean, integer, pgTable, primaryKey, serial, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
 
 export const users = pgTable('users', {
 	id: serial('id').primaryKey(),
@@ -11,7 +11,8 @@ export const users = pgTable('users', {
 	slug: text('slug').notNull().unique(),
 	hashedPassword: text('hashed_password').notNull(),
 	emailConfirmed: boolean('email_confirmed').notNull().default(false),
-	cutoffTime: time('cutoff_time', { precision: 0 }),
+	cutOffTime: timestamp('cut_off_time', { withTimezone: false, precision: 0, mode: 'date' }).default(defaultCutOffTime).notNull(),
+	leadTimeDays: integer('lead_time_days').default(defaultLeadTimeDays).notNull(),
 })
 
 export const relationships = pgTable(
