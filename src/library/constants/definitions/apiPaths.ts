@@ -11,10 +11,6 @@ export const apiPaths = {
 		signOut: '/api/authentication/sign-out',
 		verifyToken: '/api/authentication/verify-token',
 	},
-	payments: {
-		createCheckoutSession: '/api/payments/create-checkout-session',
-		webhook: '/api/payments/webhook',
-	},
 	invitations: {
 		base: '/api/invitations',
 		accept: '/api/invitations/[token]',
