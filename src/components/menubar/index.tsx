@@ -19,7 +19,7 @@ export default function MenuBar() {
 			<>
 				<nav
 					data-component="MobileMenu"
-					className="flex md:hidden fixed inset-x-0 top-0 h-14 bg-white/70  border-b-2 border-neutral-100/50 z-menu backdrop-blur"
+					className="flex md:hidden fixed inset-x-0 top-0 h-14 bg-white  border-b-2 border-zinc-200 z-menu backdrop-blur"
 				>
 					<div className="w-full mx-auto px-5 flex items-center justify-between">
 						<HomePageLink />
@@ -55,7 +55,7 @@ export default function MenuBar() {
 			>
 				<div
 					data-component="mobile-panel-blurred-backdrop"
-					className="fixed md:hidden inset-0 h-screen w-screen backdrop-blur-sm bg-white/50 z-mobile-blurred-backdrop"
+					className="fixed md:hidden inset-0 h-screen w-screen backdrop-blur-sm bg-white z-mobile-blurred-backdrop"
 				/>
 			</Transition>
 		)
@@ -112,7 +112,7 @@ export default function MenuBar() {
 		return (
 			<nav
 				data-component="DesktopMenu"
-				className="hidden md:flex fixed inset-x-0 top-0 h-14 bg-white/70 backdrop-blur border-b-2 border-neutral-100/50 z-menu"
+				className="hidden md:flex fixed inset-x-0 top-0 h-14 bg-white backdrop-blur border-b-2 border-zinc-200 z-menu"
 			>
 				<div className="w-full max-w-7xl mx-auto px-4 lg:px-8 flex items-center justify-between">
 					{user ? (
