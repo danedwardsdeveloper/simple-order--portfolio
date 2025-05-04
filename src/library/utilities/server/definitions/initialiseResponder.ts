@@ -21,10 +21,12 @@ export function initialiseResponder<T extends object>() {
 			logger.error('Caught error: ', caughtError.message)
 		}
 
-		if (status.toString().includes('20')) {
-			logger.success(developmentMessage)
-		} else {
-			logger.error(developmentMessage)
+		if (developmentMessage) {
+			if (status.toString().includes('20')) {
+				logger.success(developmentMessage)
+			} else {
+				logger.error(developmentMessage)
+			}
 		}
 
 		const responseBody = {
