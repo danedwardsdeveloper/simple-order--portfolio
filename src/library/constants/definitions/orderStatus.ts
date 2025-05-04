@@ -1,9 +1,22 @@
-export const orderStatus = {
-	pending: 'pending',
-	completed: 'completed',
-	cancelled: 'cancelled',
+export const orderStatusNames = {
+	Pending: 'Pending',
+	Completed: 'Completed',
+	Cancelled: 'Cancelled',
 } as const
 
-// This if for the database schema. pgTable expects an array
-// Also for OrderStatusDropdown so I can map them in traffic light order
-export const orderStatusArray = [orderStatus.cancelled, orderStatus.pending, orderStatus.completed] as const
+export const orderStatusIdToName = {
+	1: 'Pending',
+	2: 'Completed',
+	3: 'Cancelled',
+} as const
+
+export const orderStatusNameToId = {
+	Pending: 1,
+	Completed: 2,
+	Cancelled: 3,
+} as const
+
+// Should be number as per the normalised database schema
+export function orderIsCompleted(statusId: number) {
+	return statusId === orderStatusNameToId.Completed
+}
