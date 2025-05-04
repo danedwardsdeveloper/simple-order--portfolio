@@ -1,5 +1,7 @@
 import { userMessages } from '@/library/constants'
+import { users } from '@/library/database/schema'
 import { allowedCharactersRegex } from '@/library/utilities/public'
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod'
 
 export const NewUserSchema = z.object({
@@ -14,3 +16,6 @@ export const SignInSchema = z.object({
 	email: NewUserSchema.shape.email,
 	password: NewUserSchema.shape.password,
 })
+
+export const insertUserSchema = createInsertSchema(users)
+export const selectUserSchema = createSelectSchema(users)
