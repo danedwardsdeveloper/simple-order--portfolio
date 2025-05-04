@@ -9,6 +9,7 @@ import { useUser } from '@/providers/user'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useRef } from 'react'
 import type { VerifyTokenGETresponse } from '../api/authentication/verify-token/route'
+import { CutOffAndLeadTime } from './components/CutOffAndLeadTime'
 import PortalButton from './components/PortalButton'
 import SignOutButton from './components/SignOutButton'
 import TrialExpiryInformation from './components/TrialExpiryInformation'
@@ -65,8 +66,6 @@ export default function SettingsPage() {
 
 	if (!user) return <UnauthorisedLinks />
 
-	const { trialEnd, subscriptionEnd } = user
-
 	return (
 		<Suspense fallback={<Spinner />}>
 			<SignedInBreadCrumbs businessName={user.businessName} currentPageTitle="Settings" />
@@ -74,8 +73,9 @@ export default function SettingsPage() {
 				<h1>Settings</h1>
 
 				<UserInformation />
-				<TrialExpiryInformation trialEnd={trialEnd} subscriptionEnd={subscriptionEnd} />
+				<TrialExpiryInformation />
 				<PortalButton subscriptionEnd={user.subscriptionEnd} />
+				<CutOffAndLeadTime />
 				<SignOutButton />
 			</div>
 		</Suspense>
