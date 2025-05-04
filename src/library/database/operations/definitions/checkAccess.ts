@@ -12,8 +12,8 @@ type Input = {
 }
 
 type Output = Promise<
-	| { accessDenied: { message: string; status: number }; dangerousUser?: never; trialExpiry?: never }
-	| { accessDenied?: never; dangerousUser: DangerousBaseUser; trialExpiry?: Date }
+	| { accessDenied: { message: string; status: number }; dangerousUser?: never; trialEnd?: never; subscriptionEnd?: never }
+	| { accessDenied?: never; dangerousUser: DangerousBaseUser; trialEnd?: Date; subscriptionEnd?: Date }
 >
 /**
  * @example
@@ -40,21 +40,18 @@ export async function checkAccess({ request, requireConfirmed, requireSubscripti
 	const [dangerousUser] = await database.select().from(users).where(equals(users.id, extractedUserId))
 
 	if (!dangerousUser) {
-		return { accessDenied: { message: 'user not found', status: 400 } }
+		return { accessDenied: { message: 'user not found', status: 401 } }
 	}
 
 	if (requireConfirmed && !dangerousUser.emailConfirmed) {
 		return { accessDenied: { message: 'email not confirmed', status: 403 } }
 	}
 
-	const { activeSubscriptionOrTrial, trialExpiry } = await checkActiveSubscriptionOrTrial(
-		dangerousUser.id,
-		dangerousUser.cachedTrialExpired,
-	)
+	const { trialEnd, subscriptionEnd } = await checkActiveSubscriptionOrTrial(dangerousUser.id)
 
-	if (requireSubscriptionOrTrial && !activeSubscriptionOrTrial) {
-		return { accessDenied: { message: 'active subscription or trial required', status: 403 } }
+	if (requireSubscriptionOrTrial) {
+		if (!trialEnd || !subscriptionEnd) return { accessDenied: { message: 'active subscription or trial required', status: 403 } }
 	}
 
-	return { dangerousUser, trialExpiry }
+	return { dangerousUser, trialEnd, subscriptionEnd }
 }
