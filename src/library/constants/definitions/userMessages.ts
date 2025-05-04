@@ -14,4 +14,5 @@ export const userMessages = {
 	orderCreationError: 'Sorry, something went wrong trying to create a new order. Please try again later.',
 	emailConfirmationTokenInvalid: 'ToDo',
 	emailAlreadyConfirmed: 'This email address has already been confirmed.',
+	cutOffTimeExceeded: `Sorry, it's too late to place this order. Please change the requested delivery date or contact the merchant directly.`,
 } as const
