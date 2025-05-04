@@ -1,12 +1,12 @@
 import ZebraContainer from '@/components/ZebraContainer'
-import { orderStatus } from '@/library/constants'
+import { orderStatusNames } from '@/library/constants'
 import { calculateOrderTotal, formatDate, formatPrice } from '@/library/utilities/public'
-import type { OrderReceived, OrderStatus } from '@/types'
+import type { OrderReceived, OrderStatusName } from '@/types'
 import OrderStatusDropdown from './OrderStatusDropdown'
 
 interface Props {
 	orderDetails: OrderReceived
-	onStatusChangeRequest: (orderId: number, currentStatus: OrderStatus, newStatus: OrderStatus) => void
+	onStatusChangeRequest: (orderId: number, currentStatus: OrderStatusName, newStatus: OrderStatusName) => void
 	includeVat: boolean
 	index: number // Calculate the zebra stripe
 }
@@ -26,9 +26,9 @@ export default function OrderReceivedCard({ orderDetails, includeVat, index, onS
 					<div className="flex gap-x-3">
 						<time dateTime={orderDetails.requestedDeliveryDate.toString()}>{formatDate(orderDetails.requestedDeliveryDate)}</time>
 						<OrderStatusDropdown
-							statusOptions={[orderStatus.pending, orderStatus.completed]}
-							currentStatus={orderDetails.status}
-							onStatusChange={(newStatus) => onStatusChangeRequest(orderDetails.id, orderDetails.status, newStatus)}
+							statusOptions={[orderStatusNames.Pending, orderStatusNames.Completed]}
+							currentStatus={orderDetails.statusName}
+							onStatusChange={(newStatus) => onStatusChangeRequest(orderDetails.id, orderDetails.statusName, newStatus)}
 						/>
 					</div>
 				</div>

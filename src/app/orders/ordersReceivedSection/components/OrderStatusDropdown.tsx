@@ -1,23 +1,23 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/shadcn/dropdown-menu'
-import { orderStatus } from '@/library/constants'
+import { orderStatusNames } from '@/library/constants'
 import { capitaliseFirstLetter } from '@/library/utilities/public'
-import type { OrderStatus } from '@/types'
+import type { OrderStatusName } from '@/types'
 import { CheckCircle, ChevronDown, Clock, XCircle } from 'lucide-react'
 
 interface OrderStatusDropdownProps {
-	statusOptions: OrderStatus[]
-	currentStatus: OrderStatus
-	onStatusChange: (newStatus: OrderStatus) => void
+	statusOptions: OrderStatusName[]
+	currentStatus: OrderStatusName
+	onStatusChange: (newStatus: OrderStatusName) => void
 }
 
 export default function OrderStatusDropdown({ statusOptions, currentStatus, onStatusChange }: OrderStatusDropdownProps) {
-	function StatusIcon({ status }: { status: OrderStatus }) {
+	function StatusIcon({ status }: { status: OrderStatusName }) {
 		switch (status) {
-			case orderStatus.pending:
+			case orderStatusNames.Pending:
 				return <Clock className="mr-2 h-4 w-4 text-yellow-500" />
-			case orderStatus.completed:
+			case orderStatusNames.Completed:
 				return <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-			case orderStatus.cancelled:
+			case orderStatusNames.Cancelled:
 				return <XCircle className="mr-2 h-4 w-4 text-red-500" />
 			default:
 				return null

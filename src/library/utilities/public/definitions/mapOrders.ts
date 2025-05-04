@@ -1,3 +1,4 @@
+import { orderStatusIdToName } from '@/library/constants'
 import logger from '@/library/logger'
 import type {
 	BaseOrder,
@@ -7,6 +8,7 @@ import type {
 	OrderItem,
 	OrderMade,
 	OrderReceived,
+	OrderStatusId,
 	OrdersFunctionReturnType,
 	Product,
 } from '@/types'
@@ -43,7 +45,7 @@ export function mapItemsToOrder({ order, orderItems, products, businessName, ret
 
 	const orderReceived: OrderReceived = {
 		id: order.id,
-		status: order.status,
+		statusName: orderStatusIdToName[order.statusId as OrderStatusId],
 		businessName,
 		adminOnlyNote: order.adminOnlyNote || undefined,
 		customerNote: order.customerNote || undefined,
