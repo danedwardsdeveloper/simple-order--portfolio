@@ -1,5 +1,6 @@
 import { serviceConstraints } from '@/library/constants'
 import { format } from 'date-fns'
+import { formatInTimeZone } from 'date-fns-tz'
 
 /**
  * Example:
@@ -48,4 +49,9 @@ export function formatPrice(pence: number): string {
 		minimumFractionDigits: 2,
 		maximumFractionDigits: 2,
 	})}`
+}
+
+export function formatTime(time: Date | null) {
+	if (!time) return ''
+	return formatInTimeZone(time, 'UTC', 'h:mm a').toLowerCase()
 }
