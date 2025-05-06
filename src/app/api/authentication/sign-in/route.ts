@@ -81,14 +81,16 @@ export async function POST(request: NextRequest): Output {
 
 		const { userRole } = await getUserRoles(dangerousUser)
 
-		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(dangerousUser.id)
+		const { trialEnd, subscriptionEnd, subscriptionCancelled } = await checkActiveSubscriptionOrTrial(dangerousUser.id)
 
 		const sanitisedBaseUser = sanitiseDangerousBaseUser(dangerousUser)
 
 		const user: BrowserSafeCompositeUser = {
 			...sanitisedBaseUser,
 			roles: userRole,
-			activeSubscriptionOrTrial,
+			subscriptionEnd,
+			trialEnd,
+			subscriptionCancelled,
 		}
 
 		return respond({
