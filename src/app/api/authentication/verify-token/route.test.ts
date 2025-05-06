@@ -13,7 +13,7 @@ describe('Verify token', () => {
 		password: '123456789',
 		emailConfirmed: true,
 	}
-	const invalidCookie = '123456789'
+	const invalidCookie = 'token=123456789'
 	let validCookie: undefined | string
 
 	beforeAll(async () => {
@@ -28,6 +28,11 @@ describe('Verify token', () => {
 	test('Invalid token', async () => {
 		const { response } = await makeRequest({ requestCookie: invalidCookie })
 		expect(response.status).toBe(400)
+	})
+
+	test('No token at all returns 200', async () => {
+		const { response } = await makeRequest({ requestCookie: undefined })
+		expect(response.status).toBe(200)
 	})
 
 	test('Valid token', async () => {
