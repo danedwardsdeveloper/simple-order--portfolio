@@ -1,26 +1,23 @@
-import { serviceConstraints, userMessages } from '@/library/constants'
+import { orderStatusIdToName, serviceConstraints, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkAccess } from '@/library/database/operations'
 import { orders } from '@/library/database/schema'
-import { containsIllegalCharacters, isOrderStatus } from '@/library/utilities/public'
+import { containsIllegalCharacters } from '@/library/utilities/public'
 import { equals, initialiseResponder } from '@/library/utilities/server'
-import type { BaseOrder } from '@/types'
+import type { BaseOrder, OrderStatusId, OrderStatusName } from '@/types'
 import type { NextRequest, NextResponse } from 'next/server'
 
 export interface OrderAdminOrderIdPATCHresponse {
 	developmentMessage?: string
 	userMessage?: typeof userMessages.serverError
-	updatedOrder?: OrderAdminOrderIdPATCHbody
+	updatedOrder?: {
+		id: number
+		statusName?: OrderStatusName
+		adminOnlyNote?: string
+	}
 }
 
-/**
- * @example
-const body: OrderAdminOrderIdPATCHbody = {
-	adminOnlyNote: 'I hate this customer! She kicked my dog!', // optional
-	status: 'cancelled', // 'completed' | 'pending' - optional
-}
- */
-export type OrderAdminOrderIdPATCHbody = Pick<BaseOrder, 'id'> & Partial<Pick<BaseOrder, 'adminOnlyNote' | 'status'>>
+export type OrderAdminOrderIdPATCHbody = Pick<BaseOrder, 'id'> & Partial<Pick<BaseOrder, 'adminOnlyNote' | 'statusId'>>
 
 export interface OrderAdminOrderIdPATCHparams {
 	orderId: string // Next.js params are always strings
@@ -34,7 +31,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
 	try {
 		const orderId = Number((await params).orderId)
-		const { adminOnlyNote, status: orderStatus }: OrderAdminOrderIdPATCHbody = await request.json()
+		const { adminOnlyNote, statusId }: OrderAdminOrderIdPATCHbody = await request.json()
 
 		if (!orderId) {
 			return respond({
@@ -44,10 +41,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 		}
 
 		// Check at least one property to update has been provided
-		if (!orderStatus && !adminOnlyNote) {
+		if (!statusId && !adminOnlyNote) {
 			return respond({
 				status: 400,
-				developmentMessage: 'neither orderStatus nor adminOnlyNote provided. At least one property to update must be provided',
+				developmentMessage: 'neither statusId nor adminOnlyNote provided. At least one property to update must be provided',
 			})
 		}
 
@@ -58,15 +55,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 			})
 		}
 
-		// Validate orderStatus, if provided
-		if (orderStatus && !isOrderStatus(orderStatus)) {
+		// Validate statusId, if provided
+		if (statusId !== 1 && statusId !== 2 && statusId !== 3) {
 			return respond({
 				status: 400,
-				developmentMessage: `orderStatus invalid: ${orderStatus}`,
+				developmentMessage: `statusId invalid: ${statusId}`,
 			})
 		}
 
-		// Validate adminOnlyNote, if provided
 		if (adminOnlyNote) {
 			if (adminOnlyNote.length > serviceConstraints.maximumCustomerNoteLength) {
 				return respond({
@@ -120,7 +116,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
 		if (adminOnlyNote && foundOrder.adminOnlyNote !== adminOnlyNote) hasChanges = true
 
-		if (orderStatus && foundOrder.status !== orderStatus) hasChanges = true
+		if (statusId && foundOrder.statusId !== statusId) hasChanges = true
 
 		if (!hasChanges) {
 			return respond({
@@ -130,15 +126,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 		}
 
 		// Update the order
-		const [updatedOrder] = await database
-			.update(orders)
-			.set({ adminOnlyNote, status: orderStatus })
-			.where(equals(orders.id, orderId))
-			.returning({
-				id: orders.id,
-				adminOnlyNote: orders.adminOnlyNote,
-				status: orders.status,
-			})
+		// ToDo: I think this will wipe the field that isn't being updated...
+		const [updatedOrder] = await database.update(orders).set({ adminOnlyNote, statusId }).where(equals(orders.id, orderId)).returning({
+			id: orders.id,
+			adminOnlyNote: orders.adminOnlyNote,
+			statusId: orders.statusId,
+		})
 
 		if (!updatedOrder) {
 			return respond({
@@ -148,7 +141,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 		}
 
 		return respond({
-			body: { updatedOrder },
+			body: {
+				updatedOrder: {
+					id: orderId,
+					adminOnlyNote: updatedOrder.adminOnlyNote || undefined,
+					statusName: orderStatusIdToName[updatedOrder.statusId as OrderStatusId] || undefined,
+				},
+			},
 			status: 200,
 			developmentMessage: 'Order updated successfully',
 		})
