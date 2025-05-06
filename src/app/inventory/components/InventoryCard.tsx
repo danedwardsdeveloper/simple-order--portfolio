@@ -1,9 +1,9 @@
 'use client'
-import type { InventoryDELETEresponse, InventoryDELETEsegment } from '@/app/api/inventory/admin/[itemId]/route'
+import type { InventoryDELETEresponse, InventoryDELETEsegment } from '@/app/api/inventory/[itemId]/route'
+import { useNotifications } from '@/components/providers/notifications'
+import { useUi } from '@/components/providers/ui'
+import { useUser } from '@/components/providers/user'
 import { apiRequest, formatPrice, mergeClasses } from '@/library/utilities/public'
-import { useNotifications } from '@/providers/notifications'
-import { useUi } from '@/providers/ui'
-import { useUser } from '@/providers/user'
 import type { BrowserSafeMerchantProduct } from '@/types'
 import { useState } from 'react'
 import DeleteProductModal from './DeleteProductModal'
@@ -43,7 +43,7 @@ export default function InventoryCard({ product, zebraStripe }: Props) {
 		const segment: InventoryDELETEsegment = String(product.id)
 
 		const { softDeletedProduct, userMessage } = await apiRequest<InventoryDELETEresponse>({
-			basePath: '/inventory/admin',
+			basePath: '/inventory',
 			segment,
 			method: 'DELETE',
 		})
