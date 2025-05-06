@@ -14,11 +14,27 @@ export function formatTimeAndDate(date: Date): string {
 }
 
 /**
- * Example
+ * @example
  * 7 September
  */
 export function formatDate(date: Date): string {
 	return format(date, 'd MMMM')
+}
+
+/**
+ * @example
+ * 7 September 2025
+ */
+export function formatDateFull(date: Date): string {
+	return format(date, 'd MMMM yyyy')
+}
+
+/**
+ * @example
+ * Wednesday, 7 September 2025
+ */
+export function formatDateWithDayName(date: Date): string {
+	return format(date, 'EEEE, d MMMM yyyy')
 }
 
 export function capitaliseFirstLetter(str: string): string {
