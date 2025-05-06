@@ -1,13 +1,13 @@
-import { cookieDurations, userMessages } from '@/library/constants'
+import { cookieDurations, friday, monday, thursday, tuesday, userMessages, wednesday } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { createConfirmationToken, createFreeTrial } from '@/library/database/operations'
-import { users } from '@/library/database/schema'
+import { acceptedDeliveryDays, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import { createNewMerchantEmail } from '@/library/email/templates'
 import { createMerchantSlug, sanitiseDangerousBaseUser } from '@/library/utilities/public'
 import { createCookieWithToken, equals, formatFirstError, hashPassword, initialiseResponder, or } from '@/library/utilities/server'
 import { NewUserSchema } from '@/library/validations'
-import type { BaseUserInsertValues, BrowserSafeCompositeUser, DangerousBaseUser, UserMessages } from '@/types'
+import type { BaseUserInsertValues, BrowserSafeCompositeUser, DangerousBaseUser, Transaction, UserMessages } from '@/types'
 import { cookies } from 'next/headers'
 import type { NextRequest, NextResponse } from 'next/server'
 
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 
 		const confirmationURL: string | null = null
 
-		const { dangerousNewUser } = await database.transaction(async (tx) => {
+		const { dangerousNewUser } = await database.transaction(async (tx: Transaction) => {
 			const baseSlug = createMerchantSlug(businessName)
 			let slug = baseSlug
 
@@ -94,6 +94,14 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 			}
 
 			const [dangerousNewUser]: DangerousBaseUser[] = await tx.insert(users).values(newUserInsertValues).returning()
+
+			txError = { message: 'error setting accepted delivery days', status: 503 }
+
+			await tx
+				.insert(acceptedDeliveryDays)
+				.values([monday, tuesday, wednesday, thursday, friday].map((day) => ({ userId: dangerousNewUser.id, dayOfWeekId: day })))
+
+			txError = { message: 'error creating free trial', status: 503 }
 
 			await createFreeTrial({ userId: dangerousNewUser.id, tx })
 
@@ -126,7 +134,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 		const compositeUser: BrowserSafeCompositeUser = {
 			...sanitisedBaseUser,
 			roles: 'merchant',
-			activeSubscriptionOrTrial: true,
 		}
 
 		const cookieStore = await cookies()
