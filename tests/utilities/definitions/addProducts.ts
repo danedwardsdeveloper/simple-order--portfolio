@@ -4,26 +4,14 @@ import logger from '@/library/logger'
 import type { Product, ProductInsertValues } from '@/types'
 
 /**
+ * @param items An array of ProductInsertValues
  * @example
-const productsToInsert: ProductInsertValues[] = [
-	{
+const addedProducts = await addProducts(
+	[{	
 		ownerId: 1,
 		name: 'Soup',
 		priceInMinorUnits: 500,
-	},
-]
-
-const addedProducts = await addProducts(productsToInsert)
-
-//
-
-const addedProducts = await addProducts([
-	{
-		ownerId: 1,
-		name: 'Soup',
-		priceInMinorUnits: 500,
-	},
-])
+	}])
  */
 export async function addProducts(items: ProductInsertValues[]): Promise<Product[]> {
 	try {
