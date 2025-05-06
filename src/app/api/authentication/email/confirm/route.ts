@@ -65,7 +65,10 @@ export async function POST(request: NextRequest): Output {
 			})
 		}
 
-		if (new Date() > new Date(foundToken.expiresAt)) {
+		const nowUTC = new Date()
+		nowUTC.setUTCHours(0, 0, 0, 0)
+
+		if (nowUTC > new Date(foundToken.expiresAt)) {
 			return respond({
 				status: 401,
 				developmentMessage: 'Token expired',
@@ -86,12 +89,13 @@ export async function POST(request: NextRequest): Output {
 		})
 
 		const { userRole } = await getUserRoles(foundDangerousUser)
-		const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(foundDangerousUser.id)
+		const { trialEnd, subscriptionEnd } = await checkActiveSubscriptionOrTrial(foundDangerousUser.id)
 
 		const confirmedUser: BrowserSafeCompositeUser = {
 			...sanitiseDangerousBaseUser(updatedUser),
 			roles: userRole,
-			activeSubscriptionOrTrial,
+			subscriptionEnd,
+			trialEnd,
 		}
 
 		const cookieStore = await cookies()
