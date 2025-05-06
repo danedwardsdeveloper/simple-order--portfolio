@@ -1,5 +1,5 @@
 'use client'
-import { useUser } from '@/providers/user'
+import { useUser } from '@/components/providers/user'
 import type { ReactNode } from 'react'
 import SubscribeButton from './SubscriptionButton'
 
@@ -13,6 +13,7 @@ export default function TrialExpiryInformation() {
 	if (user.subscriptionEnd && !user.subscriptionCancelled) return null
 
 	const currentDate = new Date()
+	currentDate.setUTCHours(0, 0, 0, 0)
 
 	const timeDifference = user.trialEnd ? new Date(user.trialEnd).getTime() - currentDate.getTime() : 0
 	const dayDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24))
