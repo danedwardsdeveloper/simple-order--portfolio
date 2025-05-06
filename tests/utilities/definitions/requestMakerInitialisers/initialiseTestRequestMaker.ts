@@ -1,5 +1,5 @@
 import { createApiUrl } from '@/library/utilities/public'
-import type { TestRequestResponse } from '@/types'
+import type { TestRequestResponse } from '@tests/types'
 import { parseTokenCookie } from '@tests/utilities'
 import type { HTTP_METHOD } from 'next/dist/server/web/http'
 import fetch from 'node-fetch'
@@ -22,7 +22,7 @@ type RequestMaker = ({ requestCookie, segment, searchParam, body }: ReturnedFunc
 /**
  * @example
 const requestMaker = initialiseTestRequestMaker({
-	basePath: 'orders/admin',
+	basePath: '/orders',
 	method: 'PATCH',
 })
 
