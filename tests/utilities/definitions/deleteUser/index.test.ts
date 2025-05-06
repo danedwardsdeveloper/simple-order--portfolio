@@ -34,6 +34,9 @@ describe('deleteUser', async () => {
 
 	const suites: Suite[] = [
 		{
+			suiteSetUp: async () => {
+				await deleteUser(inputValues.email)
+			},
 			description: 'No set up',
 			cases: [
 				{
