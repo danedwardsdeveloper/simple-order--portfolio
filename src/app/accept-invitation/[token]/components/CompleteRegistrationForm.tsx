@@ -1,9 +1,9 @@
 'use client'
 import type { InvitationsTokenPATCHbody, InvitationsTokenPATCHresponse } from '@/app/api/invitations/[token]/route'
+import { useNotifications } from '@/components/providers/notifications'
+import { useUi } from '@/components/providers/ui'
+import { useUser } from '@/components/providers/user'
 import { apiRequest } from '@/library/utilities/public'
-import { useNotifications } from '@/providers/notifications'
-import { useUi } from '@/providers/ui'
-import { useUser } from '@/providers/user'
 import { useRouter } from 'next/navigation'
 import { type FormEvent, useState } from 'react'
 
