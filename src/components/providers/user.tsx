@@ -1,11 +1,11 @@
 'use client'
 import type { VerifyTokenGETresponse } from '@/app/api/authentication/verify-token/route'
-import type { InventoryAdminGETresponse } from '@/app/api/inventory/admin/route'
+import type { InventoryAdminGETresponse } from '@/app/api/inventory/route'
 import type { InvitationsGETresponse } from '@/app/api/invitations/route'
 import type { OrdersAdminGETresponse } from '@/app/api/orders/admin/route'
 import type { OrdersGETresponse } from '@/app/api/orders/route'
 import type { RelationshipsGETresponse } from '@/app/api/relationships/route'
-import { apiPaths, temporaryVat } from '@/library/constants'
+import { temporaryVat } from '@/library/constants'
 import logger from '@/library/logger'
 import { apiRequest } from '@/library/utilities/public'
 import type {
@@ -101,47 +101,34 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
 					await Promise.all([...basePromises, ...rolePromises])
 				}
-			} catch (error) {
-				logger.error(`User provider ${apiPaths.authentication.verifyToken}`, error)
 			} finally {
 				setIsLoading(false)
 			}
 		}
 
 		async function getRelationships() {
-			try {
-				const { customers, merchants } = await apiRequest<RelationshipsGETresponse>({
-					basePath: '/relationships',
-				})
+			const { customers, merchants } = await apiRequest<RelationshipsGETresponse>({
+				basePath: '/relationships',
+			})
 
-				setConfirmedMerchants(merchants || null)
-				setConfirmedCustomers(customers || null)
-			} catch (error) {
-				logger.error(`User provider ${apiPaths.relationships}`, error)
-			}
+			setConfirmedMerchants(merchants || null)
+			setConfirmedCustomers(customers || null)
 		}
 
 		async function getInvitations() {
-			const invitationsURL = apiPaths.invitations.base
-			try {
-				const invitationsResponse = await fetch(invitationsURL, {
-					credentials: 'include',
-				})
+			const { invitationsSent, invitationsReceived } = await apiRequest<InvitationsGETresponse>({
+				basePath: '/invitations',
+			})
 
-				const { invitationsSent, invitationsReceived }: InvitationsGETresponse = await invitationsResponse.json()
-
-				setInvitationsSent(invitationsSent || null)
-				setInvitationsReceived(invitationsReceived || null)
-			} catch (error) {
-				logger.error(`User provider ${invitationsURL}: `, error)
-			}
+			setInvitationsSent(invitationsSent || null)
+			setInvitationsReceived(invitationsReceived || null)
 		}
 
 		async function getInventory() {
 			// ToDo: refactor this
 			try {
 				const { inventory } = await apiRequest<InventoryAdminGETresponse>({
-					basePath: '/inventory/admin',
+					basePath: '/inventory',
 				})
 
 				if (inventory) setInventory(inventory)
@@ -159,7 +146,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
 		async function getOrdersReceived() {
 			const { ordersReceived } = await apiRequest<OrdersAdminGETresponse>({
-				basePath: '/orders/admin',
+				basePath: '/orders',
 			})
 
 			if (ordersReceived) setOrdersReceived(ordersReceived)
