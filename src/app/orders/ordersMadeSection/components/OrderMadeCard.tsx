@@ -1,5 +1,5 @@
 import ZebraContainer from '@/components/ZebraContainer'
-import { calculateOrderTotal, capitaliseFirstLetter, formatDate, formatPrice } from '@/library/utilities/public'
+import { calculateOrderTotal, formatDate, formatPrice } from '@/library/utilities/public'
 import type { BrowserOrderItem, OrderMade } from '@/types'
 
 interface Props {
@@ -30,28 +30,30 @@ function OrderItem({ item }: { item: BrowserOrderItem }) {
 }
 
 export default function OrderMadeCard({ orderDetails, includeVat, index }: Props) {
+	const { statusName, businessName, requestedDeliveryDate, createdAt, updatedAt, products } = orderDetails
+
 	return (
 		<li>
 			<ZebraContainer index={index} oddStyles="bg-blue-50" evenStyles="bg-zinc-50" baseStyles="flex flex-col gap-y-6 w-full p-3 rounded-xl">
 				{/* Card header */}
 				<div className="flex justify-between">
-					<h3>{orderDetails.businessName}</h3>
+					<h3>{businessName}</h3>
 					<div className="flex flex-col gap-y-2 justify-end text-right">
-						<span className="text-orange-600">{capitaliseFirstLetter(orderDetails.status)}</span>
+						<span className="text-orange-600">{statusName}</span>
 						<div className="block">
 							<span className="text-zinc-600 mr-2">Requested delivery date</span>
-							<time dateTime={orderDetails.requestedDeliveryDate.toString()}>{formatDate(orderDetails.requestedDeliveryDate)}</time>
+							<time dateTime={requestedDeliveryDate.toString()}>{formatDate(requestedDeliveryDate)}</time>
 						</div>
 
 						<div className="block">
 							<span className="text-zinc-600 mr-2">Created</span>
-							<time dateTime={orderDetails.createdAt.toString()}>{formatDate(orderDetails.createdAt)}</time>
+							<time dateTime={createdAt.toString()}>{formatDate(createdAt)}</time>
 						</div>
 
-						{orderDetails.createdAt !== orderDetails.updatedAt && (
+						{createdAt !== updatedAt && (
 							<div className="block">
 								<span className="text-zinc-600 mr-2">Updated</span>
-								<time dateTime={orderDetails.updatedAt.toString()}>{formatDate(orderDetails.updatedAt)}</time>
+								<time dateTime={updatedAt.toString()}>{formatDate(updatedAt)}</time>
 							</div>
 						)}
 					</div>
@@ -59,7 +61,7 @@ export default function OrderMadeCard({ orderDetails, includeVat, index }: Props
 
 				{/* Order items */}
 				<ul className="flex flex-col gap-y-6 divide-y-2 divide-zinc-200 mb-8">
-					{orderDetails.products.map((item) => (
+					{products.map((item) => (
 						<OrderItem key={item.id} item={item} />
 					))}
 				</ul>
