@@ -1,17 +1,17 @@
 'use client'
-import type { InventoryMerchantSlugGETresponse } from '@/app/api/inventory/merchants/[merchantSlug]/route'
-import type { OrdersPOSTbody, OrdersPOSTresponse } from '@/app/api/orders/route'
+import type { InventoryMerchantSlugGETresponse } from '@/app/api/merchants/[merchantSlug]/get'
+import type { OrdersPOSTbody, OrdersPOSTresponse } from '@/app/api/orders/post'
 import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
 import Spinner from '@/components/Spinner'
-import { apiPaths, userMessages } from '@/library/constants'
-import { apiRequest } from '@/library/utilities/public'
-import { useNotifications } from '@/providers/notifications'
-import { useUser } from '@/providers/user'
+import { useNotifications } from '@/components/providers/notifications'
+import { useUser } from '@/components/providers/user'
+import { userMessages } from '@/library/constants'
+import { apiRequest, epochDateToAmPm, formatPrice } from '@/library/utilities/public'
 import type { BrowserSafeCustomerProduct } from '@/types'
 import { useRouter } from 'next/navigation'
-import { type ChangeEvent, type FormEvent, use, useEffect, useState } from 'react'
-import urlJoin from 'url-join'
+import { type FormEvent, use, useEffect, useState } from 'react'
 import CustomerFacingProductCard from '../components/CustomerFacingProductCard'
+import DeliveryDates from './DeliveryDates'
 
 // ToDo: extract CreateOrderForm.tsx
 export default function MerchantPage({ params }: { params: Promise<{ merchantSlug: string }> }) {
@@ -24,6 +24,7 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 	const [isLoading, setIsLoading] = useState(true)
 	const [products, setProducts] = useState<BrowserSafeCustomerProduct[] | null>(null)
 	const [errorMessage, setErrorMessage] = useState('')
+	const [availableDeliveryDays, setAvailableDeliveryDays] = useState<Date[] | null>(null)
 
 	// Might need to useRef here as numbers are occasionally getting wiped. However it could just be a development issues with hot reloading
 	const [selectedProducts, setSelectedProducts] = useState<Record<string, number>>({})
@@ -40,9 +41,15 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 		async function getData() {
 			try {
 				setIsLoading(true)
-				const { availableProducts, userMessage }: InventoryMerchantSlugGETresponse = await (
-					await fetch(urlJoin(apiPaths.inventory.customerPerspective.base, merchantSlug), { credentials: 'include' })
-				).json()
+
+				const { userMessage, availableProducts, availableDeliveryDays } = await apiRequest<InventoryMerchantSlugGETresponse>({
+					basePath: '/merchants',
+					segment: merchantSlug,
+				})
+
+				if (availableDeliveryDays) {
+					setAvailableDeliveryDays(availableDeliveryDays)
+				}
 
 				if (availableProducts) {
 					setProducts(availableProducts)
@@ -65,10 +72,6 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 			...previous,
 			[productId]: quantity,
 		}))
-	}
-
-	function handleDateChange(event: ChangeEvent<HTMLInputElement>) {
-		setRequestedDeliveryDate(new Date(event.target.value))
 	}
 
 	async function handleSubmit(event: FormEvent) {
@@ -119,7 +122,9 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 		}
 	}
 
-	if (!user || !merchantSlug) return null
+	if (!user || !merchantDetails) return null
+
+	const { leadTimeDays, cutOffTime } = merchantDetails
 
 	return (
 		<>
@@ -138,51 +143,66 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 				currentPageTitle="New order"
 			/>
 			<h1>New order</h1>
-			{isLoading ? (
-				<Spinner />
-			) : (
-				<form onSubmit={handleSubmit}>
-					<div className="mb-8">
-						<label htmlFor="requestedDeliveryDate" className="block mb-1 text-lg font-medium">
-							Requested delivery date
-						</label>
-						<div className="p-2 text-lg bg-slate-50 rounded border-2 border-blue-100 outline-offset-4 focus-visible:outline-orange-400 w-full max-w-sm">
-							{requestedDeliveryDate === tomorrow && <span className="mr-2">Tomorrow</span>}
-							<input
-								type="date"
-								className="bg-transparent"
-								value={String(requestedDeliveryDate)}
-								onChange={handleDateChange}
-								min={new Date().toISOString().split('T')[0]} // Minimum date of today
-							/>
-						</div>
-					</div>
-					<ul className="flex flex-col w-full gap-y-4 max-w-xl">
-						{products?.map((product, index) => (
-							<CustomerFacingProductCard
-								key={product.id}
-								product={product}
-								zebraStripe={Boolean(index % 2)}
-								quantity={selectedProducts[product.id] || 0}
-								onQuantityChange={(quantity) => handleQuantityChange(product.id, quantity)}
-							/>
-						))}
-					</ul>
-					<div className="mt-4 flex flex-col gap-y-4">
-						{errorMessage && (
-							<p className="lg:-mx-3 text-red-600 p-3 border-2 border-red-300 bg-red-50 rounded-xl max-w-xl">{errorMessage}</p>
-						)}
 
-						<button
-							type="submit"
-							disabled={Object.values(selectedProducts).every((quantity) => quantity === 0) || isSubmitting}
-							className="button-primary py-2 w-full max-w-xl flex justify-center"
-						>
-							{isSubmitting ? <Spinner colour="text-white" /> : 'Place order'}
-						</button>
-					</div>
-				</form>
-			)}
+			<div className="flex flex-col gap-y-4 mb-6 p-3 border-2 border-zinc-200 rounded-xl max-w-xl">
+				<p>
+					<span className="font-medium">Cut off time: </span>
+					<span>{epochDateToAmPm(cutOffTime)}</span>
+				</p>
+				<p>
+					<span className="font-medium">Lead time days: </span>
+					<span>{String(leadTimeDays)}</span>
+				</p>
+
+				<div>
+					<p className="font-medium mb-2">Requested delivery date</p>
+					<DeliveryDates availableDeliveryDays={availableDeliveryDays} />
+				</div>
+			</div>
+
+			{(() => {
+				if (isLoading) return <Spinner />
+
+				return (
+					<form onSubmit={handleSubmit}>
+						<ul className="flex flex-col w-full gap-y-4 max-w-xl">
+							{products?.map((product, index) => (
+								<CustomerFacingProductCard
+									key={product.id}
+									product={product}
+									zebraStripe={Boolean(index % 2)}
+									quantity={selectedProducts[product.id] || 0}
+									onQuantityChange={(quantity) => handleQuantityChange(product.id, quantity)}
+								/>
+							))}
+						</ul>
+
+						{/* Minimum spend progress bar */}
+						<div className="max-w-xl my-6">
+							<div className="mb-1">
+								<span className="font-medium">Minimum spend: </span>
+								<span>{formatPrice(merchantDetails.minimumSpendPence)} without VAT</span>
+							</div>
+							<div className="overflow-hidden rounded-full bg-gray-200">
+								<div style={{ width: '37.5%' }} className="h-2 rounded-full bg-blue-600" />
+							</div>
+						</div>
+						<div className="mt-4 flex flex-col gap-y-4">
+							{errorMessage && (
+								<p className="lg:-mx-3 text-red-600 p-3 border-2 border-red-300 bg-red-50 rounded-xl max-w-xl">{errorMessage}</p>
+							)}
+
+							<button
+								type="submit"
+								disabled={Object.values(selectedProducts).every((quantity) => quantity === 0) || isSubmitting}
+								className="button-primary py-2 w-full max-w-xl flex justify-center"
+							>
+								{isSubmitting ? <Spinner colour="text-white" /> : 'Place order'}
+							</button>
+						</div>
+					</form>
+				)
+			})()}
 		</>
 	)
 }
