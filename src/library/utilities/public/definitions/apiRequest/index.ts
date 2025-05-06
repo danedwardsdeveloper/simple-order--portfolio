@@ -41,7 +41,7 @@ export async function apiRequest<Return, Body = Record<string, unknown>>({
 	applicationJson = true,
 	method = 'GET',
 	body,
-}: Props<Body>): Promise<Return> {
+}: Props<Body>): Promise<Return & { ok: boolean }> {
 	if (typeof window === 'undefined') throw new Error('Attempted to use fetch on the server. Use node-fetch instead')
 
 	const url = createApiUrl({ domain, basePath, segment, searchParam })
@@ -54,5 +54,10 @@ export async function apiRequest<Return, Body = Record<string, unknown>>({
 	}
 
 	const response = await fetch(url, options)
-	return (await response.json()) as Return
+	const data = (await response.json()) as Return
+
+	return {
+		...data,
+		ok: response.ok,
+	}
 }
