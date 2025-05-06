@@ -1,11 +1,11 @@
 import { SignedOutBreadCrumbs } from '@/components/BreadCrumbs'
 import PageContainer from '@/components/PageContainer'
-import { sortedArticles } from '@/library/articles'
-import { articlesData } from '@/library/articles/data'
 import { formatDate, mergeClasses } from '@/library/utilities/public'
+import { sortedArticles } from '@/library/utilities/tsx'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { articlesData } from './data'
 
 export const metadata: Metadata = {
 	title: 'Articles', // ...template
