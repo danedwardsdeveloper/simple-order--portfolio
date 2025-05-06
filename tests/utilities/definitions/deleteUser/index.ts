@@ -1,7 +1,9 @@
 import { developmentDatabase } from '@/library/database/connection'
 import {
+	acceptedDeliveryDays,
 	confirmationTokens,
 	freeTrials,
+	holidays,
 	invitations,
 	orderItems,
 	orders,
@@ -62,6 +64,7 @@ export async function deleteUser(email: string): Promise<{ success: boolean }> {
 					equals(relationships.merchantId, idToDelete),
 				),
 			)
+
 			await tx.delete(subscriptions).where(
 				equals(subscriptions.userId, idToDelete), //
 			)
@@ -76,6 +79,14 @@ export async function deleteUser(email: string): Promise<{ success: boolean }> {
 
 			await tx.delete(freeTrials).where(
 				equals(freeTrials.userId, idToDelete), //
+			)
+
+			await tx.delete(holidays).where(
+				equals(holidays.userId, idToDelete), //
+			)
+
+			await tx.delete(acceptedDeliveryDays).where(
+				equals(acceptedDeliveryDays.userId, idToDelete), //
 			)
 
 			// Finally, delete the user
