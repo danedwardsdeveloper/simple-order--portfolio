@@ -1,5 +1,5 @@
 'use client'
-import type {} from '@/app/api/inventory/admin/[itemId]/route'
+import type {} from '@/app/api/inventory/[itemId]/route'
 import { dataTestIdNames } from '@/library/constants'
 import type { BrowserSafeMerchantProduct } from '@/types'
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
