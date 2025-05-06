@@ -18,10 +18,13 @@ export async function getUserRoles(user: DangerousBaseUser): Promise<{ userRole:
 
 		let isMerchant = false
 
+		const nowUTC = new Date()
+		nowUTC.setHours(0, 0, 0, 0)
+
 		const [foundFreeTrial] = await database
 			.select()
 			.from(freeTrials)
-			.where(and(equals(freeTrials.userId, user.id), greaterThan(freeTrials.endDate, new Date())))
+			.where(and(equals(freeTrials.userId, user.id), greaterThan(freeTrials.endDate, nowUTC)))
 			.limit(1)
 
 		if (foundFreeTrial) isMerchant = true
