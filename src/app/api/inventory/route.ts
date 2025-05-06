@@ -30,7 +30,7 @@ export interface InventoryAdminGETresponse {
 
 // GET all products for the signed-in merchant
 export async function GET(request: NextRequest): Promise<NextResponse<InventoryAdminGETresponse>> {
-	const { developmentLogger } = initialiseDevelopmentLogger('/inventory/admin', 'GET')
+	const { developmentLogger } = initialiseDevelopmentLogger('/inventory', 'GET')
 
 	try {
 		const { dangerousUser, accessDenied } = await checkAccess({
@@ -72,7 +72,6 @@ export async function GET(request: NextRequest): Promise<NextResponse<InventoryA
 }
 
 // POST
-
 export type InventoryAddPOSTbody = Omit<ProductInsertValues, 'ownerId' | 'id' | 'createdAt' | 'deletedAt' | 'updatedAt'>
 
 // ToDo: remove unused responses
@@ -101,7 +100,13 @@ export async function POST(request: NextRequest): OutputPOST {
 
 		let badRequestMessage: string | undefined
 
-		if (!name) badRequestMessage = 'name missing'
+		if (!name) {
+			return respond({
+				status: 400,
+				developmentMessage: 'name missing',
+			})
+		}
+
 		if (containsIllegalCharacters(name)) badRequestMessage = 'name contains illegal characters'
 		if (!priceInMinorUnits) badRequestMessage = 'priceInMinorUnits missing'
 		if (Number.isNaN(priceInMinorUnits)) badRequestMessage = 'priceInMinorUnits not a number'

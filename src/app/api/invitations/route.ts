@@ -10,6 +10,88 @@ import { and, createInvitation, createInvitationURL, equals, inArray, initialise
 import type { BrowserSafeInvitationReceived, BrowserSafeInvitationSent, DangerousBaseUser, Invitation, UserMessages } from '@/types'
 import { type NextRequest, NextResponse } from 'next/server'
 
+export interface InvitationsGETresponse {
+	userMessage?: UserMessages
+	invitationsSent?: BrowserSafeInvitationSent[]
+	invitationsReceived?: BrowserSafeInvitationReceived[]
+}
+
+type OutputGET = Promise<NextResponse<InvitationsGETresponse>>
+
+export async function GET(request: NextRequest): OutputGET {
+	const respond = initialiseResponder<InvitationsGETresponse>()
+	try {
+		const { dangerousUser, accessDenied } = await checkAccess({
+			request,
+			requireConfirmed: false,
+			requireSubscriptionOrTrial: false,
+		})
+
+		if (accessDenied) {
+			return respond({
+				status: accessDenied.status,
+				developmentMessage: accessDenied.message,
+			})
+		}
+
+		const rawInvitationsReceived = convertEmptyToUndefined(
+			await database.select().from(invitations).where(equals(invitations.email, dangerousUser.email)),
+		)
+
+		const rawInvitationsSent = convertEmptyToUndefined(
+			await database.select().from(invitations).where(equals(invitations.senderUserId, dangerousUser.id)),
+		)
+
+		if (!rawInvitationsReceived && !rawInvitationsSent) {
+			return respond({
+				status: 200,
+				developmentMessage: 'legitimately no invitations found',
+			})
+		}
+
+		let invitationsReceived: BrowserSafeInvitationReceived[] | undefined
+		if (rawInvitationsReceived) {
+			const senderUserIds = rawInvitationsReceived.map((invitation) => invitation.senderUserId)
+
+			const merchantBusinessNames = await database
+				.select({
+					id: users.id,
+					businessName: users.businessName,
+				})
+				.from(users)
+				.where(inArray(users.id, senderUserIds))
+
+			const businessNameMap = new Map(merchantBusinessNames.map((merchant) => [merchant.id, merchant.businessName]))
+
+			invitationsReceived = rawInvitationsReceived.map((invitation) => ({
+				merchantBusinessName: businessNameMap.get(invitation.senderUserId) || 'Unknown Business',
+				expirationDate: invitation.expiresAt || new Date(),
+			}))
+
+			// ToDo: Possible UTC/Timezone issues here
+		}
+
+		const invitationsSent: BrowserSafeInvitationSent[] | undefined = rawInvitationsSent
+			? rawInvitationsSent.map((invitation) => ({
+					obfuscatedEmail: obfuscateEmail(invitation.email),
+					lastEmailSentDate: invitation.lastEmailSent,
+					expirationDate: invitation.expiresAt,
+				}))
+			: undefined
+
+		return respond({
+			body: { invitationsReceived, invitationsSent },
+			status: 200,
+		})
+	} catch (caughtError) {
+		return respond({
+			body: { userMessage: userMessages.serverError },
+			status: 500,
+			caughtError,
+		})
+	}
+}
+
 export interface InvitationsPOSTresponse {
 	userMessage?: string
 	developerMessage?: string
@@ -149,86 +231,6 @@ export async function POST(request: NextRequest): OutputPOST {
 
 		return respond({
 			body: { browserSafeInvitationRecord },
-			status: 200,
-		})
-	} catch (caughtError) {
-		return respond({
-			body: { userMessage: userMessages.serverError },
-			status: 500,
-			caughtError,
-		})
-	}
-}
-
-export interface InvitationsGETresponse {
-	userMessage?: UserMessages
-	invitationsSent?: BrowserSafeInvitationSent[]
-	invitationsReceived?: BrowserSafeInvitationReceived[]
-}
-
-type OutputGET = Promise<NextResponse<InvitationsGETresponse>>
-
-export async function GET(request: NextRequest): OutputGET {
-	const respond = initialiseResponder<InvitationsGETresponse>()
-	try {
-		const { dangerousUser, accessDenied } = await checkAccess({
-			request,
-			requireConfirmed: false,
-			requireSubscriptionOrTrial: false,
-		})
-
-		if (accessDenied) {
-			return respond({
-				status: accessDenied.status,
-				developmentMessage: accessDenied.message,
-			})
-		}
-
-		const rawInvitationsReceived = convertEmptyToUndefined(
-			await database.select().from(invitations).where(equals(invitations.email, dangerousUser.email)),
-		)
-
-		const rawInvitationsSent = convertEmptyToUndefined(
-			await database.select().from(invitations).where(equals(invitations.senderUserId, dangerousUser.id)),
-		)
-
-		if (!rawInvitationsReceived && !rawInvitationsSent) {
-			return respond({
-				status: 200,
-				developmentMessage: 'legitimately no invitations found',
-			})
-		}
-
-		let invitationsReceived: BrowserSafeInvitationReceived[] | undefined
-		if (rawInvitationsReceived) {
-			const senderUserIds = rawInvitationsReceived.map((invitation) => invitation.senderUserId)
-
-			const merchantBusinessNames = await database
-				.select({
-					id: users.id,
-					businessName: users.businessName,
-				})
-				.from(users)
-				.where(inArray(users.id, senderUserIds))
-
-			const businessNameMap = new Map(merchantBusinessNames.map((merchant) => [merchant.id, merchant.businessName]))
-
-			invitationsReceived = rawInvitationsReceived.map((invitation) => ({
-				merchantBusinessName: businessNameMap.get(invitation.senderUserId) || 'Unknown Business',
-				expirationDate: invitation.expiresAt || new Date(),
-			}))
-		}
-
-		const invitationsSent: BrowserSafeInvitationSent[] | undefined = rawInvitationsSent
-			? rawInvitationsSent.map((invitation) => ({
-					obfuscatedEmail: obfuscateEmail(invitation.email),
-					lastEmailSentDate: invitation.lastEmailSent,
-					expirationDate: invitation.expiresAt,
-				}))
-			: undefined
-
-		return respond({
-			body: { invitationsReceived, invitationsSent },
 			status: 200,
 		})
 	} catch (caughtError) {

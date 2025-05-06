@@ -1,17 +1,8 @@
-import {
-	apiPaths,
-	basicMessages,
-	cookieDurations,
-	cookieNames,
-	http409conflict,
-	http422unprocessableContent,
-	userMessages,
-} from '@/library/constants'
+import { cookieDurations, cookieNames, http409conflict, http422unprocessableContent, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkActiveSubscriptionOrTrial, getUserRoles } from '@/library/database/operations'
 import { invitations, relationships, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
-import logger from '@/library/logger'
 import { createMerchantSlug, sanitiseDangerousBaseUser, validateUuid } from '@/library/utilities/public'
 import { and, createCookieWithToken, equals, initialiseResponder } from '@/library/utilities/server'
 import type {
@@ -22,11 +13,12 @@ import type {
 	Invitation,
 	InvitedCustomerBrowserInputValues,
 	RelationshipJoinRow,
+	Transaction,
 	UserMessages,
 } from '@/types'
 import bcrypt from 'bcryptjs'
 import { cookies } from 'next/headers'
-import { type NextRequest, NextResponse } from 'next/server'
+import type { NextRequest, NextResponse } from 'next/server'
 
 export type InvitationsTokenPATCHbody = InvitedCustomerBrowserInputValues
 
@@ -60,10 +52,17 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
 	let txError: { message: string; status: number } | undefined = { message: 'unknown transaction error', status: 503 }
 
-	const partialDetailsProvided = undefined
-	const allDetailsProvided = undefined
+	let requestBody: InvitationsTokenPATCHbody = {} as InvitationsTokenPATCHbody
 
-	const { firstName, lastName, businessName, password } = await request.json()
+	try {
+		requestBody = await request.json()
+	} catch {}
+
+	const { firstName, lastName, businessName, password } = requestBody
+
+	const requiredFields = [firstName, lastName, businessName, password]
+	const allDetailsProvided = requiredFields.every(Boolean)
+	const partialDetailsProvided = requiredFields.some(Boolean) && !allDetailsProvided
 
 	if (partialDetailsProvided) {
 		return respond({
@@ -99,6 +98,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 	const senderDetails: BrowserSafeMerchantProfile = {
 		slug: foundSenderProfile.slug,
 		businessName: foundSenderProfile.businessName,
+		leadTimeDays: foundSenderProfile.leadTimeDays,
+		cutOffTime: foundSenderProfile.cutOffTime,
+		minimumSpendPence: foundSenderProfile.minimumSpendPence,
 	}
 
 	if (foundDangerousUser) {
@@ -118,7 +120,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
 	try {
 		if (foundDangerousUser) {
-			await database.transaction(async (tx) => {
+			await database.transaction(async (tx: Transaction) => {
 				txError = {
 					message: 'transaction error creating relationships',
 					status: http409conflict,
@@ -133,11 +135,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 				txError.message = 'transaction error ensuring emailConfirmed on existing user is set to true'
 				await tx.update(users).set({ emailConfirmed: true }).where(equals(users.id, foundDangerousUser.id))
 
+				const usedAt = new Date()
+				usedAt.setUTCHours(0, 0, 0, 0)
+
 				// Transaction: Expire the invitation
 				txError.message = 'error expiring invitation'
 				await tx
 					.update(invitations)
-					.set({ usedAt: new Date() })
+					.set({ usedAt })
 					.where(and(equals(invitations.senderUserId, foundInvitation.senderUserId), equals(invitations.token, token)))
 
 				txError = undefined
@@ -149,19 +154,22 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 				cookieStore.set(createCookieWithToken(foundDangerousUser.id, cookieDurations.oneYear))
 			}
 
-			logger.info(`PATCH ${apiPaths.invitations.accept}: existing user found, relationship created`)
-
 			const { userRole } = await getUserRoles(foundDangerousUser)
 
-			const { activeSubscriptionOrTrial } = await checkActiveSubscriptionOrTrial(foundDangerousUser.id)
+			const { trialEnd, subscriptionEnd } = await checkActiveSubscriptionOrTrial(foundDangerousUser.id)
 
 			const existingUser: BrowserSafeCompositeUser = {
 				...sanitiseDangerousBaseUser(foundDangerousUser),
 				roles: userRole,
-				activeSubscriptionOrTrial,
+				subscriptionEnd,
+				trialEnd,
 			}
 
-			return NextResponse.json({ message: basicMessages.success, senderDetails, existingUser }, { status: 201 })
+			return respond({
+				body: { senderDetails, existingUser },
+				status: 201,
+				developmentMessage: 'existing user found, relationship created',
+			})
 		}
 
 		if (!foundDangerousUser && !allDetailsProvided) {
@@ -173,7 +181,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 		}
 
 		if (!foundDangerousUser && allDetailsProvided) {
-			const { createdUser } = await database.transaction(async (tx) => {
+			const { createdUser } = await database.transaction(async (tx: Transaction) => {
 				// Transaction: Create user
 				const saltRounds = 10
 				const hashedPassword = await bcrypt.hash(password, saltRounds)
@@ -186,7 +194,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 					// ToDo: add multiple attempts
 					slug: createMerchantSlug(businessName),
 					hashedPassword,
-					emailConfirmed: true, // They've just clicked a link from an email!
+					emailConfirmed: true,
 				}
 
 				txError = {
@@ -234,11 +242,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 			const compositeUser: BrowserSafeCompositeUser = {
 				...createdUser,
 				roles: 'customer',
-				activeSubscriptionOrTrial: false, // This is a new customer-only, so they don't have a subscription but can still use the site to make orders
+				// This is a new customer-only, so they don't have a subscription or trial but can still use the site to make orders
 			}
 
-			logger.info(`PATCH ${apiPaths.invitations.accept}: created new user: `, compositeUser)
-			return NextResponse.json({ message: basicMessages.success, createdUser: compositeUser, senderDetails }, { status: 200 })
+			return respond({
+				body: { createdUser: compositeUser, senderDetails },
+				status: 200,
+				developmentMessage: 'New user created',
+			})
 		}
 
 		return respond({

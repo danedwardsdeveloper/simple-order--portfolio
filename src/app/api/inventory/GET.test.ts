@@ -3,7 +3,7 @@ import { addProducts, createCookieString, createUser, deleteUser, initialiseTest
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import type { InventoryAdminGETresponse } from './route'
 
-const makeRequest = initialiseTestGETRequestMaker('/inventory/admin')
+const makeRequest = initialiseTestGETRequestMaker('/inventory')
 
 describe('Get inventory', async () => {
 	const lindsayLohan = {
@@ -65,7 +65,7 @@ describe('Get inventory', async () => {
 						userId: 1,
 					})
 				},
-				expectedStatus: 400,
+				expectedStatus: 401,
 			},
 		]
 
@@ -138,5 +138,5 @@ describe('Get inventory', async () => {
 })
 
 /* 
-pnpm vitest src/app/api/inventory/admin/GET
+pnpm vitest src/app/api/inventory/GET
 */
