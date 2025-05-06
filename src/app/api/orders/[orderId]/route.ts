@@ -1,4 +1,4 @@
-import { orderStatus, serviceConstraints, userMessages } from '@/library/constants'
+import { orderIsCompleted, serviceConstraints, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkAccess } from '@/library/database/operations'
 import { orderItems, orders } from '@/library/database/schema'
@@ -100,7 +100,6 @@ export async function PATCH(request: NextRequest, { params }: { params: OrdersOr
 
 		if (!orderToUpdate) {
 			return respond({
-				body: {},
 				status: 400,
 				developmentMessage: `Couldn't find order with ID ${orderId}`,
 			})
@@ -114,10 +113,10 @@ export async function PATCH(request: NextRequest, { params }: { params: OrdersOr
 		}
 
 		// Check order is not completed
-		if (orderToUpdate.status === orderStatus.completed) {
+		if (orderIsCompleted(orderToUpdate.statusId)) {
 			return respond({
 				status: 403,
-				developmentMessage: `Can't update order with ID ${orderId} because it is ${orderToUpdate.status}`,
+				developmentMessage: `Can't update order with ID ${orderId} because it's marked as completed`,
 			})
 		}
 
