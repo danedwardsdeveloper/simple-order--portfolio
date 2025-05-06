@@ -1,6 +1,7 @@
 import { defaultCutOffTime, defaultLeadTimeDays, searchParamNames } from '@/library/constants'
 import { relations } from 'drizzle-orm'
-import { boolean, integer, pgTable, primaryKey, serial, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
+import { boolean, date, integer, pgTable, primaryKey, serial, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
+import { defaultMinimumSpendPence } from '../constants/definitions/minimumSpend'
 
 export const users = pgTable('users', {
 	id: serial('id').primaryKey(),
@@ -13,6 +14,7 @@ export const users = pgTable('users', {
 	emailConfirmed: boolean('email_confirmed').notNull().default(false),
 	cutOffTime: timestamp('cut_off_time', { withTimezone: false, precision: 0, mode: 'date' }).default(defaultCutOffTime).notNull(),
 	leadTimeDays: integer('lead_time_days').default(defaultLeadTimeDays).notNull(),
+	minimumSpendPence: integer('minimum_spend_pence').default(defaultMinimumSpendPence).notNull(),
 })
 
 export const relationships = pgTable(
@@ -142,5 +144,53 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
 	order: one(orders, {
 		fields: [orderItems.orderId],
 		references: [orders.id],
+	}),
+}))
+
+export const daysOfWeek = pgTable('days_of_week', {
+	id: serial('id').primaryKey(),
+	name: text('name').notNull().unique(),
+	sortOrder: integer('sort_order').notNull(),
+})
+
+export const acceptedDeliveryDays = pgTable(
+	'accepted_delivery_days',
+	{
+		userId: integer('user_id')
+			.references(() => users.id)
+			.notNull(),
+		dayOfWeekId: integer('day_of_week_id')
+			.references(() => daysOfWeek.id)
+			.notNull(),
+	},
+	(table) => {
+		return [primaryKey({ columns: [table.userId, table.dayOfWeekId] })]
+	},
+)
+
+export const holidays = pgTable('holidays', {
+	id: serial('id').primaryKey(),
+	userId: integer('user_id')
+		.references(() => users.id)
+		.notNull(),
+	startDate: date('start_date', { mode: 'date' }).notNull(),
+	endDate: date('end_date', { mode: 'date' }).notNull(),
+})
+
+export const deliveryDaysRelations = relations(acceptedDeliveryDays, ({ one }) => ({
+	user: one(users, {
+		fields: [acceptedDeliveryDays.userId],
+		references: [users.id],
+	}),
+	dayOfWeek: one(daysOfWeek, {
+		fields: [acceptedDeliveryDays.dayOfWeekId],
+		references: [daysOfWeek.id],
+	}),
+}))
+
+export const holidaysRelations = relations(holidays, ({ one }) => ({
+	user: one(users, {
+		fields: [holidays.userId],
+		references: [users.id],
 	}),
 }))
