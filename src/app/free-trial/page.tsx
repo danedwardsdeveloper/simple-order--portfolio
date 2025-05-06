@@ -1,10 +1,10 @@
 'use client'
 import PageContainer from '@/components/PageContainer'
-import { apiPaths, dataTestIdNames, websiteCopy } from '@/library/constants'
+import { useUi } from '@/components/providers/ui'
+import { useUser } from '@/components/providers/user'
+import { dataTestIdNames, websiteCopy } from '@/library/constants'
 import logger from '@/library/logger'
-import { allowedCharacters, containsIllegalCharacters, emailRegex } from '@/library/utilities/public'
-import { useUi } from '@/providers/ui'
-import { useUser } from '@/providers/user'
+import { allowedCharacters, apiRequest, containsIllegalCharacters, emailRegex } from '@/library/utilities/public'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -61,15 +61,12 @@ export default function CreateAccountPage() {
 				password: formData.password.trim(),
 			}
 
-			const response = await fetch(apiPaths.authentication.createAccount, {
+			const { userMessage, user } = await apiRequest<CreateAccountPOSTresponse, CreateAccountPOSTbody>({
+				basePath: '/authentication/create-account',
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(requestBody),
+				body: requestBody,
 			})
 
-			const { userMessage, user }: CreateAccountPOSTresponse = await response.json()
 			if (user) {
 				// Must be merchant mode for new free-trials
 				setMerchantMode(true)
