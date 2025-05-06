@@ -1,9 +1,9 @@
 'use client'
-import type { InventoryAddPOSTbody, InventoryAddPOSTresponse } from '@/app/api/inventory/admin/route'
-import { apiPaths } from '@/library/constants'
-import { containsIllegalCharacters } from '@/library/utilities/public'
-import { useNotifications } from '@/providers/notifications'
-import { useUser } from '@/providers/user'
+import type { InventoryAddPOSTbody, InventoryAddPOSTresponse } from '@/app/api/inventory/route'
+import { useNotifications } from '@/components/providers/notifications'
+import { useUser } from '@/components/providers/user'
+import { serviceConstraints } from '@/library/constants'
+import { apiRequest, containsIllegalCharacters } from '@/library/utilities/public'
 import type { NewNotification } from '@/types'
 import { type FormEvent, useEffect, useState } from 'react'
 
@@ -15,7 +15,7 @@ export type InventoryAddFormData = {
 }
 
 export default function AddInventoryForm() {
-	const { user, setInventory } = useUser()
+	const { user, inventory, setInventory } = useUser()
 	const [formData, setFormData] = useState<InventoryAddFormData>({
 		name: '',
 		description: '',
@@ -36,6 +36,10 @@ export default function AddInventoryForm() {
 		})
 	}, [formData.name, formData.description])
 
+	if (inventory && inventory?.length > serviceConstraints.maximumProducts) {
+		return null
+	}
+
 	async function handleSubmit(event: FormEvent) {
 		event.preventDefault()
 		setErrorMessage('')
@@ -48,25 +52,20 @@ export default function AddInventoryForm() {
 		const priceInMinorUnits = formData.priceInMinorUnits === '' ? 0 : Number.parseInt(formData.priceInMinorUnits, 10)
 		const customVat = formData.customVat === '' ? undefined : Number.parseInt(formData.customVat, 10)
 
-		const requestBody: InventoryAddPOSTbody = {
-			name: formData.name,
-			description: formData.description,
-			priceInMinorUnits,
-			customVat,
-		}
-
-		const { userMessage, addedProduct }: InventoryAddPOSTresponse = await (
-			await fetch(apiPaths.inventory.merchantPerspective.base, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(requestBody),
-			})
-		).json()
+		const { userMessage, addedProduct } = await apiRequest<InventoryAddPOSTresponse, InventoryAddPOSTbody>({
+			basePath: '/inventory',
+			method: 'POST',
+			body: {
+				name: formData.name,
+				description: formData.description,
+				priceInMinorUnits,
+				customVat,
+			},
+		})
 
 		if (addedProduct) {
-			setInventory((previousInventory) => (previousInventory ? [...previousInventory, addedProduct] : [addedProduct]))
+			// ToDo: use Immer
+			setInventory((previousInventory) => (previousInventory ? [addedProduct, ...previousInventory] : [addedProduct]))
 
 			const notification: NewNotification = {
 				title: 'Success',
