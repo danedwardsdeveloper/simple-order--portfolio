@@ -1,14 +1,10 @@
 import { userMessages } from '@/library/constants'
 import { checkoutSearchParam, checkoutSearchParamValues } from '@/library/constants/definitions/checkoutSearchParams'
-import { checkAccess } from '@/library/database/operations'
+import { checkAccess, checkActiveSubscriptionOrTrial } from '@/library/database/operations'
 import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import stripeClient from '@/library/stripe/stripeClient'
 import { initialiseResponder } from '@/library/utilities/server'
 import type { NextRequest, NextResponse } from 'next/server'
-
-export interface CheckoutSessionPOSTbody {
-	email: string
-}
 
 export interface CheckoutSessionPOSTresponse {
 	userMessage?: typeof userMessages.stripeCreateCheckoutError
@@ -20,19 +16,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<CheckoutS
 	const respond = initialiseResponder<CheckoutSessionPOSTresponse>()
 
 	try {
-		const { email }: CheckoutSessionPOSTbody = await request.json()
-
-		if (!email) {
-			return respond({
-				status: 400,
-				developmentMessage: 'email missing',
-			})
-		}
-
 		const { dangerousUser, accessDenied } = await checkAccess({
 			request,
 			requireConfirmed: true,
-			requireSubscriptionOrTrial: true,
+			requireSubscriptionOrTrial: false,
 		})
 
 		if (accessDenied) {
@@ -42,16 +29,21 @@ export async function POST(request: NextRequest): Promise<NextResponse<CheckoutS
 			})
 		}
 
+		const { trialEnd } = await checkActiveSubscriptionOrTrial(dangerousUser.id)
+
+		const trialEndUnixTimestamp = trialEnd ? Math.floor(trialEnd.getTime() / 1000) : undefined
+
 		const customMetadata = {
 			simpleOrderUserId: String(dangerousUser.id),
 		}
 
 		const { url } = await stripeClient.checkout.sessions.create({
 			billing_address_collection: 'auto',
-			customer_email: email,
+			customer_email: dangerousUser.email,
 			metadata: customMetadata,
 			subscription_data: {
 				metadata: customMetadata,
+				...(trialEndUnixTimestamp && { trial_end: trialEndUnixTimestamp }),
 			},
 			line_items: [
 				{
