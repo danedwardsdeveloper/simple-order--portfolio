@@ -2,7 +2,8 @@
 import Spinner from '@/components/Spinner'
 import TwoColumnContainer from '@/components/TwoColumnContainer'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
-import { useUser } from '@/providers/user'
+import { useUser } from '@/components/providers/user'
+import { serviceConstraints } from '@/library/constants'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import AddInventoryForm from './components/AddInventoryForm'
@@ -10,7 +11,7 @@ import InventoryList from './components/InventoryList'
 import VatToggleButton from './components/VatToggleButton'
 
 export default function InventoryPage() {
-	const { user, isLoading } = useUser()
+	const { user, inventory, isLoading } = useUser()
 	const router = useRouter()
 
 	useEffect(() => {
@@ -29,6 +30,16 @@ export default function InventoryPage() {
 		return null
 	}
 
+	function InventorySizeMessage() {
+		return (
+			<div className="max-w-xl flex border-2 border-blue-200 p-3 lg:-mx-3 rounded-xl">
+				<p>
+					You have {inventory?.length || 0} products - maximum {serviceConstraints.maximumProducts}
+				</p>
+			</div>
+		)
+	}
+
 	return (
 		<>
 			<h1>Inventory</h1>
@@ -36,6 +47,7 @@ export default function InventoryPage() {
 				mainColumn={<InventoryList />}
 				sideColumn={
 					<>
+						<InventorySizeMessage />
 						<VatToggleButton />
 						<AddInventoryForm />
 					</>
