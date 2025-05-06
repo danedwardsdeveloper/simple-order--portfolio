@@ -13,6 +13,9 @@ type Input = {
 export async function createFreeTrial({ userId, tx }: Input): Promise<FreeTrial> {
 	try {
 		const queryRunner = tx ?? database
+		const startDate = new Date()
+		startDate.setUTCHours(0, 0, 0, 0)
+
 		const [freeTrial] = await queryRunner
 			.insert(freeTrials)
 			.values({ userId, startDate: new Date(), endDate: createFreeTrialEndTime() })
