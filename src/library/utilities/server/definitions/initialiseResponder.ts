@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server'
 /**
  * @returns A function that creates a NextResponse that adds the developmentMessage to the response body in development only.
  */
-export function initialiseResponder<T extends object>() {
+export function initialiseResponder<T>() {
 	return function createResponse({
 		body,
 		status,
