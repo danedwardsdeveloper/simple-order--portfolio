@@ -1,0 +1,116 @@
+import { http403forbidden, userMessages } from '@/library/constants'
+import { database } from '@/library/database/connection'
+import { checkAccess, checkRelationship, getAcceptedWeekDays } from '@/library/database/operations'
+import { getHolidays } from '@/library/database/operations/definitions/getHolidays'
+import { products, users } from '@/library/database/schema'
+import logger from '@/library/logger'
+import { convertEmptyToUndefined, formatDateWithDayName, getAvailableDeliveryDays } from '@/library/utilities/public'
+import { and, equals, initialiseResponder, isNull } from '@/library/utilities/server'
+import type { BrowserSafeCustomerProduct, UserMessages } from '@/types'
+import type { NextRequest, NextResponse } from 'next/server'
+
+export interface InventoryMerchantSlugGETresponse {
+	developmentMessage?: string
+	userMessage?: UserMessages
+	availableProducts?: BrowserSafeCustomerProduct[]
+	availableDeliveryDays?: Date[]
+	// The customer already has the merchantProfile because they've made the request using the slug
+}
+
+type Output = Promise<NextResponse<InventoryMerchantSlugGETresponse>>
+
+// Get all everything needed to make an order from a specific merchant
+export async function GET(request: NextRequest, { params }: { params: Promise<{ merchantSlug: string }> }): Output {
+	const respond = initialiseResponder<InventoryMerchantSlugGETresponse>()
+	try {
+		const merchantSlug = (await params).merchantSlug
+
+		const { dangerousUser, accessDenied } = await checkAccess({
+			request,
+			requireConfirmed: true,
+			requireSubscriptionOrTrial: true,
+		})
+
+		if (accessDenied) {
+			return respond({
+				status: accessDenied.status,
+				developmentMessage: accessDenied.message,
+			})
+		}
+
+		const [dangerousMerchantProfile] = await database.select().from(users).where(equals(users.slug, merchantSlug))
+
+		if (!dangerousMerchantProfile) {
+			return respond({
+				status: 401,
+				developmentMessage: 'merchant not found',
+			})
+		}
+
+		const { id: merchantId, cutOffTime, leadTimeDays } = dangerousMerchantProfile
+
+		const { relationshipExists } = await checkRelationship({ customerId: dangerousUser.id, merchantId: merchantId })
+
+		if (!relationshipExists) {
+			return respond({
+				status: http403forbidden,
+				developmentMessage: 'Relationship missing',
+			})
+		}
+
+		const availableProducts = convertEmptyToUndefined(
+			await database
+				.select({
+					id: products.id,
+					name: products.name,
+					description: products.description,
+					priceInMinorUnits: products.priceInMinorUnits,
+					customVat: products.customVat,
+				})
+				.from(products)
+				.where(and(equals(products.ownerId, merchantId), isNull(products.deletedAt))),
+		)
+
+		const acceptedWeekDays = await getAcceptedWeekDays(merchantId)
+
+		const lookAheadDays = 14
+
+		const merchantHolidays = await getHolidays({
+			merchantProfile: dangerousMerchantProfile, //
+			lookAheadDays,
+		})
+
+		const availableDeliveryDays = getAvailableDeliveryDays({
+			acceptedWeekDays,
+			merchantHolidays,
+			lookAheadDays,
+			cutOffTime,
+			leadTimeDays,
+		})
+
+		if (!availableDeliveryDays) {
+			return respond({
+				status: 400,
+				developmentMessage: 'No delivery days available',
+			})
+		}
+
+		const formattedDeliveryDays = availableDeliveryDays.map((date) => formatDateWithDayName(date))
+
+		logger.debug('Available delivery days: ', formattedDeliveryDays)
+
+		return respond({
+			body: {
+				availableProducts,
+				...(availableDeliveryDays ? { availableDeliveryDays } : {}),
+			},
+			status: 200,
+		})
+	} catch (caughtError) {
+		return respond({
+			body: { userMessage: userMessages.serverError },
+			status: 500,
+			caughtError,
+		})
+	}
+}
