@@ -9,7 +9,10 @@ export async function handleSubscriptionUpdated(subscription: Stripe.Subscriptio
 			logger.error('Simple Order ID missing from Stripe customer.subscription.created event')
 		}
 
-		await database.update(subscriptions).set({ cancelledAt: new Date() })
+		const nowUTC = new Date()
+		nowUTC.setUTCHours(0, 0, 0, 0)
+
+		await database.update(subscriptions).set({ cancelledAt: nowUTC })
 
 		// subscription.cancellation_details?.comment
 		// subscription.cancellation_details?.feedback
