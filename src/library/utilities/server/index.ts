@@ -1,5 +1,5 @@
-import { and, eq as equals, gt as greaterThan, inArray, isNull, or } from 'drizzle-orm'
-export { and, equals, greaterThan, isNull, inArray, or }
+import { and, eq as equals, gt as greaterThan, gte as greaterThanOrEqual, inArray, isNull, lte as lessThanOrEqual, or } from 'drizzle-orm'
+export { and, equals, greaterThan, isNull, inArray, or, greaterThanOrEqual, lessThanOrEqual }
 
 export * from './definitions/createCookies'
 export * from './definitions/validateToken'

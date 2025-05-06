@@ -1,6 +1,6 @@
 'use client'
 import Spinner from '@/components/Spinner'
-import { useUser } from '@/providers/user'
+import { useUser } from '@/components/providers/user'
 import { useState } from 'react'
 import ConfirmedCustomerCard from './ConfirmedCustomerCard'
 import PendingInvitationCard from './PendingInvitationCard'

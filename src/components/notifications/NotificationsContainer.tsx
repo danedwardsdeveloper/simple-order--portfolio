@@ -1,6 +1,6 @@
 'use client'
+import { useNotifications } from '@/components/providers/notifications'
 import { mergeClasses } from '@/library/utilities/public'
-import { useNotifications } from '@/providers/notifications'
 import NotificationItem from './NotificationItem'
 
 export default function NotificationsContainer() {

@@ -1,5 +1,5 @@
 import { createApiUrl } from '@/library/utilities/public'
-import type { TestRequestResponse } from '@/types'
+import type { TestRequestResponse } from '@tests/types'
 import { parseTokenCookie } from '@tests/utilities'
 import fetch from 'node-fetch'
 

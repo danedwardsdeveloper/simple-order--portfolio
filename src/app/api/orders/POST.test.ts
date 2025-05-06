@@ -1,7 +1,8 @@
 import { database } from '@/library/database/connection'
 import { orderItems, orders } from '@/library/database/schema'
 import { equals } from '@/library/utilities/server'
-import type { AnonymousProduct, DangerousBaseUser, JsonData, OrderMade, Product, TestUserInputValues } from '@/types'
+import type { AnonymousProduct, DangerousBaseUser, OrderMade, Product, TestUserInputValues } from '@/types'
+import type { JsonData } from '@tests/types'
 import { addProducts, createUser, deleteUser, initialiseTestRequestMaker } from '@tests/utilities'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 

@@ -1,9 +1,9 @@
 'use client'
 
+import { useUi } from '@/components/providers/ui'
+import { useUser } from '@/components/providers/user'
 import { websiteCopy } from '@/library/constants'
 import { mergeClasses } from '@/library/utilities/public'
-import { useUi } from '@/providers/ui'
-import { useUser } from '@/providers/user'
 import { Transition } from '@headlessui/react'
 import Link from 'next/link'
 import HomePageLink from './HomePageLink'

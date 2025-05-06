@@ -1,6 +1,7 @@
 import { database } from '@/library/database/connection'
 import { users } from '@/library/database/schema'
-import type { BaseUserBrowserInputValues, BaseUserInsertValues, JsonData, TestRequestResponse } from '@/types'
+import type { BaseUserBrowserInputValues, BaseUserInsertValues } from '@/types'
+import type { JsonData, TestRequestResponse } from '@tests/types'
 import { deleteUser, initialiseTestRequestMaker } from '@tests/utilities'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'

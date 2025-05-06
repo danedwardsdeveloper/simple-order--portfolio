@@ -1,6 +1,6 @@
 import { cookieNames, userMessages } from '@/library/constants'
 import { initialiseResponder } from '@/library/utilities/server'
-import type { JsonData } from '@/types'
+import type { JsonData } from '@tests/types'
 import { cookies } from 'next/headers'
 import type { NextRequest, NextResponse } from 'next/server'
 

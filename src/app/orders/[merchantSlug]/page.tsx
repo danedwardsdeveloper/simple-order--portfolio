@@ -1,6 +1,6 @@
 'use client'
 import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
-import { useUser } from '@/providers/user'
+import { useUser } from '@/components/providers/user'
 import { use } from 'react'
 
 export default function Page({

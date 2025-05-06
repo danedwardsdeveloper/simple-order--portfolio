@@ -1,5 +1,5 @@
 'use client'
-import { useUser } from '@/providers/user'
+import { useUser } from '@/components/providers/user'
 import InventoryCard from './InventoryCard'
 
 export default function InventoryList() {

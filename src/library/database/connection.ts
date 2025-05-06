@@ -3,8 +3,11 @@ import { drizzle } from 'drizzle-orm/node-postgres'
 import { developmentDatabaseString, isProduction } from '../environment/publicVariables'
 import { productionDatabaseString } from '../environment/serverVariables'
 import logger from '../logger'
+import * as schema from './schema'
 
-export const database = drizzle(isProduction ? productionDatabaseString : developmentDatabaseString)
+// ToDo: make database barrel
+
+export const database = drizzle(isProduction ? productionDatabaseString : developmentDatabaseString, { schema })
 
 // Protect tests from accidentally deleting production data
 export const developmentDatabase = drizzle(developmentDatabaseString)

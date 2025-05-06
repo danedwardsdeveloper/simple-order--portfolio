@@ -1,4 +1,4 @@
-import { useUser } from '@/providers/user'
+import { useUser } from '@/components/providers/user'
 
 export default function UserInformation() {
 	const { user } = useUser()

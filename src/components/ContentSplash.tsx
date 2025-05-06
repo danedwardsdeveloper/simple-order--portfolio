@@ -1,5 +1,5 @@
 'use client'
-import { useLoading } from '@/providers/loading'
+import { useLoading } from '@/components/providers/loading'
 import { clsx } from 'clsx'
 import { useEffect, useState } from 'react'
 import Spinner from './Spinner'

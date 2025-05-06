@@ -1,6 +1,6 @@
 'use client'
-import { useUi } from '@/providers/ui'
-import { useUser } from '@/providers/user'
+import { useUi } from '@/components/providers/ui'
+import { useUser } from '@/components/providers/user'
 import ToggleWithLabel from '../ToggleWithLabel'
 
 export default function RoleModeButton() {

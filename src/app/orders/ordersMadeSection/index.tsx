@@ -1,8 +1,8 @@
 'use client'
 import Spinner from '@/components/Spinner'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
-import { useUi } from '@/providers/ui'
-import { useUser } from '@/providers/user'
+import { useUi } from '@/components/providers/ui'
+import { useUser } from '@/components/providers/user'
 import OrderMadeCard from './components/OrderMadeCard'
 
 export default function OrdersMadeSection() {

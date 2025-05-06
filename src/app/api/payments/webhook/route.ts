@@ -4,7 +4,7 @@ import stripeClient from '@/library/stripe/stripeClient'
 import { webhookHandler } from '@/library/stripe/webhookHandler'
 import { initialiseResponder } from '@/library/utilities/server'
 import { headers } from 'next/headers'
-import { type NextRequest, NextResponse } from 'next/server'
+import type { NextRequest, NextResponse } from 'next/server'
 
 interface StripeWebhookPOSTresponse {
 	// message: 'success' is required by Stripe. Do not change!
@@ -28,8 +28,7 @@ export async function POST(request: NextRequest): Output {
 
 			await webhookHandler(event)
 
-			NextResponse.json({ message: 'success' }, { status: 200 })
-			respond({
+			return respond({
 				body: { message: 'success' },
 				status: 200,
 			})

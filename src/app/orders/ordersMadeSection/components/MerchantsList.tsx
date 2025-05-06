@@ -1,6 +1,6 @@
 'use client'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
-import { useUser } from '@/providers/user'
+import { useUser } from '@/components/providers/user'
 import Link from 'next/link'
 
 // Customer view of a list of merchants the signed-in user is subscribed to

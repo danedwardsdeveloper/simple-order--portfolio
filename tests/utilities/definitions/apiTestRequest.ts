@@ -1,5 +1,5 @@
 import { type CreateApiUrlParams, createApiUrl } from '@/library/utilities/public'
-import type { NodeFetchResponse, NodeRequestInit } from '@/types'
+import type { NodeFetchResponse, NodeRequestInit } from '@tests/types'
 import type { HTTP_METHOD } from 'next/dist/server/web/http'
 import nodeFetch from 'node-fetch'
 interface Props extends CreateApiUrlParams {
