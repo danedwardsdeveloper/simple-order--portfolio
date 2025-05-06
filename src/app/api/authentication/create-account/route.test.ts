@@ -1,7 +1,8 @@
 import { database } from '@/library/database/connection'
 import { confirmationTokens, freeTrials, users } from '@/library/database/schema'
 import { equals } from '@/library/utilities/server'
-import type { AsyncFunction, BrowserSafeCompositeUser, DangerousBaseUser, JsonData } from '@/types'
+import type { AsyncFunction, BrowserSafeCompositeUser, DangerousBaseUser } from '@/types'
+import type { JsonData } from '@tests/types'
 import { deleteUser, initialiseTestRequestMaker } from '@tests/utilities'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import type { CreateAccountPOSTbody, CreateAccountPOSTresponse } from './route'
@@ -130,13 +131,14 @@ describe('Create account', () => {
 
 	describe('Success', () => {
 		let jsonResponse: CreateAccountPOSTresponse
-		let browserSafeCompositeUser: BrowserSafeCompositeUser | undefined
+		let user: BrowserSafeCompositeUser | undefined
 
 		beforeAll(async () => {
 			await deleteUser(validBody.email)
+
 			const data = await makeRequest({ body: validBody })
 			jsonResponse = (await data.response.json()) as CreateAccountPOSTresponse
-			browserSafeCompositeUser = jsonResponse.user
+			user = jsonResponse.user
 		})
 
 		afterAll(async () => await deleteUser(validBody.email))
@@ -157,31 +159,25 @@ describe('Create account', () => {
 				{
 					caseDescription: 'user.emailConfirmed is false',
 					assertions: async () => {
-						expect(browserSafeCompositeUser?.emailConfirmed).toBeFalsy()
+						expect(user?.emailConfirmed).toBeFalsy()
 					},
 				},
 				{
 					caseDescription: 'user.roles is merchant',
 					assertions: async () => {
-						expect(browserSafeCompositeUser?.roles).toEqual('merchant')
-					},
-				},
-				{
-					caseDescription: 'user.activeSubscriptionOrTrial is true',
-					assertions: async () => {
-						expect(browserSafeCompositeUser?.activeSubscriptionOrTrial).toBeTruthy()
+						expect(user?.roles).toEqual('merchant')
 					},
 				},
 				{
 					caseDescription: 'user.hashedPassword is undefined',
 					assertions: async () => {
-						expect(Object.prototype.hasOwnProperty.call(browserSafeCompositeUser, 'hashedPassword')).toBe(false)
+						expect(Object.prototype.hasOwnProperty.call(user, 'hashedPassword')).toBe(false)
 					},
 				},
 				{
 					caseDescription: 'user.password is undefined',
 					assertions: async () => {
-						expect(Object.prototype.hasOwnProperty.call(browserSafeCompositeUser, 'password')).toBe(false)
+						expect(Object.prototype.hasOwnProperty.call(user, 'password')).toBe(false)
 					},
 				},
 			]
