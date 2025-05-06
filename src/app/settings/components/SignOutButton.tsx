@@ -1,22 +1,21 @@
 'use client'
 import type { SignOutPOSTresponse } from '@/app/api/authentication/sign-out/route'
-import { apiPaths, dataTestIdNames, userMessages } from '@/library/constants'
-import { useNotifications } from '@/providers/notifications'
-import { useUser } from '@/providers/user'
+import { useNotifications } from '@/components/providers/notifications'
+import { useUser } from '@/components/providers/user'
+import { dataTestIdNames, userMessages } from '@/library/constants'
+import { apiRequest } from '@/library/utilities/public'
 
 export default function SignOutButton() {
 	const { setUser, setInventory, setConfirmedCustomers, setConfirmedMerchants, setInvitationsReceived, setInvitationsSent } = useUser()
 	const { createNotification } = useNotifications()
 
 	async function handleSignOut() {
-		const response = await fetch(apiPaths.authentication.signOut, {
+		const { ok, userMessage } = await apiRequest<SignOutPOSTresponse>({
+			basePath: '/authentication/sign-out',
 			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
 		})
 
-		if (response.ok) {
+		if (ok) {
 			setUser(null)
 			setConfirmedCustomers(null)
 			setInventory(null)
@@ -30,8 +29,6 @@ export default function SignOutButton() {
 			})
 			return
 		}
-
-		const { userMessage }: SignOutPOSTresponse = await response.json()
 
 		if (userMessage) {
 			createNotification({
