@@ -10,6 +10,15 @@ export function epochDateToTimeInput(epochDate: Date) {
 	return `${hours}:${minutes}`
 }
 
+export function epochDateToAmPm(epochDate: Date): string {
+	const date = new Date(epochDate)
+	const hours = date.getUTCHours()
+	const minutes = date.getUTCMinutes().toString().padStart(2, '0')
+	const period = hours >= 12 ? 'pm' : 'am'
+	const displayHours = hours % 12 || 12
+	return `${displayHours}:${minutes}${period}`
+}
+
 const TimeInputSchema = z.string().regex(
 	/^\d{1,2}:\d{2}$/, //
 	"Time must be in format 'HH:MM'",
