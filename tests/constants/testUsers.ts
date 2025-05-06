@@ -1,12 +1,12 @@
 import type { TestUserInputValues } from '@/types'
 // Cut and paste these into tests so each test uses a different person and there aren't any conflicts
 
-const _esthePrynneInputValues: TestUserInputValues = {
-	firstName: 'Esther',
-	lastName: 'Prynne',
-	businessName: 'Scarlet Embroidery',
-	email: 'hester@prynne.com',
-	password: 'Sc@rletLett3r',
+const _userInputValues: TestUserInputValues = {
+	firstName: 'Kylie',
+	lastName: 'Minogue',
+	businessName: 'Spinning Around Inc',
+	email: 'kylie@minogue.com',
+	password: 'C@ntGetY0uOutOfMyH3ad',
 }
 
 const _cinderellaInputValues: TestUserInputValues = {
@@ -47,38 +47,6 @@ const _jasmineInputValues: TestUserInputValues = {
 	businessName: 'Agrabah Bazaar',
 	email: 'jasmine@palace.com',
 	password: 'Carpet!R1de',
-}
-
-const _kimWoodburneInputValues: TestUserInputValues = {
-	firstName: 'Kim',
-	lastName: 'Woodburne',
-	businessName: 'How Clean Is Your House',
-	email: 'kim@cleaning.com',
-	password: 'Cl3@nAndTidy!',
-}
-
-const _aggieInputValues: TestUserInputValues = {
-	firstName: 'Aggie',
-	lastName: 'MacKenzie',
-	businessName: 'Spotless Solutions',
-	email: 'aggie@spotless.com',
-	password: 'D1rtBust3r!',
-}
-
-const _kylieInputValues: TestUserInputValues = {
-	firstName: 'Kylie',
-	lastName: 'Minogue',
-	businessName: 'Spinning Around Inc',
-	email: 'kylie@minogue.com',
-	password: 'C@ntGetY0uOutOfMyH3ad',
-}
-
-const _britneyInputValues: TestUserInputValues = {
-	firstName: 'Britney',
-	lastName: 'Spears',
-	businessName: 'Toxic Enterprises',
-	email: 'britney@spears.com',
-	password: 'OopsID1dItAg@in!',
 }
 
 const _cherInputValues: TestUserInputValues = {
