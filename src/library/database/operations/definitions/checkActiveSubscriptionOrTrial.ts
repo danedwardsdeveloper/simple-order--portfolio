@@ -9,10 +9,12 @@ type Output = Promise<{
 }>
 
 export async function checkActiveSubscriptionOrTrial(userId: number): Output {
+	const nowUTC = new Date()
+	nowUTC.setUTCHours(0, 0, 0, 0)
 	const [inDateTrial] = await database
 		.select()
 		.from(freeTrials)
-		.where(and(greaterThan(freeTrials.endDate, new Date()), equals(freeTrials.userId, userId)))
+		.where(and(greaterThan(freeTrials.endDate, nowUTC), equals(freeTrials.userId, userId)))
 		.limit(1)
 
 	let trialEnd: Date | undefined
