@@ -1,10 +1,10 @@
 'use client'
 import type { InvitationsTokenPATCHresponse } from '@/app/api/invitations/[token]/route'
 import Spinner from '@/components/Spinner'
+import { useNotifications } from '@/components/providers/notifications'
+import { useUi } from '@/components/providers/ui'
+import { useUser } from '@/components/providers/user'
 import { apiRequest } from '@/library/utilities/public'
-import { useNotifications } from '@/providers/notifications'
-import { useUi } from '@/providers/ui'
-import { useUser } from '@/providers/user'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import CompleteRegistrationForm from './components/CompleteRegistrationForm'
@@ -23,7 +23,7 @@ export default function AcceptInvitationPage() {
 	const { createNotification } = useNotifications()
 	const router = useRouter()
 
-	// Main ToDo: Make this a great experience
+	// ToDo: Make this a great experience
 
 	useEffect(() => {
 		if (!hasCheckedInvitation.current) {
