@@ -37,6 +37,9 @@ export async function GET(request: NextRequest): Promise<NextResponse<Relationsh
 					businessName: users.businessName,
 					email: users.email,
 					slug: users.slug,
+					cutOffTime: users.cutOffTime,
+					leadTimeDays: users.leadTimeDays,
+					minimumSpendPence: users.minimumSpendPence,
 					isMerchant: equals(relationships.merchantId, users.id),
 				})
 				.from(relationships)
@@ -58,11 +61,22 @@ export async function GET(request: NextRequest): Promise<NextResponse<Relationsh
 
 		const merchants = convertEmptyToUndefined(
 			relationshipsResult
-				.filter((relatedUser) => relatedUser.isMerchant)
-				.map((merchant) => ({
-					businessName: merchant.businessName,
-					slug: merchant.slug,
-				})),
+				.filter((user) => user.isMerchant)
+				.map(
+					({
+						businessName, //
+						slug,
+						cutOffTime,
+						leadTimeDays,
+						minimumSpendPence,
+					}) => ({
+						businessName,
+						slug,
+						cutOffTime,
+						leadTimeDays,
+						minimumSpendPence,
+					}),
+				),
 		)
 
 		const customers = convertEmptyToUndefined(
