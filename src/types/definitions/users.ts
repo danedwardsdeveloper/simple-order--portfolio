@@ -2,18 +2,18 @@ import type { relationships, users } from '@/library/database/schema'
 import type { Roles } from '@/types'
 
 export type DangerousBaseUser = typeof users.$inferSelect
-export type BaseUserInsertValues = Required<Omit<typeof users.$inferInsert, 'id' | 'cutOffTime' | 'leadTimeDays'>>
+export type BaseUserInsertValues = Required<Omit<typeof users.$inferInsert, 'id' | 'cutOffTime' | 'leadTimeDays' | 'minimumSpendPence'>>
 export type BaseBrowserSafeUser = Omit<DangerousBaseUser, 'id' | 'hashedPassword'>
 export type BaseUserBrowserInputValues = Omit<
 	BaseUserInsertValues,
-	'hashedPassword' | 'emailConfirmed' | 'slug' | 'cutOffTime' | 'leadTimeDays'
+	'hashedPassword' | 'emailConfirmed' | 'slug' | 'cutOffTime' | 'leadTimeDays' | 'minimumSpendPence'
 > & {
 	password: string
 }
 
 export type TestUserInputValues = Omit<
 	BaseUserInsertValues,
-	'hashedPassword' | 'slug' | 'emailConfirmed' | 'cutOffTime' | 'leadTimeDays'
+	'hashedPassword' | 'slug' | 'emailConfirmed' | 'cutOffTime' | 'leadTimeDays' | 'minimumSpendPence'
 > & {
 	password: string
 	emailConfirmed?: boolean
@@ -28,7 +28,10 @@ export interface BrowserSafeCompositeUser extends BaseBrowserSafeUser {
 	subscriptionCancelled?: boolean
 }
 
-export type BrowserSafeMerchantProfile = Pick<DangerousBaseUser, 'slug' | 'businessName' | 'cutOffTime' | 'leadTimeDays'>
+export type BrowserSafeMerchantProfile = Pick<
+	DangerousBaseUser,
+	'slug' | 'businessName' | 'cutOffTime' | 'leadTimeDays' | 'minimumSpendPence'
+>
 
 export interface BrowserSafeCustomerProfile {
 	businessName: string
