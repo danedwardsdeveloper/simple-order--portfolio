@@ -20,7 +20,7 @@
 
 ## Thursday 27 February
 
--  Retrieved the merchant name from `api/inventory/merchants/[merchantSlug]` instead of a dedicated route for convenience
+-  Retrieved the merchant name from `api/merchants/[merchantSlug]` instead of a dedicated route for convenience
 -  Fixed controlled component type issue with AddInventoryForm
 -  Finally displayed the customer's view of a merchant's products on their slug page!
 -  Added breadcrumbs to the customer's view of the merchant's products
@@ -45,7 +45,7 @@
 
 ## Saturday 29 February
 
--  Prevented /api/inventory/merchants/[merchantSlug] GET from returning empty arrays
+-  Prevented /api/merchants/[merchantSlug] GET from returning empty arrays
 -  Working on a root-level BreadCrumbs component as I want this on every page except the home page
 -  Created /api/invitations GET route to retrieve pending invitations for the signed-in customer
 
@@ -272,3 +272,8 @@ A bit of a breakthrough today. Have made some really useful utilities like apiRe
 
 -  Lots of work on test utilities and API tests
 -  Made a createOrder function and tests, which was very difficult
+
+# Monday 5 May
+
+-  Completely forgot about journaling but I've been working on the website every waking moment. The launch is in sight!!
+-  246 tests passing
