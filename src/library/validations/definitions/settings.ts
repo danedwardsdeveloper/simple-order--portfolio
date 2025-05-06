@@ -1,9 +1,21 @@
 import { z } from 'zod'
 
-export const settingsSchema = z.object({
-	cutOffTime: z.string().transform((str) => new Date(str)),
-	leadTimeDays: z.number().int('Lead time must be a whole number').nonnegative('Lead time cannot be negative').default(0),
-})
+export const settingsSchema = z
+	.object({
+		cutOffTime: z
+			.string()
+			.transform((str) => new Date(str))
+			.optional(),
+		leadTimeDays: z.number().int('Lead time must be a whole number').nonnegative('Lead time cannot be negative').default(0).optional(),
+	})
+	.refine(
+		(data) => {
+			return Object.keys(data).length > 0
+		},
+		{
+			message: 'At least one setting must be provided',
+		},
+	)
 
 export const cutoffSettingsFormSchema = z.object({
 	cutOffTime: z
