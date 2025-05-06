@@ -1,9 +1,10 @@
 'use client'
 import type { InvitationsPOSTbody, InvitationsPOSTresponse } from '@/app/api/invitations/route'
-import { apiPaths, dataTestIdNames } from '@/library/constants'
+import { useNotifications } from '@/components/providers/notifications'
+import { useUser } from '@/components/providers/user'
+import { dataTestIdNames } from '@/library/constants'
 import logger from '@/library/logger'
-import { useNotifications } from '@/providers/notifications'
-import { useUser } from '@/providers/user'
+import { apiRequest } from '@/library/utilities/public'
 import { type ChangeEvent, type FormEvent, useState } from 'react'
 
 export default function InviteCustomerForm() {
@@ -15,6 +16,15 @@ export default function InviteCustomerForm() {
 
 	if (!user || user.roles === 'customer' || !user.emailConfirmed) return null
 
+	if (!user.subscriptionEnd || !user.trialEnd) {
+		return (
+			<div className="max-w-md p-3 border-2 my-4 rounded-xl border-red-300 ">
+				<h2 className="mb-2">Trial expired</h2>
+				<p>Please subscribe to invite more customers</p>
+			</div>
+		)
+	}
+
 	// ToDo: there's a weird glitch for a split second when you submit the form
 
 	async function handleSubmit(event: FormEvent) {
@@ -23,13 +33,11 @@ export default function InviteCustomerForm() {
 		setLoading(true)
 
 		try {
-			const { userMessage, browserSafeInvitationRecord }: InvitationsPOSTresponse = await (
-				await fetch(apiPaths.invitations.base, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ invitedEmail } satisfies InvitationsPOSTbody),
-				})
-			).json()
+			const { userMessage, browserSafeInvitationRecord } = await apiRequest<InvitationsPOSTresponse, InvitationsPOSTbody>({
+				body: { invitedEmail },
+				basePath: '/invitations',
+				method: 'POST',
+			})
 
 			if (browserSafeInvitationRecord) {
 				createNotification({
@@ -37,13 +45,14 @@ export default function InviteCustomerForm() {
 					title: 'Success',
 					message: `Successfully sent invitation email to ${invitedEmail}`,
 				})
-				// ToDo: check this logic
+				// ToDo: check this logic and use Immer
 				setInvitationsSent((prev) => (prev ? [browserSafeInvitationRecord, ...prev] : []))
 				setInvitedEmail('')
 			}
 
 			if (userMessage) setResponseMessage(userMessage)
 		} catch (error) {
+			// ToDo: Don't use caught errors
 			logger.error('Error sending new invitation fetch request', error)
 			setResponseMessage('Unknown error')
 		} finally {
