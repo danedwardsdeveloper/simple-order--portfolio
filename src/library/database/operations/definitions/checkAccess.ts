@@ -50,7 +50,7 @@ export async function checkAccess({ request, requireConfirmed, requireSubscripti
 	const { trialEnd, subscriptionEnd } = await checkActiveSubscriptionOrTrial(dangerousUser.id)
 
 	if (requireSubscriptionOrTrial) {
-		if (!trialEnd || !subscriptionEnd) return { accessDenied: { message: 'active subscription or trial required', status: 403 } }
+		if (!trialEnd && !subscriptionEnd) return { accessDenied: { message: 'active subscription or trial required', status: 403 } }
 	}
 
 	return { dangerousUser, trialEnd, subscriptionEnd }
