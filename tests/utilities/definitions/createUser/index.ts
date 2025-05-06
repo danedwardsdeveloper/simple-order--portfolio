@@ -1,9 +1,10 @@
+import { friday, monday, thursday, tuesday, wednesday } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { users } from '@/library/database/schema'
+import { acceptedDeliveryDays, users } from '@/library/database/schema'
 import logger from '@/library/logger'
+import { createMerchantSlug } from '@/library/utilities/public'
 import { hashPassword } from '@/library/utilities/server'
 import type { BaseUserInsertValues, DangerousBaseUser, TestUserInputValues } from '@/types'
-import slugify from 'slugify'
 import { createCookieString } from '../createCookieString'
 
 /**
@@ -31,15 +32,29 @@ const { createdUser, requestCookie } = await createUser({
 })
  */
 export async function createUser(user: TestUserInputValues): Output {
+	let txErrorMessage: string | undefined
+
 	try {
-		const hashedPassword = await hashPassword(user.password)
-		const insertValues: BaseUserInsertValues = {
-			...user,
-			emailConfirmed: user.emailConfirmed ?? true, // Do not use || here!!
-			slug: slugify(user.businessName),
-			hashedPassword,
-		}
-		const [createdUser] = await database.insert(users).values(insertValues).returning()
+		const { createdUser } = await database.transaction(async (tx) => {
+			const hashedPassword = await hashPassword(user.password)
+			const insertValues: BaseUserInsertValues = {
+				...user,
+				emailConfirmed: user.emailConfirmed ?? true, // Do not use || here!!
+				slug: createMerchantSlug(user.businessName),
+				hashedPassword,
+			}
+
+			txErrorMessage = 'error creating user row'
+			const [createdUser] = await tx.insert(users).values(insertValues).returning()
+
+			txErrorMessage = 'error creating acceptedDeliveryDays'
+			await tx
+				.insert(acceptedDeliveryDays)
+				.values([monday, tuesday, wednesday, thursday, friday].map((day) => ({ userId: createdUser.id, dayOfWeekId: day })))
+
+			txErrorMessage = undefined
+			return { createdUser }
+		})
 
 		const requestCookie = createCookieString({
 			userId: createdUser.id,
@@ -47,6 +62,8 @@ export async function createUser(user: TestUserInputValues): Output {
 
 		return { createdUser, requestCookie }
 	} catch (error) {
+		if (txErrorMessage) logger.error('createUser transaction error: ', txErrorMessage, error)
+
 		logger.error(`Failed to create user for ${user.businessName}`, error)
 		throw error
 	}
