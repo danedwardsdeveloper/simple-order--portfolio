@@ -1,10 +1,5 @@
 ## Current Task
 
--  `POST /api/inventory/admin`
-   -  Refactor so it's succinct
-   -  Add tests so that it's very comprehensive
--  Add Zod validations to the Drizzle products schema
-
 .
 
 .
