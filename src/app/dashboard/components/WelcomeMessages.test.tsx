@@ -1,4 +1,5 @@
-import { UserContext, type UserContextType } from '@/providers/user'
+import { UserContext, type UserContextType } from '@/components/providers/user'
+import { defaultCutOffTime, defaultLeadTimeDays } from '@/library/constants'
 import type { BrowserSafeCompositeUser, BrowserSafeMerchantProduct } from '@/types'
 import { cleanup, render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
@@ -16,8 +17,9 @@ const baseUser: BrowserSafeCompositeUser = {
 	businessName: 'Test Business',
 	slug: 'test-business',
 	roles: 'merchant',
-	activeSubscriptionOrTrial: false,
 	emailConfirmed: false,
+	cutOffTime: defaultCutOffTime,
+	leadTimeDays: defaultLeadTimeDays,
 }
 
 const baseContext: UserContextType = {
