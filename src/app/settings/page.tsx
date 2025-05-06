@@ -2,14 +2,14 @@
 import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
 import Spinner from '@/components/Spinner'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
+import { useNotifications } from '@/components/providers/notifications'
+import { useUser } from '@/components/providers/user'
 import { checkoutSearchParam, checkoutSearchParamValues, userMessages } from '@/library/constants'
 import { apiRequest } from '@/library/utilities/public'
-import { useNotifications } from '@/providers/notifications'
-import { useUser } from '@/providers/user'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useRef } from 'react'
 import type { VerifyTokenGETresponse } from '../api/authentication/verify-token/route'
-import { CutOffAndLeadTime } from './components/CutOffAndLeadTime'
+import { EditSettings } from './components/EditSettings'
 import PortalButton from './components/PortalButton'
 import SignOutButton from './components/SignOutButton'
 import TrialExpiryInformation from './components/TrialExpiryInformation'
@@ -73,9 +73,9 @@ export default function SettingsPage() {
 				<h1>Settings</h1>
 
 				<UserInformation />
+				<EditSettings />
 				<TrialExpiryInformation />
 				<PortalButton subscriptionEnd={user.subscriptionEnd} />
-				<CutOffAndLeadTime />
 				<SignOutButton />
 			</div>
 		</Suspense>
