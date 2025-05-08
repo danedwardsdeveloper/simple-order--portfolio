@@ -11,7 +11,7 @@ type Input = {
 	queryRunner: QueryRunner
 }
 
-export async function createConfirmationToken({ userId, queryRunner }: Input): Promise<string> {
+export async function createConfirmationURL({ userId, queryRunner }: Input): Promise<string> {
 	try {
 		const emailConfirmationToken = generateUuid()
 
@@ -23,7 +23,20 @@ export async function createConfirmationToken({ userId, queryRunner }: Input): P
 
 		return `${dynamicBaseURL}/confirm?${searchParamNames.emailConfirmationToken}=${emailConfirmationToken}`
 	} catch (error) {
-		logger.error('createConfirmationToken caught error', error)
+		logger.error('createConfirmationURL caught error', error)
 		throw error
 	}
 }
+
+// ;(async () => {
+// 	try {
+// 		const confirmationURL = await createConfirmationURL({ userId: 1823, queryRunner: database })
+// 		logger.info('Confirmation url', confirmationURL)
+// 	} catch {
+// 		logger.error('error')
+// 	}
+// })()
+
+/* 
+pnpm tsx src/library/database/operations/definitions/createConfirmationURL.ts
+*/

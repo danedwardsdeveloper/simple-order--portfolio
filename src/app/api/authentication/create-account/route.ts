@@ -1,6 +1,6 @@
 import { cookieDurations, friday, monday, thursday, tuesday, userMessages, wednesday } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { createConfirmationToken, createFreeTrial } from '@/library/database/operations'
+import { createConfirmationURL, createFreeTrial } from '@/library/database/operations'
 import { acceptedDeliveryDays, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import { createNewMerchantEmail } from '@/library/email/templates'
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 
 			const { trialEnd } = await createFreeTrial({ userId: dangerousNewUser.id, tx })
 
-			const confirmationURL = await createConfirmationToken({ userId: dangerousNewUser.id, queryRunner: tx })
+			const confirmationURL = await createConfirmationURL({ userId: dangerousNewUser.id, queryRunner: tx })
 
 			txError = { message: 'error sending email', status: 503 }
 			const emailSentSuccessfully = await sendEmail({
