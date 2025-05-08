@@ -20,6 +20,8 @@ const body: SignInPOSTbody = {
  */
 export type SignInPOSTbody = z.infer<typeof SignInSchema>
 
+// ToDo: this should return the inventory and customers too
+
 export interface SignInPOSTresponse {
 	userMessage?: UserMessages
 	developmentMessage?: string
