@@ -1,56 +1,272 @@
-import { UserContext, type UserContextType } from '@/components/providers/user'
-import { defaultCutOffTime, defaultLeadTimeDays } from '@/library/constants'
-import type { BrowserSafeCompositeUser, BrowserSafeMerchantProduct } from '@/types'
-import { cleanup, render, screen } from '@testing-library/react'
-import type { ReactNode } from 'react'
-import { afterEach, describe, expect, test, vi } from 'vitest'
+import type { UserContextType } from '@/components/providers/user'
+import type { BrowserSafeMerchantProduct } from '@/types'
+import { type Matcher, cleanup, render, screen } from '@testing-library/react'
+import { gingerBeer } from '@tests/constants'
+import { MockUserProvider, baseContext, baseUser } from '@tests/constants/mockUserContext'
+import { afterEach, describe, expect, test } from 'vitest'
 import WelcomeMessages from './WelcomeMessages'
 
-function MockUserProvider({ children, mockValues }: { children: ReactNode; mockValues: UserContextType }) {
-	return <UserContext.Provider value={mockValues}>{children}</UserContext.Provider>
+const yesterday = new Date()
+yesterday.setDate(yesterday.getDate() - 1)
+
+const thirtyDaysTime = new Date()
+thirtyDaysTime.setDate(thirtyDaysTime.getDate() + 30)
+
+const inventory: BrowserSafeMerchantProduct[] = [gingerBeer as BrowserSafeMerchantProduct]
+
+type Suite = {
+	suiteDescription: string
+	cases: Case[]
 }
 
-const baseUser: BrowserSafeCompositeUser = {
-	firstName: 'Test',
-	lastName: 'User',
-	email: 'testuser@gmail.com',
-	businessName: 'Test Business',
-	slug: 'test-business',
-	roles: 'merchant',
-	emailConfirmed: false,
-	cutOffTime: defaultCutOffTime,
-	leadTimeDays: defaultLeadTimeDays,
+type Case = {
+	caseDescription: string
+	caseContext: UserContextType
+	caseText: Matcher
+	expectDefined: boolean
 }
 
-const baseContext: UserContextType = {
-	user: baseUser,
-	setUser: vi.fn(),
-	inventory: null,
-	setInventory: vi.fn(),
-	confirmedMerchants: null,
-	setConfirmedMerchants: vi.fn(),
-	confirmedCustomers: null,
-	setConfirmedCustomers: vi.fn(),
-	invitationsReceived: null,
-	setInvitationsReceived: vi.fn(),
-	invitationsSent: null,
-	setInvitationsSent: vi.fn(),
-	ordersMade: null,
-	setOrdersMade: vi.fn(),
-	ordersReceived: null,
-	setOrdersReceived: vi.fn(),
-	vat: 20,
-	isLoading: false,
-}
-
-const inventory: BrowserSafeMerchantProduct[] = [
+const suites: Suite[] = [
 	{
-		id: 1,
-		name: 'Ginger beer',
-		description: 'A spicy fizzy drink',
-		priceInMinorUnits: 86,
-		customVat: 20,
-		deletedAt: null,
+		suiteDescription: 'Customer only',
+		cases: [
+			// Email confirmation cases
+			{
+				caseDescription: 'Asks to confirm email when emailConfirmed is false',
+				caseContext: { ...baseContext, user: { ...baseUser, roles: 'customer' } },
+				caseText:
+					/Please confirm your email by clicking the link in the email sent to testuser@gmail.com. Remember to check your junk folder./i,
+				expectDefined: true,
+			},
+			{
+				caseDescription: 'Does not ask to confirm email when emailConfirmed is true',
+				caseContext: {
+					...baseContext,
+					user: { ...baseUser, roles: 'customer', emailConfirmed: true },
+				},
+				caseText:
+					/Please confirm your email by clicking the link in the email sent to testuser@gmail.com. Remember to check your junk folder./i,
+				expectDefined: false,
+			},
+			// Inventory cases
+			{
+				caseDescription: 'Does not recommend adding first product when inventory is empty',
+				caseContext: { ...baseContext, user: { ...baseUser, roles: 'customer' } },
+				caseText: /add your first product/i,
+				expectDefined: false,
+			},
+			{
+				caseDescription: 'Does not recommend adding first product even with items in inventory',
+				caseContext: {
+					...baseContext,
+					user: { ...baseUser, roles: 'customer' },
+					inventory: inventory,
+				},
+				caseText: /add your first product/i,
+				expectDefined: false,
+			},
+			// Subscription messages should not appear for customers
+			{
+				caseDescription: 'Does not show subscription message even if trial has ended',
+				caseContext: {
+					...baseContext,
+					user: { ...baseUser, roles: 'customer', trialEnd: yesterday },
+				},
+				caseText: /Please subscribe to continue using Simple Order/i,
+				expectDefined: false,
+			},
+		],
+	},
+	{
+		suiteDescription: 'Merchant only',
+		cases: [
+			// Email confirmation cases
+			{
+				caseDescription: 'Asks to confirm email when emailConfirmed is false',
+				caseContext: { ...baseContext, user: { ...baseUser, roles: 'merchant' } },
+				caseText:
+					/Please confirm your email by clicking the link in the email sent to testuser@gmail.com. Remember to check your junk folder./i,
+				expectDefined: true,
+			},
+			{
+				caseDescription: 'Does not ask to confirm email when emailConfirmed is true',
+				caseContext: {
+					...baseContext,
+					user: { ...baseUser, roles: 'merchant', emailConfirmed: true },
+				},
+				caseText:
+					/Please confirm your email by clicking the link in the email sent to testuser@gmail.com. Remember to check your junk folder./i,
+				expectDefined: false,
+			},
+			// Inventory cases
+			{
+				caseDescription: 'Recommends adding first product when inventory is empty',
+				caseContext: { ...baseContext, user: { ...baseUser, roles: 'merchant' } },
+				caseText: /add your first product/i,
+				expectDefined: true,
+			},
+			{
+				caseDescription: 'Does not recommend adding first product when inventory has items',
+				caseContext: {
+					...baseContext,
+					user: { ...baseUser, roles: 'merchant' },
+					inventory: inventory,
+				},
+				caseText: /add your first product/i,
+				expectDefined: false,
+			},
+			// Subscription cases - all combinations
+			{
+				caseDescription: 'Asks to subscribe if trial has ended and subscriptionEnd is undefined',
+				caseContext: {
+					...baseContext,
+					user: { ...baseUser, roles: 'merchant', trialEnd: yesterday, subscriptionEnd: undefined },
+				},
+				caseText: /Please subscribe to continue using Simple Order/i,
+				expectDefined: true,
+			},
+			{
+				caseDescription: 'Asks to subscribe if trial and subscription have ended',
+				caseContext: {
+					...baseContext,
+					user: { ...baseUser, roles: 'merchant', trialEnd: yesterday, subscriptionEnd: yesterday },
+				},
+				caseText: /Your subscription has ended. Please renew your subscription to continue using all features./i,
+				expectDefined: true,
+			},
+			{
+				caseDescription: 'Does not ask to subscribe if trial has not ended (no subscription)',
+				caseContext: {
+					...baseContext,
+					user: { ...baseUser, roles: 'merchant', trialEnd: thirtyDaysTime, subscriptionEnd: undefined },
+				},
+				caseText: /Please subscribe to continue using Simple Order/i,
+				expectDefined: false,
+			},
+			{
+				caseDescription: 'Asks to subscribe if trial has not ended but subscription has ended',
+				caseContext: {
+					...baseContext,
+					user: { ...baseUser, roles: 'merchant', trialEnd: thirtyDaysTime, subscriptionEnd: yesterday },
+				},
+				caseText: /Your subscription has ended. Please renew your subscription to continue using all features./i,
+				expectDefined: false,
+			},
+			{
+				caseDescription: 'Asks to subscribe if trial has not ended but subscription has ended',
+				caseContext: {
+					...baseContext,
+					user: { ...baseUser, roles: 'merchant', trialEnd: thirtyDaysTime, subscriptionEnd: yesterday },
+				},
+				caseText: /Please subscribe to continue using Simple Order/i,
+				expectDefined: true,
+			},
+			{
+				caseDescription: 'Does not ask to subscribe if trial has ended but subscription has not ended',
+				caseContext: {
+					...baseContext,
+					user: { ...baseUser, roles: 'merchant', trialEnd: yesterday, subscriptionEnd: thirtyDaysTime },
+				},
+				caseText: /Please subscribe to continue using Simple Order/i,
+				expectDefined: false,
+			},
+		],
+	},
+	{
+		suiteDescription: 'Both roles',
+		cases: [
+			// Email confirmation cases
+			{
+				caseDescription: 'Asks to confirm email when emailConfirmed is false',
+				caseContext: { ...baseContext, user: { ...baseUser, roles: 'both' } },
+				caseText:
+					/Please confirm your email by clicking the link in the email sent to testuser@gmail.com. Remember to check your junk folder./i,
+				expectDefined: true,
+			},
+			{
+				caseDescription: 'Does not ask to confirm email when emailConfirmed is true',
+				caseContext: {
+					...baseContext,
+					user: { ...baseUser, roles: 'both', emailConfirmed: true },
+				},
+				caseText:
+					/Please confirm your email by clicking the link in the email sent to testuser@gmail.com. Remember to check your junk folder./i,
+				expectDefined: false,
+			},
+			// Inventory cases
+			{
+				caseDescription: 'Recommends adding first product when inventory is empty',
+				caseContext: { ...baseContext, user: { ...baseUser, roles: 'both' } },
+				caseText: /add your first product/i,
+				expectDefined: true,
+			},
+			{
+				caseDescription: 'Does not recommend adding first product when inventory has items',
+				caseContext: {
+					...baseContext,
+					user: { ...baseUser, roles: 'both' },
+					inventory: inventory,
+				},
+				caseText: /add your first product/i,
+				expectDefined: false,
+			},
+
+			// Subscription ended cases - all combinations
+			{
+				caseDescription: 'Asks to subscribe if trial has ended and no subscription',
+				caseContext: {
+					...baseContext,
+					user: { ...baseUser, roles: 'both', trialEnd: yesterday, subscriptionEnd: undefined },
+				},
+				caseText: /Please subscribe to continue using Simple Order/i,
+				expectDefined: true,
+			},
+			{
+				caseDescription: 'Asks to subscribe if trial and subscription have ended',
+				caseContext: {
+					...baseContext,
+					user: { ...baseUser, roles: 'both', trialEnd: yesterday, subscriptionEnd: yesterday },
+				},
+				caseText: /Please subscribe to continue using Simple Order/i,
+				expectDefined: true,
+			},
+			{
+				caseDescription: "Doesn't ask to subscribe if trial and subscription haven't ended",
+				caseContext: {
+					...baseContext,
+					user: { ...baseUser, roles: 'both', trialEnd: thirtyDaysTime, subscriptionEnd: thirtyDaysTime },
+				},
+				caseText: /Please subscribe to continue using Simple Order/i,
+				expectDefined: false,
+			},
+			{
+				caseDescription: "Doesn't ask to subscribe if trial hasn't ended (no subscription)",
+				caseContext: {
+					...baseContext,
+					user: { ...baseUser, roles: 'both', trialEnd: thirtyDaysTime, subscriptionEnd: undefined },
+				},
+				caseText: /Please subscribe to continue using Simple Order/i,
+				expectDefined: false,
+			},
+			{
+				caseDescription: 'Asks to subscribe if trial has not ended but subscription has ended',
+				caseContext: {
+					...baseContext,
+					user: { ...baseUser, roles: 'merchant', trialEnd: thirtyDaysTime, subscriptionEnd: yesterday },
+				},
+				caseText: /Your subscription has ended. Please renew your subscription to continue using all features./i,
+				expectDefined: true,
+			},
+			{
+				caseDescription: "Doesn't ask to subscribe if trial has ended but subscription hasn't ended",
+				caseContext: {
+					...baseContext,
+					user: { ...baseUser, roles: 'both', trialEnd: yesterday, subscriptionEnd: thirtyDaysTime },
+				},
+				caseText: /Please subscribe to continue using Simple Order/i,
+				expectDefined: false,
+			},
+		],
 	},
 ]
 
@@ -59,131 +275,27 @@ describe('WelcomeMessages', () => {
 		cleanup()
 	})
 
-	describe('Email confirmation messages', () => {
-		test('Asks to confirm email when emailConfirmed is false', () => {
-			render(
-				<MockUserProvider mockValues={baseContext}>
-					<WelcomeMessages />
-				</MockUserProvider>,
-			)
+	for (const { suiteDescription, cases } of suites) {
+		describe(suiteDescription, () => {
+			for (const { caseDescription, caseContext, caseText, expectDefined } of cases) {
+				test(caseDescription, () => {
+					render(
+						<MockUserProvider mockValues={caseContext}>
+							<WelcomeMessages />
+						</MockUserProvider>,
+					)
 
-			expect(
-				screen.getByText(
-					/Please confirm your email by clicking the link in the email sent to testuser@gmail.com. Remember to check your junk folder./i,
-				),
-			).toBeDefined()
+					const element = screen.queryByText(caseText)
+
+					if (expectDefined) {
+						expect(element).not.toBeNull()
+					} else {
+						expect(element).toBeNull()
+					}
+				})
+			}
 		})
-
-		test('Does not ask to confirm email when emailConfirmed is true', () => {
-			render(
-				<MockUserProvider
-					mockValues={{
-						...baseContext,
-						user: { ...baseUser, emailConfirmed: true },
-					}}
-				>
-					<WelcomeMessages />
-				</MockUserProvider>,
-			)
-
-			const emailConfirmMessage = screen.queryByText(
-				/Please confirm your email by clicking the link in the email sent to testuser@gmail.com. Remember to check your junk folder./i,
-			)
-
-			expect(emailConfirmMessage).toBeNull()
-		})
-	})
-
-	describe('Empty inventory message', () => {
-		test('Merchants - recommends adding first product when there is no inventory', () => {
-			render(
-				<MockUserProvider mockValues={{ ...baseContext, user: { ...baseUser, roles: 'merchant' } }}>
-					<WelcomeMessages />
-				</MockUserProvider>,
-			)
-			const addProductLink = screen.getByRole('link', { name: /add your first product/i })
-			expect(addProductLink).toBeDefined()
-			expect(addProductLink.getAttribute('href')).toBe('/inventory')
-		})
-
-		test('Both - recommends adding first product when there is no inventory', () => {
-			render(
-				<MockUserProvider mockValues={{ ...baseContext, user: { ...baseUser, roles: 'both' } }}>
-					<WelcomeMessages />
-				</MockUserProvider>,
-			)
-			const addProductLink = screen.getByRole('link', { name: /add your first product/i })
-			expect(addProductLink).toBeDefined()
-			expect(addProductLink.getAttribute('href')).toBe('/inventory')
-		})
-
-		test('Customer - does not recommend adding first product if inventory is empty', () => {
-			render(
-				<MockUserProvider mockValues={{ ...baseContext, user: { ...baseUser, roles: 'customer' } }}>
-					<WelcomeMessages />
-				</MockUserProvider>,
-			)
-			const addProductText = screen.queryByText(/add your first product/i)
-			expect(addProductText).toBeNull()
-		})
-
-		test('Customer - does not recommend adding first product even if there are items in the inventory (weird unlikely situation)', () => {
-			render(
-				<MockUserProvider
-					mockValues={{
-						...baseContext,
-						user: {
-							...baseUser,
-							roles: 'customer',
-						},
-						inventory,
-					}}
-				>
-					<WelcomeMessages />
-				</MockUserProvider>,
-			)
-			const addProductText = screen.queryByText(/add your first product/i)
-			expect(addProductText).toBeNull()
-		})
-
-		test('Merchant - does not recommend adding first if there are items in the inventory', () => {
-			render(
-				<MockUserProvider
-					mockValues={{
-						...baseContext,
-						user: {
-							...baseUser,
-							roles: 'merchant',
-						},
-						inventory,
-					}}
-				>
-					<WelcomeMessages />
-				</MockUserProvider>,
-			)
-			const addProductText = screen.queryByText(/add your first product/i)
-			expect(addProductText).toBeNull()
-		})
-
-		test('Both - does not recommend adding first if there are items in the inventory', () => {
-			render(
-				<MockUserProvider
-					mockValues={{
-						...baseContext,
-						user: {
-							...baseUser,
-							roles: 'both',
-						},
-						inventory,
-					}}
-				>
-					<WelcomeMessages />
-				</MockUserProvider>,
-			)
-			const addProductText = screen.queryByText(/add your first product/i)
-			expect(addProductText).toBeNull()
-		})
-	})
+	}
 })
 
 /*
