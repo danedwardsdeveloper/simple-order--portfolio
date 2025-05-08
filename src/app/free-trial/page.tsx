@@ -1,17 +1,15 @@
 'use client'
 import PageContainer from '@/components/PageContainer'
+import Spinner from '@/components/Spinner'
 import { useUi } from '@/components/providers/ui'
 import { useUser } from '@/components/providers/user'
 import { dataTestIdNames, websiteCopy } from '@/library/constants'
-import logger from '@/library/logger'
-import { allowedCharacters, apiRequest, containsIllegalCharacters, emailRegex } from '@/library/utilities/public'
+import { allowedCharacters, apiRequest, containsIllegalCharacters, emailRegex, mergeClasses } from '@/library/utilities/public'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { type FormEvent, useEffect, useState } from 'react'
 import type { CreateAccountPOSTbody, CreateAccountPOSTresponse } from '../api/authentication/create-account/route'
-
-// Important enhancement ToDo: input validation, strong password etc.
 
 export default function CreateAccountPage() {
 	const router = useRouter()
@@ -21,6 +19,7 @@ export default function CreateAccountPage() {
 	const [errorMessage, setErrorMessage] = useState('')
 	const [illegalCharacterMessage, setIllegalCharacterMessage] = useState('')
 	const [formReady, setFormReady] = useState(false)
+	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [formData, setFormData] = useState<CreateAccountPOSTbody>({
 		firstName: '',
 		lastName: '',
@@ -51,6 +50,7 @@ export default function CreateAccountPage() {
 	async function handleSubmit(event: FormEvent) {
 		event.preventDefault()
 		setErrorMessage('')
+		setIsSubmitting(true)
 
 		try {
 			const requestBody: CreateAccountPOSTbody = {
@@ -72,13 +72,15 @@ export default function CreateAccountPage() {
 				setMerchantMode(true)
 				setUser(user)
 				router.push('/dashboard')
-			} else if (userMessage) {
+			}
+
+			if (userMessage) {
+				// Use notification instead
 				setErrorMessage(userMessage)
 			}
 			return
-		} catch (error) {
-			logger.error(error)
-			setErrorMessage('Sorry something went wrong')
+		} finally {
+			setIsSubmitting(false)
 		}
 	}
 
@@ -190,7 +192,7 @@ export default function CreateAccountPage() {
 									}))
 								}
 								required
-								className="w-full"
+								className="w-full tracking-wide"
 							/>
 							<button
 								type="button"
@@ -199,7 +201,7 @@ export default function CreateAccountPage() {
 								className="absolute right-3 top-1/2 -translate-y-1/2 z-10 focus-visible:outline-orange-400 focus-visible:outline-2 focus-visible:outline focus-visible:rounded"
 								tabIndex={0}
 							>
-								{showPassword ? <EyeIcon className="text-blue-600 size-6" /> : <EyeSlashIcon className="text-blue-600 size-6" />}
+								{showPassword ? <EyeIcon className="text-zinc-600 size-6" /> : <EyeSlashIcon className="text-zinc-600 size-6" />}
 							</button>
 							<div aria-live="polite" id="password-text" className="sr-only">
 								{showPassword ? 'Password visible' : 'Password hidden'}
@@ -212,9 +214,21 @@ export default function CreateAccountPage() {
 						data-test-id={dataTestIdNames.createAccountSubmitButton}
 						type="submit"
 						disabled={!formReady}
-						className="button-primary inline-block w-full mt-4 py-2"
+						className={mergeClasses(
+							'rounded-lg px-3 py-1 font-medium transition-all duration-300 outline-offset-4 focus-visible:outline-orange-400',
+							'flex items-center justify-center w-full mt-4 py-2 border-2',
+							!formReady
+								? 'text-zinc-400 bg-zinc-200 border-zinc-300 cursor-not-allowed'
+								: isSubmitting
+									? 'bg-blue-600 border-blue-600 text-white cursor-not-allowed'
+									: 'bg-blue-600 border-blue-600 hover:bg-blue-500 hover:border-blue-500 active:border-blue-400 active:bg-blue-400 text-white',
+						)}
 					>
-						{websiteCopy.CTAs.primary.displayText}
+						{(() => {
+							if (isSubmitting) return <Spinner colour="text-white" />
+
+							return <span>{websiteCopy.CTAs.primary.displayText}</span>
+						})()}
 					</button>
 				</form>
 				<div className="flex justify-center gap-x-2 mt-6">
