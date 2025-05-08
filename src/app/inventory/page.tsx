@@ -34,7 +34,16 @@ export default function InventoryPage() {
 		return (
 			<div className="max-w-xl flex border-2 border-blue-200 p-3 lg:-mx-3 rounded-xl">
 				<p>
-					You have {inventory?.length || 0} products - maximum {serviceConstraints.maximumProducts}
+					{(() => {
+						if (!inventory || inventory.length === 0) {
+							return <>Inventory empty. You can add up to {serviceConstraints.maximumProducts} products</>
+						}
+						return (
+							<>
+								You have {inventory?.length || 0} products - maximum {serviceConstraints.maximumProducts}
+							</>
+						)
+					})()}
 				</p>
 			</div>
 		)
