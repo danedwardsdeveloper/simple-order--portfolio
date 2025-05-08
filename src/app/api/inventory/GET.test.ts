@@ -1,7 +1,7 @@
 import type { AsyncFunction } from '@/types'
 import { addProducts, createCookieString, createUser, deleteUser, initialiseTestGETRequestMaker } from '@tests/utilities'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
-import type { InventoryAdminGETresponse } from './route'
+import type { InventoryAdminGETresponse } from './get'
 
 const makeRequest = initialiseTestGETRequestMaker('/inventory')
 
