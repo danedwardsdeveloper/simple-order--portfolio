@@ -18,8 +18,6 @@ export function getAvailableDeliveryDays({
 }: Props): Date[] | null {
 	if (acceptedWeekDays.length === 0) return null
 
-	const now = new Date()
-
 	const today = new Date()
 	today.setUTCHours(0, 0, 0, 0)
 
