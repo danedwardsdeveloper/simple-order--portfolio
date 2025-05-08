@@ -1,6 +1,6 @@
 'use client'
 import type { VerifyTokenGETresponse } from '@/app/api/authentication/verify-token/route'
-import type { InventoryAdminGETresponse } from '@/app/api/inventory/route'
+import type { InventoryAdminGETresponse } from '@/app/api/inventory/get'
 import type { InvitationsGETresponse } from '@/app/api/invitations/route'
 import type { OrdersAdminGETresponse } from '@/app/api/orders/admin/get'
 import type { OrdersGETresponse } from '@/app/api/orders/get'

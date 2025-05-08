@@ -1,5 +1,5 @@
 'use client'
-import type { InventoryAddPOSTbody, InventoryAddPOSTresponse } from '@/app/api/inventory/route'
+import type { InventoryAddPOSTbody, InventoryAddPOSTresponse } from '@/app/api/inventory/get'
 import { useNotifications } from '@/components/providers/notifications'
 import { useUser } from '@/components/providers/user'
 import { serviceConstraints } from '@/library/constants'
