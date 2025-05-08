@@ -19,6 +19,7 @@ import type {
 	OrderReceived,
 } from '@/types'
 import { type Dispatch, type ReactNode, type SetStateAction, createContext, useContext, useEffect, useRef, useState } from 'react'
+import { useUi } from './ui'
 
 export interface UserContextType {
 	user: BrowserSafeCompositeUser | null
@@ -52,6 +53,7 @@ export interface UserContextType {
 export const UserContext = createContext<UserContextType>({} as UserContextType)
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
+	const { setMerchantMode } = useUi()
 	const hasCheckedToken = useRef(false) // Prevent development issues
 	const [isLoading, setIsLoading] = useState(true)
 
@@ -93,8 +95,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
 					if (user.roles === 'customer') {
 						rolePromises = customerPromises
+						setMerchantMode(false)
 					} else if (user.roles === 'merchant') {
 						rolePromises = merchantPromises
+						setMerchantMode(true)
 					} else {
 						rolePromises = bothPromises
 					}
