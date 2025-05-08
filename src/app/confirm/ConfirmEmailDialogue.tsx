@@ -22,7 +22,10 @@ export default function ConfirmEmailDialogue() {
 	// biome-ignore lint/correctness/useExhaustiveDependencies:
 	useEffect(() => {
 		async function confirmEmail() {
-			if (!token) return
+			if (!token || hasCheckedToken.current) return
+
+			hasCheckedToken.current = true
+
 			try {
 				const { confirmedUser, userMessage } = await apiRequest<ConfirmEmailPOSTresponse, ConfirmEmailPOSTbody>({
 					basePath: '/authentication/email/confirm',
@@ -56,11 +59,6 @@ export default function ConfirmEmailDialogue() {
 				setMessage(userMessages.serverError)
 			} finally {
 				setIsLoading(false)
-			}
-
-			if (token && !hasCheckedToken.current) {
-				confirmEmail()
-				hasCheckedToken.current = true
 			}
 		}
 
