@@ -16,6 +16,7 @@ export default function InviteCustomerForm() {
 
 	if (!user || user.roles === 'customer' || !user.emailConfirmed) return null
 
+	/* ToDo: Display subscription/trial ended message
 	if (!user.subscriptionEnd || !user.trialEnd) {
 		return (
 			<div className="max-w-md p-3 border-2 my-4 rounded-xl border-red-300 ">
@@ -24,6 +25,7 @@ export default function InviteCustomerForm() {
 			</div>
 		)
 	}
+	*/
 
 	// ToDo: there's a weird glitch for a split second when you submit the form
 
@@ -104,6 +106,7 @@ export default function InviteCustomerForm() {
 					disabled={loading || !invitedEmail}
 					className="button-primary"
 				>
+					{/* ToDo: add Spinner and isSubmitting */}
 					Send invitation
 				</button>
 				<ResponseMessage />
