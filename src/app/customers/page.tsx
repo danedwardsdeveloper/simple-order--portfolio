@@ -1,5 +1,6 @@
 'use client'
 import PleaseConfirmYourEmailMessage from '@/components/PleaseConfirmYourEmailMessage'
+import TwoColumnContainer from '@/components/TwoColumnContainer'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
 import { useUser } from '@/components/providers/user'
 import CustomersList from './components/CustomersList'
@@ -12,14 +13,10 @@ export default function CustomersPage() {
 
 	return (
 		<>
-			{!user.emailConfirmed ? (
-				<PleaseConfirmYourEmailMessage email={user.email} />
-			) : (
-				<>
-					<InviteCustomerForm />
-					<CustomersList />
-				</>
-			)}
+			<TwoColumnContainer
+				mainColumn={!user.emailConfirmed ? <PleaseConfirmYourEmailMessage email={user.email} /> : <CustomersList />}
+				sideColumn={<InviteCustomerForm />}
+			/>
 		</>
 	)
 }
