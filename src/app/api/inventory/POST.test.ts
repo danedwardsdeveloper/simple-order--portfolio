@@ -9,6 +9,8 @@ import type { JsonData } from '@tests/types'
 import { addProducts, createCookieString, createUser, deleteUser, initialiseTestRequestMaker } from '@tests/utilities'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest'
 
+// ToDo: Add a product, then delete it, then try to add it again. Previously has made a conflict...
+
 // Suite/Case test snippet in progress - most comprehensive
 
 const makeRequest = initialiseTestRequestMaker({
