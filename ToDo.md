@@ -1,8 +1,6 @@
 ## Current Task
 
-.
-
-.
+-
 
 .
 
@@ -50,6 +48,8 @@
 
 ## Things I could do...
 
+-  Production development tests
+-  Ensure days of the week are seeded in the production database
 -  Create an API test route for /create-account
 -  Refactor `/api/orders/route.ts` 1. Save the data it currently returns 2. Refactor 3. Check it returns the same data
 -  Get data about trial/subscription for conditional rendering of trial/subscription information
