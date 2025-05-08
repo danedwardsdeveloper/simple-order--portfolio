@@ -61,8 +61,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 
 		if (existingUser) {
 			return respond({
+				body: {
+					userMessage: existingUser.email === email ? userMessages.emailTaken : userMessages.businessNameTaken,
+				},
 				status: 409,
-				developmentMessage: existingUser.email === email ? userMessages.emailTaken : userMessages.businessNameTaken,
 			})
 		}
 
@@ -72,7 +74,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 
 		const confirmationURL: string | null = null
 
-		const { dangerousNewUser } = await database.transaction(async (tx: Transaction) => {
+		const { dangerousNewUser, trialEnd } = await database.transaction(async (tx: Transaction) => {
 			const baseSlug = createMerchantSlug(businessName)
 			let slug = baseSlug
 
@@ -103,7 +105,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 
 			txError = { message: 'error creating free trial', status: 503 }
 
-			await createFreeTrial({ userId: dangerousNewUser.id, tx })
+			const { trialEnd } = await createFreeTrial({ userId: dangerousNewUser.id, tx })
 
 			const confirmationURL = await createConfirmationToken({ userId: dangerousNewUser.id, queryRunner: tx })
 
@@ -119,7 +121,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 			if (!emailSentSuccessfully) tx.rollback()
 
 			txError = undefined
-			return { dangerousNewUser }
+			return { dangerousNewUser, trialEnd }
 		})
 
 		if (txError) {
@@ -134,6 +136,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 		const compositeUser: BrowserSafeCompositeUser = {
 			...sanitisedBaseUser,
 			roles: 'merchant',
+			trialEnd,
 		}
 
 		const cookieStore = await cookies()
