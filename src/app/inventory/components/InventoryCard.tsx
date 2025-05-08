@@ -1,5 +1,5 @@
 'use client'
-import type { InventoryDELETEresponse, InventoryDELETEsegment } from '@/app/api/inventory/[itemId]/route'
+import type { InventoryDELETEresponse, InventoryDELETEsegment } from '@/app/api/inventory/[itemId]/delete'
 import { useNotifications } from '@/components/providers/notifications'
 import { useUi } from '@/components/providers/ui'
 import { useUser } from '@/components/providers/user'
@@ -14,7 +14,7 @@ interface Props {
 }
 
 export default function InventoryCard({ product, zebraStripe }: Props) {
-	const { vat } = useUser()
+	const { vat, setInventory } = useUser()
 	const [showDeleteModal, setShowDeleteModal] = useState(false)
 	const { createNotification } = useNotifications()
 	const [isBeingEdited, setIsBeingEdited] = useState(false)
@@ -54,10 +54,13 @@ export default function InventoryCard({ product, zebraStripe }: Props) {
 				level: 'success',
 				message: `${product.name} deleted`,
 			})
+
+			setInventory((previousInventory) => (previousInventory ? previousInventory.filter((item) => item.id !== softDeletedProduct.id) : []))
+
 			return
 		}
 
-		if (userMessage) {
+		if (!softDeletedProduct || userMessage) {
 			createNotification({
 				title: 'Error',
 				level: 'error',
