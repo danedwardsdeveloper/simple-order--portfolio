@@ -15,7 +15,7 @@ export default function CustomersList() {
 	return (
 		<div className="flex flex-col gap-y-4">
 			{confirmedCustomers && (
-				<h2 className="mt-12">
+				<h2 className="">
 					{confirmedCustomers.length} Confirmed customer{confirmedCustomers.length !== 1 && 's'}
 				</h2>
 			)}
@@ -23,7 +23,7 @@ export default function CustomersList() {
 				<ConfirmedCustomerCard key={customer.businessName} confirmedCustomer={customer} zebraStripe={Boolean(index % 2)} />
 			))}
 			{invitationsSent && (
-				<h2 className="mt-12">
+				<h2 className="">
 					{invitationsSent.length} Invited customer{invitationsSent.length !== 1 && 's'}
 				</h2>
 			)}
