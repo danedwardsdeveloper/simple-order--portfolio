@@ -33,7 +33,7 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 	const tomorrow = new Date(now)
 	tomorrow.setDate(now.getDate() + 1)
 
-	const [requestedDeliveryDate, setRequestedDeliveryDate] = useState<Date>(tomorrow)
+	const [requestedDeliveryDate, _setRequestedDeliveryDate] = useState<Date>(tomorrow)
 
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
