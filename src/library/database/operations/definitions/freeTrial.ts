@@ -10,18 +10,22 @@ type Input = {
 	tx?: Transaction
 }
 
-export async function createFreeTrial({ userId, tx }: Input): Promise<FreeTrial> {
+type Output = Promise<{
+	freeTrial: FreeTrial
+	trialEnd: Date
+}>
+
+export async function createFreeTrial({ userId, tx }: Input): Output {
 	try {
 		const queryRunner = tx ?? database
 		const startDate = new Date()
 		startDate.setUTCHours(0, 0, 0, 0)
 
-		const [freeTrial] = await queryRunner
-			.insert(freeTrials)
-			.values({ userId, startDate: new Date(), endDate: createFreeTrialEndTime() })
-			.returning()
+		const endDate = createFreeTrialEndTime()
 
-		return freeTrial
+		const [freeTrial] = await queryRunner.insert(freeTrials).values({ userId, startDate, endDate }).returning()
+
+		return { freeTrial, trialEnd: endDate }
 	} catch (error) {
 		logger.error(`createFreeTrial: failed to create free trial for user with ID ${userId}`, error)
 		throw error
