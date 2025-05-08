@@ -1,8 +1,8 @@
 'use client'
-import type { InventoryAddPOSTbody, InventoryAddPOSTresponse } from '@/app/api/inventory/get'
+import type { InventoryAddPOSTbody, InventoryAddPOSTresponse } from '@/app/api/inventory/post'
 import { useNotifications } from '@/components/providers/notifications'
 import { useUser } from '@/components/providers/user'
-import { serviceConstraints } from '@/library/constants'
+import { serviceConstraints, userMessages } from '@/library/constants'
 import { apiRequest, containsIllegalCharacters } from '@/library/utilities/public'
 import type { NewNotification } from '@/types'
 import { type FormEvent, useEffect, useState } from 'react'
@@ -15,12 +15,12 @@ export type InventoryAddFormData = {
 }
 
 export default function AddInventoryForm() {
-	const { user, inventory, setInventory } = useUser()
+	const { user, inventory, setInventory, vat } = useUser()
 	const [formData, setFormData] = useState<InventoryAddFormData>({
 		name: '',
 		description: '',
 		priceInMinorUnits: '',
-		customVat: '',
+		customVat: String(vat),
 	})
 	const [errorMessage, setErrorMessage] = useState('')
 	const [illegalCharacterWarnings, setIllegalCharacterWarnings] = useState<{
@@ -64,7 +64,6 @@ export default function AddInventoryForm() {
 		})
 
 		if (addedProduct) {
-			// ToDo: use Immer
 			setInventory((previousInventory) => (previousInventory ? [addedProduct, ...previousInventory] : [addedProduct]))
 
 			const notification: NewNotification = {
@@ -82,7 +81,8 @@ export default function AddInventoryForm() {
 			})
 			return
 		}
-		if (userMessage) setErrorMessage(userMessage)
+
+		if (userMessage || !addedProduct) setErrorMessage(userMessage || userMessages.serverError)
 	}
 
 	const handleInputChange = (field: keyof InventoryAddFormData, value: string) => {
