@@ -40,7 +40,7 @@ export default function InventoryPage() {
 						}
 						return (
 							<>
-								You have {inventory?.length || 0} products - maximum {serviceConstraints.maximumProducts}
+								You have {inventory?.length || 0} product{inventory?.length !== 1 && 's'} - maximum {serviceConstraints.maximumProducts}
 							</>
 						)
 					})()}
