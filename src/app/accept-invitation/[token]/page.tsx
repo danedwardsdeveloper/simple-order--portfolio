@@ -43,7 +43,7 @@ export default function AcceptInvitationPage() {
 				method: 'PATCH',
 			})
 
-			setMerchantMode(false) // Not sure about this??
+			setMerchantMode(false)
 
 			if (createdUser || existingUser) {
 				setUser(createdUser || existingUser || null)
