@@ -1,68 +1,115 @@
+import { http403forbidden, january } from '@/library/constants'
 import { database } from '@/library/database/connection'
+import { createHoliday } from '@/library/database/operations'
 import { orderItems, orders } from '@/library/database/schema'
+import { createDate } from '@/library/utilities/public'
 import { equals } from '@/library/utilities/server'
-import type { AnonymousProduct, DangerousBaseUser, OrderMade, Product, TestUserInputValues } from '@/types'
+import type { AnonymousProduct, AsyncFunction, DangerousBaseUser, OrderMade, Product, TestUserInputValues } from '@/types'
 import type { JsonData } from '@tests/types'
 import { addProducts, createUser, deleteUser, initialiseTestRequestMaker } from '@tests/utilities'
-import { afterAll, beforeAll, describe, expect, test } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
+import type { OrdersPOSTbody } from './post'
 
-describe('Create order', () => {
-	const makeRequest = initialiseTestRequestMaker({
-		basePath: '/orders',
-		method: 'POST',
-	})
+const makeRequest = initialiseTestRequestMaker({
+	basePath: '/orders',
+	method: 'POST',
+})
 
-	const merchantInputValues: TestUserInputValues = {
-		firstName: 'Count',
-		lastName: 'Dracula',
-		businessName: 'Transylvanian Estates',
-		email: 'count@dracula.com',
-		password: 'Bl00dType0!',
-	}
+const merchantInputValues: TestUserInputValues = {
+	firstName: 'Count',
+	lastName: 'Dracula',
+	businessName: 'Transylvanian Estates',
+	email: 'count@dracula.com',
+	password: 'Bl00dType0!',
+}
 
-	const customerInputValues: TestUserInputValues = {
-		firstName: 'Jane',
-		lastName: 'Eyre',
-		businessName: 'Thornfield Governesses',
-		email: 'jane@thornfield.com',
-		password: 'R0chester!Fire',
-	}
+const customerInputValues: TestUserInputValues = {
+	firstName: 'Jane',
+	lastName: 'Eyre',
+	businessName: 'Thornfield Governesses',
+	email: 'jane@thornfield.com',
+	password: 'R0chester!Fire',
+}
 
-	const anonymousProductInsertValues: AnonymousProduct[] = [{ name: 'Human blood, 5 liters', priceInMinorUnits: 9850 }]
+const anonymousProductInsertValues: AnonymousProduct[] = [{ name: 'Human blood, 5 liters', priceInMinorUnits: 9850 }]
 
-	let merchantProfile: DangerousBaseUser | undefined
-	let customerId: number | undefined
-	let customerCookie: string | undefined
-	let addedProducts: Product[] | undefined
+let merchantProfile: DangerousBaseUser | undefined
+let customerId: number | undefined
+let customerCookie: string | undefined
+let addedProducts: Product[] | undefined
 
-	type ToDoCase = { caseDescription: string }
+function getMerchant(): DangerousBaseUser {
+	if (!merchantProfile) throw new Error('Merchant missing')
+	return merchantProfile
+}
 
-	const toDoCases: ToDoCase[] = [
-		{ caseDescription: 'Invalid cookie' },
-		{ caseDescription: 'Expired cookie' },
-		{ caseDescription: 'Email not confirmed ' },
-		{ caseDescription: 'Missing merchantSlug' },
-		{ caseDescription: 'Missing requestedDeliveryDate' },
-		{ caseDescription: 'Invalid requestedDeliveryDate' },
-		{ caseDescription: 'No products' },
-		{ caseDescription: 'Empty products array' },
-		{ caseDescription: 'Customer note too long' },
-		{ caseDescription: 'Illegal characters in customerNote' },
-		{ caseDescription: 'No relationship' },
-		{ caseDescription: 'Self-order' },
-		{ caseDescription: 'Customer can make an order without a free trial or subscription' },
-	]
+function getProducts(): Product[] {
+	if (!addedProducts) throw new Error('Added products missing')
+	return addedProducts
+}
 
-	for (const { caseDescription } of toDoCases) {
-		test.skip(caseDescription, () => {
-			//
-		})
-	}
+const validBody: () => OrdersPOSTbody = () => ({
+	merchantSlug: getMerchant().slug,
+	requestedDeliveryDate: new Date(),
+	products: [
+		{
+			productId: getProducts()[0].id,
+			quantity: 10,
+		},
+	],
+})
 
+interface TestSuite {
+	suiteDescription: string
+	suiteExpectedStatus?: number
+	suiteSetUp?: AsyncFunction
+	suiteMockedTime: Date
+	suiteTearDown?: AsyncFunction
+	cases: TestCase[]
+}
+
+interface TestCase {
+	caseDescription: string
+	caseSetUp?: AsyncFunction
+	caseBody: () => OrdersPOSTbody
+	caseTearDown?: AsyncFunction
+	assertions?: AsyncFunction
+}
+
+const suites: TestSuite[] = [
+	{
+		suiteDescription: 'Delivery days not accepted',
+		suiteMockedTime: createDate(1, january, 2025), // Wednesday
+		suiteExpectedStatus: http403forbidden,
+		cases: [
+			{
+				caseDescription: "on a day that is'nt a regular accepted weekday",
+				caseBody: () => ({
+					...validBody(),
+					requestedDeliveryDate: createDate(6, january, 2025), // Saturday
+				}),
+			},
+			{
+				caseDescription: 'on a merchant holiday',
+				caseSetUp: async () => {
+					await createHoliday(getMerchant().id, createDate())
+				},
+				caseBody: () => ({
+					...validBody(),
+					requestedDeliveryDate: createDate(6, january, 2025), // Saturday
+				}),
+			},
+		],
+	},
+]
+
+describe('POST /api/orders', () => {
 	beforeAll(async () => {
 		const { createdUser } = await createUser(merchantInputValues)
 		merchantProfile = createdUser
+
 		const { createdUser: customer, requestCookie } = await createUser(customerInputValues)
+
 		customerId = customer.id
 		customerCookie = requestCookie
 
@@ -79,49 +126,90 @@ describe('Create order', () => {
 		await deleteUser(customerInputValues.email)
 	})
 
-	test('createOrder', async () => {
-		if (!merchantProfile || !customerId) throw new Error('Failed to create new users')
-		if (!addedProducts) throw new Error('Failed to add products')
+	for (const { suiteDescription, suiteMockedTime, cases, suiteExpectedStatus } of suites) {
+		describe(suiteDescription, () => {
+			beforeEach(() => vi.setSystemTime(suiteMockedTime))
+			afterEach(() => vi.useRealTimers())
 
-		const { response } = await makeRequest({
-			requestCookie: customerCookie,
-			body: {
-				merchantSlug: merchantProfile.slug,
-				requestedDeliveryDate: new Date(),
-				products: [
-					{
-						productId: addedProducts[0].id,
-						quantity: 10,
-					},
-				],
-			},
+			for (const { caseDescription, caseBody, assertions, caseTearDown } of cases) {
+				test(caseDescription, async () => {
+					try {
+						const { response } = await makeRequest({
+							requestCookie: customerCookie,
+							body: caseBody(),
+						})
+
+						if (assertions) await assertions()
+
+						expect(response.status).toEqual(suiteExpectedStatus)
+					} finally {
+						if (caseTearDown) await caseTearDown()
+					}
+				})
+			}
 		})
+	}
 
-		expect(response.status).toBe(201)
+	describe.skip('ToDo: old disorganised tests', () => {
+		test('createOrder', async () => {
+			const { response } = await makeRequest({
+				requestCookie: customerCookie,
+				body: {
+					merchantSlug: getMerchant().slug,
+					requestedDeliveryDate: new Date(),
+					products: [
+						{
+							productId: getProducts()[0].id,
+							quantity: 10,
+						},
+					],
+				},
+			})
 
-		const body = (await response.json()) as JsonData
-		expect(body).toHaveProperty('createdOrder')
+			expect(response.status).toBe(201)
 
-		const createdOrder = body.createdOrder as OrderMade
-		expect(createdOrder).toHaveProperty('products')
+			const body = (await response.json()) as JsonData
+			expect(body).toHaveProperty('createdOrder')
 
-		expect(createdOrder.products.length).toBe(1)
-		expect(createdOrder?.products[0].name).toBe('Human blood, 5 liters')
+			const createdOrder = body.createdOrder as OrderMade
+			expect(createdOrder).toHaveProperty('products')
 
-		const retrievedOrderArray = await database.select().from(orders).where(equals(orders.merchantId, merchantProfile.id))
-		expect(retrievedOrderArray.length).toBe(1)
+			expect(createdOrder.products.length).toBe(1)
+			expect(createdOrder?.products[0].name).toBe('Human blood, 5 liters')
 
-		const retrievedOrder = retrievedOrderArray[0]
+			const retrievedOrderArray = await database.select().from(orders).where(equals(orders.merchantId, getMerchant().id))
+			expect(retrievedOrderArray.length).toBe(1)
 
-		const retrievedOrderItemsArray = await database.select().from(orderItems).where(equals(orderItems.orderId, retrievedOrder.id))
+			const retrievedOrder = retrievedOrderArray[0]
 
-		expect(retrievedOrderItemsArray.length).toBe(1)
+			const retrievedOrderItemsArray = await database.select().from(orderItems).where(equals(orderItems.orderId, retrievedOrder.id))
 
-		const retrievedOrderItems = retrievedOrderItemsArray[0]
-		expect(retrievedOrderItems.quantity).toBe(10)
+			expect(retrievedOrderItemsArray.length).toBe(1)
+
+			const retrievedOrderItems = retrievedOrderItemsArray[0]
+			expect(retrievedOrderItems.quantity).toBe(10)
+		})
 	})
 })
 
+type ToDoCase = { caseDescription: string }
+
+const _toDoCases: ToDoCase[] = [
+	{ caseDescription: 'Invalid cookie' },
+	{ caseDescription: 'Expired cookie' },
+	{ caseDescription: 'Email not confirmed ' },
+	{ caseDescription: 'Missing merchantSlug' },
+	{ caseDescription: 'Missing requestedDeliveryDate' },
+	{ caseDescription: 'Invalid requestedDeliveryDate' },
+	{ caseDescription: 'No products' },
+	{ caseDescription: 'Empty products array' },
+	{ caseDescription: 'Customer note too long' },
+	{ caseDescription: 'Illegal characters in customerNote' },
+	{ caseDescription: 'No relationship' },
+	{ caseDescription: 'Self-order' },
+	{ caseDescription: 'Customer can make an order without a free trial or subscription' },
+]
+
 /* 
-pnpm vitest src/app/api/orders/POST
+pnpm vitest src/app/api/orders/post
 */
