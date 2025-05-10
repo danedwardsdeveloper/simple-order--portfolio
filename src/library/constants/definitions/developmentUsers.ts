@@ -5,8 +5,8 @@ export const developmentUsers = {
 	permanentBoth: {
 		firstName: 'Samantha',
 		lastName: 'Jones',
-		email: 'permanentboth@gmail.com',
-		businessName: "Samantha's Sauces",
+		email: 'samanthasbakery@gmail.com',
+		businessName: "Samantha's Bakery",
 		password: 'securePassword123',
 	},
 	permanentCustomer: {
@@ -27,7 +27,7 @@ export const developmentUsers = {
 		firstName: 'Jane',
 		lastName: 'Pompermonterson',
 		email: 'janepompermonterson@gmail.com',
-		businessName: `Jane's Bakery`,
+		businessName: `Jane's Hotel`,
 		password: 'securePassword123',
 	},
 	merchantOnly: {
