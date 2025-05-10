@@ -136,6 +136,7 @@ export async function POST(request: NextRequest): OutputPOST {
 			return respond({
 				body: { userMessage: userMessages.cutOffTimeExceeded },
 				status: http403forbidden,
+				developmentMessage: 'delivery day not accepted',
 			})
 		}
 
