@@ -150,7 +150,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
 		async function getOrdersReceived() {
 			const { ordersReceived } = await apiRequest<OrdersAdminGETresponse>({
-				basePath: '/orders',
+				basePath: '/orders/admin',
 			})
 
 			if (ordersReceived) setOrdersReceived(ordersReceived)
