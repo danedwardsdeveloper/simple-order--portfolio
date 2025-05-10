@@ -3,8 +3,7 @@ import { database } from '@/library/database/connection'
 import { checkAccess, checkRelationship, getAcceptedWeekDays } from '@/library/database/operations'
 import { getHolidays } from '@/library/database/operations/definitions/getHolidays'
 import { products, users } from '@/library/database/schema'
-import logger from '@/library/logger'
-import { convertEmptyToUndefined, formatDateWithDayName, getAvailableDeliveryDays } from '@/library/utilities/public'
+import { convertEmptyToUndefined, getAvailableDeliveryDays } from '@/library/utilities/public'
 import { and, equals, initialiseResponder, isNull } from '@/library/utilities/server'
 import type { BrowserSafeCustomerProduct, UserMessages } from '@/types'
 import type { NextRequest, NextResponse } from 'next/server'
@@ -28,7 +27,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 		const { dangerousUser, accessDenied } = await checkAccess({
 			request,
 			requireConfirmed: true,
-			requireSubscriptionOrTrial: true,
+			requireSubscriptionOrTrial: false, // Allow customers (who don't have a trial or subscription) to make orders
 		})
 
 		if (accessDenied) {
@@ -94,10 +93,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 				developmentMessage: 'No delivery days available',
 			})
 		}
-
-		const formattedDeliveryDays = availableDeliveryDays.map((date) => formatDateWithDayName(date))
-
-		logger.debug('Available delivery days: ', formattedDeliveryDays)
 
 		return respond({
 			body: {
