@@ -3,7 +3,9 @@ import { database } from '@/library/database/connection'
 import { createConfirmationURL, createFreeTrial } from '@/library/database/operations'
 import { acceptedDeliveryDays, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
-import { createNewMerchantEmail } from '@/library/email/templates'
+import { createNewMerchantEmail, createNewTrialNotificationEmail } from '@/library/email/templates'
+import { isProduction } from '@/library/environment/publicVariables'
+import { myPersonalEmail } from '@/library/environment/serverVariables'
 import { createMerchantSlug, sanitiseDangerousBaseUser } from '@/library/utilities/public'
 import { createCookieWithToken, equals, formatFirstError, hashPassword, initialiseResponder, or } from '@/library/utilities/server'
 import { NewUserSchema } from '@/library/validations'
@@ -72,9 +74,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 
 		let txError: { message: string; status: number } | undefined = { message: 'transaction error', status: 503 }
 
-		const confirmationURL: string | null = null
-
-		const { dangerousNewUser, trialEnd } = await database.transaction(async (tx: Transaction) => {
+		const { dangerousNewUser, trialEnd, confirmationURL } = await database.transaction(async (tx: Transaction) => {
 			const baseSlug = createMerchantSlug(businessName)
 			let slug = baseSlug
 
@@ -118,10 +118,17 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 				}),
 			})
 
+			if (isProduction && email !== myPersonalEmail) {
+				await sendEmail({
+					recipientEmail: myPersonalEmail,
+					...createNewTrialNotificationEmail(dangerousNewUser),
+				})
+			}
+
 			if (!emailSentSuccessfully) tx.rollback()
 
 			txError = undefined
-			return { dangerousNewUser, trialEnd }
+			return { dangerousNewUser, trialEnd, confirmationURL }
 		})
 
 		if (txError) {
@@ -141,8 +148,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 
 		const cookieStore = await cookies()
 		cookieStore.set(createCookieWithToken(dangerousNewUser.id, cookieDurations.oneYear))
-
-		// ToDo: confirmationURL is null in the message
 
 		return respond({
 			body: { user: compositeUser },
