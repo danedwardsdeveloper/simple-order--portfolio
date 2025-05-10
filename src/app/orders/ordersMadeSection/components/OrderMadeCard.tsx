@@ -32,6 +32,10 @@ function OrderItem({ item }: { item: BrowserOrderItem }) {
 export default function OrderMadeCard({ orderDetails, includeVat, index }: Props) {
 	const { statusName, businessName, requestedDeliveryDate, createdAt, updatedAt, products } = orderDetails
 
+	const { totalWithVAT, totalWithoutVAT } = calculateOrderTotal(orderDetails.products)
+
+	const formattedTotal = formatPrice(includeVat ? totalWithVAT : totalWithoutVAT)
+
 	return (
 		<li>
 			<ZebraContainer index={index} oddStyles="bg-blue-50" evenStyles="bg-zinc-50" baseStyles="flex flex-col gap-y-6 w-full p-3 rounded-xl">
@@ -69,7 +73,7 @@ export default function OrderMadeCard({ orderDetails, includeVat, index }: Props
 				{/* Order total */}
 				<div className="w-full flex gap-x-3 items-end justify-end text-xl">
 					<span className="text-zinc-600">Total</span>
-					<span className="font-medium">{formatPrice(calculateOrderTotal({ orderDetails, includeVat }))}</span>
+					<span className="font-medium">{formattedTotal}</span>
 				</div>
 
 				{/* Action buttons */}
