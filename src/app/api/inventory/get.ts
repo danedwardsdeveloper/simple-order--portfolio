@@ -18,6 +18,7 @@ export interface InventoryAdminGETresponse {
 	inventory?: BrowserSafeMerchantProduct[]
 }
 
+// ToDo: Refactor with responder function
 // GET all products for the signed-in merchant
 export async function GET(request: NextRequest): Promise<NextResponse<InventoryAdminGETresponse>> {
 	const { developmentLogger } = initialiseDevelopmentLogger('/inventory', 'GET')
