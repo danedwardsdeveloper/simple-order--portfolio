@@ -8,7 +8,7 @@ import logger from '@/library/logger'
 import { convertEmptyToUndefined, emailRegex, obfuscateEmail } from '@/library/utilities/public'
 import { and, createInvitation, createInvitationURL, equals, inArray, initialiseResponder } from '@/library/utilities/server'
 import type { BrowserSafeInvitationReceived, BrowserSafeInvitationSent, DangerousBaseUser, Invitation, UserMessages } from '@/types'
-import { type NextRequest, NextResponse } from 'next/server'
+import type { NextRequest, NextResponse } from 'next/server'
 
 export interface InvitationsGETresponse {
 	userMessage?: UserMessages
@@ -18,6 +18,7 @@ export interface InvitationsGETresponse {
 
 type OutputGET = Promise<NextResponse<InvitationsGETresponse>>
 
+// ToDo: refactor with responder function and split into multiple files
 export async function GET(request: NextRequest): OutputGET {
 	const respond = initialiseResponder<InvitationsGETresponse>()
 	try {
@@ -140,7 +141,10 @@ export async function POST(request: NextRequest): OutputPOST {
 		}
 
 		if (dangerousUser.email === normalisedInvitedEmail) {
-			return NextResponse.json({ developerMessage: 'attempted to invite self' }, { status: 400 })
+			return respond({
+				status: 400,
+				developmentMessage: 'attempted to invite self',
+			})
 		}
 
 		const [inviteeWithAccountAlready]: DangerousBaseUser[] | undefined = await database
@@ -156,7 +160,10 @@ export async function POST(request: NextRequest): OutputPOST {
 			})
 
 			if (relationshipExists) {
-				return NextResponse.json({ developerMessage: 'relationship exists' }, { status: http202accepted })
+				return respond({
+					status: http202accepted,
+					developmentMessage: 'relationship exists',
+				})
 			}
 		}
 
