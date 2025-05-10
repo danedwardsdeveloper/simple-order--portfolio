@@ -1,12 +1,23 @@
 import { format, toZonedTime } from 'date-fns-tz'
 
-export default function DeliveryDates({ availableDeliveryDays }: { availableDeliveryDays: Date[] | null }) {
-	if (!availableDeliveryDays) return null
+export default function DeliveryDates({
+	availableDeliveryDays,
+	selectedDate,
+	onDateChange,
+}: {
+	availableDeliveryDays: Date[] | null
+	selectedDate: Date | null
+	onDateChange: (date: Date) => void
+}) {
+	if (!availableDeliveryDays || !selectedDate) return null
 
 	return (
-		<fieldset aria-label="Pricing plans" className="relative -space-y-px rounded-md bg-white">
+		<fieldset aria-label="Delivery date options" className="relative -space-y-px rounded-md bg-white">
 			{availableDeliveryDays.slice(0, 5).map((date) => {
 				const stringDate = String(date)
+				const selectedDateString = selectedDate.toString()
+				const isSelected = stringDate === selectedDateString
+
 				return (
 					<label
 						key={stringDate}
@@ -15,7 +26,8 @@ export default function DeliveryDates({ availableDeliveryDays }: { availableDeli
 						<span className="flex items-center gap-3 text-sm">
 							<input
 								defaultValue={stringDate}
-								defaultChecked={true}
+								checked={isSelected}
+								onChange={() => onDateChange(date)}
 								name="pricing-plan"
 								type="radio"
 								className="relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-blue-600 checked:bg-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden shrink-0"
