@@ -102,3 +102,14 @@ export async function deleteUser(email: string): Promise<{ success: boolean }> {
 		return { success: false }
 	}
 }
+// ;(async () => {
+// 	try {
+// 		await deleteUser('samanthasbakery@gmail.com')
+// 	} catch {
+// 		logger.error('error')
+// 	}
+// })()
+
+/* 
+pnpm tsx tests/utilities/definitions/deleteUser/index.ts
+*/
