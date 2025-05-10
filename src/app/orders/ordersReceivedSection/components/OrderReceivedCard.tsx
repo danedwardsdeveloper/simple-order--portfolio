@@ -12,6 +12,12 @@ interface Props {
 }
 
 export default function OrderReceivedCard({ orderDetails, includeVat, index, onStatusChangeRequest }: Props) {
+	const { totalWithVAT, totalWithoutVAT } = calculateOrderTotal(orderDetails.products)
+
+	const formattedTotal = formatPrice(includeVat ? totalWithVAT : totalWithoutVAT)
+
+	const { products, businessName, requestedDeliveryDate, statusName, id, adminOnlyNote, customerNote } = orderDetails
+
 	return (
 		<li>
 			<ZebraContainer
@@ -22,31 +28,31 @@ export default function OrderReceivedCard({ orderDetails, includeVat, index, onS
 			>
 				{/* Order heading */}
 				<div className="flex justify-between">
-					<h3>{orderDetails.businessName}</h3>
+					<h3>{businessName}</h3>
 					<div className="flex gap-x-3">
-						<time dateTime={orderDetails.requestedDeliveryDate.toString()}>{formatDate(orderDetails.requestedDeliveryDate)}</time>
+						<time dateTime={requestedDeliveryDate.toString()}>{formatDate(requestedDeliveryDate)}</time>
 						<OrderStatusDropdown
 							statusOptions={[orderStatusNames.Pending, orderStatusNames.Completed]}
-							currentStatus={orderDetails.statusName}
-							onStatusChange={(newStatus) => onStatusChangeRequest(orderDetails.id, orderDetails.statusName, newStatus)}
+							currentStatus={statusName}
+							onStatusChange={(newStatus) => onStatusChangeRequest(id, statusName, newStatus)}
 						/>
 					</div>
 				</div>
 				{/* Merchant note */}
 				<div>
 					<h4 className="font-medium">Private note</h4>
-					<p>{orderDetails.adminOnlyNote ? orderDetails.adminOnlyNote : 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'}</p>
+					<p>{adminOnlyNote}</p>
 				</div>
 
 				{/* Customer note */}
 				<div>
 					<h4 className="font-medium">Customer note</h4>
-					<p>{orderDetails.customerNote ? orderDetails.customerNote : 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'}</p>
+					<p>{customerNote}</p>
 				</div>
 
 				{/* Order items */}
 				<ul className="flex flex-col gap-y-6 divide-y-2 divide-zinc-200">
-					{orderDetails.products.map((item) => (
+					{products.map((item) => (
 						<li key={item.id} className="flex flex-col pt-6 first:pt-4">
 							{/* Item heading */}
 							<div className="flex justify-between mb-3">
@@ -68,7 +74,7 @@ export default function OrderReceivedCard({ orderDetails, includeVat, index, onS
 				{/* Order total */}
 				<div className="w-full flex gap-x-3 items-end justify-end text-xl">
 					<span className="text-zinc-600">Total</span>
-					<span className="font-medium">{formatPrice(calculateOrderTotal({ orderDetails, includeVat }))}</span>
+					<span className="font-medium">{formattedTotal}</span>
 				</div>
 			</ZebraContainer>
 		</li>
