@@ -12,7 +12,7 @@ export function createNewMerchantEmail({ recipientName, confirmationURL }: NewMe
 	const link = `<a href="${confirmationURL}">Confirm your email</a>`
 	const securityMessage = `You can safely ignore this email if you didn't register for an account. This link will expire in 24 hours.`
 	const thankYou = 'Many thanks'
-	const companyName = 'Accounts team, Simple Order'
+	const companyName = 'Simple Order (automated)'
 
 	const htmlVersion = `
   ${createHtmlParagraph(greeting)}
@@ -25,9 +25,9 @@ export function createNewMerchantEmail({ recipientName, confirmationURL }: NewMe
 	const textVersion = `${greeting}\n\n
 ${intro}\n\n
 ${confirmationURL}\n\n
-  ${createHtmlParagraph(securityMessage)}\n\n
-  ${createHtmlParagraph(thankYou)}\n\n
-  ${createHtmlParagraph(companyName, 'semibold')}`
+${securityMessage}\n\n
+${thankYou}\n\n
+${companyName}`
 
 	return {
 		subject: 'Confirm your email',
