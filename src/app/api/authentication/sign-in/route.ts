@@ -85,6 +85,8 @@ export async function POST(request: NextRequest): Output {
 
 		const { trialEnd, subscriptionEnd, subscriptionCancelled } = await checkActiveSubscriptionOrTrial(dangerousUser.id)
 
+		// ToDo: get orders, merchants etc.
+
 		const sanitisedBaseUser = sanitiseDangerousBaseUser(dangerousUser)
 
 		const user: BrowserSafeCompositeUser = {
