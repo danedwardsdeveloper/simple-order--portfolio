@@ -48,9 +48,11 @@ export default function InviteCustomerForm() {
 					message: `Successfully sent invitation email to ${invitedEmail}`,
 				})
 				// ToDo: check this logic and use Immer
-				setInvitationsSent((prev) => (prev ? [browserSafeInvitationRecord, ...prev] : []))
+				setInvitationsSent((prev) => (prev ? [browserSafeInvitationRecord, ...prev] : [browserSafeInvitationRecord]))
 				setInvitedEmail('')
 			}
+
+			// ToDo: Add error if user has already been invited
 
 			if (userMessage) setResponseMessage(userMessage)
 		} catch (error) {
