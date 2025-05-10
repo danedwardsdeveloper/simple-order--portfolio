@@ -20,6 +20,8 @@ const validBody: CreateAccountPOSTbody = {
 	password: 'securePassword123',
 }
 
+// Write a test for the confirmation URL
+
 describe('Create account', () => {
 	describe('Status codes', () => {
 		beforeAll(async () => await deleteUser(validBody.email))
