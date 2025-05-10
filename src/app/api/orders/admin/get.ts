@@ -1,9 +1,9 @@
-import { http204noContent, userMessages } from '@/library/constants'
+import { userMessages } from '@/library/constants'
 import { checkAccess, getOrdersData } from '@/library/database/operations'
 import { mapOrders } from '@/library/utilities/public'
 import { initialiseResponder } from '@/library/utilities/server'
 import type { OrderReceived } from '@/types'
-import { type NextRequest, NextResponse } from 'next/server'
+import type { NextRequest, NextResponse } from 'next/server'
 
 export interface OrdersAdminGETresponse {
 	developmentMessage?: string
@@ -36,13 +36,12 @@ export async function GET(request: NextRequest): Output {
 		const { ordersReceivedData } = await getOrdersData({
 			userId: dangerousUser.id,
 			returnType: 'ordersReceived',
-			routeSignature: 'GET /api/orders/admin',
 		})
 
 		if (!ordersReceivedData) {
 			return respond({
-				status: http204noContent,
-				developmentMessage: 'Legitimately no orders',
+				status: 200, // Using 204 causes an error if it has a body
+				developmentMessage: 'Legitimately no ordersReceived found',
 			})
 		}
 
@@ -54,7 +53,10 @@ export async function GET(request: NextRequest): Output {
 			returnType: 'ordersReceived',
 		})
 
-		return NextResponse.json({ ordersReceived }, { status: 200 })
+		return respond({
+			body: { ordersReceived },
+			status: 200,
+		})
 	} catch (caughtError) {
 		return respond({
 			body: { userMessage: userMessages.serverError },
