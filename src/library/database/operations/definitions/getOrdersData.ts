@@ -8,7 +8,6 @@ import { orderItems, orders, products, users } from '../../schema'
 interface Input {
 	userId: number
 	returnType: OrdersFunctionReturnType
-	routeSignature: string
 }
 
 interface BaseOrderData {
@@ -26,7 +25,7 @@ interface Output {
 	}
 }
 
-export async function getOrdersData({ userId, returnType, routeSignature }: Input): Promise<Output> {
+export async function getOrdersData({ userId, returnType }: Input): Promise<Output> {
 	try {
 		const ordersMadeMode = returnType === 'ordersMade'
 		const userIdKey: keyof RelationshipIds = ordersMadeMode ? 'customerId' : 'merchantId'
@@ -70,7 +69,7 @@ export async function getOrdersData({ userId, returnType, routeSignature }: Inpu
 			},
 		}
 	} catch (error) {
-		logger.error(routeSignature, 'getOrdersData error: ', error)
+		logger.error('getOrdersData error: ', error)
 		return {}
 	}
 }
