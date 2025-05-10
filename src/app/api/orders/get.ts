@@ -34,13 +34,12 @@ export async function GET(request: NextRequest): OutputGET {
 		const { ordersMadeData } = await getOrdersData({
 			userId: dangerousUser.id,
 			returnType: 'ordersMade',
-			routeSignature: '',
 		})
 
 		if (!ordersMadeData) {
 			return respond({
 				status: 200,
-				developmentMessage: 'Legitimately no orders found',
+				developmentMessage: 'Legitimately no ordersMade found',
 			})
 		}
 
