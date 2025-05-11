@@ -15,4 +15,5 @@ export const userMessages = {
 	emailConfirmationTokenInvalid: 'ToDo',
 	emailAlreadyConfirmed: 'This email address has already been confirmed.',
 	cutOffTimeExceeded: `Sorry, it's too late to place this order. Please change the requested delivery date or contact the merchant directly.`,
+	holidayConflict: 'This holiday period overlaps with an existing holiday',
 } as const
