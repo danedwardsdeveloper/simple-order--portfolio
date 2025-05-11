@@ -46,7 +46,7 @@ export default function WelcomeMessages() {
 				//
 			)}
 
-			{emailConfirmed && !confirmedCustomers && !invitationsSent && (
+			{emailConfirmed && !confirmedCustomers && !invitationsSent && notJustACustomer && (
 				<MessageContainer borderColour="border-blue-300">
 					<Link href="/customers" className="link-primary">
 						Invite your first customer
