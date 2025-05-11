@@ -156,7 +156,7 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 
 	function OrderSummary() {
 		return (
-			<div className="border-2 border-blue-300 p-3 my-4 rounded-xl max-w-xl">
+			<div className="border-2 border-blue-200 p-3 mt-12 mb-4 rounded-xl max-w-xl">
 				<h3 className="mb-2">Order summary</h3>
 				<div className="text-right tabular-nums">
 					<p>Total with VAT: {formatPrice(totalWithVAT)}</p>
@@ -231,7 +231,7 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 									<span>{formatPrice(merchantDetails.minimumSpendPence)} without VAT</span>
 								</div>
 								{!minimumSpendReached && (
-									<span className="text-zinc-600">{formatPrice(merchantDetails.minimumSpendPence - totalWithoutVAT)} under</span>
+									<span className="text-zinc-600">{formatPrice(merchantDetails.minimumSpendPence - totalWithoutVAT)} to go</span>
 								)}
 							</div>
 							<div className="overflow-hidden rounded-full bg-gray-200">
