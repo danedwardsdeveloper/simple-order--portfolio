@@ -13,13 +13,16 @@ export const october: Month = 9
 export const november: Month = 10
 export const december: Month = 11
 
-export const monday = 1
-export const tuesday = 2
-export const wednesday = 3
-export const thursday = 4
-export const friday = 5
-export const saturday = 6
-export const sunday = 7
+export type WeekDayIndex = 1 | 2 | 3 | 4 | 5 | 6 | 7
+export const weekDayIndices = [1, 2, 3, 4, 5, 6, 7] as const
+
+export const monday: WeekDayIndex = 1
+export const tuesday: WeekDayIndex = 2
+export const wednesday: WeekDayIndex = 3
+export const thursday: WeekDayIndex = 4
+export const friday: WeekDayIndex = 5
+export const saturday: WeekDayIndex = 6
+export const sunday: WeekDayIndex = 7
 
 export const daysOfTheWeek: DayOfTheWeek[] = [
 	{
