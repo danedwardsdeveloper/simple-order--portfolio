@@ -44,7 +44,7 @@ export default function SignOutButton() {
 			type="button"
 			data-test-id={dataTestIdNames.account.signOutButton}
 			onClick={handleSignOut}
-			className="button-secondary max-w-xs"
+			className="button-secondary w-full max-w-md"
 		>
 			Sign out
 		</button>
