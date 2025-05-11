@@ -1,6 +1,9 @@
 import type { HoursSchema, MinutesSchema } from '@/library/validations/definitions/time'
 import type { z } from 'zod'
 
+// Blog publication years
+export type Year = 2025 | 2026 | 2027
+export type Month = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11
 export type Minutes = z.infer<typeof MinutesSchema>
 export type Hours = z.infer<typeof HoursSchema>
 export type DayNumber =
@@ -36,7 +39,3 @@ export type DayNumber =
 	| 29
 	| 30
 	| 31
-export type Month = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11
-
-// Blog publication years
-export type Year = 2025 | 2026 | 2027
