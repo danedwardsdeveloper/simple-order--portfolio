@@ -10,7 +10,8 @@ import { apiRequest } from '@/library/utilities/public'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useRef } from 'react'
 import type { VerifyTokenGETresponse } from '../api/authentication/verify-token/route'
-import { EditSettings } from './components/EditSettings'
+import { CustomerSettings } from './components/CustomerSettings'
+import { MerchantSettings } from './components/MerchantSettings'
 import PortalButton from './components/PortalButton'
 import SignOutButton from './components/SignOutButton'
 import TrialExpiryInformation from './components/TrialExpiryInformation'
@@ -73,13 +74,28 @@ export default function SettingsPage() {
 			<SignedInBreadCrumbs businessName={user.businessName} currentPageTitle="Settings" />
 			<div className="flex flex-col gap-y-4 items-start">
 				<h1>Settings</h1>
+
+				{/* Temporary */}
 				<p>Role: {user.roles}</p>
 				<p>Merchant mode: {String(merchantMode)}</p>
 
 				<UserInformation />
-				<EditSettings />
-				<TrialExpiryInformation />
-				<PortalButton subscriptionEnd={user.subscriptionEnd} />
+
+				{(() => {
+					if (user.roles === 'customer') {
+						return <CustomerSettings />
+					}
+					return (
+						<>
+							<MerchantSettings />
+							<TrialExpiryInformation />
+							<PortalButton
+								subscriptionEnd={user.subscriptionEnd} //
+							/>
+						</>
+					)
+				})()}
+
 				<SignOutButton />
 			</div>
 		</Suspense>
