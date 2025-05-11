@@ -79,8 +79,6 @@ export async function POST(request: NextRequest): OutputPOST {
 			})
 		}
 
-		// Main ToDo: reject an order that was requested after the cut off time / on a holiday
-
 		if (merchantSlug === dangerousUser.slug) {
 			return respond({
 				status: 400,
