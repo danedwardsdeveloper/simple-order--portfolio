@@ -4,8 +4,8 @@ import { createSubscription, equals, or } from '@/library/utilities/server'
 import type { AsyncFunction, DangerousBaseUser, TestUserInputValues } from '@/types'
 import { describe, expect, test } from 'vitest'
 import { deleteUser } from '.'
+import { createUser } from '../../../../src/library/database/operations/definitions/createUser'
 import { addProducts } from '../addProducts'
-import { createUser } from '../createUser'
 
 const inputValues: TestUserInputValues = {
 	firstName: 'Imelda',
