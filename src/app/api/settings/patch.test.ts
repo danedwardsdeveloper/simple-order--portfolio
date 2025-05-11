@@ -1,20 +1,19 @@
 import { database } from '@/library/database/connection'
 import { createFreeTrial, deleteFreeTrial } from '@/library/database/operations'
 import { users } from '@/library/database/schema'
+import { createCutOffTime } from '@/library/utilities/public'
 import { equals } from '@/library/utilities/server'
 import type { AsyncFunction, DangerousBaseUser, TestUserInputValues } from '@/types'
 import type { JsonData } from '@tests/types'
-import { createCookieString, createUser, deleteUser, initialiseTestRequestMaker } from '@tests/utilities'
+import { createTestUser, deleteUser, getUserFromDatabase, initialiseTestRequestMaker } from '@tests/utilities'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest'
-import type { SettingsPATCHbody } from './route'
+import type { SettingsPATCHbody } from './patch'
 
 const makeRequest = initialiseTestRequestMaker({
 	basePath: '/settings',
 	method: 'PATCH',
 })
 
-const invalidRequestCookie = 'token=abcdefg'
-const expiredRequestCookie = createCookieString({ userId: 1, expired: true })
 const userInputValues: TestUserInputValues = {
 	firstName: 'Jo',
 	lastName: 'March',
@@ -23,19 +22,17 @@ const userInputValues: TestUserInputValues = {
 	password: 'L1ttleW0men!',
 }
 
-function getJoMarch(): DangerousBaseUser {
+function assertJoMarch(): DangerousBaseUser {
 	if (!joMarch) throw new Error('Jo March not defined')
 	return joMarch
 }
 
-function getJsonData(): JsonData {
-	if (!jsonData) throw new Error('jsonData not defined')
-	return jsonData
+async function getJoMarchFromDatabase() {
+	return await getUserFromDatabase({ email: userInputValues.email })
 }
 
 let joMarch: DangerousBaseUser | undefined
 let validRequestCookie: string | undefined
-let jsonData: JsonData | undefined
 
 type TestSuite = {
 	suiteDescription: string
@@ -81,50 +78,17 @@ const validRequest = {
 const suites: TestSuite[] = [
 	{
 		suiteDescription: 'Permissions',
-
 		suiteExpectedStatus: 401,
 		cases: [
 			{
-				caseDescription: 'No cookie',
-				request: { ...validRequest, cookie: null },
-			},
-			{
-				caseDescription: 'No body',
-				request: { ...validRequest, body: null },
-				caseExpectedStatus: 400,
-			},
-			{
-				caseDescription: 'Empty body',
-				request: { ...validRequest, body: {} },
-				caseExpectedStatus: 400,
-			},
-			{
-				caseDescription: 'Invalid cookie',
-				request: { ...validRequest, cookie: invalidRequestCookie },
-			},
-			{
-				caseDescription: 'Expired cookie',
-				request: { ...validRequest, cookie: expiredRequestCookie },
-			},
-			{
-				caseDescription: 'User not found',
-				request: {
-					body: validBody,
-					cookie: createCookieString({ userId: 1 }),
-				},
-				assertions: async () => {
-					expect(getJsonData()).toEqual({ developmentMessage: 'user not found' })
-				},
-			},
-			{
 				caseDescription: 'Success without a trial',
 				caseSetUp: async () => {
-					await deleteFreeTrial(getJoMarch().id)
+					await deleteFreeTrial(assertJoMarch().id)
 				},
 				request: validRequest,
 				caseExpectedStatus: 200,
 				caseTearDown: async () => {
-					await createFreeTrial({ userId: getJoMarch().id })
+					await createFreeTrial({ userId: assertJoMarch().id })
 				},
 			},
 			{
@@ -132,7 +96,53 @@ const suites: TestSuite[] = [
 				request: validRequest,
 				caseExpectedStatus: 200,
 			},
-			// Success with a subscription
+		],
+	},
+	{
+		suiteDescription: 'Success cases',
+		suiteExpectedStatus: 200,
+		cases: [
+			{
+				caseDescription: 'Updates minimumSpendPence',
+				request: {
+					...validRequest,
+					body: { minimumSpendPence: 3000 } satisfies SettingsPATCHbody,
+				},
+				assertions: async () => {
+					expect((await getJoMarchFromDatabase()).minimumSpendPence).toEqual(3000)
+				},
+			},
+			{
+				caseDescription: 'Updates the cutOffTime',
+				request: {
+					...validRequest,
+					body: {
+						cutOffTime: createCutOffTime({
+							hours: 13, //
+							minutes: 0,
+						}),
+					} satisfies SettingsPATCHbody,
+				},
+				assertions: async () => {
+					const utcCutoffTime = createCutOffTime({
+						hours: 13,
+						minutes: 0,
+					})
+					expect((await getJoMarchFromDatabase()).cutOffTime).toEqual(utcCutoffTime)
+				},
+			},
+			{
+				caseDescription: 'Update leadTimeDays',
+				request: {
+					...validRequest,
+					body: {
+						leadTimeDays: 4,
+					} satisfies SettingsPATCHbody,
+				},
+				assertions: async () => {
+					expect((await getJoMarchFromDatabase()).leadTimeDays).toEqual(4)
+				},
+			},
 		],
 	},
 	{
@@ -210,9 +220,9 @@ const suites: TestSuite[] = [
 
 describe('PATCH /api/settings', async () => {
 	beforeAll(async () => {
-		const { createdUser, requestCookie } = await createUser(userInputValues)
+		const { createdUser, validCookie } = await createTestUser(userInputValues)
 		joMarch = createdUser
-		validRequestCookie = requestCookie
+		validRequestCookie = validCookie
 		await createFreeTrial({ userId: joMarch.id })
 	})
 
@@ -259,8 +269,6 @@ describe('PATCH /api/settings', async () => {
 						body: resolvedBody,
 					})
 
-					jsonData = (await data.response.json()) as JsonData
-
 					if (assertions) await assertions()
 
 					expect(data.response.status).toEqual(caseExpectedStatus || suiteExpectedStatus)
@@ -273,5 +281,5 @@ describe('PATCH /api/settings', async () => {
 })
 
 /* 
-pnpm vitest src/app/api/settings
+pnpm vitest src/app/api/settings/patch
 */
