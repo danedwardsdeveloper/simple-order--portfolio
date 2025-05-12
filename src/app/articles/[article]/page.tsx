@@ -54,7 +54,7 @@ export default async function ArticlePage({ params }: { params: Params }) {
 			/>
 			<h1>{displayTitle}</h1>
 			<p className="mb-12">By Dan Edwards</p>
-			<Image src={src} alt={alt} className="max-w-xl rounded-md mb-12" sizes="ToDo" />
+			<Image src={src} alt={alt} className="max-w-xl w-full rounded-md mb-12" sizes="ToDo" />
 			<div className="article-content flex flex-col max-w-prose gap-y-4 my-8 text-lg">
 				{content.map((block, index) => {
 					if (typeof block === 'string') {
