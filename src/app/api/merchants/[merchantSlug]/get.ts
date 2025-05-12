@@ -1,7 +1,6 @@
 import { http403forbidden, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { checkAccess, checkRelationship, getAcceptedWeekDays } from '@/library/database/operations'
-import { getHolidays } from '@/library/database/operations/definitions/getHolidays'
+import { checkAccess, checkRelationship, getAcceptedWeekDays, getHolidays } from '@/library/database/operations'
 import { products, users } from '@/library/database/schema'
 import { convertEmptyToUndefined, getAvailableDeliveryDays } from '@/library/utilities/public'
 import { and, equals, initialiseResponder, isNull } from '@/library/utilities/server'
