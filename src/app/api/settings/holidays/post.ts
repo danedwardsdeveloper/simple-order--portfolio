@@ -2,7 +2,7 @@ import { http409conflict, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkAccess } from '@/library/database/operations'
 import { holidays } from '@/library/database/schema'
-import { equals, formatFirstError, initialiseResponder } from '@/library/utilities/server'
+import { and, equals, formatFirstError, greaterThanOrEqual, initialiseResponder, isNull, or } from '@/library/utilities/server'
 import { holidaysSchema } from '@/library/validations'
 import type { HolidayInsert, UserMessages } from '@/types'
 import type { NextRequest, NextResponse } from 'next/server'
@@ -62,7 +62,21 @@ export async function POST(request: NextRequest): Output {
 
 		const { holidaysToAdd } = validationResult.data
 
-		const existingHolidays = await database.select().from(holidays).where(equals(holidays.userId, dangerousUser.id))
+		const currentUtcDate = new Date()
+		currentUtcDate.setUTCHours(0, 0, 0, 0)
+
+		const existingHolidays = await database
+			.select()
+			.from(holidays)
+			.where(
+				and(
+					equals(holidays.userId, dangerousUser.id),
+					or(
+						greaterThanOrEqual(holidays.endDate, currentUtcDate),
+						and(isNull(holidays.endDate), greaterThanOrEqual(holidays.startDate, currentUtcDate)),
+					),
+				),
+			)
 
 		for (const newHoliday of holidaysToAdd) {
 			const newStart = newHoliday.startDate
