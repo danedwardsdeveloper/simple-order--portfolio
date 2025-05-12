@@ -21,14 +21,14 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 	const router = useRouter()
 	const merchantDetails = confirmedMerchants?.find((merchant) => merchant.slug === merchantSlug)
 
-	const { createNotification } = useNotifications()
+	const { successNotification, errorNotification } = useNotifications()
 	const [isLoading, setIsLoading] = useState(true)
 
 	const [products, setProducts] = useState<BrowserSafeCustomerProduct[] | null>(null)
 	const [errorMessage, setErrorMessage] = useState('')
 	const [availableDeliveryDays, setAvailableDeliveryDays] = useState<Date[] | null>(null)
 
-	// Might need to useRef here as numbers are occasionally getting wiped. However it could just be a development issues with hot reloading
+	// Might need to useRef here as input values are occasionally getting wiped. However it could just be a development issues with hot reloading
 	const [selectedProducts, setSelectedProducts] = useState<Record<string, number>>({})
 
 	const [requestedDeliveryDate, setRequestedDeliveryDate] = useState<Date | null>(null)
@@ -96,7 +96,7 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 	async function handleSubmit(event: FormEvent) {
 		event.preventDefault()
 
-		if (!requestedDeliveryDate) return null
+		if (!requestedDeliveryDate || !merchantDetails) return null
 
 		const orderItems = Object.keys(selectedProducts)
 			.filter((productId) => selectedProducts[Number(productId)] > 0)
@@ -116,11 +116,7 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 			})
 
 			if (createdOrder) {
-				createNotification({
-					level: 'success',
-					title: 'Success',
-					message: `Submitted order to ${merchantDetails?.businessName || merchantSlug}`,
-				})
+				successNotification(`Submitted order to ${merchantDetails.businessName}`)
 				setOrdersMade(
 					(prevOrders) => [createdOrder, ...(prevOrders || [])], //
 				)
@@ -128,27 +124,15 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 				router.push('/orders')
 			}
 
-			if (userMessage) {
-				createNotification({
-					level: 'error',
-					title: 'Error',
-					message: userMessage,
-				})
-			}
+			if (userMessage) errorNotification(userMessage)
 		} catch {
-			createNotification({
-				level: 'error',
-				title: 'Error',
-				message: userMessages.orderCreationError,
-			})
+			errorNotification(userMessages.orderCreationError)
 		} finally {
 			setIsSubmitting(false)
 		}
 	}
 
-	if (!user || !merchantDetails) {
-		return null
-	}
+	if (!user || !merchantDetails) return null
 
 	const { leadTimeDays, cutOffTime } = merchantDetails
 
