@@ -26,8 +26,6 @@ type OutputPOST = Promise<NextResponse<OrdersPOSTresponse>>
 export async function POST(request: NextRequest): OutputPOST {
 	const respond = initialiseResponder<OrdersPOSTresponse>()
 
-	let txError: { message: string; status: number } | undefined
-
 	try {
 		let rawBody: OrdersPOSTbody
 		try {
@@ -154,8 +152,7 @@ export async function POST(request: NextRequest): OutputPOST {
 	} catch (caughtError) {
 		return respond({
 			body: { userMessage: userMessages.serverError },
-			status: txError?.status || 500,
-			developmentMessage: txError?.message,
+			status: 500,
 			caughtError,
 		})
 	}
