@@ -168,15 +168,6 @@ export const acceptedDeliveryDays = pgTable(
 	},
 )
 
-export const holidays = pgTable('holidays', {
-	id: serial('id').primaryKey(),
-	userId: integer('user_id')
-		.references(() => users.id)
-		.notNull(),
-	startDate: date('start_date', { mode: 'date' }).notNull(),
-	endDate: date('end_date', { mode: 'date' }).notNull(),
-})
-
 export const deliveryDaysRelations = relations(acceptedDeliveryDays, ({ one }) => ({
 	user: one(users, {
 		fields: [acceptedDeliveryDays.userId],
@@ -187,6 +178,15 @@ export const deliveryDaysRelations = relations(acceptedDeliveryDays, ({ one }) =
 		references: [daysOfWeek.id],
 	}),
 }))
+
+export const holidays = pgTable('holidays', {
+	id: serial('id').primaryKey(),
+	userId: integer('user_id')
+		.references(() => users.id)
+		.notNull(),
+	startDate: date('start_date', { mode: 'date' }).notNull(),
+	endDate: date('end_date', { mode: 'date' }).notNull(),
+})
 
 export const holidaysRelations = relations(holidays, ({ one }) => ({
 	user: one(users, {
