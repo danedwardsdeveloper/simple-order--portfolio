@@ -1,15 +1,15 @@
 import { userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { checkAccess, getAcceptedWeekDays } from '@/library/database/operations'
+import { checkAccess, getAcceptedWeekDayIndices } from '@/library/database/operations'
 import { holidays } from '@/library/database/schema'
 import { and, equals, initialiseResponder } from '@/library/utilities/server'
-import type { DayOfTheWeek, Holiday } from '@/types'
+import type { Holiday, WeekDayIndex } from '@/types'
 import type { NextRequest, NextResponse } from 'next/server'
 
 export type SettingsGETresponse = {
 	userMessage?: string
 	developmentMessage?: string
-	acceptedDeliveryDays?: DayOfTheWeek[]
+	acceptedWeekDayIndices?: WeekDayIndex[]
 	holidays?: Holiday[]
 }
 
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest): OutputGET {
 			})
 		}
 
-		const acceptedDeliveryDays = await getAcceptedWeekDays(dangerousUser.id)
+		const acceptedWeekDayIndices = await getAcceptedWeekDayIndices(dangerousUser.id)
 
 		const merchantHolidays: Holiday[] = await database
 			.select({ startDate: holidays.startDate, endDate: holidays.endDate })
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest): OutputGET {
 
 		return respond({
 			body: {
-				acceptedDeliveryDays,
+				acceptedWeekDayIndices,
 				holidays: merchantHolidays,
 			},
 			status: 200,
