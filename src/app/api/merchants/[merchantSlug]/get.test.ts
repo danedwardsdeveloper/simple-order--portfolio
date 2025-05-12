@@ -3,8 +3,8 @@ import { createFreeTrial } from '@/library/database/operations'
 import type { AsyncFunction, DangerousBaseUser, TestUserInputValues } from '@/types'
 import { strawberryJam } from '@tests/constants'
 import type { JsonData } from '@tests/types'
-import { addProducts, createUser, deleteUser, initialiseTestGETRequestMaker } from '@tests/utilities'
-import { createRelationship } from '@tests/utilities/definitions/createRelationship'
+import { addProducts, createTestUser, deleteUser, initialiseTestGETRequestMaker } from '@tests/utilities'
+import { createRelationship } from '@tests/utilities'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 
 const aggieInputValues: TestUserInputValues = {
@@ -71,12 +71,12 @@ const file: TestFile = {
 		{
 			suiteDescription: 'Forbidden cases',
 			suiteSetUp: async () => {
-				const { createdUser, requestCookie } = await createUser(aggieInputValues)
+				const { createdUser, validCookie } = await createTestUser(aggieInputValues)
 
 				aggieMacKenzie = createdUser
-				validRequestCookie = requestCookie
+				validRequestCookie = validCookie
 
-				const { createdUser: createdBritney } = await createUser(britneyInputValues)
+				const { createdUser: createdBritney } = await createTestUser(britneyInputValues)
 
 				britneySpears = createdBritney
 
