@@ -1,11 +1,4 @@
-import {
-	http403forbidden,
-	http409conflict,
-	http503serviceUnavailable,
-	illegalCharactersMessages,
-	serviceConstraints,
-	userMessages,
-} from '@/library/constants'
+import { http403forbidden, http409conflict, http503serviceUnavailable, serviceConstraints, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkAccess } from '@/library/database/operations'
 import { products } from '@/library/database/schema'
@@ -55,7 +48,7 @@ export async function POST(request: NextRequest): OutputPOST {
 		if (priceInMinorUnits > serviceConstraints.maximumProductValueInMinorUnits) badRequestMessage = 'priceInMinorUnits too high'
 
 		if (description) {
-			if (containsIllegalCharacters(description)) badRequestMessage = illegalCharactersMessages.description
+			if (containsIllegalCharacters(description)) badRequestMessage = 'illegal characters'
 			if (description.length > serviceConstraints.maximumProductDescriptionCharacters) badRequestMessage = 'description too long'
 		}
 
