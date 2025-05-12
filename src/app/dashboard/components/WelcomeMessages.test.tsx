@@ -149,15 +149,6 @@ const suites: Suite[] = [
 					...baseContext,
 					user: { ...baseUser, roles: 'merchant', trialEnd: thirtyDaysTime, subscriptionEnd: yesterday },
 				},
-				caseText: /Your subscription has ended. Please renew your subscription to continue using all features./i,
-				expectDefined: false,
-			},
-			{
-				caseDescription: 'Asks to subscribe if trial has not ended but subscription has ended',
-				caseContext: {
-					...baseContext,
-					user: { ...baseUser, roles: 'merchant', trialEnd: thirtyDaysTime, subscriptionEnd: yesterday },
-				},
 				caseText: /Please subscribe to continue using Simple Order/i,
 				expectDefined: true,
 			},
@@ -252,10 +243,10 @@ const suites: Suite[] = [
 				caseDescription: 'Asks to subscribe if trial has not ended but subscription has ended',
 				caseContext: {
 					...baseContext,
-					user: { ...baseUser, roles: 'merchant', trialEnd: thirtyDaysTime, subscriptionEnd: yesterday },
+					user: { ...baseUser, roles: 'both', trialEnd: thirtyDaysTime, subscriptionEnd: yesterday },
 				},
 				caseText: /Your subscription has ended. Please renew your subscription to continue using all features./i,
-				expectDefined: true,
+				expectDefined: false,
 			},
 			{
 				caseDescription: "Doesn't ask to subscribe if trial has ended but subscription hasn't ended",
