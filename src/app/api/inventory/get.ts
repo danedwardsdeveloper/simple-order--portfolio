@@ -1,27 +1,22 @@
-import { type authenticationMessages, type basicMessages, userMessages } from '@/library/constants'
+import { userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkAccess } from '@/library/database/operations'
 import { products } from '@/library/database/schema'
-import { convertEmptyToUndefined, initialiseDevelopmentLogger } from '@/library/utilities/public'
-import type { BrowserSafeMerchantProduct, UnauthorisedMessages } from '@/types'
+import { convertEmptyToUndefined } from '@/library/utilities/public'
+import { initialiseResponder } from '@/library/utilities/server'
+import type { BrowserSafeMerchantProduct } from '@/types'
 import { and, eq, isNull } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export interface InventoryAdminGETresponse {
 	userMessage?: typeof userMessages.serverError
-	message?:
-		| typeof basicMessages.success
-		| typeof basicMessages.serverError
-		| UnauthorisedMessages
-		| typeof authenticationMessages.merchantNotFound
 	developmentMessage?: string
 	inventory?: BrowserSafeMerchantProduct[]
 }
 
-// ToDo: Refactor with responder function
 // GET all products for the signed-in merchant
 export async function GET(request: NextRequest): Promise<NextResponse<InventoryAdminGETresponse>> {
-	const { developmentLogger } = initialiseDevelopmentLogger('/inventory', 'GET')
+	const respond = initialiseResponder<InventoryAdminGETresponse>()
 
 	try {
 		const { dangerousUser, accessDenied } = await checkAccess({
@@ -31,8 +26,10 @@ export async function GET(request: NextRequest): Promise<NextResponse<InventoryA
 		})
 
 		if (accessDenied) {
-			const developmentMessage = developmentLogger(accessDenied.message)
-			return NextResponse.json({ developmentMessage }, { status: accessDenied.status })
+			return respond({
+				status: accessDenied.status,
+				developmentMessage: accessDenied.message,
+			})
 		}
 
 		const foundInventory: BrowserSafeMerchantProduct[] = await database
@@ -52,12 +49,18 @@ export async function GET(request: NextRequest): Promise<NextResponse<InventoryA
 		let developmentMessage: string | undefined
 
 		if (!inventory) {
-			developmentMessage = developmentLogger('Legitimately no products found', { level: 'level3success' })
+			return respond({
+				status: 200,
+				developmentMessage: 'Legitimately no products found',
+			})
 		}
 
 		return NextResponse.json({ inventory, developmentMessage }, { status: 200 })
-	} catch (error) {
-		const developmentMessage = developmentLogger('Caught error', { error })
-		return NextResponse.json({ userMessage: userMessages.serverError, developmentMessage }, { status: 500 })
+	} catch (caughtError) {
+		return respond({
+			body: { userMessage: userMessages.serverError },
+			status: 500,
+			caughtError,
+		})
 	}
 }
