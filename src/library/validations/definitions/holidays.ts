@@ -13,8 +13,7 @@ export const holidaySchema = z
 			.transform((str) => new Date(str))
 			.refine((date) => date > new Date(), {
 				message: 'Start date must be in the future',
-			})
-			.optional(),
+			}),
 	})
 	.refine((data) => !data.endDate || data.endDate >= data.startDate, {
 		message: 'End date must be after or equal to start date',
