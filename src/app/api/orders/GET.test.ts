@@ -1,5 +1,5 @@
 import type { AsyncFunction, TestUserInputValues } from '@/types'
-import { createCookieString, createUser, deleteUser, initialiseTestGETRequestMaker } from '@tests/utilities'
+import { createCookieString, createTestUser, deleteUser, initialiseTestGETRequestMaker } from '@tests/utilities'
 import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest'
 
 const melissaJoanHartInputValues: TestUserInputValues = {
@@ -110,8 +110,8 @@ describe('GET /api/orders', () => {
 			for (const { caseDescription, setUp, userInputValues, skip } of successNoContentCases) {
 				test.skipIf(skip)(caseDescription, async () => {
 					if (setUp) await setUp()
-					const { requestCookie } = await createUser(userInputValues || melissaJoanHartInputValues)
-					melissaCookie = requestCookie
+					const { validCookie } = await createTestUser(userInputValues || melissaJoanHartInputValues)
+					melissaCookie = validCookie
 
 					const { response } = await makeRequest({
 						requestCookie: melissaCookie,
@@ -129,10 +129,10 @@ describe('GET /api/orders', () => {
 			let _biancaCookie: string | undefined
 
 			beforeAll(async () => {
-				const { requestCookie: createdMelissaCookie } = await createUser(melissaJoanHartInputValues)
+				const { validCookie: createdMelissaCookie } = await createTestUser(melissaJoanHartInputValues)
 				melissaCookie = createdMelissaCookie
 
-				const { requestCookie: createdBiancaCookie } = await createUser(biancaDelRioInputValues)
+				const { validCookie: createdBiancaCookie } = await createTestUser(biancaDelRioInputValues)
 				_biancaCookie = createdBiancaCookie
 			})
 
