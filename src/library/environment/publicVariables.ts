@@ -7,7 +7,8 @@ export const developmentDatabaseString = 'postgresql://localhost/simple_order_de
 
 export const siteIsLaunched = false
 
-export const bareProductionDomain = 'simple-order-management.vercel.app'
+// export const bareProductionDomain = 'simple-order-management.vercel.app'
+export const bareProductionDomain = 'simple-order.netlify.app'
 export const bareLaunchedDomain = 'simpleorder.co.uk'
 
 export const productionBaseURL = `https://${bareProductionDomain}`
@@ -15,7 +16,7 @@ export const developmentBaseURL = 'http://localhost:3000'
 export const dynamicBaseURL = isProduction ? productionBaseURL : developmentBaseURL
 
 export const serverLogLevel: LogLevel = 'level5debug'
-export const browserLogLevel: LogLevel = isDevelopment ? 'level5debug' : 'level0none'
+export const browserLogLevel: LogLevel = isDevelopment ? 'level5debug' : 'level5debug'
 
 export const stripePublishableKey =
 	// cspell:disable-next-line
