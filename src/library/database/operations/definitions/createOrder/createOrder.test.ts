@@ -2,7 +2,7 @@ import { database } from '@/library/database/connection'
 import { orderItems, orders } from '@/library/database/schema'
 import { equals } from '@/library/utilities/server'
 import type { DangerousBaseUser, Product, TestUserInputValues } from '@/types'
-import { addProducts, createUser, deleteUser } from '@tests/utilities'
+import { addProducts, createTestUser, deleteUser } from '@tests/utilities'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { createOrder } from '.'
 
@@ -28,9 +28,9 @@ describe('Create order', () => {
 	let addedProducts: Product[] | undefined
 
 	beforeAll(async () => {
-		const { createdUser: betteDavis } = await createUser(betteDavisInputValues)
+		const { createdUser: betteDavis } = await createTestUser(betteDavisInputValues)
 		betteDavisId = betteDavis.id
-		const { createdUser } = await createUser(juliaDavisInputValues)
+		const { createdUser } = await createTestUser(juliaDavisInputValues)
 		juliaDavis = createdUser
 
 		addedProducts = await addProducts([
