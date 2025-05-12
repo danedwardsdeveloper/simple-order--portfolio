@@ -164,6 +164,8 @@ const suites: TestSuite[] = [
 			},
 		],
 	},
+	// Doesn't return holidays that are in the past
+	// Does return holidays that have started but are in progress
 	{
 		suiteDescription: 'Database values',
 		suiteExpectedStatus: 200,
@@ -199,6 +201,7 @@ const suites: TestSuite[] = [
 						holidaysToAdd: [
 							{
 								startDate: createDate(2, august, 2026),
+								endDate: createDate(2, august, 2026),
 							},
 						],
 					} satisfies SettingsHolidaysPOSTbody,

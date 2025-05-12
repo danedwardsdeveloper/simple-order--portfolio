@@ -2,9 +2,8 @@ import { database } from '@/library/database/connection'
 import { users } from '@/library/database/schema'
 import { equals } from '@/library/utilities/server'
 import type { DangerousBaseUser, TestUserInputValues } from '@/types'
-import { apiTestRequest, deleteUser } from '@tests/utilities'
+import { apiTestRequest, createTestUser, deleteUser } from '@tests/utilities'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
-import { createUser } from '.'
 
 const emilyGilmore: TestUserInputValues = {
 	firstName: 'Emily',
@@ -21,9 +20,9 @@ describe('Create user', () => {
 		let cookie: string | undefined
 
 		beforeAll(async () => {
-			const { createdUser, requestCookie } = await createUser(emilyGilmore)
+			const { createdUser, validCookie } = await createTestUser(emilyGilmore)
 			user = createdUser
-			cookie = requestCookie
+			cookie = validCookie
 		})
 
 		afterAll(async () => {

@@ -6,7 +6,7 @@ import { createDate } from '@/library/utilities/public'
 import { equals } from '@/library/utilities/server'
 import type { AnonymousProduct, AsyncFunction, DangerousBaseUser, OrderMade, Product, TestUserInputValues } from '@/types'
 import type { JsonData } from '@tests/types'
-import { addProducts, createUser, deleteUser, initialiseTestRequestMaker } from '@tests/utilities'
+import { addProducts, createTestUser, deleteUser, initialiseTestRequestMaker } from '@tests/utilities'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
 import type { OrdersPOSTbody } from './post'
 
@@ -34,7 +34,7 @@ const customerInputValues: TestUserInputValues = {
 const anonymousProductInsertValues: AnonymousProduct[] = [{ name: 'Human blood, 5 liters', priceInMinorUnits: 9850 }]
 
 let merchantProfile: DangerousBaseUser | undefined
-let customerId: number | undefined
+let _customerId: number | undefined
 let customerCookie: string | undefined
 let addedProducts: Product[] | undefined
 
@@ -92,7 +92,7 @@ const suites: TestSuite[] = [
 			{
 				caseDescription: 'on a merchant holiday',
 				caseSetUp: async () => {
-					await createHoliday(getMerchant().id, createDate())
+					await createHoliday(getMerchant().id, createDate(6, january, 2025))
 				},
 				caseBody: () => ({
 					...validBody(),
@@ -105,13 +105,13 @@ const suites: TestSuite[] = [
 
 describe('POST /api/orders', () => {
 	beforeAll(async () => {
-		const { createdUser } = await createUser(merchantInputValues)
+		const { createdUser } = await createTestUser(merchantInputValues)
 		merchantProfile = createdUser
 
-		const { createdUser: customer, requestCookie } = await createUser(customerInputValues)
+		const { createdUser: customer, validCookie } = await createTestUser(customerInputValues)
 
-		customerId = customer.id
-		customerCookie = requestCookie
+		_customerId = customer.id
+		customerCookie = validCookie
 
 		addedProducts = await addProducts([
 			{
