@@ -9,6 +9,7 @@ export type Props = {
 	leadTimeDays: number
 }
 
+// Update: I don't need the week days here, just the indices
 export function getAvailableDeliveryDays({
 	acceptedWeekDays,
 	merchantHolidays,
