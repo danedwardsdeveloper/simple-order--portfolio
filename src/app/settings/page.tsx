@@ -11,11 +11,11 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useRef } from 'react'
 import type { VerifyTokenGETresponse } from '../api/authentication/verify-token/route'
 import { CustomerSettings } from './components/CustomerSettings'
-import { MerchantSettings } from './components/MerchantSettings'
 import PortalButton from './components/PortalButton'
 import SignOutButton from './components/SignOutButton'
 import TrialExpiryInformation from './components/TrialExpiryInformation'
 import UserInformation from './components/UserInformation'
+import MerchantSettings from './components/merchantSettings'
 
 export default function SettingsPage() {
 	const searchParams = useSearchParams()
