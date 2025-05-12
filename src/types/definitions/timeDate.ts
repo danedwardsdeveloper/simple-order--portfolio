@@ -6,6 +6,7 @@ export type Year = 2025 | 2026 | 2027
 export type Month = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11
 export type Minutes = z.infer<typeof MinutesSchema>
 export type Hours = z.infer<typeof HoursSchema>
+export type WeekDayIndex = 1 | 2 | 3 | 4 | 5 | 6 | 7
 export type DayNumber =
 	| 0
 	| 1
