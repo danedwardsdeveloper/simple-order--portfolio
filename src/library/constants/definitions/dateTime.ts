@@ -1,4 +1,4 @@
-import type { DayOfTheWeek, Month } from '@/types'
+import type { DayOfTheWeek, Month, WeekDayIndex } from '@/types'
 
 export const january: Month = 0
 export const february: Month = 1
@@ -13,7 +13,6 @@ export const october: Month = 9
 export const november: Month = 10
 export const december: Month = 11
 
-export type WeekDayIndex = 1 | 2 | 3 | 4 | 5 | 6 | 7
 export const weekDayIndices = [1, 2, 3, 4, 5, 6, 7] as const
 
 export const monday: WeekDayIndex = 1
