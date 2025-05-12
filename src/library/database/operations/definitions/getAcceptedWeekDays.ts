@@ -1,22 +1,16 @@
 import { database } from '@/library/database/connection'
 import { acceptedDeliveryDays } from '@/library/database/schema'
 import logger from '@/library/logger'
+import { weekDaysFromIndices } from '@/library/utilities/public'
 import { equals } from '@/library/utilities/server'
-import type { DayOfTheWeek } from '@/types'
+import type { DayOfTheWeek, WeekDayIndex } from '@/types'
 
-type Output = Promise<DayOfTheWeek[]>
+export async function getAcceptedWeekDays(merchantId: number): Promise<DayOfTheWeek[]> {
+	const acceptedWeekIndices = await getAcceptedWeekDayIndices(merchantId)
+	return weekDaysFromIndices(acceptedWeekIndices)
+}
 
-/**
- * @returns An array of week days that the merchant normally accepts deliveries on
- * [
- *   {
- *     name: 'monday',
- *     sortOrder: 1
- *   }
- * ]
- * @example const acceptedWeekDays = await getAcceptedWeekDays(dangerousMerchantProfile.id)
- */
-export async function getAcceptedWeekDays(merchantId: number): Output {
+export async function getAcceptedWeekDayIndices(merchantId: number): Promise<WeekDayIndex[]> {
 	try {
 		const deliveryDays = await database.query.acceptedDeliveryDays.findMany({
 			where: equals(acceptedDeliveryDays.userId, merchantId),
@@ -24,13 +18,10 @@ export async function getAcceptedWeekDays(merchantId: number): Output {
 			orderBy: (relations) => relations.dayOfWeekId,
 		})
 
-		const formattedDeliveryDays: DayOfTheWeek[] = deliveryDays.map((day) => ({
-			name: day.dayOfWeek.name,
-			sortOrder: day.dayOfWeek.sortOrder,
-		}))
+		const formattedDeliveryDays: WeekDayIndex[] = deliveryDays.map((day) => day.dayOfWeek.sortOrder as WeekDayIndex)
 		return formattedDeliveryDays
 	} catch (error) {
-		logger.error('getAcceptedWeekDays', error)
+		logger.error('getAcceptedWeekDayIndices', error)
 		throw error
 	}
 }
