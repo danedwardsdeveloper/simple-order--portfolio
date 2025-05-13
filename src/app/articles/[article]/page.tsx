@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 	const { metaTitle, metaDescription } = articleData
 
 	return {
-		title: metaTitle,
+		title: { absolute: metaTitle },
 		description: metaDescription,
 		alternates: {
 			canonical: `${dynamicBaseURL}/articles/${article}`,
