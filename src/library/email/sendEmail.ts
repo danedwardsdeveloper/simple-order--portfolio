@@ -6,7 +6,7 @@ import logger from '@/library/logger'
 import type { SendEmailBody, TestEmail, TestEmailInsertValues } from '@/types'
 import { database } from '../database/connection'
 import { testEmailInbox } from '../database/schema'
-import { bareLaunchedDomain, isProduction } from '../environment/publicVariables'
+import { bareProductionDomain, isProduction } from '../environment/publicVariables'
 import emailClient from './client'
 
 export const sendEmail = async ({ recipientEmail, subject, htmlVersion, textVersion }: SendEmailBody): Promise<boolean> => {
@@ -34,7 +34,7 @@ export const sendEmail = async ({ recipientEmail, subject, htmlVersion, textVers
 			html: htmlVersion,
 		}
 
-		const response = await emailClient.messages.create(bareLaunchedDomain, messageData)
+		const response = await emailClient.messages.create(bareProductionDomain, messageData)
 
 		// Enhancement ToDo: Add retry logic
 		if (response.status === 200) {

@@ -1,8 +1,7 @@
 import type { DangerousBaseUser } from '@/types'
 import axios from 'axios'
 import type Stripe from 'stripe'
-import { bareLaunchedDomain, siteIsLaunched } from '../environment/publicVariables'
-import { myPersonalEmail } from '../environment/serverVariables'
+import { bareProductionDomain } from '../environment/publicVariables'
 import logger from '../logger'
 import emailClient from './client'
 
@@ -33,11 +32,9 @@ export async function sendInvoiceEmail(user: DangerousBaseUser, invoice: Stripe.
 		const amount = (invoice.amount_paid / 100).toFixed(2)
 		const currency = invoice.currency.toUpperCase()
 
-		const recipientEmail = siteIsLaunched ? user.email : myPersonalEmail
-
-		await emailClient.messages.create(bareLaunchedDomain, {
+		await emailClient.messages.create(bareProductionDomain, {
 			from: 'Simple Order <noreply@simpleorder.co.uk>',
-			to: recipientEmail,
+			to: user.email,
 			subject: `Simple Order Invoice #${invoiceNumber}`,
 			text: `Dear ${user.firstName},\n\nThank you for your payment of ${currency} ${amount}. Your subscription is now active.\n\nPlease find your invoice attached.\n\nRegards,\nThe Simple Order Team`,
 			html: `
@@ -55,11 +52,7 @@ export async function sendInvoiceEmail(user: DangerousBaseUser, invoice: Stripe.
 			],
 		})
 
-		if (siteIsLaunched) {
-			logger.info(`Invoice email sent to ${recipientEmail}`)
-		} else {
-			logger.info(`Diverted invoice email from ${user.email} to ${myPersonalEmail}`)
-		}
+		logger.info(`Invoice email sent to ${user.email}`)
 
 		return true
 	} catch (error) {
