@@ -48,6 +48,22 @@
 
 ## Things I could do...
 
+### Code privacy
+
+```plaintext
+Move to private submodule:
+  - /src/library/database/operations - Core business logic and database interactions
+  - /src/library/stripe - Payment processing logic
+  - /src/library/email - Email handling system
+  - /src/app/api/payments - Sensitive payment endpoints
+
+  Keep public:
+  - UI components in /src/components and /src/app layouts
+  - Basic API route structures (with implementation details simplified)
+  - Sample database schemas and models
+  - General utilities that don't contain business secrets
+```
+
 -  Production development tests
 -  Ensure days of the week are seeded in the production database
 -  Create an API test route for /create-account
