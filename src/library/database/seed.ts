@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm'
 import logger from '../logger'
 import { database } from './connection'
-import { daysOfWeek } from './schema'
+import { daysOfWeek, orderStatuses } from './schema'
 
 async function seed() {
 	logger.info('🌱 Seeding database...')
@@ -25,9 +25,24 @@ async function seed() {
 					sortOrder: sql`excluded.sort_order`,
 				},
 			})
+
+		await database
+			.insert(orderStatuses)
+			.values([
+				{ id: 1, name: 'Pending' },
+				{ id: 2, name: 'Completed' },
+				{ id: 3, name: 'Cancelled' },
+			])
+			.onConflictDoUpdate({
+				target: orderStatuses.id,
+				set: {
+					name: sql`excluded.name`,
+				},
+			})
+
 		logger.success('Seeding complete!')
 	} catch (error) {
-		logger.error('❌ Seeding failed:', error)
+		logger.error('Seeding failed:', error)
 		throw error
 	}
 }

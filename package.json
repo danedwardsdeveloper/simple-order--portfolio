@@ -6,6 +6,8 @@
 		"check": "biome check . --write --unsafe",
 		"stripe": "stripe listen --events customer.subscription.created,customer.subscription.updated,invoice.paid,invoice.payment_failed,customer.subscription.deleted --forward-to localhost:3000/api/payments/webhook",
 		"build": "pnpm format && pnpm check && next build",
+		"seed": "pnpm tsx src/library/database/seed",
+		"seed:production": "NODE_ENV=production pnpm tsx src/library/database/seed",
 		"generate": "drizzle-kit generate --config=drizzle.config.ts",
 		"push": "drizzle-kit push --config=drizzle.config.ts",
 		"push:production": "drizzle-kit push --config=drizzle.production.config.ts",
@@ -13,8 +15,8 @@
 		"studio:production": "npx drizzle-kit studio --config=drizzle.production.config.ts",
 		"test": "vitest",
 		"lint": "next lint",
-		"predeploy": "pnpm check && pnpm format && pnpm push:production && pnpm build",
-		"deploy": "vercel deploy"
+		"predeploy": "pnpm seed:production && pnpm check && pnpm format && pnpm push:production && pnpm build",
+		"deploy": "vercel --prod"
 	},
 	"dependencies": {
 		"@headlessui/react": "2.2.0",
