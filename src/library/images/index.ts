@@ -1,14 +1,14 @@
 import type { ImageWithAlt } from '@/types'
 import autoParts from '../../../public/images/auto-parts.png'
+import baker from '../../../public/images/baker.png'
 import baristas from '../../../public/images/baristas.png'
 import cheeseMaker from '../../../public/images/cheese-maker.png'
-import florist from '../../../public/images/florist.png'
 import fruitSeller from '../../../public/images/fruit-seller.png'
 import furnitureManufacturer from '../../../public/images/furniture-manufacturer.png'
 import defaultSocialImage from '../../../public/images/simple-order-wholesale-order-management-software-website.png'
 import threeBakers from '../../../public/images/three-bakers.png'
 
-type ImageKey = 'autoParts' | 'cheeseMaker' | 'baristas' | 'default' | 'florist' | 'fruitSeller' | 'furnitureManufacturer' | 'threeBakers'
+type ImageKey = 'autoParts' | 'cheeseMaker' | 'baristas' | 'default' | 'baker' | 'fruitSeller' | 'furnitureManufacturer' | 'threeBakers'
 
 type ImagesCollection = {
 	[key in ImageKey]: ImageWithAlt
@@ -17,7 +17,7 @@ type ImagesCollection = {
 /**
  * 1,200 * 630px PNG
  */
-export const metaImages: ImagesCollection = {
+export const imagesCollection: ImagesCollection = {
 	autoParts: {
 		src: autoParts,
 		alt: 'Auto parts store worker in blue overalls holding a tool, with shelves of automotive fluids in the background.',
@@ -30,12 +30,12 @@ export const metaImages: ImagesCollection = {
 		src: baristas,
 		alt: 'Two baristas in tan aprons looking at a tablet while working with a coffee roaster.',
 	},
-	default: {
-		src: defaultSocialImage,
+	baker: {
+		src: baker,
 		alt: 'Baker with curly hair and glasses smiling in front of bakery display cases filled with fresh bread and pastries.',
 	},
-	florist: {
-		src: florist,
+	default: {
+		src: defaultSocialImage,
 		alt: 'Florist in gray apron smiling with arms crossed, surrounded by various plants and orchids in a plant shop.',
 	},
 	fruitSeller: {

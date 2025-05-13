@@ -1,5 +1,5 @@
 import { april, february } from '@/library/constants'
-import { metaImages } from '@/library/images'
+import { imagesCollection } from '@/library/images'
 import { createDate } from '@/library/utilities/public'
 import { type ArticlesCollection, articleCategories } from '@/types'
 import Link from 'next/link'
@@ -13,7 +13,7 @@ export const articlesData: ArticlesCollection = {
 		metaDescription:
 			'How Simple Order works for your wholesale business. Our straightforward platform helps you manage customer orders without the complexity of other systems.',
 		publishedAt: createDate(20, february, 2025),
-		featuredImage: metaImages.florist,
+		featuredImage: imagesCollection.default,
 		category: articleCategories.legal,
 		content: [
 			<p>Simple Order is a website for wholesalers to manage their customer orders.</p>,
@@ -78,7 +78,7 @@ export const articlesData: ArticlesCollection = {
 			'Discover who we are, why we built Simple Order, and how our affordable platform helps UK wholesalers manage orders with ease.',
 		metaDescription:
 			'Simple Order offers an affordable £19.50/month order management system for UK wholesalers. Founded by Dan Edwards in 2025, we simplify wholesale ordering.',
-		featuredImage: metaImages.baristas,
+		featuredImage: imagesCollection.baristas,
 		category: articleCategories.gettingStarted,
 		publishedAt: createDate(29, february, 2025),
 		updatedAt: createDate(28, april, 2025),
@@ -132,7 +132,7 @@ export const articlesData: ArticlesCollection = {
 			"Simple Order's GDPR compliance statement explains how we collect, process, and protect your data in accordance with EU data protection laws.",
 		publishedAt: createDate(28, april, 2025),
 		category: articleCategories.legal,
-		featuredImage: metaImages.threeBakers,
+		featuredImage: imagesCollection.threeBakers,
 		content: [
 			<h2>Our Commitment to Data Protection</h2>,
 			<p>
@@ -337,7 +337,7 @@ export const articlesData: ArticlesCollection = {
 			'Simple Order respects your privacy and only uses essential cookies that our wholesale order platform needs to function.',
 		metaDescription:
 			'Simple Order cookie policy - we only use essential cookies required for our wholesale order management platform functionality.',
-		featuredImage: metaImages.furnitureManufacturer,
+		featuredImage: imagesCollection.furnitureManufacturer,
 		category: articleCategories.legal,
 		publishedAt: createDate(29, february, 2025),
 		content: [
@@ -355,7 +355,7 @@ export const articlesData: ArticlesCollection = {
 			'How Simple Order collects, processes, and protects your data while providing our wholesale order management service. Your privacy matters to us.',
 		metaDescription:
 			'The Simple Order privacy policy explains how we handle your data - your rights, our security measures, and data protection compliance.',
-		featuredImage: metaImages.default,
+		featuredImage: imagesCollection.default,
 		category: articleCategories.legal,
 		publishedAt: createDate(5, february, 2025),
 		content: [
@@ -373,7 +373,7 @@ export const articlesData: ArticlesCollection = {
 			'The agreement between Simple Order and users of our wholesale order management platform. Review our terms before using our service.',
 		metaDescription:
 			'Simple Order terms of service - the rules and conditions for using our wholesale order management platform - pricing, refund policy, user responsibilities.',
-		featuredImage: metaImages.autoParts,
+		featuredImage: imagesCollection.autoParts,
 		category: articleCategories.legal,
 		publishedAt: createDate(5, february, 2025),
 		content: [
