@@ -277,3 +277,7 @@ A bit of a breakthrough today. Have made some really useful utilities like apiRe
 
 -  Completely forgot about journaling but I've been working on the website every waking moment. The launch is in sight!!
 -  246 tests passing
+
+# Tuesday 13 May
+
+-  Have launched the site even though it has a fair few issues and missing features after reading The Lean Startup. I have tons to do but I need validated learning that people are interested and willing to pay for the concept, otherwise it's a waste of time as a business (though still valuable development practice)
