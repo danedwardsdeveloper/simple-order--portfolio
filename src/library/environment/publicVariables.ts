@@ -5,9 +5,7 @@ export const isDevelopment = process.env.NODE_ENV === 'development'
 
 export const developmentDatabaseString = 'postgresql://localhost/simple_order_dev'
 
-export const siteIsLaunched = false
-export const bareProductionDomain = 'simple-order-management.vercel.app'
-export const bareLaunchedDomain = 'simpleorder.co.uk'
+export const bareProductionDomain = 'www.simpleorder.co.uk'
 
 export const productionBaseURL = `https://${bareProductionDomain}`
 export const developmentBaseURL = 'http://localhost:3000'
