@@ -15,7 +15,7 @@
 		"studio:production": "npx drizzle-kit studio --config=drizzle.production.config.ts",
 		"test": "vitest",
 		"lint": "next lint",
-		"predeploy": "pnpm seed:production && pnpm check && pnpm format && pnpm push:production && pnpm build",
+		"predeploy": "pnpm check && pnpm format && pnpm push:production && pnpm seed:production&& pnpm build",
 		"deploy": "vercel --prod"
 	},
 	"dependencies": {
