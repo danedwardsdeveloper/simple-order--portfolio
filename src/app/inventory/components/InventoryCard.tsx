@@ -31,7 +31,7 @@ export default function InventoryCard({ product, zebraStripe }: Props) {
 	if (isBeingEdited) {
 		return (
 			<li className={mergeClasses('flex flex-col gap-y-2 w-full p-3 rounded-xl', zebraStripe ? 'bg-blue-50' : 'bg-zinc-50')}>
-				<h1>{`I'm being edited!`}</h1>
+				<h1>ToDo!</h1>
 				<button type="button" onClick={() => setIsBeingEdited(false)} className="button-secondary">
 					Cancel
 				</button>
