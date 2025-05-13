@@ -3,27 +3,51 @@ import { daysOfTheWeek } from '@/library/constants'
 import { mergeClasses } from '@/library/utilities/public'
 import type { WeekDayIndex } from '@/types'
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline'
-import { useMerchantSettings } from './MerchantSettingsProvider'
+import { useEffect, useState } from 'react'
 import Setting from './Setting'
 
-export default function DeliveryDaysSettings() {
-	const { acceptedDeliveryDays, newSettings, setNewSettings, updateDeliveryDays } = useMerchantSettings()
+type Props = {
+	acceptedWeekDayIndices: WeekDayIndex[] | null
+	updateDeliveryDays: (dayIndexes: number[]) => Promise<boolean>
+	isBeingEdited: boolean
+	setIsBeingEdited: (isEditing: boolean) => void
+	isSubmitting: boolean
+}
+
+export default function DeliveryDaysSettings({
+	acceptedWeekDayIndices,
+	updateDeliveryDays,
+	isSubmitting,
+	isBeingEdited,
+	setIsBeingEdited,
+}: Props) {
+	const [newSettings, setNewSettings] = useState<{
+		acceptedWeekDayIndices: WeekDayIndex[] | null
+	}>({
+		acceptedWeekDayIndices: null,
+	})
+
+	useEffect(() => {
+		if (isBeingEdited && acceptedWeekDayIndices) {
+			setNewSettings({
+				acceptedWeekDayIndices: [...acceptedWeekDayIndices],
+			})
+		}
+	}, [isBeingEdited, acceptedWeekDayIndices])
 
 	function toggleDeliveryDay(dayIndex: WeekDayIndex, isSelected: boolean) {
 		setNewSettings((prev) => {
-			const currentDays = prev.acceptedDeliveryDays || []
+			const currentDays = prev.acceptedWeekDayIndices || []
 
 			if (isSelected) {
 				if (!currentDays.includes(dayIndex)) {
 					return {
-						...prev,
-						acceptedDeliveryDays: [...currentDays, dayIndex],
+						acceptedWeekDayIndices: [...currentDays, dayIndex],
 					}
 				}
 			} else {
 				return {
-					...prev,
-					acceptedDeliveryDays: currentDays.filter((index) => index !== dayIndex),
+					acceptedWeekDayIndices: currentDays.filter((index) => index !== dayIndex),
 				}
 			}
 
@@ -34,18 +58,23 @@ export default function DeliveryDaysSettings() {
 	return (
 		<Setting
 			title="Accepted delivery days"
-			editKey="acceptedDeliveryDays"
-			onSave={() => updateDeliveryDays(newSettings.acceptedDeliveryDays || [])}
-			hasChanges={JSON.stringify(newSettings.acceptedDeliveryDays) !== JSON.stringify(acceptedDeliveryDays)}
+			isBeingEdited={isBeingEdited}
+			setIsBeingEdited={setIsBeingEdited}
+			isSubmitting={isSubmitting}
+			onSave={() => updateDeliveryDays(newSettings.acceptedWeekDayIndices || [])}
+			hasChanges={JSON.stringify(newSettings.acceptedWeekDayIndices) !== JSON.stringify(acceptedWeekDayIndices)}
 			content={
 				<ul className="w-full">
 					{daysOfTheWeek.map(({ name, sortOrder }) => {
-						const isAccepted = acceptedDeliveryDays?.includes(sortOrder as WeekDayIndex)
+						const isAccepted = acceptedWeekDayIndices?.includes(sortOrder as WeekDayIndex) || false
 
 						return (
 							<li
 								key={sortOrder}
-								className={mergeClasses('min-h-10 mb-1 flex items-center gap-x-2', !isAccepted ? 'line-through decoration-red-600' : '')}
+								className={mergeClasses(
+									'min-h-10 h-max mb-1 flex items-center gap-x-2',
+									!isAccepted ? 'line-through decoration-red-600' : '',
+								)}
 							>
 								{isAccepted ? <CheckCircleIcon className="size-6 text-green-600" /> : <XCircleIcon className="size-6 text-red-600" />}
 								{name}
@@ -57,10 +86,10 @@ export default function DeliveryDaysSettings() {
 			editContent={
 				<div className="w-full">
 					{daysOfTheWeek.map(({ name, sortOrder }) => {
-						const isSelected = newSettings.acceptedDeliveryDays?.includes(sortOrder as WeekDayIndex)
+						const isSelected = newSettings.acceptedWeekDayIndices?.includes(sortOrder as WeekDayIndex) || false
 
 						return (
-							<div key={sortOrder} className="min-h-10 mb-1 flex items-center gap-x-2">
+							<div key={sortOrder} className="min-h-10 h-max mb-1 flex items-center gap-x-2">
 								<div className="group grid size-6 grid-cols-1">
 									<input
 										type="checkbox"
