@@ -1,7 +1,6 @@
 import { orderStatusNameToId, temporaryVat } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { orderItems, orders, products as productsTable } from '@/library/database/schema'
-import logger from '@/library/logger'
 import { mapOrders } from '@/library/utilities/public'
 import { equals, inArray } from '@/library/utilities/server'
 import type { DangerousBaseUser, OrderInsertValues, OrderMade, SelectedProduct } from '@/types'
@@ -14,11 +13,14 @@ type Input = {
 	products: SelectedProduct[]
 }
 
-type Output = Promise<OrderMade | undefined>
-
-export async function createOrder({ customerId, merchantProfile, requestedDeliveryDate, customerNote, products }: Input): Output {
+export async function createOrder({
+	customerId,
+	merchantProfile,
+	requestedDeliveryDate,
+	customerNote,
+	products,
+}: Input): Promise<OrderMade> {
 	let txErrorMessage: string | undefined
-	let txErrorCode: number | undefined
 
 	try {
 		const newOrderInsertValues: OrderInsertValues = {
@@ -30,7 +32,6 @@ export async function createOrder({ customerId, merchantProfile, requestedDelive
 		}
 		const newOrder = await database.transaction(async (tx) => {
 			txErrorMessage = 'failed to create new order'
-			txErrorCode = 503
 			const [createdOrder] = await tx.insert(orders).values(newOrderInsertValues).returning()
 
 			txErrorMessage = 'failed to retrieve data from products table'
@@ -61,7 +62,6 @@ export async function createOrder({ customerId, merchantProfile, requestedDelive
 			await tx.insert(orderItems).values(orderItemsData)
 
 			txErrorMessage = undefined
-			txErrorCode = undefined
 			return createdOrder
 		})
 
@@ -80,13 +80,10 @@ export async function createOrder({ customerId, merchantProfile, requestedDelive
 				returnType: 'ordersMade',
 			}).ordersMade || []
 
-		if (!createdOrder) return
+		if (!createdOrder) throw new Error(txErrorMessage)
 
 		return createdOrder
-	} catch {
-		if (txErrorCode || txErrorMessage) {
-			logger.error(txErrorCode || txErrorMessage)
-		}
+	} catch (error) {
+		throw new Error(error instanceof Error ? error.message : 'createOrder: unknown error')
 	}
-	return
 }
