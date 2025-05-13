@@ -16,7 +16,7 @@ export interface OrdersPOSTbody {
 
 export interface OrdersPOSTresponse {
 	developmentMessage?: string
-	userMessage?: typeof userMessages.serverError | typeof userMessages.cutOffTimeExceeded
+	userMessage?: typeof userMessages.serverError | typeof userMessages.cutOffTimeExceeded | typeof userMessages.orderCreationError
 	createdOrder?: OrderMade
 }
 
@@ -136,6 +136,8 @@ export async function POST(request: NextRequest): OutputPOST {
 			})
 		}
 
+		// ToDo: prevent multiple orders on the same day
+
 		const createdOrder = await createOrder({
 			customerId: dangerousUser.id,
 			merchantProfile,
@@ -143,6 +145,13 @@ export async function POST(request: NextRequest): OutputPOST {
 			customerNote,
 			products,
 		})
+
+		if (!createdOrder) {
+			return respond({
+				body: { userMessage: userMessages.orderCreationError },
+				status: 400,
+			})
+		}
 
 		return respond({
 			body: { createdOrder },
