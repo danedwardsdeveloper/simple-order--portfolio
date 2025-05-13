@@ -5,12 +5,9 @@ import { productionDatabaseString } from '../environment/serverVariables'
 import logger from '../logger'
 import * as schema from './schema'
 
-// ToDo: make database barrel
-
 export const database = drizzle(isProduction ? productionDatabaseString : developmentDatabaseString, { schema })
 
-// Protect tests from accidentally deleting production data
-export const developmentDatabase = drizzle(developmentDatabaseString)
+export const developmentDatabase = drizzle(developmentDatabaseString, { schema })
 
 export async function testDatabaseConnection() {
 	try {
