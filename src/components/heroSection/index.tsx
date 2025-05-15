@@ -1,5 +1,5 @@
 import { websiteCopy } from '@/library/constants'
-import { imagesCollection } from '@/library/images'
+import { imagesCollection } from '@/library/imagesCollection'
 import Image from 'next/image'
 import Link from 'next/link'
 
