@@ -1,17 +1,57 @@
 'use client'
-
 import { useUi } from '@/components/providers/ui'
 import { useUser } from '@/components/providers/user'
 import { websiteCopy } from '@/library/constants'
 import { mergeClasses } from '@/library/utilities/public'
 import { Transition } from '@headlessui/react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useEffect } from 'react'
+import ToggleWithLabel from '../ToggleWithLabel'
+import { useDemoUser } from '../providers/demo/user'
 import HomePageLink from './HomePageLink'
 import { DesktopMenuItem, MobileMenuItem } from './MenuItems'
 
 export default function MenuBar() {
+	const pathname = usePathname()
 	const { user } = useUser()
-	const { mobileMenuOpen, toggleMobileMenuOpen } = useUi()
+	const { demoUser, setDemoUser } = useDemoUser()
+	const { mobileMenuOpen, toggleMobileMenuOpen, demoMode, setDemoMode, merchantMode, setMerchantMode } = useUi()
+
+	useEffect(() => {
+		if (pathname === '/demo' || pathname.startsWith('/demo/')) {
+			setDemoMode(true)
+		}
+	}, [pathname, setDemoMode])
+
+	function demoHref(path: string) {
+		return demoMode ? `/demo${path}` : path
+	}
+
+	function DemoBadge() {
+		return (
+			<>
+				<div className="px-3 py-1 flex gap-x-2 rounded border-2 border-orange-600">
+					<span className="inline-block text-xl">Demo mode</span>
+					<ToggleWithLabel
+						enabled={merchantMode}
+						setEnabled={(value) => {
+							setDemoUser((prev) => ({
+								...prev,
+								roles: value ? 'merchant' : 'customer',
+							}))
+							setMerchantMode(value)
+						}}
+						enabledLabel="Merchant"
+						disabledLabel="Customer"
+					/>
+				</div>
+			</>
+		)
+	}
+
+	const resolvedUser = demoMode ? demoUser : user
+	const notJustACustomer = resolvedUser && (resolvedUser.roles === 'merchant' || resolvedUser.roles === 'both')
 
 	// Enhancement ToDo: Add click outside to close
 	function MobileMenu() {
@@ -22,7 +62,8 @@ export default function MenuBar() {
 					className="flex md:hidden fixed inset-x-0 top-0 h-14 bg-white  border-b-2 border-zinc-200 z-menu backdrop-blur"
 				>
 					<div className="w-full mx-auto px-5 flex items-center justify-between">
-						<HomePageLink />
+						{demoMode ? <DemoBadge /> : <HomePageLink />}
+
 						<button
 							type="button"
 							onClick={() => toggleMobileMenuOpen()}
@@ -74,17 +115,17 @@ export default function MenuBar() {
 				leaveTo="max-h-0 opacity-0"
 			>
 				<div className="flex flex-col md:hidden fixed inset-x-0 top-14 border-b-2 border-blue-200 z-menu bg-blue-50 p-5 gap-y-10 py-10 overflow-hidden">
-					{user ? (
+					{resolvedUser ? (
 						<>
-							<MobileMenuItem onClick={toggleMobileMenuOpen} href="/dashboard" text="Dashboard" />
-							{user.roles !== 'customer' && (
+							<MobileMenuItem onClick={toggleMobileMenuOpen} href={demoHref('/dashboard')} text="Dashboard" />
+							{notJustACustomer && (
 								<>
-									<MobileMenuItem onClick={toggleMobileMenuOpen} href="/inventory" text="Inventory" />
-									<MobileMenuItem onClick={toggleMobileMenuOpen} href="/customers" text="Customers" />
+									<MobileMenuItem onClick={toggleMobileMenuOpen} href={demoHref('/inventory')} text="Inventory" />
+									<MobileMenuItem onClick={toggleMobileMenuOpen} href={demoHref('/customers')} text="Customers" />
 								</>
 							)}
-							<MobileMenuItem onClick={toggleMobileMenuOpen} href="/orders" text="Orders" />
-							<MobileMenuItem onClick={toggleMobileMenuOpen} href="/settings" text="Settings" />
+							<MobileMenuItem onClick={toggleMobileMenuOpen} href={demoHref('/orders')} text="Orders" />
+							<MobileMenuItem onClick={toggleMobileMenuOpen} href={demoHref('/settings')} text="Settings" />
 						</>
 					) : (
 						<>
@@ -115,27 +156,25 @@ export default function MenuBar() {
 				className="hidden md:flex fixed inset-x-0 top-0 h-14 bg-white backdrop-blur border-b-2 border-zinc-200 z-menu"
 			>
 				<div className="w-full max-w-7xl mx-auto px-4 lg:px-8 flex items-center justify-between">
-					{user ? (
-						<>
-							<div className="flex h-full items-center gap-x-3">
-								<HomePageLink />
-							</div>
-							<div className="flex h-full items-center gap-x-6">
-								<DesktopMenuItem href="/dashboard" text="Dashboard" />
-								{user.roles !== 'customer' && (
+					<div className="flex gap-x-2 items-center">
+						<HomePageLink />
+						{demoMode && <DemoBadge />}
+					</div>
+					<div className="flex h-full items-center gap-x-6">
+						{resolvedUser ? (
+							<>
+								<DesktopMenuItem href={demoHref('/dashboard')} text="Dashboard" />
+								{notJustACustomer && (
 									<>
-										<DesktopMenuItem href="/inventory" text="Inventory" />
-										<DesktopMenuItem href="/customers" text="Customers" />
+										<DesktopMenuItem href={demoHref('/inventory')} text="Inventory" />
+										<DesktopMenuItem href={demoHref('/customers')} text="Customers" />
 									</>
 								)}
-								<DesktopMenuItem href="/orders" text="Orders" />
-								<DesktopMenuItem href="/settings" text="Settings" />
-							</div>
-						</>
-					) : (
-						<>
-							<HomePageLink />
-							<div className="flex h-full items-center gap-x-6">
+								<DesktopMenuItem href={demoHref('/orders')} text="Orders" />
+								<DesktopMenuItem href={demoHref('/settings')} text="Settings" />
+							</>
+						) : (
+							<>
 								<DesktopMenuItem href="/articles" text="Articles" />
 								<DesktopMenuItem href="/sign-in" text="Sign in" />
 								<div className="flex gap-x-2 items-center">
@@ -146,9 +185,9 @@ export default function MenuBar() {
 										{websiteCopy.CTAs.primary.displayText}
 									</Link>
 								</div>
-							</div>
-						</>
-					)}
+							</>
+						)}
+					</div>
 				</div>
 			</nav>
 		)
