@@ -8,54 +8,36 @@ import LeadTime from '@/components/settings/LeadTime'
 import MinimumSpend from '@/components/settings/MinimumSpend'
 
 export default function DemoSettingsPage() {
-  const { 
-    updateDeliveryDays, 
-    acceptedWeekDayIndices, 
-    saveMinimumSpendPence, 
-    saveCutOffTime,
-    saveLeadTime 
-  } = useDemoSettings()
-  
-  const { demoUser } = useDemoUser()
+	const { updateDeliveryDays, acceptedWeekDayIndices, saveMinimumSpendPence, saveCutOffTime, saveLeadTime } = useDemoSettings()
 
-  function DemoUserDetails() {
-    return (
-      <div className="flex flex-col gap-y-2 w-full max-w-md border-2 border-slate-100 rounded-xl p-3">
-        <p className="font-medium">{"Jane's Bakery"}</p>
-        <p>Jane Smith</p>
-        <p>janesmith@janesbakery.com</p>
-      </div>
-    )
-  }
+	const { demoUser } = useDemoUser()
 
-  return (
-    <>
-      <SignedOutBreadCrumbs trail={[{ displayName: 'Demo', href: '/demo' }]} currentPageTitle="Settings" />
-      <div className="flex flex-col gap-y-4 items-start">
-        <h1>Settings</h1>
-        <DemoUserDetails />
-        <div className="w-full max-w-md border-2 border-slate-100 rounded-xl p-3 flex flex-col gap-y-6">
-          <MinimumSpend
-            minimumSpendPence={demoUser.minimumSpendPence}
-            saveMinimumSpendPence={saveMinimumSpendPence}
-          />
+	function DemoUserDetails() {
+		return (
+			<div className="flex flex-col gap-y-2 w-full max-w-md border-2 border-slate-100 rounded-xl p-3">
+				<p className="font-medium">{"Jane's Bakery"}</p>
+				<p>Jane Smith</p>
+				<p>janesmith@janesbakery.com</p>
+			</div>
+		)
+	}
 
-          <LeadTime
-            leadTimeDays={demoUser.leadTimeDays}
-            saveLeadTime={saveLeadTime}
-          />
+	return (
+		<>
+			<SignedOutBreadCrumbs trail={[{ displayName: 'Demo', href: '/demo' }]} currentPageTitle="Settings" />
+			<div className="flex flex-col gap-y-4 items-start">
+				<h1>Settings</h1>
+				<DemoUserDetails />
+				<div className="w-full max-w-md border-2 border-slate-100 rounded-xl p-3 flex flex-col gap-y-6">
+					<MinimumSpend minimumSpendPence={demoUser.minimumSpendPence} saveMinimumSpendPence={saveMinimumSpendPence} />
 
-          <CutOffTime
-            cutOffTime={demoUser.cutOffTime}
-            saveCutOffTime={saveCutOffTime}
-          />
+					<LeadTime leadTimeDays={demoUser.leadTimeDays} saveLeadTime={saveLeadTime} />
 
-          <DeliveryDaysSetting
-            acceptedWeekDayIndices={acceptedWeekDayIndices}
-            updateDeliveryDays={updateDeliveryDays}
-          />
-        </div>
-      </div>
-    </>
-  )
+					<CutOffTime cutOffTime={demoUser.cutOffTime} saveCutOffTime={saveCutOffTime} />
+
+					<DeliveryDaysSetting acceptedWeekDayIndices={acceptedWeekDayIndices} updateDeliveryDays={updateDeliveryDays} />
+				</div>
+			</div>
+		</>
+	)
 }
