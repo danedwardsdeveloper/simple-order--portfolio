@@ -17,3 +17,16 @@ export const userMessages = {
 	cutOffTimeExceeded: `Sorry, it's too late to place this order. Please change the requested delivery date or contact the merchant directly.`,
 	holidayConflict: 'This holiday period overlaps with an existing holiday',
 } as const
+
+/**
+ * Notification messages used in both user and demo providers
+ */
+export const userNotifications = {
+	settingsUpdated: {
+		cutOffMessage: 'Cut off time updated',
+		minimumSpendMessage: 'Minimum spend updated',
+		holidayAddedMessage: 'Holiday added',
+		leadTimeDaysMessage: 'Lead time updated',
+		deliveryDaysMessage: 'Accepted delivery days updated',
+	},
+}
