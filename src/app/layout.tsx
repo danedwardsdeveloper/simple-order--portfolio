@@ -3,9 +3,9 @@ import { websiteCopy } from '@/library/constants'
 import { dynamicBaseURL, isProduction } from '@/library/environment/publicVariables'
 import type { Metadata, Viewport } from 'next'
 import './globals.tailwind.css'
-import SplashScreen from '@/components/SplashScreen'
 import Footer from '@/components/footer'
 import Providers from '@/components/providers'
+import { ContentSplash, SiteSplash } from '@/components/splashes'
 import Script from 'next/script'
 import type { ReactNode } from 'react'
 
@@ -54,9 +54,11 @@ export default function RootLayout({
 		<html lang="en-GB" suppressHydrationWarning>
 			<body className="flex flex-col w-full text-base">
 				<Providers>
-					<SplashScreen />
+					<SiteSplash />
 					<MenuBar />
-					{children}
+
+					{/* ToDo: find a way to change this so that the breadcrumbs and header for each page are displayed while data is loading */}
+					<ContentSplash siteContent={children} />
 					<Footer />
 				</Providers>
 				{isProduction && <Script src="https://scripts.simpleanalyticscdn.com/latest.js" strategy="lazyOnload" />}
