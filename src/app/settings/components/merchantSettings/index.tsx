@@ -1,50 +1,35 @@
 'use client'
+import { useMerchantSettings } from '@/components/providers/settings'
 import { useUser } from '@/components/providers/user'
-import { epochDateToTimeInput, formatPrice, formatTime, timeInputToEpochDate } from '@/library/utilities/public'
-import DeliveryDaysSettings from './DeliveryDaySettings'
+import DeliveryDaysSetting from '@/components/settings/DeliveryDaysSetting'
+import MinimumSpend from '@/components/settings/MinimumSpend'
 import HolidaySettings from './HolidaySettings'
-import { MerchantSettingsProvider, useMerchantSettings } from './MerchantSettingsProvider'
-import Setting from './Setting'
 
 export default function MerchantSettings() {
-	return (
-		<MerchantSettingsProvider>
-			<Content />
-		</MerchantSettingsProvider>
-	)
-}
-
-export function Content() {
 	const { user } = useUser()
-	const { saveCutOffTime, saveMinimumSpend, saveLeadTime, newSettings, setNewSettings } = useMerchantSettings()
+	const {
+		saveMinimumSpendPence,
+		isEditing,
+		setIsEditing,
+		acceptedWeekDayIndices,
+		updateDeliveryDays,
+		isSubmitting,
+		// saveLeadTime,
+		// saveCutOffTime,
+	} = useMerchantSettings()
 
 	if (!user) return null
 
 	return (
 		<div className="w-full max-w-md border-2 border-slate-100 rounded-xl p-3 flex flex-col gap-y-6">
-			{/* ToDo: Input is in pence */}
-			<Setting
-				title="Minimum spend"
-				editKey="minimumSpend"
-				onSave={saveMinimumSpend}
-				hasChanges={newSettings.minimumSpend !== user.minimumSpendPence}
-				content={<span>{formatPrice(user.minimumSpendPence)}</span>}
-				editContent={
-					<input
-						type="number"
-						min="0"
-						step="1"
-						className="w-24 px-2 py-1 border rounded"
-						value={newSettings.minimumSpend !== null ? newSettings.minimumSpend : user.minimumSpendPence || 0}
-						onChange={(event) => {
-							const value = Number.parseInt(event.target.value, 10)
-							setNewSettings((prev) => ({ ...prev, minimumSpend: value }))
-						}}
-					/>
-				}
+			<MinimumSpend
+				minimumSpendPence={user.minimumSpendPence}
+				saveMinimumSpendPence={saveMinimumSpendPence}
+				isBeingEdited={isEditing.minimumSpend}
+				setIsBeingEdited={(value) => setIsEditing((prev) => ({ ...prev, minimumSpend: value }))}
+				isSubmitting={isSubmitting.minimumSpend}
 			/>
-
-			<Setting
+			{/* <Setting
 				title="Order cut off time"
 				editKey="cutOff"
 				onSave={saveCutOffTime}
@@ -82,9 +67,15 @@ export function Content() {
 						}}
 					/>
 				}
-			/>
+			/> */}
 
-			<DeliveryDaysSettings />
+			<DeliveryDaysSetting
+				acceptedWeekDayIndices={acceptedWeekDayIndices}
+				updateDeliveryDays={updateDeliveryDays}
+				isBeingEdited={isEditing.acceptedDeliveryDays}
+				setIsBeingEdited={(value) => setIsEditing((prev) => ({ ...prev, acceptedDeliveryDays: value }))}
+				isSubmitting={isSubmitting.acceptedDeliveryDays}
+			/>
 
 			<HolidaySettings />
 		</div>
