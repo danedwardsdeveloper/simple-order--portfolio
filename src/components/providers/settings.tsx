@@ -5,11 +5,13 @@ import type { SettingsHolidaysPOSTbody, SettingsHolidaysPOSTresponse } from '@/a
 import type { SettingsPATCHbody, SettingsPATCHresponse } from '@/app/api/settings/patch'
 import { useNotifications } from '@/components/providers/notifications'
 import { useUser } from '@/components/providers/user'
-import { defaultMinimumSpendPence } from '@/library/constants'
-import { apiRequest } from '@/library/utilities/public'
+import { userNotifications } from '@/library/constants'
+import { isDevelopment } from '@/library/environment/publicVariables'
+import { apiRequest, subtleDelay } from '@/library/utilities/public'
 import type { BrowserSafeCompositeUser, Holiday, WeekDayIndex } from '@/types'
 import { produce } from 'immer'
 import { type Dispatch, type ReactNode, type SetStateAction, createContext, useContext, useEffect, useRef, useState } from 'react'
+import { useLoading } from './loading'
 
 export type Settings = {
 	cutOff: Date | null
@@ -36,8 +38,6 @@ export const initialSettingsBooleans = {
 }
 
 type MerchantSettingsContextType = {
-	isLoading: boolean
-
 	holidays: Holiday[] | null
 	acceptedWeekDayIndices: WeekDayIndex[] | null
 
@@ -47,12 +47,9 @@ type MerchantSettingsContextType = {
 	isSubmitting: SettingsBooleans
 	setIsSubmitting: Dispatch<SetStateAction<SettingsBooleans>>
 
-	newSettings: Settings
-	setNewSettings: Dispatch<SetStateAction<Settings>>
-
 	updateSetting: (body: SettingsPATCHbody, onSuccess: (user: BrowserSafeCompositeUser) => void) => Promise<boolean>
-	saveCutOffTime: () => Promise<void>
-	saveLeadTime: () => Promise<void>
+	saveCutOffTime: (value: Date) => Promise<void>
+	saveLeadTime: (value: number) => Promise<void>
 	saveMinimumSpendPence: (value: number) => Promise<void>
 	addHoliday: (startDate: Date, endDate: Date) => Promise<void>
 	updateDeliveryDays: (dayIndexes: number[]) => Promise<boolean>
@@ -60,10 +57,14 @@ type MerchantSettingsContextType = {
 
 const MerchantSettingsContext = createContext<MerchantSettingsContextType | null>(null)
 
+const {
+	settingsUpdated: { cutOffMessage, minimumSpendMessage, holidayAddedMessage, leadTimeDaysMessage, deliveryDaysMessage },
+} = userNotifications
+
 export function MerchantSettingsProvider({ children }: { children: ReactNode }) {
+	const { setDataLoading } = useLoading()
 	const { user, setUser } = useUser()
 	const { successNotification, errorNotification, serverErrorNotification } = useNotifications()
-	const [isLoading, setIsLoading] = useState(true)
 
 	const [isEditing, setIsEditing] = useState(initialSettingsBooleans)
 	const [isSubmitting, setIsSubmitting] = useState(initialSettingsBooleans)
@@ -77,16 +78,12 @@ export function MerchantSettingsProvider({ children }: { children: ReactNode }) 
 		acceptedWeekDayIndices: null,
 	})
 
-	/**
-	 * @deprecated use local states instead
-	 */
-	const [newSettings, setNewSettings] = useState<Settings>({
-		cutOff: user?.cutOffTime || null,
-		leadTime: user?.leadTimeDays || null,
-		minimumSpend: user?.minimumSpendPence || defaultMinimumSpendPence,
-		holidays: null,
-		acceptedWeekDayIndices: null,
-	})
+	// Make the loading state visible in production
+	async function developmentDelay() {
+		if (isDevelopment) {
+			await subtleDelay(400, 500)
+		}
+	}
 
 	const settingsFetched = useRef(false)
 
@@ -95,7 +92,7 @@ export function MerchantSettingsProvider({ children }: { children: ReactNode }) 
 		// Global loading state
 		async function fetchSettings() {
 			try {
-				setIsLoading(true)
+				setDataLoading(true)
 				const { ok, holidays, acceptedWeekDayIndices, userMessage } = await apiRequest<SettingsGETresponse>({
 					basePath: '/settings',
 				})
@@ -115,7 +112,7 @@ export function MerchantSettingsProvider({ children }: { children: ReactNode }) 
 			} catch {
 				serverErrorNotification()
 			} finally {
-				setIsLoading(false)
+				setDataLoading(false)
 			}
 		}
 
@@ -141,7 +138,6 @@ export function MerchantSettingsProvider({ children }: { children: ReactNode }) 
 					}),
 				)
 
-				successNotification('Settings updated')
 				return true
 			}
 
@@ -153,19 +149,19 @@ export function MerchantSettingsProvider({ children }: { children: ReactNode }) 
 		}
 	}
 
-	async function saveCutOffTime() {
+	async function saveCutOffTime(value: Date) {
 		setIsSubmitting((prev) => ({ ...prev, cutOff: true }))
 
 		try {
-			const newCutOff = newSettings.cutOff
-			if (!newCutOff) return
+			await developmentDelay()
 
-			const success = await updateSetting({ cutOffTime: newCutOff }, (user) => {
-				user.cutOffTime = newCutOff
+			const success = await updateSetting({ cutOffTime: value }, (user) => {
+				user.cutOffTime = value
 			})
 
 			if (success) {
 				setIsEditing((prev) => ({ ...prev, cutOff: false }))
+				successNotification(cutOffMessage)
 			}
 		} catch {
 			// handle error
@@ -174,18 +170,20 @@ export function MerchantSettingsProvider({ children }: { children: ReactNode }) 
 		}
 	}
 
-	async function saveLeadTime() {
+	async function saveLeadTime(value: number) {
 		setIsSubmitting((prev) => ({ ...prev, leadTime: true }))
 
 		try {
-			const newLeadTime = newSettings.leadTime
-			if (newLeadTime === null) return
+			await developmentDelay()
 
-			const success = await updateSetting({ leadTimeDays: newLeadTime }, (user) => {
-				user.leadTimeDays = newLeadTime
+			const success = await updateSetting({ leadTimeDays: value }, (user) => {
+				user.leadTimeDays = value
 			})
 
-			if (success) setIsEditing((prev) => ({ ...prev, leadTime: false }))
+			if (success) {
+				setIsEditing((prev) => ({ ...prev, leadTime: false }))
+				successNotification(leadTimeDaysMessage)
+			}
 		} catch {
 			// handle error
 		} finally {
@@ -197,11 +195,16 @@ export function MerchantSettingsProvider({ children }: { children: ReactNode }) 
 		setIsSubmitting((prev) => ({ ...prev, minimumSpend: true }))
 
 		try {
+			await developmentDelay()
+
 			const success = await updateSetting({ minimumSpendPence: value }, (user) => {
 				user.minimumSpendPence = value
 			})
 
-			if (success) setIsEditing((prev) => ({ ...prev, minimumSpend: false }))
+			if (success) {
+				setIsEditing((prev) => ({ ...prev, minimumSpend: false }))
+				successNotification(minimumSpendMessage)
+			}
 		} catch {
 			// handle error
 		} finally {
@@ -213,6 +216,8 @@ export function MerchantSettingsProvider({ children }: { children: ReactNode }) 
 		setIsSubmitting((prev) => ({ ...prev, holidays: true }))
 
 		try {
+			await developmentDelay()
+
 			const { ok, userMessage } = await apiRequest<SettingsHolidaysPOSTresponse, SettingsHolidaysPOSTbody>({
 				basePath: '/settings/holidays',
 				method: 'POST',
@@ -222,10 +227,10 @@ export function MerchantSettingsProvider({ children }: { children: ReactNode }) 
 			if (ok) {
 				setRetrievedSettings((prev) => ({
 					...prev,
-					holidays: [...(prev.holidays || []), ...(newSettings.holidays || [])],
+					holidays: [...(prev.holidays || []), ...[{ startDate, endDate }]], // Not sure this is right
 				}))
 				setIsEditing((prev) => ({ ...prev, holidays: false }))
-				successNotification('Holiday added')
+				successNotification(holidayAddedMessage)
 			}
 
 			if (userMessage) errorNotification(userMessage)
@@ -240,6 +245,8 @@ export function MerchantSettingsProvider({ children }: { children: ReactNode }) 
 		setIsSubmitting((prev) => ({ ...prev, acceptedDeliveryDays: true }))
 
 		try {
+			await developmentDelay()
+
 			const { ok, userMessage } = await apiRequest<SettingsDeliveryDaysPATCHresponse, SettingsDeliveryDaysPATCHbody>({
 				basePath: '/settings/delivery-days',
 				method: 'PATCH',
@@ -249,7 +256,7 @@ export function MerchantSettingsProvider({ children }: { children: ReactNode }) 
 			if (ok) {
 				setRetrievedSettings((prev) => ({ ...prev, acceptedWeekDayIndices: dayIndexes as WeekDayIndex[] }))
 				setIsEditing((prev) => ({ ...prev, acceptedDeliveryDays: false }))
-				successNotification('Delivery days updated')
+				successNotification(deliveryDaysMessage)
 				return true
 			}
 
@@ -264,16 +271,11 @@ export function MerchantSettingsProvider({ children }: { children: ReactNode }) 
 	}
 
 	const value = {
-		isLoading,
-
 		holidays: retrievedSettings.holidays,
 		acceptedWeekDayIndices: retrievedSettings.acceptedWeekDayIndices,
 
 		isEditing,
 		setIsEditing,
-
-		newSettings,
-		setNewSettings,
 
 		isSubmitting,
 		setIsSubmitting,
