@@ -1,5 +1,5 @@
 import { april, february } from '@/library/constants'
-import { imagesCollection } from '@/library/images'
+import { imagesCollection } from '@/library/imagesCollection'
 import { createDate } from '@/library/utilities/public'
 import { type ArticlesCollection, articleCategories } from '@/types'
 import Link from 'next/link'
