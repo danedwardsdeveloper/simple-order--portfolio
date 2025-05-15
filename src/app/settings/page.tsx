@@ -3,7 +3,6 @@ import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
 import Spinner from '@/components/Spinner'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
 import { useNotifications } from '@/components/providers/notifications'
-import { useUi } from '@/components/providers/ui'
 import { useUser } from '@/components/providers/user'
 import { checkoutSearchParam, checkoutSearchParamValues, userMessages } from '@/library/constants'
 import { apiRequest } from '@/library/utilities/public'
@@ -21,7 +20,6 @@ export default function SettingsPage() {
 	const searchParams = useSearchParams()
 	const subscriptionQuery = searchParams.get(checkoutSearchParam)
 	const { user, setUser } = useUser()
-	const { merchantMode } = useUi()
 	const { createNotification } = useNotifications()
 	const router = useRouter()
 	const notificationShown = useRef(false)
@@ -74,10 +72,6 @@ export default function SettingsPage() {
 			<SignedInBreadCrumbs businessName={user.businessName} currentPageTitle="Settings" />
 			<div className="flex flex-col gap-y-4 items-start">
 				<h1>Settings</h1>
-
-				{/* Temporary */}
-				<p>Role: {user.roles}</p>
-				<p>Merchant mode: {String(merchantMode)}</p>
 
 				<UserInformation />
 
