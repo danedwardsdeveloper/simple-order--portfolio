@@ -11,6 +11,10 @@ interface UiContextType {
 	setMerchantMode: Dispatch<SetStateAction<boolean>>
 	toggleMerchantMode: () => void
 
+	demoMode: boolean
+	setDemoMode: Dispatch<SetStateAction<boolean>>
+	toggleDemoMode: () => void
+
 	includeVat: boolean
 	setIncludeVat: Dispatch<SetStateAction<boolean>>
 	toggleIncludeVat: () => void
@@ -23,6 +27,8 @@ export function UiProvider({ children }: { children: ReactNode }) {
 	const storedMerchantMode = localStorage.getItem(localStorageItems.merchantMode)
 	const initialMerchantMode = storedMerchantMode === null ? true : storedMerchantMode === 'true'
 	const [merchantMode, setMerchantMode] = useState(initialMerchantMode)
+	const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+	const [demoMode, setDemoMode] = useState(false)
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies:
 	useEffect(() => {
@@ -31,14 +37,16 @@ export function UiProvider({ children }: { children: ReactNode }) {
 		}
 	}, [])
 
-	const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
 	function toggleMerchantMode() {
 		setMerchantMode((current) => {
 			const newValue = !current
 			localStorage.setItem(localStorageItems.merchantMode, newValue.toString())
 			return newValue
 		})
+	}
+
+	function toggleDemoMode() {
+		setDemoMode((current) => !current)
 	}
 
 	function toggleMobileMenuOpen() {
@@ -58,6 +66,10 @@ export function UiProvider({ children }: { children: ReactNode }) {
 		merchantMode,
 		setMerchantMode,
 		toggleMerchantMode,
+
+		demoMode,
+		setDemoMode,
+		toggleDemoMode,
 
 		includeVat,
 		setIncludeVat,
