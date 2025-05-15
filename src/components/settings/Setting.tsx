@@ -1,27 +1,28 @@
 'use client'
+import Spinner from '@/components/Spinner'
 import type { ReactNode } from 'react'
-import { type EditingState, useMerchantSettings } from './MerchantSettingsProvider'
 
-export default function Setting<K extends keyof EditingState>({
+export default function Setting({
 	title,
-	editKey,
-	editContent,
-	content,
+	isBeingEdited,
+	setIsBeingEdited,
+	isSubmitting,
 	hasChanges,
+	content,
+	editContent,
 	onSave,
 }: {
 	title: string
-	editKey: K
+	isBeingEdited: boolean
+	setIsBeingEdited: (isEditing: boolean) => void
 	hasChanges: boolean
 	onSave: () => void
+	isSubmitting: boolean
 	content: ReactNode
 	editContent: ReactNode
 }) {
-	const { isEditing, setIsEditing } = useMerchantSettings()
-	const isBeingEdited = isEditing[editKey]
-
-	function toggleEdit() {
-		setIsEditing((prev) => ({ ...prev, [editKey]: !prev[editKey] }))
+	const toggleEdit = () => {
+		setIsBeingEdited(!isBeingEdited)
 	}
 
 	return (
@@ -35,7 +36,7 @@ export default function Setting<K extends keyof EditingState>({
 						</button>
 						{hasChanges && (
 							<button type="button" onClick={onSave} className="px-2 py-1 bg-blue-300 rounded">
-								Save
+								{isSubmitting ? <Spinner colour="text-white" /> : 'Save'}
 							</button>
 						)}
 					</div>
