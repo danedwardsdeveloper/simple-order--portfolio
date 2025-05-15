@@ -1,14 +1,17 @@
 'use client'
+import { useMerchantSettings } from '@/components/providers/settings'
+import Setting from '@/components/settings/Setting'
 import type { Holiday } from '@/types'
 import { differenceInCalendarDays, format, isSameDay } from 'date-fns'
 import { XCircleIcon } from 'lucide-react'
 import { useState } from 'react'
-import { useMerchantSettings } from '../../../../components/providers/settings'
-import Setting from '../../../../components/settings/Setting'
+
+// Main ToDo
 
 export default function HolidaySettings() {
-	const { holidays, newSettings, setNewSettings, addHoliday, isSubmitting } = useMerchantSettings()
+	const { holidays, addHoliday, isSubmitting } = useMerchantSettings()
 	const [isEditing, setIsEditing] = useState(false)
+	const [newSetting, setNewSetting] = useState()
 
 	const holidayStart = newSettings.holidays?.[0]?.startDate
 		? new Date(newSettings.holidays[0].startDate).toISOString().split('T')[0]
