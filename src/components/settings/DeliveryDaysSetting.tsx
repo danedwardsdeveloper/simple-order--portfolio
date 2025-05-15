@@ -14,7 +14,7 @@ type Props = {
 	isSubmitting: boolean
 }
 
-export default function DeliveryDaysSettings({
+export default function DeliveryDaysSetting({
 	acceptedWeekDayIndices,
 	updateDeliveryDays,
 	isSubmitting,
@@ -41,9 +41,7 @@ export default function DeliveryDaysSettings({
 
 			if (isSelected) {
 				if (!currentDays.includes(dayIndex)) {
-					return {
-						acceptedWeekDayIndices: [...currentDays, dayIndex],
-					}
+					return { acceptedWeekDayIndices: [...currentDays, dayIndex] }
 				}
 			} else {
 				return {
@@ -53,6 +51,10 @@ export default function DeliveryDaysSettings({
 
 			return prev
 		})
+	}
+
+	function dayIsSelected(days: WeekDayIndex[] | null, sortOrder: number) {
+		return days?.includes(sortOrder as WeekDayIndex) || false
 	}
 
 	return (
@@ -66,15 +68,12 @@ export default function DeliveryDaysSettings({
 			content={
 				<ul className="w-full">
 					{daysOfTheWeek.map(({ name, sortOrder }) => {
-						const isAccepted = acceptedWeekDayIndices?.includes(sortOrder as WeekDayIndex) || false
+						const isAccepted = dayIsSelected(acceptedWeekDayIndices, sortOrder)
 
 						return (
 							<li
 								key={sortOrder}
-								className={mergeClasses(
-									'min-h-10 h-max mb-1 flex items-center gap-x-2',
-									!isAccepted ? 'line-through decoration-red-600' : '',
-								)}
+								className={mergeClasses('h-10 mb-1 flex items-start gap-x-2', !isAccepted ? 'line-through decoration-red-600' : '')}
 							>
 								{isAccepted ? <CheckCircleIcon className="size-6 text-green-600" /> : <XCircleIcon className="size-6 text-red-600" />}
 								{name}
@@ -86,10 +85,10 @@ export default function DeliveryDaysSettings({
 			editContent={
 				<div className="w-full">
 					{daysOfTheWeek.map(({ name, sortOrder }) => {
-						const isSelected = newSettings.acceptedWeekDayIndices?.includes(sortOrder as WeekDayIndex) || false
+						const isSelected = dayIsSelected(newSettings.acceptedWeekDayIndices, sortOrder)
 
 						return (
-							<div key={sortOrder} className="min-h-10 h-max mb-1 flex items-center gap-x-2">
+							<div key={sortOrder} className="h-10 mb-1 flex items-start gap-x-2">
 								<div className="group grid size-6 grid-cols-1">
 									<input
 										type="checkbox"
