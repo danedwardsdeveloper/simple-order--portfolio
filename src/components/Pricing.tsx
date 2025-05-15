@@ -49,7 +49,7 @@ export default function Pricing() {
 							<Link href="/free-trial" className="mt-10 block w-full button-primary py-2 text-lg shadow-md">
 								{websiteCopy.CTAs.primary.displayText}
 							</Link>
-							<p className="mt-6 text-xs/5 text-gray-600">No credit card required</p>
+							<p className="mt-6 text-gray-600">No credit card required</p>
 						</div>
 					</div>
 				</div>
