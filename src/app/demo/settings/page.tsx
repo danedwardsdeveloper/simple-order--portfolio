@@ -2,11 +2,13 @@
 import { SignedOutBreadCrumbs } from '@/components/BreadCrumbs'
 import { useDemoSettings } from '@/components/providers/demo/settings'
 import { useDemoUser } from '@/components/providers/demo/user'
+import CutOffTime from '@/components/settings/CutOffTime'
 import DeliveryDaysSetting from '@/components/settings/DeliveryDaysSetting'
 import MinimumSpend from '@/components/settings/MinimumSpend'
 
 export default function DemoSettingsPage() {
-	const { updateDeliveryDays, acceptedWeekDayIndices, isEditing, setIsEditing, isSubmitting, saveMinimumSpend } = useDemoSettings()
+	const { updateDeliveryDays, acceptedWeekDayIndices, isEditing, setIsEditing, isSubmitting, saveMinimumSpend, saveCutOffTime } =
+		useDemoSettings()
 	const { demoUser } = useDemoUser()
 
 	function DemoUserDetails() {
@@ -32,6 +34,14 @@ export default function DemoSettingsPage() {
 						isBeingEdited={isEditing.minimumSpend}
 						setIsBeingEdited={(value) => setIsEditing((prev) => ({ ...prev, minimumSpend: value }))}
 						isSubmitting={isSubmitting.minimumSpend}
+					/>
+
+					<CutOffTime
+						cutOffTime={demoUser.cutOffTime}
+						saveCutOffTime={saveCutOffTime}
+						isBeingEdited={isEditing.cutOff}
+						setIsBeingEdited={(value) => setIsEditing((prev) => ({ ...prev, cutOff: value }))}
+						isSubmitting={isSubmitting.cutOff}
 					/>
 
 					<DeliveryDaysSetting
