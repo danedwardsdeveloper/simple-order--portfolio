@@ -1,6 +1,6 @@
 import MenuBar from '@/components/menubar'
 import { websiteCopy } from '@/library/constants'
-import { dynamicBaseURL } from '@/library/environment/publicVariables'
+import { dynamicBaseURL, isProduction } from '@/library/environment/publicVariables'
 import type { Metadata, Viewport } from 'next'
 import './globals.tailwind.css'
 import SplashScreen from '@/components/SplashScreen'
@@ -59,7 +59,7 @@ export default function RootLayout({
 					{children}
 					<Footer />
 				</Providers>
-				<Script src="https://scripts.simpleanalyticscdn.com/latest.js" strategy="lazyOnload" />
+				{isProduction && <Script src="https://scripts.simpleanalyticscdn.com/latest.js" strategy="lazyOnload" />}
 			</body>
 		</html>
 	)
