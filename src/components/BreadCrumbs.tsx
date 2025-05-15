@@ -68,13 +68,13 @@ export function SignedInBreadCrumbs({ businessName, trail, currentPageTitle }: S
 						<Link href="/dashboard" className="link-primary">
 							{businessName}
 						</Link>
-						<Chevron />
+						{((trail && trail?.length > 0) || currentPageTitle) && <Chevron />}
 					</div>
 				</li>
 				{trail?.map((item) => (
 					<li key={item.href}>
 						<div className="flex items-center">
-							<Link href={item.href} className="link-primary ml-4">
+							<Link href={item.href} className="link-primary">
 								{item.displayName}
 							</Link>
 							<Chevron />
@@ -84,7 +84,7 @@ export function SignedInBreadCrumbs({ businessName, trail, currentPageTitle }: S
 				{currentPageTitle && (
 					<li>
 						<div className="flex items-center">
-							<span aria-current="page" className="ml-4 font-medium text-blue-600">
+							<span aria-current="page" className="font-medium text-blue-600">
 								{currentPageTitle}
 							</span>
 						</div>
