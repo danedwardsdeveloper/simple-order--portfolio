@@ -1,9 +1,10 @@
 'use client'
+import UnauthorisedLinks from '@/components/UnauthorisedLinks'
 import { useMerchantSettings } from '@/components/providers/settings'
 import { useUser } from '@/components/providers/user'
+import CutOffTime from '@/components/settings/CutOffTime'
 import DeliveryDaysSetting from '@/components/settings/DeliveryDaysSetting'
 import MinimumSpend from '@/components/settings/MinimumSpend'
-import HolidaySettings from './HolidaySettings'
 
 export default function MerchantSettings() {
 	const { user } = useUser()
@@ -14,11 +15,11 @@ export default function MerchantSettings() {
 		acceptedWeekDayIndices,
 		updateDeliveryDays,
 		isSubmitting,
+		saveCutOffTime,
 		// saveLeadTime,
-		// saveCutOffTime,
 	} = useMerchantSettings()
 
-	if (!user) return null
+	if (!user) return <UnauthorisedLinks />
 
 	return (
 		<div className="w-full max-w-md border-2 border-slate-100 rounded-xl p-3 flex flex-col gap-y-6">
@@ -29,26 +30,16 @@ export default function MerchantSettings() {
 				setIsBeingEdited={(value) => setIsEditing((prev) => ({ ...prev, minimumSpend: value }))}
 				isSubmitting={isSubmitting.minimumSpend}
 			/>
-			{/* <Setting
-				title="Order cut off time"
-				editKey="cutOff"
-				onSave={saveCutOffTime}
-				hasChanges={newSettings.cutOff !== user.cutOffTime}
-				content={<span>{formatTime(user.cutOffTime)}</span>}
-				editContent={
-					<input
-						type="time"
-						id="cutOffTime"
-						value={epochDateToTimeInput(newSettings.cutOff || user.cutOffTime)}
-						onChange={(event) => {
-							const timeInputValue = event.target.value
-							const updatedDate = timeInputToEpochDate(timeInputValue)
-							setNewSettings((prev) => ({ ...prev, cutOff: updatedDate }))
-						}}
-					/>
-				}
+
+			<CutOffTime
+				cutOffTime={user.cutOffTime}
+				saveCutOffTime={saveCutOffTime}
+				isBeingEdited={isEditing.cutOff}
+				setIsBeingEdited={(value) => setIsEditing((prev) => ({ ...prev, cutOff: value }))}
+				isSubmitting={isSubmitting.cutOff}
 			/>
 
+			{/* 
 			<Setting
 				title="Lead time"
 				editKey="leadTime"
@@ -77,7 +68,7 @@ export default function MerchantSettings() {
 				isSubmitting={isSubmitting.acceptedDeliveryDays}
 			/>
 
-			<HolidaySettings />
+			{/* <HolidaySettings /> */}
 		</div>
 	)
 }
