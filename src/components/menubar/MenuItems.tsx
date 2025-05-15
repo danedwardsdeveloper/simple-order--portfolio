@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation'
 export function DesktopMenuItem({ href, text }: { href: string; text: string }) {
 	const pathname = usePathname()
 
-	// Not sure this will handle the homepage properly...
 	const isActive = pathname.includes(href)
 	return (
 		<Link
