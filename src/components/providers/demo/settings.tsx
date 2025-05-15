@@ -1,7 +1,7 @@
 'use client'
 import { useNotifications } from '@/components/providers/notifications'
 import { type Settings, type SettingsBooleans, initialSettingsBooleans } from '@/components/providers/settings'
-import { defaultMinimumSpendPence } from '@/library/constants'
+import { defaultMinimumSpendPence, friday, monday, thursday, tuesday, userNotifications, wednesday } from '@/library/constants'
 import { createCutOffTime, subtleDelay } from '@/library/utilities/public'
 import type { BrowserSafeCompositeUser, Holiday, WeekDayIndex } from '@/types'
 import { type Dispatch, type ReactNode, type SetStateAction, createContext, useContext, useState } from 'react'
@@ -43,6 +43,10 @@ const demoUser: BrowserSafeCompositeUser = {
 	emailConfirmed: true,
 }
 
+const {
+	settingsUpdated: { cutOffMessage, minimumSpendMessage, holidayAddedMessage, leadTimeDaysMessage, deliveryDaysMessage },
+} = userNotifications
+
 export function DemoSettingsProvider({ children }: { children: ReactNode }) {
 	const { successNotification } = useNotifications()
 	const { setDemoUser } = useDemoUser()
@@ -64,7 +68,7 @@ export function DemoSettingsProvider({ children }: { children: ReactNode }) {
 		leadTime: demoUser.leadTimeDays,
 		minimumSpend: demoUser.minimumSpendPence,
 		holidays: null,
-		acceptedWeekDayIndices: [1, 2, 3, 4, 5], // Initialize with some demo days
+		acceptedWeekDayIndices: [monday, tuesday, wednesday, thursday, friday],
 	})
 
 	async function saveCutOffTime(): Promise<void> {
@@ -74,7 +78,7 @@ export function DemoSettingsProvider({ children }: { children: ReactNode }) {
 
 		setIsEditing((prev) => ({ ...prev, cutOff: false }))
 		setIsSubmitting((prev) => ({ ...prev, cutOff: false }))
-		successNotification('Settings updated')
+		successNotification(cutOffMessage)
 	}
 
 	async function saveLeadTime(): Promise<void> {
@@ -84,7 +88,7 @@ export function DemoSettingsProvider({ children }: { children: ReactNode }) {
 
 		setIsEditing((prev) => ({ ...prev, leadTime: false }))
 		setIsSubmitting((prev) => ({ ...prev, leadTime: false }))
-		successNotification('Lead time updated')
+		successNotification(leadTimeDaysMessage)
 	}
 
 	async function saveMinimumSpend(value: number): Promise<void> {
@@ -96,7 +100,7 @@ export function DemoSettingsProvider({ children }: { children: ReactNode }) {
 
 		setIsEditing((prev) => ({ ...prev, minimumSpend: false }))
 		setIsSubmitting((prev) => ({ ...prev, minimumSpend: false }))
-		successNotification('Minimum spend updated')
+		successNotification(minimumSpendMessage)
 	}
 
 	async function addHoliday(_startDate: Date, _endDate: Date): Promise<void> {
@@ -106,7 +110,7 @@ export function DemoSettingsProvider({ children }: { children: ReactNode }) {
 
 		setIsEditing((prev) => ({ ...prev, holidays: false }))
 		setIsSubmitting((prev) => ({ ...prev, holidays: false }))
-		successNotification('Holiday added')
+		successNotification(holidayAddedMessage)
 	}
 
 	async function updateDeliveryDays(dayIndexes: number[]): Promise<boolean> {
@@ -120,7 +124,7 @@ export function DemoSettingsProvider({ children }: { children: ReactNode }) {
 				acceptedWeekDayIndices: dayIndexes as WeekDayIndex[],
 			}))
 			setIsEditing((prev) => ({ ...prev, acceptedDeliveryDays: false }))
-			successNotification('Delivery days updated')
+			successNotification(deliveryDaysMessage)
 		} finally {
 			setIsSubmitting((prev) => ({ ...prev, acceptedDeliveryDays: false }))
 		}
