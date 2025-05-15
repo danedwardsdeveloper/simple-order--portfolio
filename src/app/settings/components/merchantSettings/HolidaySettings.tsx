@@ -2,11 +2,13 @@
 import type { Holiday } from '@/types'
 import { differenceInCalendarDays, format, isSameDay } from 'date-fns'
 import { XCircleIcon } from 'lucide-react'
-import { useMerchantSettings } from './MerchantSettingsProvider'
-import Setting from './Setting'
+import { useState } from 'react'
+import { useMerchantSettings } from '../../../../components/providers/settings'
+import Setting from '../../../../components/settings/Setting'
 
 export default function HolidaySettings() {
-	const { holidays, setIsEditing, newSettings, setNewSettings, addHoliday } = useMerchantSettings()
+	const { holidays, newSettings, setNewSettings, addHoliday, isSubmitting } = useMerchantSettings()
+	const [isEditing, setIsEditing] = useState(false)
 
 	const holidayStart = newSettings.holidays?.[0]?.startDate
 		? new Date(newSettings.holidays[0].startDate).toISOString().split('T')[0]
@@ -77,11 +79,11 @@ export default function HolidaySettings() {
 	return (
 		<Setting
 			title="Holidays"
-			editKey="holidays"
-			onSave={() => {
-				setIsEditing((prev) => ({ ...prev, holidays: false }))
-			}}
+			isBeingEdited={isEditing}
+			setIsBeingEdited={setIsEditing}
 			hasChanges={false} // ToDo
+			onSave={() => {}} // ToDo!
+			isSubmitting={isSubmitting.holidays}
 			content={<HolidaysList holidays={holidays} />}
 			editContent={
 				<>
