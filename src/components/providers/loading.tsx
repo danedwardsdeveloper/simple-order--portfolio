@@ -4,21 +4,43 @@ import { type Dispatch, type ReactNode, type SetStateAction, createContext, useC
 
 interface LoadingContextType {
 	siteLoading: boolean
-	userDataLoading: boolean
-	setUserDataLoading: Dispatch<SetStateAction<boolean>>
+
+	dataLoading: boolean
+	setDataLoading: Dispatch<SetStateAction<boolean>>
+
+	siteSplashExists: boolean
+	showSiteSplash: boolean
+
+	contentSplashExists: boolean
+	showContentSplash: boolean
 }
 
 const initialLoadingContext: LoadingContextType = {
 	siteLoading: true,
-	userDataLoading: false,
-	setUserDataLoading: () => {},
+
+	dataLoading: false,
+	setDataLoading: () => {},
+
+	siteSplashExists: true,
+	showSiteSplash: true,
+
+	contentSplashExists: false,
+	showContentSplash: false,
 }
 
 export const LoadingContext = createContext<LoadingContextType>(initialLoadingContext)
 
 export function LoadingProvider({ children }: { children: ReactNode }) {
 	const [siteLoading, setSiteLoading] = useState<boolean>(true)
-	const [userDataLoading, setUserDataLoading] = useState<boolean>(false)
+	const [dataLoading, setDataLoading] = useState<boolean>(false)
+	const [siteSplashExists, setSplashExists] = useState(true)
+	const [contentSplashExists, setContentSplashExists] = useState(false)
+
+	const forceSiteSplash = false
+	const forceContentSplash = false
+
+	const showSiteSplash = forceSiteSplash || siteLoading
+	const showContentSplash = forceContentSplash || dataLoading
 
 	useEffect(() => {
 		const fontsPromise = document.fonts.ready
@@ -32,10 +54,43 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
 			})
 	}, [])
 
+	const fadeOutMilliseconds = 550
+
+	useEffect(() => {
+		if (showSiteSplash) {
+			document.body.style.overflow = 'hidden'
+			setSplashExists(true)
+		} else {
+			document.body.style.overflow = ''
+			const timer = setTimeout(() => {
+				setSplashExists(false)
+			}, fadeOutMilliseconds)
+			return () => clearTimeout(timer)
+		}
+	}, [showSiteSplash])
+
+	useEffect(() => {
+		if (showContentSplash) {
+			setContentSplashExists(true)
+		} else {
+			const timer = setTimeout(() => {
+				setContentSplashExists(false)
+			}, fadeOutMilliseconds)
+			return () => clearTimeout(timer)
+		}
+	}, [showContentSplash])
+
 	const contextValue: LoadingContextType = {
 		siteLoading,
-		userDataLoading,
-		setUserDataLoading,
+
+		dataLoading,
+		setDataLoading,
+
+		siteSplashExists,
+		showSiteSplash,
+
+		contentSplashExists,
+		showContentSplash,
 	}
 
 	return <LoadingContext.Provider value={contextValue}>{children}</LoadingContext.Provider>
