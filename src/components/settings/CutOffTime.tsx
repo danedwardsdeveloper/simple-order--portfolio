@@ -1,60 +1,31 @@
 'use client'
 import { epochDateToTimeInput, formatTime, timeInputToEpochDate } from '@/library/utilities/public'
-import { useEffect, useState } from 'react'
-import Setting from './Setting'
+import SettingForm from './SettingForm'
 
 type Props = {
-	cutOffTime: Date
-	saveCutOffTime: (newValue: Date) => Promise<void>
-	isBeingEdited: boolean
-	setIsBeingEdited: (isEditing: boolean) => void
-	isSubmitting: boolean
+  cutOffTime: Date
+  saveCutOffTime: (newValue: Date) => Promise<void>
 }
 
-export default function CutOffTime({ cutOffTime, saveCutOffTime, isBeingEdited, setIsBeingEdited, isSubmitting }: Props) {
-	const [newSetting, setNewSetting] = useState<Date | null>(null)
-
-	useEffect(() => {
-		if (isBeingEdited) {
-			setNewSetting(cutOffTime)
-		}
-	}, [isBeingEdited, cutOffTime])
-
-	useEffect(() => {
-		if (newSetting !== null) {
-			setNewSetting(newSetting)
-		}
-	}, [newSetting])
-
-	function handleSave() {
-		if (newSetting !== null) {
-			saveCutOffTime(newSetting)
-		} else {
-			saveCutOffTime(cutOffTime)
-		}
-	}
-
-	return (
-		<Setting
-			title="Order cut off time"
-			onSave={handleSave}
-			isBeingEdited={isBeingEdited}
-			setIsBeingEdited={setIsBeingEdited}
-			isSubmitting={isSubmitting}
-			hasChanges={newSetting !== cutOffTime}
-			content={<span>{formatTime(cutOffTime)}</span>}
-			editContent={
-				<input
-					type="time"
-					id="cutOffTime"
-					value={epochDateToTimeInput(newSetting || cutOffTime)}
-					onChange={(event) => {
-						const timeInputValue = event.target.value
-						const updatedDate = timeInputToEpochDate(timeInputValue)
-						setNewSetting(updatedDate)
-					}}
-				/>
-			}
-		/>
-	)
+export default function CutOffTime({ cutOffTime, saveCutOffTime }: Props) {
+  return (
+    <SettingForm
+      title="Order cut off time"
+      initialValue={cutOffTime}
+      onSave={saveCutOffTime}
+      renderView={(value) => <span>{formatTime(value)}</span>}
+      renderEdit={(value, onChange) => (
+        <input
+          type="time"
+          id="cutOffTime"
+          value={epochDateToTimeInput(value)}
+          onChange={(event) => {
+            const timeInputValue = event.target.value
+            const updatedDate = timeInputToEpochDate(timeInputValue)
+            onChange(updatedDate)
+          }}
+        />
+      )}
+    />
+  )
 }

@@ -1,53 +1,32 @@
 'use client'
 import { formatPrice } from '@/library/utilities/public'
-import { useEffect, useState } from 'react'
-import Setting from './Setting'
+import SettingForm from './SettingForm'
 
 type Props = {
-	minimumSpendPence: number
-	saveMinimumSpendPence: (newValue: number) => Promise<void>
-	isBeingEdited: boolean
-	setIsBeingEdited: (isEditing: boolean) => void
-	isSubmitting: boolean
+  minimumSpendPence: number
+  saveMinimumSpendPence: (newValue: number) => Promise<void>
 }
 
-export default function MinimumSpend({ minimumSpendPence, saveMinimumSpendPence, setIsBeingEdited, isBeingEdited, isSubmitting }: Props) {
-	const [newSetting, setNewSetting] = useState<number | null>(null)
-
-	useEffect(() => {
-		if (isBeingEdited) {
-			setNewSetting(minimumSpendPence)
-		}
-	}, [isBeingEdited, minimumSpendPence])
-
-	useEffect(() => {
-		if (newSetting !== null) {
-			setNewSetting(newSetting)
-		}
-	}, [newSetting])
-
-	return (
-		<Setting
-			title="Minimum spend"
-			onSave={() => saveMinimumSpendPence(newSetting || 0)}
-			isBeingEdited={isBeingEdited}
-			setIsBeingEdited={setIsBeingEdited}
-			isSubmitting={isSubmitting}
-			hasChanges={newSetting !== minimumSpendPence}
-			content={<span>{formatPrice(minimumSpendPence)}</span>}
-			editContent={
-				<input
-					type="number"
-					min="0"
-					step="1"
-					className="w-24 px-2 py-1 border rounded"
-					value={newSetting !== null ? newSetting : minimumSpendPence || 0}
-					onChange={(event) => {
-						const value = Number.parseInt(event.target.value, 10)
-						setNewSetting(value)
-					}}
-				/>
-			}
-		/>
-	)
+export default function MinimumSpend({ minimumSpendPence, saveMinimumSpendPence }: Props) {
+  return (
+    <SettingForm
+      title="Minimum spend"
+      initialValue={minimumSpendPence}
+      onSave={saveMinimumSpendPence}
+      renderView={(value) => <span>{formatPrice(value)}</span>}
+      renderEdit={(value, onChange) => (
+        <input
+          type="number"
+          min="0"
+          step="1"
+          className="w-24 px-2 py-1 border rounded"
+          value={value || 0}
+          onChange={(event) => {
+            const newValue = Number.parseInt(event.target.value, 10)
+            onChange(newValue)
+          }}
+        />
+      )}
+    />
+  )
 }

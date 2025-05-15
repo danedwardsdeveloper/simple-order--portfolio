@@ -10,293 +10,237 @@ import { isDevelopment } from '@/library/environment/publicVariables'
 import { apiRequest, subtleDelay } from '@/library/utilities/public'
 import type { BrowserSafeCompositeUser, Holiday, WeekDayIndex } from '@/types'
 import { produce } from 'immer'
-import { type Dispatch, type ReactNode, type SetStateAction, createContext, useContext, useEffect, useRef, useState } from 'react'
+import { type ReactNode, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { useLoading } from './loading'
 
-export type Settings = {
-	cutOff: Date | null
-	leadTime: number | null
-	minimumSpend: number | null
-	holidays: Holiday[] | null
-	acceptedWeekDayIndices: WeekDayIndex[] | null
-}
-
-export type SettingsBooleans = {
-	cutOff: boolean
-	leadTime: boolean
-	holidays: boolean
-	acceptedDeliveryDays: boolean
-	minimumSpend: boolean
-}
-
-export const initialSettingsBooleans = {
-	cutOff: false,
-	leadTime: false,
-	holidays: false,
-	acceptedDeliveryDays: false,
-	minimumSpend: false,
-}
-
 type MerchantSettingsContextType = {
-	holidays: Holiday[] | null
-	acceptedWeekDayIndices: WeekDayIndex[] | null
+  // Settings data
+  holidays: Holiday[] | null
+  acceptedWeekDayIndices: WeekDayIndex[] | null
 
-	isEditing: SettingsBooleans
-	setIsEditing: Dispatch<SetStateAction<SettingsBooleans>>
-
-	isSubmitting: SettingsBooleans
-	setIsSubmitting: Dispatch<SetStateAction<SettingsBooleans>>
-
-	updateSetting: (body: SettingsPATCHbody, onSuccess: (user: BrowserSafeCompositeUser) => void) => Promise<boolean>
-	saveCutOffTime: (value: Date) => Promise<void>
-	saveLeadTime: (value: number) => Promise<void>
-	saveMinimumSpendPence: (value: number) => Promise<void>
-	addHoliday: (startDate: Date, endDate: Date) => Promise<void>
-	updateDeliveryDays: (dayIndexes: number[]) => Promise<boolean>
+  // Save functions
+  saveCutOffTime: (value: Date) => Promise<void>
+  saveLeadTime: (value: number) => Promise<void>
+  saveMinimumSpendPence: (value: number) => Promise<void>
+  addHoliday: (startDate: Date, endDate: Date) => Promise<void>
+  updateDeliveryDays: (dayIndexes: number[]) => Promise<boolean>
 }
 
 const MerchantSettingsContext = createContext<MerchantSettingsContextType | null>(null)
 
 const {
-	settingsUpdated: { cutOffMessage, minimumSpendMessage, holidayAddedMessage, leadTimeDaysMessage, deliveryDaysMessage },
+  settingsUpdated: { cutOffMessage, minimumSpendMessage, holidayAddedMessage, leadTimeDaysMessage, deliveryDaysMessage },
 } = userNotifications
 
 export function MerchantSettingsProvider({ children }: { children: ReactNode }) {
-	const { setDataLoading } = useLoading()
-	const { user, setUser } = useUser()
-	const { successNotification, errorNotification, serverErrorNotification } = useNotifications()
+  const { setDataLoading } = useLoading()
+  const { user, setUser } = useUser()
+  const { successNotification, errorNotification, serverErrorNotification } = useNotifications()
 
-	const [isEditing, setIsEditing] = useState(initialSettingsBooleans)
-	const [isSubmitting, setIsSubmitting] = useState(initialSettingsBooleans)
+  // Settings that aren't already in the user object
+  const [retrievedSettings, setRetrievedSettings] = useState<{
+    holidays: Holiday[] | null
+    acceptedWeekDayIndices: WeekDayIndex[] | null
+  }>({
+    holidays: null,
+    acceptedWeekDayIndices: null,
+  })
 
-	// Settings that aren't already in the user object
-	const [retrievedSettings, setRetrievedSettings] = useState<{
-		holidays: Holiday[] | null
-		acceptedWeekDayIndices: WeekDayIndex[] | null
-	}>({
-		holidays: null,
-		acceptedWeekDayIndices: null,
-	})
+  // Make the loading state visible in production
+  async function developmentDelay() {
+    if (isDevelopment) {
+      await subtleDelay(400, 500)
+    }
+  }
 
-	// Make the loading state visible in production
-	async function developmentDelay() {
-		if (isDevelopment) {
-			await subtleDelay(400, 500)
-		}
-	}
+  const settingsFetched = useRef(false)
 
-	const settingsFetched = useRef(false)
+  // biome-ignore lint/correctness/useExhaustiveDependencies:
+  useEffect(() => {
+    // Global loading state
+    async function fetchSettings() {
+      try {
+        setDataLoading(true)
+        const { ok, holidays, acceptedWeekDayIndices, userMessage } = await apiRequest<SettingsGETresponse>({
+          basePath: '/settings',
+        })
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies:
-	useEffect(() => {
-		// Global loading state
-		async function fetchSettings() {
-			try {
-				setDataLoading(true)
-				const { ok, holidays, acceptedWeekDayIndices, userMessage } = await apiRequest<SettingsGETresponse>({
-					basePath: '/settings',
-				})
+        if (holidays) {
+          setRetrievedSettings((prev) => ({ ...prev, holidays }))
+        }
 
-				if (holidays) {
-					setRetrievedSettings((prev) => ({ ...prev, holidays }))
-				}
+        if (acceptedWeekDayIndices) {
+          setRetrievedSettings((prev) => ({ ...prev, acceptedWeekDayIndices }))
+        }
 
-				if (acceptedWeekDayIndices) {
-					setRetrievedSettings((prev) => ({ ...prev, acceptedWeekDayIndices }))
-				}
+        if (!ok && userMessage) {
+          errorNotification(userMessage)
+          return
+        }
+      } catch {
+        serverErrorNotification()
+      } finally {
+        setDataLoading(false)
+      }
+    }
 
-				if (!ok && userMessage) {
-					errorNotification(userMessage)
-					return
-				}
-			} catch {
-				serverErrorNotification()
-			} finally {
-				setDataLoading(false)
-			}
-		}
+    if (!settingsFetched.current && user && user.roles !== 'customer') {
+      fetchSettings()
+      settingsFetched.current = true
+    }
+  }, [user])
 
-		if (!settingsFetched.current && user && user.roles !== 'customer') {
-			fetchSettings()
-			settingsFetched.current = true
-		}
-	}, [user])
+  async function updateSetting(body: SettingsPATCHbody, onSuccess: (user: BrowserSafeCompositeUser) => void): Promise<boolean> {
+    try {
+      const { ok, userMessage } = await apiRequest<SettingsPATCHresponse, SettingsPATCHbody>({
+        basePath: '/settings',
+        method: 'PATCH',
+        body,
+      })
 
-	async function updateSetting(body: SettingsPATCHbody, onSuccess: (user: BrowserSafeCompositeUser) => void): Promise<boolean> {
-		try {
-			const { ok, userMessage } = await apiRequest<SettingsPATCHresponse, SettingsPATCHbody>({
-				basePath: '/settings',
-				method: 'PATCH',
-				body,
-			})
+      if (ok) {
+        setUser(
+          produce((prevUser) => {
+            if (!prevUser) return prevUser
+            onSuccess(prevUser)
+          }),
+        )
 
-			if (ok) {
-				setUser(
-					produce((prevUser) => {
-						if (!prevUser) return prevUser
-						onSuccess(prevUser)
-					}),
-				)
+        return true
+      }
 
-				return true
-			}
+      if (userMessage) errorNotification(userMessage)
+      return false
+    } catch {
+      serverErrorNotification()
+      return false
+    }
+  }
 
-			if (userMessage) errorNotification(userMessage)
-			return false
-		} catch {
-			serverErrorNotification()
-			return false
-		}
-	}
+  async function saveCutOffTime(value: Date) {
+    try {
+      await developmentDelay()
 
-	async function saveCutOffTime(value: Date) {
-		setIsSubmitting((prev) => ({ ...prev, cutOff: true }))
+      const success = await updateSetting({ cutOffTime: value }, (user) => {
+        user.cutOffTime = value
+      })
 
-		try {
-			await developmentDelay()
+      if (success) {
+        successNotification(cutOffMessage)
+      }
+      
+      return success
+    } catch {
+      serverErrorNotification()
+      return false
+    }
+  }
 
-			const success = await updateSetting({ cutOffTime: value }, (user) => {
-				user.cutOffTime = value
-			})
+  async function saveLeadTime(value: number) {
+    try {
+      await developmentDelay()
 
-			if (success) {
-				setIsEditing((prev) => ({ ...prev, cutOff: false }))
-				successNotification(cutOffMessage)
-			}
-		} catch {
-			// handle error
-		} finally {
-			setIsSubmitting((prev) => ({ ...prev, cutOff: false }))
-		}
-	}
+      const success = await updateSetting({ leadTimeDays: value }, (user) => {
+        user.leadTimeDays = value
+      })
 
-	async function saveLeadTime(value: number) {
-		setIsSubmitting((prev) => ({ ...prev, leadTime: true }))
+      if (success) {
+        successNotification(leadTimeDaysMessage)
+      }
+      
+      return success
+    } catch {
+      serverErrorNotification()
+      return false
+    }
+  }
 
-		try {
-			await developmentDelay()
+  async function saveMinimumSpendPence(value: number) {
+    try {
+      await developmentDelay()
 
-			const success = await updateSetting({ leadTimeDays: value }, (user) => {
-				user.leadTimeDays = value
-			})
+      const success = await updateSetting({ minimumSpendPence: value }, (user) => {
+        user.minimumSpendPence = value
+      })
 
-			if (success) {
-				setIsEditing((prev) => ({ ...prev, leadTime: false }))
-				successNotification(leadTimeDaysMessage)
-			}
-		} catch {
-			// handle error
-		} finally {
-			setIsSubmitting((prev) => ({ ...prev, leadTime: false }))
-		}
-	}
+      if (success) {
+        successNotification(minimumSpendMessage)
+      }
+      
+      return success
+    } catch {
+      serverErrorNotification()
+      return false
+    }
+  }
 
-	async function saveMinimumSpendPence(value: number) {
-		setIsSubmitting((prev) => ({ ...prev, minimumSpend: true }))
+  async function addHoliday(startDate: Date, endDate: Date) {
+    try {
+      await developmentDelay()
 
-		try {
-			await developmentDelay()
+      const { ok, userMessage } = await apiRequest<SettingsHolidaysPOSTresponse, SettingsHolidaysPOSTbody>({
+        basePath: '/settings/holidays',
+        method: 'POST',
+        body: { holidaysToAdd: [{ startDate, endDate }] },
+      })
 
-			const success = await updateSetting({ minimumSpendPence: value }, (user) => {
-				user.minimumSpendPence = value
-			})
+      if (ok) {
+        setRetrievedSettings((prev) => ({
+          ...prev,
+          holidays: [...(prev.holidays || []), ...[{ startDate, endDate }]],
+        }))
+        successNotification(holidayAddedMessage)
+      }
 
-			if (success) {
-				setIsEditing((prev) => ({ ...prev, minimumSpend: false }))
-				successNotification(minimumSpendMessage)
-			}
-		} catch {
-			// handle error
-		} finally {
-			setIsSubmitting((prev) => ({ ...prev, minimumSpend: false }))
-		}
-	}
+      if (userMessage) errorNotification(userMessage)
+    } catch {
+      serverErrorNotification()
+    }
+  }
 
-	async function addHoliday(startDate: Date, endDate: Date) {
-		setIsSubmitting((prev) => ({ ...prev, holidays: true }))
+  async function updateDeliveryDays(dayIndexes: number[]) {
+    try {
+      await developmentDelay()
 
-		try {
-			await developmentDelay()
+      const { ok, userMessage } = await apiRequest<SettingsDeliveryDaysPATCHresponse, SettingsDeliveryDaysPATCHbody>({
+        basePath: '/settings/delivery-days',
+        method: 'PATCH',
+        body: { updatedWeekDayIndexes: dayIndexes },
+      })
 
-			const { ok, userMessage } = await apiRequest<SettingsHolidaysPOSTresponse, SettingsHolidaysPOSTbody>({
-				basePath: '/settings/holidays',
-				method: 'POST',
-				body: { holidaysToAdd: [{ startDate, endDate }] },
-			})
+      if (ok) {
+        setRetrievedSettings((prev) => ({ ...prev, acceptedWeekDayIndices: dayIndexes as WeekDayIndex[] }))
+        successNotification(deliveryDaysMessage)
+        return true
+      }
 
-			if (ok) {
-				setRetrievedSettings((prev) => ({
-					...prev,
-					holidays: [...(prev.holidays || []), ...[{ startDate, endDate }]], // Not sure this is right
-				}))
-				setIsEditing((prev) => ({ ...prev, holidays: false }))
-				successNotification(holidayAddedMessage)
-			}
+      if (userMessage) errorNotification(userMessage)
+      return false
+    } catch {
+      serverErrorNotification()
+      return false
+    }
+  }
 
-			if (userMessage) errorNotification(userMessage)
-		} catch {
-			serverErrorNotification()
-		} finally {
-			setIsSubmitting((prev) => ({ ...prev, holidays: false }))
-		}
-	}
+  const value = {
+    holidays: retrievedSettings.holidays,
+    acceptedWeekDayIndices: retrievedSettings.acceptedWeekDayIndices,
+    saveCutOffTime,
+    saveLeadTime,
+    saveMinimumSpendPence,
+    addHoliday,
+    updateDeliveryDays,
+  }
 
-	async function updateDeliveryDays(dayIndexes: number[]) {
-		setIsSubmitting((prev) => ({ ...prev, acceptedDeliveryDays: true }))
-
-		try {
-			await developmentDelay()
-
-			const { ok, userMessage } = await apiRequest<SettingsDeliveryDaysPATCHresponse, SettingsDeliveryDaysPATCHbody>({
-				basePath: '/settings/delivery-days',
-				method: 'PATCH',
-				body: { updatedWeekDayIndexes: dayIndexes },
-			})
-
-			if (ok) {
-				setRetrievedSettings((prev) => ({ ...prev, acceptedWeekDayIndices: dayIndexes as WeekDayIndex[] }))
-				setIsEditing((prev) => ({ ...prev, acceptedDeliveryDays: false }))
-				successNotification(deliveryDaysMessage)
-				return true
-			}
-
-			if (userMessage) errorNotification(userMessage)
-			return false
-		} catch {
-			serverErrorNotification()
-			return false
-		} finally {
-			setIsSubmitting((prev) => ({ ...prev, acceptedDeliveryDays: false }))
-		}
-	}
-
-	const value = {
-		holidays: retrievedSettings.holidays,
-		acceptedWeekDayIndices: retrievedSettings.acceptedWeekDayIndices,
-
-		isEditing,
-		setIsEditing,
-
-		isSubmitting,
-		setIsSubmitting,
-
-		updateSetting,
-		saveCutOffTime,
-		saveLeadTime,
-		saveMinimumSpendPence,
-		addHoliday,
-		updateDeliveryDays,
-	}
-
-	return <MerchantSettingsContext.Provider value={value}>{children}</MerchantSettingsContext.Provider>
+  return <MerchantSettingsContext.Provider value={value}>{children}</MerchantSettingsContext.Provider>
 }
 
 export function useMerchantSettings() {
-	const context = useContext(MerchantSettingsContext)
+  const context = useContext(MerchantSettingsContext)
 
-	if (!context) {
-		throw new Error('useMerchantSettings must be used within a MerchantSettingsProvider')
-	}
+  if (!context) {
+    throw new Error('useMerchantSettings must be used within a MerchantSettingsProvider')
+  }
 
-	return context
+  return context
 }
