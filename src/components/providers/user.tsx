@@ -47,6 +47,8 @@ export interface UserContextType {
 	setOrdersReceived: Dispatch<SetStateAction<OrderReceived[] | null>>
 
 	vat: number
+
+	// ToDo: consolidate loading states across the site
 	isLoading: boolean
 }
 
