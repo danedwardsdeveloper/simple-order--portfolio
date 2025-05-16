@@ -8,25 +8,12 @@ import { useUser } from '@/components/providers/user'
 import { userNotifications } from '@/library/constants'
 import { isDevelopment } from '@/library/environment/publicVariables'
 import { apiRequest, subtleDelay } from '@/library/utilities/public'
-import type { BrowserSafeCompositeUser, Holiday, WeekDayIndex } from '@/types'
+import type { BrowserSafeCompositeUser, Holiday, SettingsContextType, WeekDayIndex } from '@/types'
 import { produce } from 'immer'
 import { type ReactNode, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { useLoading } from './loading'
 
-type MerchantSettingsContextType = {
-	// Settings data
-	holidays: Holiday[] | null
-	acceptedWeekDayIndices: WeekDayIndex[] | null
-
-	// Save functions
-	saveCutOffTime: (value: Date) => Promise<boolean>
-	saveLeadTime: (value: number) => Promise<boolean>
-	saveMinimumSpendPence: (value: number) => Promise<boolean>
-	addHoliday: (startDate: Date, endDate: Date) => Promise<boolean>
-	updateDeliveryDays: (dayIndexes: number[]) => Promise<boolean>
-}
-
-const MerchantSettingsContext = createContext<MerchantSettingsContextType | null>(null)
+const MerchantSettingsContext = createContext<SettingsContextType | null>(null)
 
 const {
 	settingsUpdated: { cutOffMessage, minimumSpendMessage, holidayAddedMessage, leadTimeDaysMessage, deliveryDaysMessage },
@@ -201,7 +188,7 @@ export function MerchantSettingsProvider({ children }: { children: ReactNode }) 
 		}
 	}
 
-	async function updateDeliveryDays(dayIndexes: number[]): Promise<boolean> {
+	async function saveDeliveryDays(dayIndexes: number[]): Promise<boolean> {
 		try {
 			await developmentDelay()
 
@@ -232,7 +219,7 @@ export function MerchantSettingsProvider({ children }: { children: ReactNode }) 
 		saveLeadTime,
 		saveMinimumSpendPence,
 		addHoliday,
-		updateDeliveryDays,
+		saveDeliveryDays,
 	}
 
 	return <MerchantSettingsContext.Provider value={value}>{children}</MerchantSettingsContext.Provider>
