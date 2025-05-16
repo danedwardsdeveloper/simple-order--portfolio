@@ -6,6 +6,7 @@ import WelcomeMessages from './components/WelcomeMessages'
 
 export default function DashboardPage() {
 	const { user } = useUser()
+
 	if (!user) return <UnauthorisedLinks />
 
 	return (
