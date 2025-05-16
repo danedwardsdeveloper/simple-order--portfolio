@@ -1,4 +1,5 @@
-import { cookieDurations, friday, monday, thursday, tuesday, userMessages, wednesday } from '@/library/constants'
+import { cookieDurations, userMessages } from '@/library/constants'
+import { defaultAcceptedDeliveryDayIndices } from '@/library/constants/definitions/defaultSettings'
 import { database } from '@/library/database/connection'
 import { createConfirmationURL, createFreeTrial } from '@/library/database/operations'
 import { acceptedDeliveryDays, users } from '@/library/database/schema'
@@ -101,7 +102,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateAcc
 
 			await tx
 				.insert(acceptedDeliveryDays)
-				.values([monday, tuesday, wednesday, thursday, friday].map((day) => ({ userId: dangerousNewUser.id, dayOfWeekId: day })))
+				.values(defaultAcceptedDeliveryDayIndices.map((dayIndex) => ({ userId: dangerousNewUser.id, dayOfWeekId: dayIndex })))
 
 			txError = { message: 'error creating free trial', status: 503 }
 

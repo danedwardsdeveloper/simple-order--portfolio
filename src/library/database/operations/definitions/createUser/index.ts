@@ -1,4 +1,4 @@
-import { friday, monday, thursday, tuesday, wednesday } from '@/library/constants'
+import { defaultAcceptedDeliveryDayIndices } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { acceptedDeliveryDays, users } from '@/library/database/schema'
 import logger from '@/library/logger'
@@ -42,7 +42,7 @@ export async function createUser(
 			txErrorMessage = 'error creating acceptedDeliveryDays'
 			await tx
 				.insert(acceptedDeliveryDays)
-				.values([monday, tuesday, wednesday, thursday, friday].map((day) => ({ userId: createdUser.id, dayOfWeekId: day })))
+				.values(defaultAcceptedDeliveryDayIndices.map((dayIndex) => ({ userId: createdUser.id, dayOfWeekId: dayIndex })))
 
 			txErrorMessage = undefined
 			return { createdUser }
