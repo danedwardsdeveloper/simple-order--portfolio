@@ -10,13 +10,14 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useRef } from 'react'
 import type { VerifyTokenGETresponse } from '../api/authentication/verify-token/route'
 import { CustomerSettings } from './components/CustomerSettings'
+import MerchantSettings from './components/MerchantSettings'
 import PortalButton from './components/PortalButton'
 import SignOutButton from './components/SignOutButton'
 import TrialExpiryInformation from './components/TrialExpiryInformation'
 import UserInformation from './components/UserInformation'
-import MerchantSettings from './components/merchantSettings'
 
 export default function SettingsPage() {
+	// Move this logic entirely somewhere else, like /settings/subscription
 	const searchParams = useSearchParams()
 	const subscriptionQuery = searchParams.get(checkoutSearchParam)
 	const { user, setUser } = useUser()
@@ -28,7 +29,7 @@ export default function SettingsPage() {
 		router.replace(window.location.pathname)
 	}
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: <run once on mount>
+	// biome-ignore lint/correctness/useExhaustiveDependencies:
 	useEffect(() => {
 		async function refreshUser() {
 			const { user } = await apiRequest<VerifyTokenGETresponse>({
@@ -79,9 +80,10 @@ export default function SettingsPage() {
 					if (user.roles === 'customer') {
 						return <CustomerSettings />
 					}
+
 					return (
 						<>
-							<MerchantSettings />
+							<MerchantSettings merchant={user} />
 							<TrialExpiryInformation />
 							<PortalButton
 								subscriptionEnd={user.subscriptionEnd} //
