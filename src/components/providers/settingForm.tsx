@@ -1,9 +1,10 @@
 'use client'
+import type { SaveSetting } from '@/types'
 import { type ReactNode, createContext, useContext, useEffect, useState } from 'react'
 
 export type SettingFormConfig<T> = {
 	initialValue: T
-	onSave: (value: T) => Promise<void>
+	onSave: SaveSetting<T>
 	isEqual?: (a: T, b: T) => boolean
 }
 

@@ -1,10 +1,11 @@
 'use client'
 import { formatPrice } from '@/library/utilities/public'
+import type { SettingsContextType } from '@/types'
 import SettingForm from './Setting'
 
 type Props = {
 	minimumSpendPence: number
-	saveMinimumSpendPence: (newValue: number) => Promise<void>
+	saveMinimumSpendPence: SettingsContextType['saveMinimumSpendPence']
 }
 
 export default function MinimumSpend({ minimumSpendPence, saveMinimumSpendPence }: Props) {

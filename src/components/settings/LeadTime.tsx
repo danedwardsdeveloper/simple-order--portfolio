@@ -1,9 +1,10 @@
 'use client'
+import type { SettingsContextType } from '@/types'
 import SettingForm from './Setting'
 
 type Props = {
 	leadTimeDays: number
-	saveLeadTime: (newValue: number) => Promise<void>
+	saveLeadTime: SettingsContextType['saveLeadTime']
 }
 
 export default function LeadTime({ leadTimeDays, saveLeadTime }: Props) {

@@ -1,18 +1,18 @@
 'use client'
 import { daysOfTheWeek } from '@/library/constants'
 import { mergeClasses } from '@/library/utilities/public'
-import type { WeekDayIndex } from '@/types'
+import type { SettingsContextType, WeekDayIndex } from '@/types'
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline'
 import SettingForm from './Setting'
 
 type Props = {
 	acceptedWeekDayIndices: WeekDayIndex[] | null
-	updateDeliveryDays: (dayIndexes: number[]) => Promise<boolean>
+	saveDeliveryDays: SettingsContextType['saveDeliveryDays']
 }
 
-export default function DeliveryDaysSetting({ acceptedWeekDayIndices, updateDeliveryDays }: Props) {
+export default function DeliveryDaysSetting({ acceptedWeekDayIndices, saveDeliveryDays }: Props) {
 	const handleSave = async (indices: WeekDayIndex[]) => {
-		await updateDeliveryDays(indices)
+		return await saveDeliveryDays(indices)
 	}
 
 	const isEqual = (a: WeekDayIndex[] | null, b: WeekDayIndex[] | null) => {

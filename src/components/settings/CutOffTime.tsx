@@ -1,10 +1,11 @@
 'use client'
 import { epochDateToTimeInput, formatTime, timeInputToEpochDate } from '@/library/utilities/public'
+import type { SettingsContextType } from '@/types'
 import SettingForm from './Setting'
 
 type Props = {
 	cutOffTime: Date
-	saveCutOffTime: (newValue: Date) => Promise<void>
+	saveCutOffTime: SettingsContextType['saveCutOffTime']
 }
 
 export default function CutOffTime({ cutOffTime, saveCutOffTime }: Props) {
