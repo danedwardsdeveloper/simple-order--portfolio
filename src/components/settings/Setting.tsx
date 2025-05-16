@@ -48,7 +48,12 @@ export default function Setting<T>({ title, initialValue, onSave, isEqual, rende
 						</button>
 					)}
 				</div>
-				<div className="min-h-14">{isEditing ? renderEdit(draftValue, setDraftValue) : renderView(initialValue)}</div>
+				<div className="min-h-14">
+					{isEditing
+						? //
+							renderEdit(draftValue, setDraftValue)
+						: renderView(initialValue)}
+				</div>
 			</div>
 		</SettingProvider>
 	)
