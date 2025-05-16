@@ -50,15 +50,11 @@ export function DemoSettingsProvider({ children }: { children: ReactNode }) {
 	}
 
 	async function addHoliday(startDate: Date, endDate?: Date): Promise<boolean> {
-		let resolvedEndDate: Date
-
-		if (!endDate) resolvedEndDate = startDate
-
 		await subtleDelay()
 
 		setRetrievedSettings((prev) => ({
 			...prev,
-			holidays: [...(prev.holidays || []), { startDate, endDate: resolvedEndDate }],
+			holidays: [...(prev.holidays || []), { startDate, endDate: endDate ? endDate : startDate }],
 		}))
 		successNotification(holidayAddedMessage)
 		return true

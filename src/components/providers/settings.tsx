@@ -161,20 +161,22 @@ export function MerchantSettingsProvider({ children }: { children: ReactNode }) 
 		}
 	}
 
-	async function addHoliday(startDate: Date, endDate: Date): Promise<boolean> {
+	async function addHoliday(startDate: Date, endDate?: Date): Promise<boolean> {
+		const holidaysToAdd = [{ startDate, endDate: endDate ? endDate : startDate }]
+
 		try {
 			await developmentDelay()
 
 			const { ok, userMessage } = await apiRequest<SettingsHolidaysPOSTresponse, SettingsHolidaysPOSTbody>({
 				basePath: '/settings/holidays',
 				method: 'POST',
-				body: { holidaysToAdd: [{ startDate, endDate }] },
+				body: { holidaysToAdd },
 			})
 
 			if (ok) {
 				setRetrievedSettings((prev) => ({
 					...prev,
-					holidays: [...(prev.holidays || []), ...[{ startDate, endDate }]],
+					holidays: [...(prev.holidays || []), ...holidaysToAdd],
 				}))
 				successNotification(holidayAddedMessage)
 				return true
