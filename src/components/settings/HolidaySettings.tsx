@@ -9,9 +9,9 @@ import { useState } from 'react'
 // Main ToDo
 
 export default function HolidaySettings() {
-	const { holidays, addHoliday, isSubmitting } = useMerchantSettings()
+	const { holidays, addHoliday } = useMerchantSettings()
 	const [isEditing, setIsEditing] = useState(false)
-	const [newSetting, setNewSetting] = useState()
+	const [_newSetting, _setNewSetting] = useState()
 
 	const holidayStart = newSettings.holidays?.[0]?.startDate
 		? new Date(newSettings.holidays[0].startDate).toISOString().split('T')[0]
