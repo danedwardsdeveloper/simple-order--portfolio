@@ -4,11 +4,13 @@ import { useDemoSettings } from '@/components/providers/demo/settings'
 import { useDemoUser } from '@/components/providers/demo/user'
 import CutOffTime from '@/components/settings/CutOffTime'
 import DeliveryDaysSetting from '@/components/settings/DeliveryDaysSetting'
+import HolidaySettings from '@/components/settings/HolidaySettings'
 import LeadTime from '@/components/settings/LeadTime'
 import MinimumSpend from '@/components/settings/MinimumSpend'
 
 export default function DemoSettingsPage() {
-	const { updateDeliveryDays, acceptedWeekDayIndices, saveMinimumSpendPence, saveCutOffTime, saveLeadTime } = useDemoSettings()
+	const { saveDeliveryDays, acceptedWeekDayIndices, saveMinimumSpendPence, saveCutOffTime, saveLeadTime, holidays, addHoliday } =
+		useDemoSettings()
 
 	const { demoUser } = useDemoUser()
 
@@ -35,7 +37,9 @@ export default function DemoSettingsPage() {
 
 					<CutOffTime cutOffTime={demoUser.cutOffTime} saveCutOffTime={saveCutOffTime} />
 
-					<DeliveryDaysSetting acceptedWeekDayIndices={acceptedWeekDayIndices} updateDeliveryDays={updateDeliveryDays} />
+					<DeliveryDaysSetting acceptedWeekDayIndices={acceptedWeekDayIndices} saveDeliveryDays={saveDeliveryDays} />
+
+					<HolidaySettings holidays={holidays} addHoliday={addHoliday} />
 				</div>
 			</div>
 		</>

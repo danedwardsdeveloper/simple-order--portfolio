@@ -1,37 +1,23 @@
 'use client'
-import { useMerchantSettings } from '@/components/providers/settings'
-import Setting from '@/components/settings/Setting'
-import type { Holiday } from '@/types'
+import type { Holiday, SettingsContextType } from '@/types'
 import { differenceInCalendarDays, format, isSameDay } from 'date-fns'
 import { XCircleIcon } from 'lucide-react'
 import { useState } from 'react'
+import SettingForm from './Setting'
 
-// Main ToDo
+type Props = {
+	holidays: Holiday[] | null
+	addHoliday: SettingsContextType['addHoliday']
+}
 
-export default function HolidaySettings() {
-	const { holidays, addHoliday } = useMerchantSettings()
-	const [isEditing, setIsEditing] = useState(false)
-	const [_newSetting, _setNewSetting] = useState()
-
-	const holidayStart = newSettings.holidays?.[0]?.startDate
-		? new Date(newSettings.holidays[0].startDate).toISOString().split('T')[0]
-		: new Date().toISOString().split('T')[0]
-
-	const holidayEnd = newSettings.holidays?.[0]?.endDate
-		? new Date(newSettings.holidays[0].endDate).toISOString().split('T')[0]
-		: new Date().toISOString().split('T')[0]
-
-	const updateHolidayDate = (field: 'startDate' | 'endDate', value: string) => {
-		setNewSettings((prev) => ({
-			...prev,
-			holidays: [
-				{
-					startDate: field === 'startDate' ? new Date(value) : prev.holidays?.[0]?.startDate || new Date(),
-					endDate: field === 'endDate' ? new Date(value) : prev.holidays?.[0]?.endDate || new Date(),
-				},
-			],
-		}))
-	}
+export default function HolidaySettings({ holidays, addHoliday }: Props) {
+	const [newHoliday, setNewHoliday] = useState<{
+		startDate: Date
+		endDate: Date
+	}>({
+		startDate: new Date(),
+		endDate: new Date(),
+	})
 
 	function HolidayItem({ holiday }: { holiday: Holiday }) {
 		const { startDate, endDate } = holiday
@@ -60,14 +46,14 @@ export default function HolidaySettings() {
 		return (
 			<ul className="flex flex-col gap-y-4">
 				{holidays?.map((holiday) => (
-					<li key={String(holiday.startDate)}>
+					<li key={String(holiday.startDate)} className="flex justify-between items-center">
 						<HolidayItem holiday={holiday} />
 						{showDeleteButton && (
 							<button
 								type="button"
 								className="text-red-500"
 								onClick={() => {
-									// ToDo
+									// To be implemented
 								}}
 							>
 								<XCircleIcon className="size-6 text-red-600" />
@@ -79,16 +65,33 @@ export default function HolidaySettings() {
 		)
 	}
 
+	const holidayStart = newHoliday.startDate.toISOString().split('T')[0]
+	const holidayEnd = newHoliday.endDate.toISOString().split('T')[0]
+
+	const updateHolidayDate = (field: 'startDate' | 'endDate', value: string) => {
+		setNewHoliday((prev) => ({
+			...prev,
+			[field]: new Date(value),
+		}))
+	}
+
+	const handleAddHoliday = async () => {
+		await addHoliday(newHoliday.startDate, newHoliday.endDate)
+		// Reset form after adding
+		setNewHoliday({
+			startDate: new Date(),
+			endDate: new Date(),
+		})
+		return true
+	}
+
 	return (
-		<Setting
+		<SettingForm
 			title="Holidays"
-			isBeingEdited={isEditing}
-			setIsBeingEdited={setIsEditing}
-			hasChanges={false} // ToDo
-			onSave={() => {}} // ToDo!
-			isSubmitting={isSubmitting.holidays}
-			content={<HolidaysList holidays={holidays} />}
-			editContent={
+			initialValue={holidays || []}
+			onSave={handleAddHoliday}
+			renderView={(value) => <HolidaysList holidays={value} />}
+			renderEdit={(value) => (
 				<>
 					<div className="flex flex-col gap-2 mb-6 bg-blue-50 p-2 border-2 border-blue-100 rounded-xl">
 						<p className="font-medium">Add new holiday</p>
@@ -121,22 +124,15 @@ export default function HolidaySettings() {
 						<button
 							type="button"
 							className="px-2 py-1 bg-blue-400 hover:bg-blue-300 transition-colors duration-300 rounded-md"
-							onClick={() => {
-								const startDate = new Date(holidayStart)
-								const endDate = new Date(holidayEnd)
-								addHoliday(startDate, endDate)
-							}}
+							onClick={handleAddHoliday}
 						>
 							Add holiday
 						</button>
 					</div>
 
-					<HolidaysList
-						holidays={holidays}
-						showDeleteButton={false} // ToDo!
-					/>
+					<HolidaysList holidays={value} showDeleteButton={false} />
 				</>
-			}
+			)}
 		/>
 	)
 }

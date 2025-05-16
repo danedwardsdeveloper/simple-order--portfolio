@@ -2,12 +2,14 @@
 import { useMerchantSettings } from '@/components/providers/settings'
 import CutOffTime from '@/components/settings/CutOffTime'
 import DeliveryDaysSetting from '@/components/settings/DeliveryDaysSetting'
+import HolidaySettings from '@/components/settings/HolidaySettings'
 import LeadTime from '@/components/settings/LeadTime'
 import MinimumSpend from '@/components/settings/MinimumSpend'
 import type { BrowserSafeCompositeUser } from '@/types'
 
 export default function MerchantSettings({ merchant }: { merchant: BrowserSafeCompositeUser }) {
-	const { saveMinimumSpendPence, acceptedWeekDayIndices, updateDeliveryDays, saveCutOffTime, saveLeadTime } = useMerchantSettings()
+	const { saveMinimumSpendPence, acceptedWeekDayIndices, saveDeliveryDays, saveCutOffTime, saveLeadTime, holidays, addHoliday } =
+		useMerchantSettings()
 	const { leadTimeDays, cutOffTime, minimumSpendPence } = merchant
 
 	return (
@@ -18,9 +20,9 @@ export default function MerchantSettings({ merchant }: { merchant: BrowserSafeCo
 
 			<CutOffTime cutOffTime={cutOffTime} saveCutOffTime={saveCutOffTime} />
 
-			<DeliveryDaysSetting acceptedWeekDayIndices={acceptedWeekDayIndices} updateDeliveryDays={updateDeliveryDays} />
+			<DeliveryDaysSetting acceptedWeekDayIndices={acceptedWeekDayIndices} saveDeliveryDays={saveDeliveryDays} />
 
-			{/* <HolidaySettings /> */}
+			<HolidaySettings holidays={holidays} addHoliday={addHoliday} />
 		</div>
 	)
 }
