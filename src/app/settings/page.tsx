@@ -8,13 +8,13 @@ import { checkoutSearchParam, checkoutSearchParamValues, userMessages } from '@/
 import { apiRequest } from '@/library/utilities/public'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useRef } from 'react'
+import UserInformation from '../../components/UserInformation'
 import type { VerifyTokenGETresponse } from '../api/authentication/verify-token/route'
 import { CustomerSettings } from './components/CustomerSettings'
 import MerchantSettings from './components/MerchantSettings'
 import PortalButton from './components/PortalButton'
 import SignOutButton from './components/SignOutButton'
 import TrialExpiryInformation from './components/TrialExpiryInformation'
-import UserInformation from './components/UserInformation'
 
 export default function SettingsPage() {
 	// Move this logic entirely somewhere else, like /settings/subscription
@@ -74,7 +74,7 @@ export default function SettingsPage() {
 			<div className="flex flex-col gap-y-4 items-start">
 				<h1>Settings</h1>
 
-				<UserInformation />
+				<UserInformation user={user} />
 
 				{(() => {
 					if (user.roles === 'customer') {
