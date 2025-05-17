@@ -47,7 +47,7 @@ export default function InviteCustomerForm() {
 					title: 'Success',
 					message: `Successfully sent invitation email to ${invitedEmail}`,
 				})
-				// ToDo: check this logic and use Immer
+
 				setInvitationsSent((prev) => (prev ? [browserSafeInvitationRecord, ...prev] : [browserSafeInvitationRecord]))
 				setInvitedEmail('')
 			}
