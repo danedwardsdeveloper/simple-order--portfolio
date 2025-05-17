@@ -7,7 +7,6 @@ import { Transition } from '@headlessui/react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect } from 'react'
-import ToggleWithLabel from '../ToggleWithLabel'
 import { useDemoUser } from '../providers/demo/user'
 import HomePageLink from './HomePageLink'
 import { DesktopMenuItem, MobileMenuItem } from './MenuItems'
@@ -15,11 +14,11 @@ import { DesktopMenuItem, MobileMenuItem } from './MenuItems'
 export default function MenuBar() {
 	const pathname = usePathname()
 	const { user } = useUser()
-	const { demoUser, setDemoUser } = useDemoUser()
-	const { mobileMenuOpen, toggleMobileMenuOpen, demoMode, setDemoMode, merchantMode, setMerchantMode } = useUi()
+	const { demoUser } = useDemoUser()
+	const { mobileMenuOpen, toggleMobileMenuOpen, demoMode, setDemoMode } = useUi()
 
 	useEffect(() => {
-		if (pathname === '/demo' || pathname.startsWith('/demo/')) {
+		if (pathname.startsWith('/demo/')) {
 			setDemoMode(true)
 		}
 	}, [pathname, setDemoMode])
@@ -28,27 +27,27 @@ export default function MenuBar() {
 		return demoMode ? `/demo${path}` : path
 	}
 
-	function DemoBadge() {
-		return (
-			<>
-				<div className="px-3 py-1 flex gap-x-2 rounded border-2 border-orange-600">
-					<span className="inline-block text-xl">Demo mode</span>
-					<ToggleWithLabel
-						enabled={merchantMode}
-						setEnabled={(value) => {
-							setDemoUser((prev) => ({
-								...prev,
-								roles: value ? 'merchant' : 'customer',
-							}))
-							setMerchantMode(value)
-						}}
-						enabledLabel="Merchant"
-						disabledLabel="Customer"
-					/>
-				</div>
-			</>
-		)
-	}
+	// function DemoBadge() {
+	// 	return (
+	// 		<>
+	// 			<div className="px-3 py-1 flex gap-x-2 rounded border-2 border-orange-600">
+	// 				<span className="inline-block text-xl">Demo mode</span>
+	// 				<ToggleWithLabel
+	// 					enabled={merchantMode}
+	// 					setEnabled={(value) => {
+	// 						setDemoUser((prev) => ({
+	// 							...prev,
+	// 							roles: value ? 'merchant' : 'customer',
+	// 						}))
+	// 						setMerchantMode(value)
+	// 					}}
+	// 					enabledLabel="Merchant"
+	// 					disabledLabel="Customer"
+	// 				/>
+	// 			</div>
+	// 		</>
+	// 	)
+	// }
 
 	const resolvedUser = demoMode ? demoUser : user
 	const notJustACustomer = resolvedUser && (resolvedUser.roles === 'merchant' || resolvedUser.roles === 'both')
@@ -62,7 +61,7 @@ export default function MenuBar() {
 					className="flex md:hidden fixed inset-x-0 top-0 h-14 bg-white  border-b-2 border-zinc-200 z-menu backdrop-blur"
 				>
 					<div className="w-full mx-auto px-5 flex items-center justify-between">
-						{demoMode ? <DemoBadge /> : <HomePageLink />}
+						<HomePageLink />
 
 						<button
 							type="button"
@@ -132,15 +131,15 @@ export default function MenuBar() {
 							<MobileMenuItem onClick={toggleMobileMenuOpen} href="/articles" text="Articles" />
 							<MobileMenuItem onClick={toggleMobileMenuOpen} href="/sign-in" text="Sign in" />
 							<Link
-								href={websiteCopy.CTAs.secondary.href}
+								href={websiteCopy.CTAs.howItWorks.href}
 								title={websiteCopy.linkDescriptions.howItWorks}
 								onClick={toggleMobileMenuOpen}
 								className="button-secondary text-center text-xl"
 							>
-								{websiteCopy.CTAs.secondary.displayText}
+								{websiteCopy.CTAs.howItWorks.displayText}
 							</Link>
-							<Link href={websiteCopy.CTAs.primary.href} className="button-primary text-center text-xl" onClick={toggleMobileMenuOpen}>
-								{websiteCopy.CTAs.primary.displayText}
+							<Link href={websiteCopy.CTAs.trial.href} className="button-primary text-center text-xl" onClick={toggleMobileMenuOpen}>
+								{websiteCopy.CTAs.trial.displayText}
 							</Link>
 						</>
 					)}
@@ -158,7 +157,7 @@ export default function MenuBar() {
 				<div className="w-full max-w-7xl mx-auto px-4 lg:px-8 flex items-center justify-between">
 					<div className="flex gap-x-2 items-center">
 						<HomePageLink />
-						{demoMode && <DemoBadge />}
+						{/* {demoMode && <DemoBadge />} */}
 					</div>
 					<div className="flex h-full items-center gap-x-6">
 						{resolvedUser ? (
@@ -178,11 +177,11 @@ export default function MenuBar() {
 								<DesktopMenuItem href="/articles" text="Articles" />
 								<DesktopMenuItem href="/sign-in" text="Sign in" />
 								<div className="flex gap-x-2 items-center">
-									<Link href={websiteCopy.CTAs.secondary.href} title={websiteCopy.linkDescriptions.howItWorks} className="button-secondary">
-										{websiteCopy.CTAs.secondary.displayText}
+									<Link href={websiteCopy.CTAs.demo.href} title={websiteCopy.linkDescriptions.howItWorks} className="button-secondary">
+										{websiteCopy.CTAs.demo.displayText}
 									</Link>
-									<Link href={websiteCopy.CTAs.primary.href} className="button-primary">
-										{websiteCopy.CTAs.primary.displayText}
+									<Link href={websiteCopy.CTAs.trial.href} className="button-primary">
+										{websiteCopy.CTAs.trial.displayText}
 									</Link>
 								</div>
 							</>
