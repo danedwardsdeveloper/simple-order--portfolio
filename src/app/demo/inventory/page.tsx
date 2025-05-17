@@ -1,24 +1,39 @@
 'use client'
-import { SignedOutBreadCrumbs } from '@/components/BreadCrumbs'
-import UnderConstruction from '@/components/UnderConstruction'
+import InventoryList from '@/app/inventory/components/InventoryList'
+import InventorySizeMessage from '@/app/inventory/components/InventorySizeMessage'
+import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
+import TwoColumnContainer from '@/components/TwoColumnContainer'
+import { useDemoUser } from '@/components/providers/demo/user'
 import { useUi } from '@/components/providers/ui'
+import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
 export default function DemoInventoryPage() {
-	const { demoMode, setDemoMode } = useUi()
+	const { demoUser, inventory } = useDemoUser()
+	const { merchantMode } = useUi()
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies:
+	const router = useRouter()
+
 	useEffect(() => {
-		if (!demoMode) setDemoMode(true)
-	}, [])
+		if (!merchantMode) {
+			router.push('/demo/dashboard')
+		}
+	}, [merchantMode, router])
 
 	return (
 		<>
-			<SignedOutBreadCrumbs trail={[{ displayName: 'Demo', href: '/demo' }]} currentPageTitle="Inventory" />
-			<div className="">
-				<h1>Inventory</h1>
-				<UnderConstruction />
-			</div>
+			<SignedInBreadCrumbs businessName={demoUser.businessName} currentPageTitle="Inventory" demoMode />
+			<h1>Inventory</h1>
+			<TwoColumnContainer
+				mainColumn={<InventoryList inventory={inventory} />}
+				sideColumn={
+					<>
+						<InventorySizeMessage inventory={inventory} />
+						{/* <VatToggleButton /> */}
+						{/* <AddInventoryForm /> */}
+					</>
+				}
+			/>
 		</>
 	)
 }
