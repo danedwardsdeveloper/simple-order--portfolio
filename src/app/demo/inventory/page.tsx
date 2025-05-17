@@ -1,24 +1,53 @@
 'use client'
+import AddInventoryForm, { type InventoryAddFormData } from '@/app/inventory/components/AddInventoryForm'
 import InventoryList from '@/app/inventory/components/InventoryList'
 import InventorySizeMessage from '@/app/inventory/components/InventorySizeMessage'
+import VatToggleButton from '@/app/inventory/components/VatToggleButton'
 import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
 import TwoColumnContainer from '@/components/TwoColumnContainer'
 import { useDemoUser } from '@/components/providers/demo/user'
+import { useNotifications } from '@/components/providers/notifications'
 import { useUi } from '@/components/providers/ui'
+import { subtleDelay } from '@/library/utilities/public'
+import type { BrowserSafeMerchantProduct } from '@/types'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function DemoInventoryPage() {
-	const { demoUser, inventory } = useDemoUser()
+	const { demoUser, inventory, setInventory, vat } = useDemoUser()
 	const { merchantMode } = useUi()
-
+	const { successNotification } = useNotifications()
 	const router = useRouter()
+
+	const [isSubmitting, setIsSubmitting] = useState(false)
 
 	useEffect(() => {
 		if (!merchantMode) {
 			router.push('/demo/dashboard')
 		}
 	}, [merchantMode, router])
+
+	async function addProduct(formData: InventoryAddFormData): Promise<boolean> {
+		setIsSubmitting(true)
+		await subtleDelay()
+
+		const priceInMinorUnits = formData.priceInMinorUnits === '' ? 0 : Number.parseInt(formData.priceInMinorUnits, 10)
+		const customVat = formData.customVat === '' ? undefined : Number.parseInt(formData.customVat, 10)
+
+		const newProduct = {
+			id: Date.now(),
+			name: formData.name,
+			description: formData.description,
+			priceInMinorUnits: priceInMinorUnits ?? null,
+			customVat: customVat ?? null,
+			deletedAt: null,
+		} satisfies BrowserSafeMerchantProduct
+
+		setInventory((previousInventory) => (previousInventory ? [newProduct, ...previousInventory] : [newProduct]))
+		successNotification(`${formData.name} added to inventory`)
+		setIsSubmitting(false)
+		return true
+	}
 
 	return (
 		<>
@@ -29,8 +58,8 @@ export default function DemoInventoryPage() {
 				sideColumn={
 					<>
 						<InventorySizeMessage inventory={inventory} />
-						{/* <VatToggleButton /> */}
-						{/* <AddInventoryForm /> */}
+						<VatToggleButton />
+						<AddInventoryForm addProduct={addProduct} inventory={inventory} vat={vat} isSubmitting={isSubmitting} />
 					</>
 				}
 			/>

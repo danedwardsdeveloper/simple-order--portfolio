@@ -1,11 +1,11 @@
 'use client'
-import type { InventoryAddPOSTbody, InventoryAddPOSTresponse } from '@/app/api/inventory/post'
-import { useNotifications } from '@/components/providers/notifications'
-import { useUser } from '@/components/providers/user'
-import { serviceConstraints, userMessages } from '@/library/constants'
-import { apiRequest, containsIllegalCharacters } from '@/library/utilities/public'
+import Spinner from '@/components/Spinner'
+import { serviceConstraints } from '@/library/constants'
+import { containsIllegalCharacters } from '@/library/utilities/public'
+import type { BrowserSafeMerchantProduct } from '@/types'
 import { type FormEvent, useEffect, useState } from 'react'
 
+// ToDo: Use Zod here
 export type InventoryAddFormData = {
 	name: string
 	description: string
@@ -13,9 +13,14 @@ export type InventoryAddFormData = {
 	customVat: string
 }
 
-export default function AddInventoryForm() {
-	const { user, inventory, setInventory, vat } = useUser()
+interface AddInventoryFormProps {
+	inventory: BrowserSafeMerchantProduct[] | null
+	vat: number
+	addProduct: (formData: InventoryAddFormData) => Promise<boolean>
+	isSubmitting: boolean
+}
 
+export default function AddInventoryForm({ inventory, vat, addProduct, isSubmitting }: AddInventoryFormProps) {
 	const initialFormState: InventoryAddFormData = {
 		name: '',
 		description: '',
@@ -29,7 +34,6 @@ export default function AddInventoryForm() {
 		name: boolean
 		description: boolean
 	}>({ name: false, description: false })
-	const { successNotification } = useNotifications()
 
 	useEffect(() => {
 		setIllegalCharacterWarnings({
@@ -46,34 +50,13 @@ export default function AddInventoryForm() {
 		event.preventDefault()
 		setErrorMessage('')
 
-		if (!user) {
-			setErrorMessage('Not signed in')
-			return
-		}
-
-		const priceInMinorUnits = formData.priceInMinorUnits === '' ? 0 : Number.parseInt(formData.priceInMinorUnits, 10)
-		const customVat = formData.customVat === '' ? undefined : Number.parseInt(formData.customVat, 10)
-
-		const { userMessage, addedProduct } = await apiRequest<InventoryAddPOSTresponse, InventoryAddPOSTbody>({
-			basePath: '/inventory',
-			method: 'POST',
-			body: {
-				name: formData.name,
-				description: formData.description,
-				priceInMinorUnits,
-				customVat,
-			},
-		})
-
-		if (addedProduct) {
-			setInventory((previousInventory) => (previousInventory ? [addedProduct, ...previousInventory] : [addedProduct]))
-
-			successNotification(`${formData.name} added to inventory`)
+		const success = await addProduct(formData)
+		if (success) {
 			setFormData(initialFormState)
 			return
 		}
 
-		if (userMessage || !addedProduct) setErrorMessage(userMessage || userMessages.serverError)
+		setErrorMessage('Failed to add item')
 	}
 
 	const handleInputChange = (field: keyof InventoryAddFormData, value: string) => {
@@ -140,9 +123,9 @@ export default function AddInventoryForm() {
 			</div>
 
 			{errorMessage && <p className="text-red-600">{errorMessage}</p>}
-			<div className="flex justify-center mt-8">
-				<button type="submit" className="button-secondary w-full">
-					Add item
+			<div className="flex justify-center mt-8 min-h-7">
+				<button type="submit" disabled={isSubmitting} className="button-secondary w-full">
+					<div className="w-full flex items-center justify-center min-h-7">{isSubmitting ? <Spinner /> : 'Add item'}</div>
 				</button>
 			</div>
 		</form>
