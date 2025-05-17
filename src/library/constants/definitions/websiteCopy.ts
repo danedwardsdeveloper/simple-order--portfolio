@@ -24,13 +24,17 @@ export const websiteCopy = {
 		howItWorks: 'Learn more about our B2B order management website',
 	},
 	CTAs: {
-		primary: {
+		trial: {
 			displayText: 'Start free trial',
 			href: '/free-trial',
 		},
-		secondary: {
+		howItWorks: {
 			displayText: 'How it works',
 			href: '/articles/how-it-works',
+		},
+		demo: {
+			displayText: 'Start demo',
+			href: '/demo/dashboard',
 		},
 	},
 } as const
