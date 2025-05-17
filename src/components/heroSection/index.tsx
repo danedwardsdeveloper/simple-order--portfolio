@@ -23,11 +23,11 @@ export default function HeroSection() {
 							</p>
 						))}
 						<div className="mt-10 flex items-center justify-center md:justify-end gap-x-6">
-							<Link href={websiteCopy.CTAs.secondary.href} className="button-secondary text-lg">
-								{websiteCopy.CTAs.secondary.displayText}
+							<Link href={websiteCopy.CTAs.demo.href} className="button-secondary text-lg">
+								{websiteCopy.CTAs.demo.displayText}
 							</Link>
-							<Link href={websiteCopy.CTAs.primary.href} className="button-primary text-lg">
-								{websiteCopy.CTAs.primary.displayText}
+							<Link href={websiteCopy.CTAs.trial.href} className="button-primary text-lg">
+								{websiteCopy.CTAs.trial.displayText}
 							</Link>
 						</div>
 					</div>
