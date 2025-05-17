@@ -47,7 +47,7 @@ export default function Pricing() {
 								<span className="leading-6 font-semibold tracking-wide text-gray-600">GBP/month</span>
 							</p>
 							<Link href="/free-trial" className="mt-10 block w-full button-primary py-2 text-lg shadow-md">
-								{websiteCopy.CTAs.primary.displayText}
+								{websiteCopy.CTAs.trial.displayText}
 							</Link>
 							<p className="mt-6 text-gray-600">No credit card required</p>
 						</div>
