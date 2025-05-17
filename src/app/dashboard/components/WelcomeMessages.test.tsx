@@ -1,5 +1,4 @@
-import type { UserContextType } from '@/components/providers/user'
-import type { BrowserSafeMerchantProduct } from '@/types'
+import type { BrowserSafeMerchantProduct, UserContextType } from '@/types'
 import { type Matcher, cleanup, render, screen } from '@testing-library/react'
 import { gingerBeer } from '@tests/constants'
 import { MockUserProvider, baseContext, baseUser } from '@tests/constants/mockUserContext'
