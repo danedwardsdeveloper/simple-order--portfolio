@@ -1,10 +1,7 @@
-'use client'
-import { useUser } from '@/components/providers/user'
+import type { UserContextType } from '@/types'
 import InventoryCard from './InventoryCard'
 
-export default function InventoryList() {
-	const { inventory } = useUser()
-
+export default function InventoryList({ inventory }: { inventory: UserContextType['inventory'] }) {
 	if (!inventory) return null
 
 	return (
