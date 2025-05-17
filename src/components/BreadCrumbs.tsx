@@ -56,16 +56,19 @@ interface SignedInProps {
 	businessName: string
 	trail?: BreadCrumbItem[]
 	currentPageTitle?: string
+	demoMode?: boolean
 }
 
-export function SignedInBreadCrumbs({ businessName, trail, currentPageTitle }: SignedInProps) {
+export function SignedInBreadCrumbs({ businessName, trail, currentPageTitle, demoMode = false }: SignedInProps) {
+	const dashboardHref = demoMode ? '/demo/dashboard' : '/dashboard'
+
 	return (
 		<nav aria-label="Breadcrumb" className="flex mb-12">
 			<ol className="flex flex-wrap items-center gap-4">
 				<li>
 					<div className="flex items-center">
 						{/* ToDo: This should not be a link if it's the only item */}
-						<Link href="/dashboard" className="link-primary">
+						<Link href={dashboardHref} className="link-primary">
 							{businessName}
 						</Link>
 						{((trail && trail?.length > 0) || currentPageTitle) && <Chevron />}
