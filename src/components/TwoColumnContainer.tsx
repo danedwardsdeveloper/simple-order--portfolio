@@ -5,10 +5,9 @@ interface Props {
 	mainColumn: ReactNode
 	mainColumnClasses?: string
 	sideColumn: ReactNode
-	sideColumnClasses?: string
 }
 
-export default function TwoColumnContainer({ mainColumn, mainColumnClasses, sideColumn, sideColumnClasses }: Props) {
+export default function TwoColumnContainer({ mainColumn, mainColumnClasses, sideColumn }: Props) {
 	return (
 		<div data-component="TwoColumnContainer" className="w-full max-w-full grow flex flex-col lg:flex-row gap-8">
 			{/* Main column */}
@@ -18,7 +17,7 @@ export default function TwoColumnContainer({ mainColumn, mainColumnClasses, side
 
 			{/* Aside column */}
 			<div className="shrink-0 lg:w-96 order-first lg:order-last min-w-0 w-full">
-				<div className={mergeClasses('flex flex-col', sideColumnClasses)}>{sideColumn}</div>
+				<div className="flex flex-col gap-y-4">{sideColumn}</div>
 			</div>
 		</div>
 	)
