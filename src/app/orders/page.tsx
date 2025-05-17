@@ -1,7 +1,8 @@
 'use client'
 import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
 import TwoColumnContainer from '@/components/TwoColumnContainer'
-import RoleModeButton from '@/components/menubar/RoleModeButton'
+import UnauthorisedLinks from '@/components/UnauthorisedLinks'
+import { RoleModeToggleSection } from '@/components/menubar/RoleModeButton'
 import { useUi } from '@/components/providers/ui'
 import { useUser } from '@/components/providers/user'
 import OrdersMadePage from './ordersMadeSection'
@@ -12,7 +13,7 @@ export default function OrdersPage() {
 	const { merchantMode } = useUi()
 	const { user } = useUser()
 
-	if (!user) return null
+	if (!user) return <UnauthorisedLinks />
 
 	const dynamicTitle = user.roles === 'both' ? (merchantMode ? 'Orders received' : 'Orders made') : 'Orders'
 
@@ -22,13 +23,15 @@ export default function OrdersPage() {
 			<h1>{dynamicTitle}</h1>
 			<TwoColumnContainer
 				mainColumn={merchantMode ? <OrdersReceivedPage /> : <OrdersMadePage />}
-				sideColumn={
-					<>
-						<RoleModeButton />
-						{!merchantMode && <MerchantsList />}
-					</>
-				}
-				sideColumnClasses="gap-y-4"
+				sideColumn={(() => {
+					if (!merchantMode) {
+						return <MerchantsList />
+					}
+
+					if (user.roles === 'both') {
+						return <RoleModeToggleSection />
+					}
+				})()}
 			/>
 		</>
 	)
