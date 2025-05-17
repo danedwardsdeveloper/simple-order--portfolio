@@ -15,7 +15,7 @@ export default function MenuBar() {
 	const pathname = usePathname()
 	const { user } = useUser()
 	const { demoUser } = useDemoUser()
-	const { mobileMenuOpen, toggleMobileMenuOpen, demoMode, setDemoMode } = useUi()
+	const { mobileMenuOpen, setMobileMenuOpen, toggleMobileMenuOpen, demoMode, setDemoMode } = useUi()
 
 	useEffect(() => {
 		if (pathname.startsWith('/demo/')) {
@@ -27,32 +27,9 @@ export default function MenuBar() {
 		return demoMode ? `/demo${path}` : path
 	}
 
-	// function DemoBadge() {
-	// 	return (
-	// 		<>
-	// 			<div className="px-3 py-1 flex gap-x-2 rounded border-2 border-orange-600">
-	// 				<span className="inline-block text-xl">Demo mode</span>
-	// 				<ToggleWithLabel
-	// 					enabled={merchantMode}
-	// 					setEnabled={(value) => {
-	// 						setDemoUser((prev) => ({
-	// 							...prev,
-	// 							roles: value ? 'merchant' : 'customer',
-	// 						}))
-	// 						setMerchantMode(value)
-	// 					}}
-	// 					enabledLabel="Merchant"
-	// 					disabledLabel="Customer"
-	// 				/>
-	// 			</div>
-	// 		</>
-	// 	)
-	// }
-
 	const resolvedUser = demoMode ? demoUser : user
 	const notJustACustomer = resolvedUser && (resolvedUser.roles === 'merchant' || resolvedUser.roles === 'both')
 
-	// Enhancement ToDo: Add click outside to close
 	function MobileMenu() {
 		return (
 			<>
@@ -88,14 +65,16 @@ export default function MenuBar() {
 				appear={true}
 				enter="transition-opacity duration-300 ease-in-out"
 				enterFrom="opacity-0"
-				enterTo="opacity-100"
+				enterTo="opacity-50"
 				leave="transition-opacity duration-300 ease-in-out"
-				leaveFrom="opacity-100"
+				leaveFrom="opacity-50"
 				leaveTo="opacity-0"
 			>
-				<div
+				<button
 					data-component="mobile-panel-blurred-backdrop"
-					className="fixed md:hidden inset-0 h-screen w-screen backdrop-blur-sm bg-white z-mobile-blurred-backdrop"
+					type="button"
+					onClick={() => setMobileMenuOpen(false)}
+					className="fixed md:hidden inset-0 h-screen w-screen backdrop-blur-sm bg-white/50 blur z-mobile-blurred-backdrop"
 				/>
 			</Transition>
 		)
@@ -130,13 +109,8 @@ export default function MenuBar() {
 						<>
 							<MobileMenuItem onClick={toggleMobileMenuOpen} href="/articles" text="Articles" />
 							<MobileMenuItem onClick={toggleMobileMenuOpen} href="/sign-in" text="Sign in" />
-							<Link
-								href={websiteCopy.CTAs.howItWorks.href}
-								title={websiteCopy.linkDescriptions.howItWorks}
-								onClick={toggleMobileMenuOpen}
-								className="button-secondary text-center text-xl"
-							>
-								{websiteCopy.CTAs.howItWorks.displayText}
+							<Link href={websiteCopy.CTAs.demo.href} onClick={toggleMobileMenuOpen} className="button-secondary text-center text-xl">
+								{websiteCopy.CTAs.demo.displayText}
 							</Link>
 							<Link href={websiteCopy.CTAs.trial.href} className="button-primary text-center text-xl" onClick={toggleMobileMenuOpen}>
 								{websiteCopy.CTAs.trial.displayText}
