@@ -1,9 +1,11 @@
 'use client'
 import { LoadingProvider } from '@/components/providers/loading'
+import { isDevelopment } from '@/library/environment/publicVariables'
 import dynamic from 'next/dynamic'
 import type { ReactNode } from 'react'
 import { DemoSettingsProvider } from './demo/settings'
 import { DemoUserProvider } from './demo/user'
+import { DevelopmentProvider } from './development'
 import { MerchantSettingsProvider } from './settings'
 
 const UiProvider = dynamic(() => import('@/components/providers/ui').then((module) => module.UiProvider), {
@@ -23,20 +25,31 @@ const NotificationsContainer = dynamic(() => import('@/components/notifications/
 })
 
 export default function Providers({ children }: { children: ReactNode }) {
-	return (
-		<UiProvider>
-			<NotificationsProvider>
-				<UserProvider>
-					<MerchantSettingsProvider>
-						<DemoUserProvider>
-							<DemoSettingsProvider>
-								<NotificationsContainer />
-								<LoadingProvider>{children}</LoadingProvider>
-							</DemoSettingsProvider>
-						</DemoUserProvider>
-					</MerchantSettingsProvider>
-				</UserProvider>
-			</NotificationsProvider>
-		</UiProvider>
-	)
+	function ProductionProviders({ children }: { children: ReactNode }) {
+		return (
+			<UiProvider>
+				<NotificationsProvider>
+					<UserProvider>
+						<MerchantSettingsProvider>
+							<DemoUserProvider>
+								<DemoSettingsProvider>
+									<NotificationsContainer />
+									<LoadingProvider>{children}</LoadingProvider>
+								</DemoSettingsProvider>
+							</DemoUserProvider>
+						</MerchantSettingsProvider>
+					</UserProvider>
+				</NotificationsProvider>
+			</UiProvider>
+		)
+	}
+
+	if (isDevelopment)
+		return (
+			<DevelopmentProvider>
+				<ProductionProviders>{children}</ProductionProviders>
+			</DevelopmentProvider>
+		)
+
+	return <ProductionProviders>{children}</ProductionProviders>
 }
