@@ -3,6 +3,19 @@ import { imagesCollection } from '@/library/imagesCollection'
 import Image from 'next/image'
 import Link from 'next/link'
 
+export function CtaPair() {
+	return (
+		<>
+			<Link href={websiteCopy.CTAs.demo.href} className="button-secondary text-lg">
+				{websiteCopy.CTAs.demo.displayText}
+			</Link>
+			<Link href={websiteCopy.CTAs.trial.href} className="button-primary text-lg">
+				{websiteCopy.CTAs.trial.displayText}
+			</Link>
+		</>
+	)
+}
+
 export default function HeroSection() {
 	return (
 		<div className="relative isolate overflow-hidden bg-gradient-to-b from-indigo-100/20 pt-14">
@@ -23,12 +36,7 @@ export default function HeroSection() {
 							</p>
 						))}
 						<div className="mt-10 flex items-center justify-center md:justify-end gap-x-6">
-							<Link href={websiteCopy.CTAs.demo.href} className="button-secondary text-lg">
-								{websiteCopy.CTAs.demo.displayText}
-							</Link>
-							<Link href={websiteCopy.CTAs.trial.href} className="button-primary text-lg">
-								{websiteCopy.CTAs.trial.displayText}
-							</Link>
+							<CtaPair />
 						</div>
 					</div>
 					<Image
