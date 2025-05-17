@@ -16,7 +16,7 @@ interface Props {
 export default function InventoryCard({ product, zebraStripe }: Props) {
 	const { vat, setInventory } = useUser()
 	const [showDeleteModal, setShowDeleteModal] = useState(false)
-	const { createNotification } = useNotifications()
+	const { successNotification, errorNotification } = useNotifications()
 	const [isBeingEdited, setIsBeingEdited] = useState(false)
 	const { includeVat } = useUi()
 
@@ -49,11 +49,7 @@ export default function InventoryCard({ product, zebraStripe }: Props) {
 		})
 
 		if (softDeletedProduct) {
-			createNotification({
-				title: 'Success',
-				level: 'success',
-				message: `${product.name} deleted`,
-			})
+			successNotification(`${product.name} deleted`)
 
 			setInventory((previousInventory) => (previousInventory ? previousInventory.filter((item) => item.id !== softDeletedProduct.id) : []))
 
@@ -61,11 +57,7 @@ export default function InventoryCard({ product, zebraStripe }: Props) {
 		}
 
 		if (!softDeletedProduct || userMessage) {
-			createNotification({
-				title: 'Error',
-				level: 'error',
-				message: `Failed to delete ${product.name}`,
-			})
+			errorNotification(`Failed to delete ${product.name}`)
 		}
 		return
 	}
