@@ -4,7 +4,6 @@ import { useNotifications } from '@/components/providers/notifications'
 import { useUser } from '@/components/providers/user'
 import { serviceConstraints, userMessages } from '@/library/constants'
 import { apiRequest, containsIllegalCharacters } from '@/library/utilities/public'
-import type { NewNotification } from '@/types'
 import { type FormEvent, useEffect, useState } from 'react'
 
 export type InventoryAddFormData = {
@@ -16,18 +15,21 @@ export type InventoryAddFormData = {
 
 export default function AddInventoryForm() {
 	const { user, inventory, setInventory, vat } = useUser()
-	const [formData, setFormData] = useState<InventoryAddFormData>({
+
+	const initialFormState: InventoryAddFormData = {
 		name: '',
 		description: '',
 		priceInMinorUnits: '',
 		customVat: String(vat),
-	})
+	}
+
+	const [formData, setFormData] = useState<InventoryAddFormData>(initialFormState)
 	const [errorMessage, setErrorMessage] = useState('')
 	const [illegalCharacterWarnings, setIllegalCharacterWarnings] = useState<{
 		name: boolean
 		description: boolean
 	}>({ name: false, description: false })
-	const { createNotification } = useNotifications()
+	const { successNotification } = useNotifications()
 
 	useEffect(() => {
 		setIllegalCharacterWarnings({
@@ -66,19 +68,8 @@ export default function AddInventoryForm() {
 		if (addedProduct) {
 			setInventory((previousInventory) => (previousInventory ? [addedProduct, ...previousInventory] : [addedProduct]))
 
-			const notification: NewNotification = {
-				title: 'Success',
-				message: `${formData.name} added to inventory`,
-				level: 'success',
-			}
-
-			createNotification(notification)
-			setFormData({
-				name: '',
-				description: '',
-				priceInMinorUnits: '',
-				customVat: '',
-			})
+			successNotification(`${formData.name} added to inventory`)
+			setFormData(initialFormState)
 			return
 		}
 
