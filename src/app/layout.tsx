@@ -3,6 +3,7 @@ import { websiteCopy } from '@/library/constants'
 import { dynamicBaseURL, isProduction } from '@/library/environment/publicVariables'
 import type { Metadata, Viewport } from 'next'
 import './globals.tailwind.css'
+import DemoBadge from '@/components/DemoBadge'
 import Footer from '@/components/footer'
 import Providers from '@/components/providers'
 import { ContentSplash, SiteSplash } from '@/components/splashes'
@@ -60,6 +61,7 @@ export default function RootLayout({
 					{/* ToDo: find a way to change this so that the breadcrumbs and header for each page are displayed while data is loading */}
 					<ContentSplash siteContent={children} />
 					<Footer />
+					<DemoBadge />
 				</Providers>
 				{isProduction && <Script src="https://scripts.simpleanalyticscdn.com/latest.js" strategy="lazyOnload" />}
 			</body>
