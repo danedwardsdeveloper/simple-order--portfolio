@@ -17,47 +17,18 @@ import type {
 	BrowserSafeMerchantProfile,
 	OrderMade,
 	OrderReceived,
+	UserContextType,
 } from '@/types'
-import { type Dispatch, type ReactNode, type SetStateAction, createContext, useContext, useEffect, useRef, useState } from 'react'
+import { type ReactNode, createContext, useContext, useEffect, useRef, useState } from 'react'
+import { useLoading } from './loading'
 import { useUi } from './ui'
-
-export interface UserContextType {
-	user: BrowserSafeCompositeUser | null
-	setUser: Dispatch<SetStateAction<BrowserSafeCompositeUser | null>>
-
-	inventory: BrowserSafeMerchantProduct[] | null
-	setInventory: Dispatch<SetStateAction<BrowserSafeMerchantProduct[] | null>>
-
-	confirmedMerchants: BrowserSafeMerchantProfile[] | null
-	setConfirmedMerchants: Dispatch<SetStateAction<BrowserSafeMerchantProfile[] | null>>
-
-	confirmedCustomers: BrowserSafeCustomerProfile[] | null
-	setConfirmedCustomers: Dispatch<SetStateAction<BrowserSafeCustomerProfile[] | null>>
-
-	invitationsReceived: BrowserSafeInvitationReceived[] | null
-	setInvitationsReceived: Dispatch<SetStateAction<BrowserSafeInvitationReceived[] | null>>
-
-	invitationsSent: BrowserSafeInvitationSent[] | null
-	setInvitationsSent: Dispatch<SetStateAction<BrowserSafeInvitationSent[] | null>>
-
-	ordersMade: OrderMade[] | null
-	setOrdersMade: Dispatch<SetStateAction<OrderMade[] | null>>
-
-	ordersReceived: OrderReceived[] | null
-	setOrdersReceived: Dispatch<SetStateAction<OrderReceived[] | null>>
-
-	vat: number
-
-	// ToDo: consolidate loading states across the site
-	isLoading: boolean
-}
 
 export const UserContext = createContext<UserContextType>({} as UserContextType)
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
+	const { setDataLoading } = useLoading()
 	const { setMerchantMode } = useUi()
-	const hasCheckedToken = useRef(false) // Prevent development issues
-	const [isLoading, setIsLoading] = useState(true)
+	const hasCheckedToken = useRef(false)
 
 	const [user, setUser] = useState<BrowserSafeCompositeUser | null>(null)
 
@@ -78,7 +49,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <Run on mount only>
 	useEffect(() => {
 		async function getUser() {
-			setIsLoading(true)
+			setDataLoading(true)
 
 			try {
 				const { user } = await apiRequest<VerifyTokenGETresponse>({
@@ -108,7 +79,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 					await Promise.all([...basePromises, ...rolePromises])
 				}
 			} finally {
-				setIsLoading(false)
+				setDataLoading(false)
 			}
 		}
 
@@ -191,7 +162,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 				ordersReceived,
 				setOrdersReceived,
 
-				isLoading,
 				vat: temporaryVat,
 			}}
 		>
