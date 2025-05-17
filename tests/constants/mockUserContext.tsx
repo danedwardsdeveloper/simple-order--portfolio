@@ -1,6 +1,6 @@
-import { UserContext, type UserContextType } from '@/components/providers/user'
+import { UserContext } from '@/components/providers/user'
 import { defaultCutOffTime, defaultLeadTimeDays, defaultMinimumSpendPence } from "@/library/constants";
-import type { BrowserSafeCompositeUser } from "@/types";
+import type { BrowserSafeCompositeUser, UserContextType } from "@/types";
 import type { ReactNode } from "react";
 import { vi } from "vitest";
 
@@ -39,6 +39,5 @@ export const baseContext: UserContextType = {
     ordersReceived: null,
     setOrdersReceived: vi.fn(),
     vat: 20,
-    isLoading: false,
 }
 

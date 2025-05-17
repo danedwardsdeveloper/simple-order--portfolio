@@ -56,6 +56,7 @@ export default function AddInventoryForm({ inventory, vat, addProduct, isSubmitt
 			return
 		}
 
+		// ToDo: this could be more helpful
 		setErrorMessage('Failed to add item')
 	}
 
@@ -65,7 +66,7 @@ export default function AddInventoryForm({ inventory, vat, addProduct, isSubmitt
 
 	return (
 		<form onSubmit={handleSubmit} className="p-4 border-2 border-zinc-200 rounded-xl flex flex-col gap-y-4 max-w-xl lg:-mx-3">
-			<h2 className="">Add an item</h2>
+			<h2>Add an item</h2>
 
 			<div>
 				<div className="mb-1">

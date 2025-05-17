@@ -81,6 +81,7 @@ export default function InventoryCard({ product, zebraStripe }: Props) {
 						<span className="text-zinc-500">{includeVat && `Including ${vatInteger}% VAT`}</span>
 					</div>
 					<div className="flex gap-x-4">
+						{/* Main ToDo: Make these buttons work in demo and app modes */}
 						<button type="button" className="link-danger" onClick={() => setShowDeleteModal(true)}>
 							Delete...
 						</button>

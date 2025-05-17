@@ -225,7 +225,7 @@ export default function CreateAccountPage() {
 					{(() => {
 						if (isSubmitting) return <Spinner colour="text-white" />
 
-						return <span>{websiteCopy.CTAs.primary.displayText}</span>
+						return <span>{websiteCopy.CTAs.trial.displayText}</span>
 					})()}
 				</button>
 			</form>

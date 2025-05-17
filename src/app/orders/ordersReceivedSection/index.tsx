@@ -14,7 +14,7 @@ import OrderReceivedCard from './components/OrderReceivedCard'
 
 export default function OrdersReceivedSection() {
 	const { createNotification } = useNotifications()
-	const { user, isLoading, ordersReceived, setOrdersReceived } = useUser()
+	const { user, ordersReceived, setOrdersReceived } = useUser()
 	const [confirmationModalOpen, setConfirmationModalOpen] = useState(false)
 	const [pendingStatusChange, setPendingStatusChange] = useState<{
 		orderId: number
@@ -24,7 +24,6 @@ export default function OrdersReceivedSection() {
 	const [isUpdating, setIsUpdating] = useState(false)
 	const { includeVat } = useUi()
 
-	if (isLoading) return <Spinner />
 	if (!user) return <UnauthorisedLinks />
 	if (!ordersReceived)
 		return <p className="lg:-mx-3 w-full text-blue-600 p-3 border-2 border-blue-300 bg-blue-50 rounded-xl max-w-xl">No orders found</p>

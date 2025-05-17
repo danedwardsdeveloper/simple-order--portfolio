@@ -1,8 +1,9 @@
 'use client'
 import PageContainer from '@/components/PageContainer'
-import { defaultDemoUser, useDemoUser } from '@/components/providers/demo/user'
+import { useDemoUser } from '@/components/providers/demo/user'
 import { useUi } from '@/components/providers/ui'
 import { useUser } from '@/components/providers/user'
+import { demoCustomerUser } from '@/library/constants'
 import { isProduction } from '@/library/environment/publicVariables'
 import { notFound } from 'next/navigation'
 
@@ -16,7 +17,7 @@ export default function MenuBarTestPage() {
 
 	function toggleUser() {
 		if (!user) {
-			setUser(defaultDemoUser)
+			setUser(demoCustomerUser) // Using the demo user on the actual app user provider for convenience
 		} else {
 			setUser(null)
 		}

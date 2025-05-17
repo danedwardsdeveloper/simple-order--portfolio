@@ -16,7 +16,7 @@ export function DevelopmentProvider({ children }: { children: ReactNode }) {
 	return <DevelopmentProviderContext.Provider value={value}>{children}</DevelopmentProviderContext.Provider>
 }
 
-export function alternatingBoolean() {
+export function useAlternatingBoolean() {
 	const context = useContext(DevelopmentProviderContext)
 
 	if (context === undefined) {
