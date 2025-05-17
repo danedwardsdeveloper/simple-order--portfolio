@@ -1,20 +1,14 @@
 'use client'
-import { SignedOutBreadCrumbs } from '@/components/BreadCrumbs'
+import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
 import UnderConstruction from '@/components/UnderConstruction'
-import { useUi } from '@/components/providers/ui'
-import { useEffect } from 'react'
+import { useDemoUser } from '@/components/providers/demo/user'
 
 export default function DemoOrdersPage() {
-	const { demoMode, setDemoMode } = useUi()
-
-	// biome-ignore lint/correctness/useExhaustiveDependencies:
-	useEffect(() => {
-		if (!demoMode) setDemoMode(true)
-	}, [])
+	const { demoUser } = useDemoUser()
 
 	return (
 		<>
-			<SignedOutBreadCrumbs trail={[{ displayName: 'Demo', href: '/demo' }]} currentPageTitle="Orders" />
+			<SignedInBreadCrumbs businessName={demoUser.businessName} currentPageTitle="Orders" demoMode />
 			<div className="">
 				<h1>Orders</h1>
 				<UnderConstruction />

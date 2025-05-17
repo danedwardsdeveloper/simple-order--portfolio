@@ -1,20 +1,16 @@
 'use client'
-import { SignedOutBreadCrumbs } from '@/components/BreadCrumbs'
+import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
 import MessageContainer from '@/components/MessageContainer'
+import { useDemoUser } from '@/components/providers/demo/user'
 import { useUi } from '@/components/providers/ui'
-import { useEffect } from 'react'
 
 export default function DemoDashboard() {
-	const { demoMode, setDemoMode, merchantMode } = useUi()
-
-	// biome-ignore lint/correctness/useExhaustiveDependencies:
-	useEffect(() => {
-		if (!demoMode) setDemoMode(true)
-	}, [])
+	const { merchantMode } = useUi()
+	const { demoUser } = useDemoUser()
 
 	return (
 		<>
-			<SignedOutBreadCrumbs currentPageTitle="Dashboard" />
+			<SignedInBreadCrumbs businessName={demoUser.businessName} currentPageTitle="Dashboard" demoMode />
 			<h1>Dashboard</h1>
 			<MessageContainer borderColour={'border-blue-300'}>
 				Welcome to the Simple Order demo!
