@@ -73,6 +73,7 @@ describe('deleteUser', async () => {
 								ownerId: imeldaStaunton.id,
 								name: 'Soup',
 								priceInMinorUnits: 500,
+								customVat: 20,
 							},
 						])
 
