@@ -1,7 +1,5 @@
-export const allowedCharactersRegex = /^[\p{L}\p{N}',.!?\- ]+$/u
-
 /**
- * @deprecated Use allowedCharactersRegex / Zod instead
+ * @deprecated Use allowedCharactersRegex or .pipe(validCharacters()) instead
  */
 export const allowedCharacters = {
 	letters: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
