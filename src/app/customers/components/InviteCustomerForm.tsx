@@ -1,19 +1,24 @@
 'use client'
 import type { InvitationsPOSTbody, InvitationsPOSTresponse } from '@/app/api/invitations/route'
+import Spinner from '@/components/Spinner'
 import { useNotifications } from '@/components/providers/notifications'
 import { useUser } from '@/components/providers/user'
-import { dataTestIdNames } from '@/library/constants'
-import logger from '@/library/logger'
+import { dataTestIdNames, userMessages } from '@/library/constants'
 import { apiRequest } from '@/library/utilities/public'
-import { type ChangeEvent, type FormEvent, useState } from 'react'
+import type { UserContextType } from '@/types'
+import { type FormEvent, useState } from 'react'
+
+type Props = {
+	setInvitationsSent: UserContextType['setInvitationsSent']
+}
 
 export default function InviteCustomerForm() {
 	const { user, setInvitationsSent } = useUser()
-	const { createNotification } = useNotifications()
-	const [loading, setLoading] = useState(false)
-	const [responseMessage, setResponseMessage] = useState('')
+	const { successNotification, errorNotification } = useNotifications()
 	const [invitedEmail, setInvitedEmail] = useState('')
+	const [isSubmitting, setIsSubmitting] = useState(false)
 
+	// Move this to the app parent, and let the demo handle itself
 	if (!user || user.roles === 'customer' || !user.emailConfirmed) return null
 
 	/* ToDo: Display subscription/trial ended message
@@ -31,8 +36,7 @@ export default function InviteCustomerForm() {
 
 	async function handleSubmit(event: FormEvent) {
 		event.preventDefault()
-		setResponseMessage('')
-		setLoading(true)
+		setIsSubmitting(true)
 
 		try {
 			const { userMessage, browserSafeInvitationRecord } = await apiRequest<InvitationsPOSTresponse, InvitationsPOSTbody>({
@@ -42,47 +46,23 @@ export default function InviteCustomerForm() {
 			})
 
 			if (browserSafeInvitationRecord) {
-				createNotification({
-					level: 'success',
-					title: 'Success',
-					message: `Successfully sent invitation email to ${invitedEmail}`,
-				})
+				successNotification(`Successfully sent invitation email to ${invitedEmail}`)
 
 				setInvitationsSent((prev) => (prev ? [browserSafeInvitationRecord, ...prev] : [browserSafeInvitationRecord]))
 				setInvitedEmail('')
 			}
 
 			// ToDo: Add error if user has already been invited
-
-			if (userMessage) setResponseMessage(userMessage)
-		} catch (error) {
-			// ToDo: Don't use caught errors
-			logger.error('Error sending new invitation fetch request', error)
-			setResponseMessage('Unknown error')
+			if (userMessage) errorNotification(userMessage)
+		} catch {
+			errorNotification(userMessages.serverError)
 		} finally {
-			setLoading(false)
+			setIsSubmitting(false)
 		}
 	}
 
 	// Enhancement ToDo: validate email on the client
 	// Trim, check email isn't the user's own etc.
-
-	function handleEmailChange(event: ChangeEvent<HTMLInputElement>) {
-		setInvitedEmail(event.target.value)
-	}
-
-	function ResponseMessage() {
-		if (loading) {
-			return <p data-test-id={dataTestIdNames.invite.loading}>Sending invitation...</p>
-		}
-		return (
-			responseMessage && (
-				<p data-test-id={dataTestIdNames.invite.response} className="text-red-600">
-					{responseMessage}
-				</p>
-			)
-		)
-	}
 
 	return (
 		<div data-test-id={dataTestIdNames.invite.form}>
@@ -98,20 +78,19 @@ export default function InviteCustomerForm() {
 						type="email"
 						placeholder="customer@gmail.com"
 						value={invitedEmail}
-						onChange={handleEmailChange}
+						onChange={(event) => setInvitedEmail(event.target.value)}
 						required
 					/>
 				</div>
 				<button
-					data-test-id={dataTestIdNames.invite.submitButton}
+					data-test-id="invite-customer-submit-button"
 					type="submit"
-					disabled={loading || !invitedEmail}
+					disabled={isSubmitting || !invitedEmail}
+					// Main ToDo: disabled/submitting styles
 					className="button-primary"
 				>
-					{/* ToDo: add Spinner and isSubmitting */}
-					Send invitation
+					<div className="min-h-7 flex justify-center">{isSubmitting ? <Spinner colour="text-white" /> : 'Send invitation'}</div>
 				</button>
-				<ResponseMessage />
 			</form>
 		</div>
 	)

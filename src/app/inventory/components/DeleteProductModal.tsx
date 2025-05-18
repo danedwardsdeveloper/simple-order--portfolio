@@ -1,22 +1,26 @@
 'use client'
+import Spinner from '@/components/Spinner'
 import { dataTestIdNames } from '@/library/constants'
 import type { BrowserSafeMerchantProduct } from '@/types'
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import type { HandleDeleteProduct } from './InventoryCard'
 
 export default function DeleteProductModal({
 	isOpen,
 	onClose,
 	onConfirm,
 	product,
+	isDeleting,
 }: {
 	isOpen: boolean
 	onClose: () => void
-	onConfirm: () => Promise<void> | void
+	onConfirm: HandleDeleteProduct
 	product: BrowserSafeMerchantProduct
+	isDeleting: boolean
 }) {
 	async function handleConfirm() {
-		await onConfirm()
+		await onConfirm(product.id)
 		onClose()
 	}
 
@@ -50,9 +54,12 @@ export default function DeleteProductModal({
 							<button
 								type="button"
 								onClick={handleConfirm}
+								disabled={isDeleting}
 								className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
 							>
-								Delete product
+								<div className="min-h-7 min-w-[14ch] flex justify-center">
+									{isDeleting ? <Spinner colour="text-white" /> : 'Delete product'}
+								</div>
 							</button>
 							<button
 								type="button"

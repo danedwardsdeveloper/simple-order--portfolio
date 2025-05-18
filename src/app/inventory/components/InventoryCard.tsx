@@ -1,31 +1,29 @@
 'use client'
-import type { InventoryDELETEresponse, InventoryDELETEsegment } from '@/app/api/inventory/[itemId]/delete'
-import { useNotifications } from '@/components/providers/notifications'
 import { useUi } from '@/components/providers/ui'
-import { useUser } from '@/components/providers/user'
-import { apiRequest, formatPrice, mergeClasses } from '@/library/utilities/public'
+import { formatPrice, mergeClasses } from '@/library/utilities/public'
 import type { BrowserSafeMerchantProduct } from '@/types'
 import { useState } from 'react'
 import DeleteProductModal from './DeleteProductModal'
 
+export type HandleDeleteProduct = (productId: number) => Promise<boolean>
+
 interface Props {
 	product: BrowserSafeMerchantProduct
+	handleDelete: HandleDeleteProduct
 	zebraStripe: boolean
+	isDeleting: boolean
 }
 
-export default function InventoryCard({ product, zebraStripe }: Props) {
-	const { vat, setInventory } = useUser()
+export default function InventoryCard({ product, handleDelete, isDeleting, zebraStripe }: Props) {
+	const { name, priceInMinorUnits, customVat, description } = product
 	const [showDeleteModal, setShowDeleteModal] = useState(false)
-	const { successNotification, errorNotification } = useNotifications()
 	const [isBeingEdited, setIsBeingEdited] = useState(false)
 	const { includeVat } = useUi()
 
-	const vatInteger = product.customVat ?? vat
-
 	function DisplayPrice(): string {
-		if (!includeVat) return formatPrice(product.priceInMinorUnits)
-		const vatMultiplier = 1 + vatInteger / 100
-		return formatPrice(product.priceInMinorUnits * vatMultiplier)
+		if (!includeVat) return formatPrice(priceInMinorUnits)
+		const vatMultiplier = 1 + customVat / 100
+		return formatPrice(priceInMinorUnits * vatMultiplier)
 	}
 
 	if (isBeingEdited) {
@@ -39,46 +37,24 @@ export default function InventoryCard({ product, zebraStripe }: Props) {
 		)
 	}
 
-	async function handleDelete() {
-		const segment: InventoryDELETEsegment = String(product.id)
-
-		const { softDeletedProduct, userMessage } = await apiRequest<InventoryDELETEresponse>({
-			basePath: '/inventory',
-			segment,
-			method: 'DELETE',
-		})
-
-		if (softDeletedProduct) {
-			successNotification(`${product.name} deleted`)
-
-			setInventory((previousInventory) => (previousInventory ? previousInventory.filter((item) => item.id !== softDeletedProduct.id) : []))
-
-			return
-		}
-
-		if (!softDeletedProduct || userMessage) {
-			errorNotification(`Failed to delete ${product.name}`)
-		}
-		return
-	}
-
 	return (
 		<>
 			<DeleteProductModal
 				product={product}
 				isOpen={showDeleteModal}
 				onClose={() => setShowDeleteModal(false)}
-				onConfirm={() => handleDelete()}
+				onConfirm={handleDelete}
+				isDeleting={isDeleting}
 			/>
 			<li className={mergeClasses('flex flex-col gap-y-2 w-full p-3 rounded-xl', zebraStripe ? 'bg-blue-50' : 'bg-zinc-50')}>
-				<h3 className="mb-1">{product.name}</h3>
-				<p className="text-zinc-700 max-w-prose">{product.description}</p>
+				<h3 className="mb-1">{name}</h3>
+				<p className="text-zinc-700 max-w-prose">{description}</p>
 				<div className="flex justify-between items-center">
 					<div className="flex gap-x-1 items-center">
 						<span className="text-lg">
 							<DisplayPrice />
 						</span>
-						<span className="text-zinc-500">{includeVat && `Including ${vatInteger}% VAT`}</span>
+						<span className="text-zinc-500">{includeVat && `Including ${customVat}% VAT`}</span>
 					</div>
 					<div className="flex gap-x-4">
 						{/* Main ToDo: Make these buttons work in demo and app modes */}
