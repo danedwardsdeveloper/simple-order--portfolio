@@ -90,7 +90,7 @@ export const products = pgTable('products', {
 	name: text('name').notNull(),
 	description: text('description'),
 	priceInMinorUnits: integer('price_in_minor_units').notNull(),
-	customVat: integer('custom_vat'),
+	customVat: integer('custom_vat').notNull(), // Change this to just vat
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 	deletedAt: timestamp('deleted_at'),

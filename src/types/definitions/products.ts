@@ -31,6 +31,6 @@ const _exampleBrowserSafeMerchantProduct: BrowserSafeMerchantProduct = {
 	name: '',
 	description: null,
 	priceInMinorUnits: 0,
-	customVat: null,
+	customVat: 5,
 	deletedAt: null,
 }
