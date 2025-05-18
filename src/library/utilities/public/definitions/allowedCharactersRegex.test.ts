@@ -1,5 +1,5 @@
+import { allowedCharactersRegex } from '@/library/validations'
 import { describe, expect, test } from 'vitest'
-import { allowedCharactersRegex } from './allowedCharactersRegex'
 
 const acceptedItems = [
 	'lowercase string',

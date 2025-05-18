@@ -2,7 +2,7 @@ import { http403forbidden, http409conflict, http503serviceUnavailable, serviceCo
 import { database } from '@/library/database/connection'
 import { checkAccess } from '@/library/database/operations'
 import { products } from '@/library/database/schema'
-import { containsIllegalCharacters } from '@/library/utilities/public'
+import { containsIllegalCharacters } from '@/library/utilities/public/definitions/allowedCharactersRegex'
 import { and, equals, initialiseResponder } from '@/library/utilities/server'
 import type { BrowserSafeMerchantProduct, ProductInsertValues, UserMessages } from '@/types'
 import type { NextRequest, NextResponse } from 'next/server'

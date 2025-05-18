@@ -6,7 +6,6 @@ export { mergeClasses, generateUuid, validateUuid }
 export * from './definitions/createMerchantSlug'
 export * from './definitions/formatting'
 export * from './definitions/createFreeTrialEndTime'
-export * from './definitions/allowedCharactersRegex'
 export * from './definitions/generateRandomString'
 export * from './definitions/obfuscateEmail'
 export * from './definitions/sanitiseUser'

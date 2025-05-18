@@ -1,8 +1,8 @@
 import { userMessages } from '@/library/constants'
 import { users } from '@/library/database/schema'
-import { allowedCharactersRegex } from '@/library/utilities/public'
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod'
+import { allowedCharactersRegex } from './validCharacters'
 
 export const NewUserSchema = z.object({
 	firstName: z.string().min(1, 'First name required').regex(allowedCharactersRegex, { message: userMessages.allowedCharacters }),

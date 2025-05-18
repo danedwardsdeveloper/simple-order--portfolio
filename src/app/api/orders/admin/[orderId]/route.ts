@@ -2,7 +2,7 @@ import { orderStatusIdToName, serviceConstraints, userMessages } from '@/library
 import { database } from '@/library/database/connection'
 import { checkAccess } from '@/library/database/operations'
 import { orders } from '@/library/database/schema'
-import { containsIllegalCharacters } from '@/library/utilities/public'
+import { containsIllegalCharacters } from '@/library/utilities/public/definitions/allowedCharactersRegex'
 import { equals, initialiseResponder } from '@/library/utilities/server'
 import type { BaseOrder, OrderStatusId, OrderStatusName } from '@/types'
 import type { NextRequest, NextResponse } from 'next/server'
