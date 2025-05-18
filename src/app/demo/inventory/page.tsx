@@ -1,5 +1,6 @@
 'use client'
 import AddInventoryForm, { type InventoryAddFormData } from '@/app/inventory/components/AddInventoryForm'
+import type { HandleDeleteProduct } from '@/app/inventory/components/InventoryCard'
 import InventoryList from '@/app/inventory/components/InventoryList'
 import InventorySizeMessage from '@/app/inventory/components/InventorySizeMessage'
 import VatToggleButton from '@/app/inventory/components/VatToggleButton'
@@ -16,10 +17,11 @@ import { useEffect, useState } from 'react'
 export default function DemoInventoryPage() {
 	const { demoUser, inventory, setInventory, vat } = useDemoUser()
 	const { merchantMode } = useUi()
-	const { successNotification } = useNotifications()
+	const { successNotification, errorNotification } = useNotifications()
 	const router = useRouter()
 
 	const [isSubmitting, setIsSubmitting] = useState(false)
+	const [isDeleting, setIsDeleting] = useState(false)
 
 	useEffect(() => {
 		if (!merchantMode) {
@@ -39,7 +41,7 @@ export default function DemoInventoryPage() {
 			name: formData.name,
 			description: formData.description,
 			priceInMinorUnits: priceInMinorUnits ?? null,
-			customVat: customVat ?? null,
+			customVat: customVat ?? 0,
 			deletedAt: null,
 		} satisfies BrowserSafeMerchantProduct
 
@@ -49,12 +51,29 @@ export default function DemoInventoryPage() {
 		return true
 	}
 
+	const handleDelete: HandleDeleteProduct = async (productId) => {
+		setIsDeleting(true)
+		await subtleDelay()
+
+		const productToDelete = inventory?.find((product) => product.id === productId)
+
+		if (!productToDelete) {
+			errorNotification('Product not found')
+			return false
+		}
+
+		setInventory((previousInventory) => (previousInventory ? previousInventory.filter((item) => item.id !== productId) : []))
+		successNotification(`${productToDelete.name} deleted`)
+		setIsDeleting(false)
+		return true
+	}
+
 	return (
 		<>
 			<SignedInBreadCrumbs businessName={demoUser.businessName} currentPageTitle="Inventory" demoMode />
 			<h1>Inventory</h1>
 			<TwoColumnContainer
-				mainColumn={<InventoryList inventory={inventory} />}
+				mainColumn={<InventoryList inventory={inventory} handleDelete={handleDelete} isDeleting={isDeleting} />}
 				sideColumn={
 					<>
 						<InventorySizeMessage inventory={inventory} />
