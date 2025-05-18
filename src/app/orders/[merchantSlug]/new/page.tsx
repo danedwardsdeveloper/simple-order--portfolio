@@ -13,8 +13,7 @@ import { type FormEvent, use, useEffect, useState } from 'react'
 import CustomerFacingProductCard from '../components/CustomerFacingProductCard'
 import DeliveryDates from './DeliveryDates'
 
-// ToDo: extract CreateOrderForm.tsx
-export default function MerchantPage({ params }: { params: Promise<{ merchantSlug: string }> }) {
+export default function NewOrderPage({ params }: { params: Promise<{ merchantSlug: string }> }) {
 	const resolvedParams = use(params)
 	const merchantSlug = resolvedParams.merchantSlug
 	const { user, confirmedMerchants, setOrdersMade, vat } = useUser()
@@ -235,6 +234,7 @@ export default function MerchantPage({ params }: { params: Promise<{ merchantSlu
 							<button
 								type="submit"
 								disabled={Object.values(selectedProducts).every((quantity) => quantity === 0) || isSubmitting || !minimumSpendReached}
+								// Use SubmitButton instead
 								className={mergeClasses(
 									'w-full max-w-xl rounded-lg px-3 py-1 font-medium transition-all duration-300 outline-offset-4 focus-visible:outline-orange-400',
 									'flex items-center justify-center w-full mt-4 py-2 border-2',
