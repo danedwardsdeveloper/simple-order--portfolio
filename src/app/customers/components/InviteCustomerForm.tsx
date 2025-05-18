@@ -1,6 +1,6 @@
 'use client'
 import type { InvitationsPOSTbody, InvitationsPOSTresponse } from '@/app/api/invitations/route'
-import Spinner from '@/components/Spinner'
+import SubmitButton from '@/components/SubmitButton'
 import { useNotifications } from '@/components/providers/notifications'
 import { useUser } from '@/components/providers/user'
 import { dataTestIdNames, userMessages } from '@/library/constants'
@@ -8,6 +8,7 @@ import { apiRequest } from '@/library/utilities/public'
 import type { UserContextType } from '@/types'
 import { type FormEvent, useState } from 'react'
 
+// Main ToDo!
 type Props = {
 	setInvitationsSent: UserContextType['setInvitationsSent']
 }
@@ -82,15 +83,12 @@ export default function InviteCustomerForm() {
 						required
 					/>
 				</div>
-				<button
-					data-test-id="invite-customer-submit-button"
-					type="submit"
-					disabled={isSubmitting || !invitedEmail}
-					// Main ToDo: disabled/submitting styles
-					className="button-primary"
-				>
-					<div className="min-h-7 flex justify-center">{isSubmitting ? <Spinner colour="text-white" /> : 'Send invitation'}</div>
-				</button>
+				<SubmitButton
+					dataTestId='"invite-customer-submit-button"'
+					content="Send invitation"
+					formReady={Boolean(invitedEmail)}
+					isSubmitting={isSubmitting}
+				/>
 			</form>
 		</div>
 	)
