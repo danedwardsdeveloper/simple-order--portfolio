@@ -62,6 +62,8 @@ export default function InventoryCard({ product, zebraStripe, deleteProduct, isD
 			},
 		})
 
+		// ToDo: when you submit the updated product it briefly displays a weird glitch
+
 		async function onSubmit(updateData: InventoryUpdateFormData) {
 			const success = await updateProduct(product, updateData)
 			if (success) {
@@ -92,6 +94,7 @@ export default function InventoryCard({ product, zebraStripe, deleteProduct, isD
 					<div>
 						<label htmlFor="description" className="block  font-medium">
 							Description
+							<span className="ml-2 text-zinc-500 font-normal">optional</span>
 						</label>
 						<FormFieldErrorMessage error={descriptionError} />
 						<textarea
@@ -124,17 +127,16 @@ export default function InventoryCard({ product, zebraStripe, deleteProduct, isD
 					</div>
 				</div>
 
-				<div className="flex gap-x-4 justify-end">
-					<button type="button" onClick={() => setIsBeingEdited(false)} className="button-secondary">
-						Cancel
+				<div className="flex gap-x-4 justify-end h-min items-end">
+					<button type="button" onClick={() => setIsBeingEdited(false)} className="button-secondary h-min w-1/2">
+						<p className="min-h-7">Cancel</p>
 					</button>
-					{hasChanges && (
-						<SubmitButton //
-							formReady={hasChanges && isValid}
-							isSubmitting={isUpdating}
-							content="Save changes"
-						/>
-					)}
+					<SubmitButton //
+						formReady={hasChanges && isValid}
+						isSubmitting={isUpdating}
+						content="Save changes"
+						classes="w-1/2"
+					/>
 				</div>
 			</form>
 		)
