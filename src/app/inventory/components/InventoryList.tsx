@@ -1,5 +1,5 @@
 import type { UserContextType } from '@/types'
-import InventoryCard, { type InventoryCardProps } from './inventoryCard'
+import InventoryCard, { type InventoryCardProps } from './InventoryCard'
 
 type Props = {
 	inventory: UserContextType['inventory']

@@ -5,7 +5,7 @@ import type { AsyncFunction, DangerousBaseUser, TestUserInputValues } from '@/ty
 import { describe, expect, test } from 'vitest'
 import { deleteUser } from '.'
 import { createUser } from '../../../../src/library/database/operations/definitions/createUser'
-import { addProducts } from '../addProducts'
+import { addProducts } from '../products'
 
 const inputValues: TestUserInputValues = {
 	firstName: 'Imelda',

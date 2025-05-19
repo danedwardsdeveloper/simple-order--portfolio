@@ -1,6 +1,6 @@
 export * from './definitions/requestMakerInitialisers'
 export * from './definitions/parseCookies'
-export * from './definitions/addProducts'
+export * from './definitions/products'
 export * from './definitions/createCookieString'
 export * from './definitions/deleteUser'
 export * from './definitions/apiTestRequest'
