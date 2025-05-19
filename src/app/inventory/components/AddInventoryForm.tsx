@@ -1,11 +1,11 @@
 'use client'
+import FormFieldErrorMessage from '@/components/FormFieldErrorMessage'
 import SubmitButton from '@/components/SubmitButton'
 import { serviceConstraints } from '@/library/constants'
 import { type InventoryAddFormData, inventoryAddFormInputSchema } from '@/library/validations'
 import type { BrowserSafeMerchantProduct } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
-import { type FieldError, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 
 export interface AddInventoryFormProps {
 	inventory: BrowserSafeMerchantProduct[] | null
@@ -15,12 +15,18 @@ export interface AddInventoryFormProps {
 }
 
 export default function AddInventoryForm({ inventory, vat, addProduct, isSubmitting }: AddInventoryFormProps) {
-	const [errorMessage, setErrorMessage] = useState('')
-
 	const {
 		register,
 		handleSubmit,
-		formState: { errors, isValid },
+		formState: {
+			errors: {
+				name: nameError, //
+				description: descriptionError,
+				priceInMinorUnits: priceInMinorUnitsError,
+				customVat: customVatError,
+			},
+			isValid,
+		},
 		reset,
 	} = useForm<InventoryAddFormData>({
 		resolver: zodResolver(inventoryAddFormInputSchema),
@@ -38,23 +44,11 @@ export default function AddInventoryForm({ inventory, vat, addProduct, isSubmitt
 	}
 
 	async function onSubmit(data: InventoryAddFormData) {
-		setErrorMessage('')
-
 		const success = await addProduct(data)
 		if (success) {
 			reset()
 			return
 		}
-
-		// ToDo: this could be more helpful
-		setErrorMessage('Failed to add item')
-	}
-
-	function ErrorMessage(props: { error: FieldError | string | undefined }) {
-		const { error } = props
-		if (!error) return null
-
-		return <p className="text-red-600 mt-2">{typeof error === 'string' ? error : error.message}</p>
 	}
 
 	return (
@@ -64,13 +58,13 @@ export default function AddInventoryForm({ inventory, vat, addProduct, isSubmitt
 			<div>
 				<div className="mb-1">
 					<label htmlFor="name">Name</label>
-					<ErrorMessage error={errors.name} />
+					<FormFieldErrorMessage error={nameError} />
 				</div>
 				<input
 					id="name" //
 					type="text"
 					{...register('name')}
-					aria-invalid={errors.name ? 'true' : 'false'}
+					aria-invalid={nameError ? 'true' : 'false'}
 					className="w-full"
 				/>
 			</div>
@@ -80,12 +74,12 @@ export default function AddInventoryForm({ inventory, vat, addProduct, isSubmitt
 					Description
 					<span className="ml-2 text-zinc-500">optional</span>
 				</label>
-				<ErrorMessage error={errors.description} />
+				<FormFieldErrorMessage error={descriptionError} />
 				<input
 					id="description" //
 					type="text"
 					{...register('description')}
-					aria-invalid={errors.description ? 'true' : 'false'}
+					aria-invalid={descriptionError ? 'true' : 'false'}
 					className="w-full"
 				/>
 			</div>
@@ -94,11 +88,11 @@ export default function AddInventoryForm({ inventory, vat, addProduct, isSubmitt
 				<label htmlFor="price" className="block mb-1">
 					Price in pence
 				</label>
-				<ErrorMessage error={errors.priceInMinorUnits} />
+				<FormFieldErrorMessage error={priceInMinorUnitsError} />
 				<input
 					id="priceInMinorUnits" //
 					type="text"
-					aria-invalid={errors.priceInMinorUnits ? 'true' : 'false'}
+					aria-invalid={priceInMinorUnitsError ? 'true' : 'false'}
 					{...register('priceInMinorUnits')}
 					className="w-full"
 				/>
@@ -108,17 +102,16 @@ export default function AddInventoryForm({ inventory, vat, addProduct, isSubmitt
 				<label htmlFor="vat" className="block mb-1">
 					VAT percentage
 				</label>
-				<ErrorMessage error={errors.customVat} />
+				<FormFieldErrorMessage error={customVatError} />
 				<input
 					id="customVat" //
 					type="text"
-					aria-invalid={errors.customVat ? 'true' : 'false'}
+					aria-invalid={customVatError ? 'true' : 'false'}
 					{...register('customVat')}
 					className="w-full"
 				/>
 			</div>
 
-			<ErrorMessage error={errorMessage} />
 			<div className="flex justify-center mt-8">
 				<SubmitButton //
 					content="Add item"
