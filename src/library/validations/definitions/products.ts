@@ -18,9 +18,10 @@ export const inventoryAddFormInputSchema = z.object({
 		.max(maxDescriptionLength, {
 			message: `Description must be less than ${maxDescriptionLength} characters`,
 		})
-		.pipe(validCharacters())
 		.optional()
-		.nullable(),
+		.nullable()
+		.transform((value) => (value === '' ? null : value))
+		.pipe(z.string().nullable().optional().or(z.string().pipe(validCharacters()))),
 
 	priceInMinorUnits: z
 		.string()
