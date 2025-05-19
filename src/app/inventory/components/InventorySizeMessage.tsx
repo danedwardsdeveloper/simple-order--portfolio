@@ -11,7 +11,7 @@ export default function InventorySizeMessage({ inventory }: { inventory: UserCon
 					}
 					return (
 						<>
-							{inventory?.length || 0} product{inventory?.length !== 1 && 's'} - maximum {serviceConstraints.maximumProducts}
+							{inventory?.length || 0} / {serviceConstraints.maximumProducts} products
 						</>
 					)
 				})()}

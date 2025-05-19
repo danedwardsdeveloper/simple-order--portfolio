@@ -3,20 +3,23 @@ import InventoryCard, { type InventoryCardProps } from './inventoryCard'
 
 type Props = {
 	inventory: UserContextType['inventory']
-} & Pick<InventoryCardProps, 'handleDelete' | 'handleUpdate' | 'isDeleting'>
+} & Pick<InventoryCardProps, 'updateProduct' | 'isUpdating' | 'deleteProduct' | 'isDeleting'>
 
-export default function InventoryList({ inventory, handleDelete, handleUpdate, isDeleting }: Props) {
-	if (!inventory) return null // ToDo: add "No products yet" message
+export default function InventoryList({ inventory, updateProduct, isUpdating, deleteProduct, isDeleting }: Props) {
+	if (!inventory || inventory.length === 0) {
+		return <div>Your inventory is empty</div>
+	}
 
 	return (
 		<ul className="flex flex-col w-full gap-y-4 max-w-xl lg:-mx-3">
 			{inventory.map((product, index) => (
-				<InventoryCard
+				<InventoryCard //
 					key={product.id}
 					product={product}
 					zebraStripe={Boolean(index % 2)}
-					handleDelete={handleDelete}
-					handleUpdate={handleUpdate}
+					updateProduct={updateProduct}
+					isUpdating={isUpdating}
+					deleteProduct={deleteProduct}
 					isDeleting={isDeleting}
 				/>
 			))}

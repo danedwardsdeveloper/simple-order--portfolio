@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { type FieldError, useForm } from 'react-hook-form'
 
-interface AddInventoryFormProps {
+export interface AddInventoryFormProps {
 	inventory: BrowserSafeMerchantProduct[] | null
 	vat: number
 	addProduct: (formData: InventoryAddFormData) => Promise<boolean>

@@ -3,9 +3,9 @@ import { LoadingProvider } from '@/components/providers/loading'
 import { isDevelopment } from '@/library/environment/publicVariables'
 import dynamic from 'next/dynamic'
 import type { ReactNode } from 'react'
-import { DemoSettingsProvider } from './demo/settings'
 import { DemoUserProvider } from './demo/user'
 import { DevelopmentProvider } from './development'
+import { InventoryProvider } from './inventory'
 import { MerchantSettingsProvider } from './settings'
 
 const UiProvider = dynamic(() => import('@/components/providers/ui').then((module) => module.UiProvider), {
@@ -30,14 +30,14 @@ export default function Providers({ children }: { children: ReactNode }) {
 			<UiProvider>
 				<NotificationsProvider>
 					<UserProvider>
-						<MerchantSettingsProvider>
-							<DemoUserProvider>
-								<DemoSettingsProvider>
+						<DemoUserProvider>
+							<InventoryProvider>
+								<MerchantSettingsProvider>
 									<NotificationsContainer />
 									<LoadingProvider>{children}</LoadingProvider>
-								</DemoSettingsProvider>
-							</DemoUserProvider>
-						</MerchantSettingsProvider>
+								</MerchantSettingsProvider>
+							</InventoryProvider>
+						</DemoUserProvider>
 					</UserProvider>
 				</NotificationsProvider>
 			</UiProvider>
