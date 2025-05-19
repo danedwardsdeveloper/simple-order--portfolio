@@ -2,13 +2,15 @@ import { mergeClasses } from '@/library/utilities/public'
 import type { ReactNode } from 'react'
 import Spinner from './Spinner'
 
-export default function SubmitButton({
-	formReady,
-	isSubmitting,
-	content,
-	classes,
-	dataTestId,
-}: { formReady: boolean; isSubmitting: boolean; content: string | ReactNode; classes?: string; dataTestId?: string }) {
+type Props = {
+	formReady: boolean
+	isSubmitting: boolean
+	content: string | ReactNode
+	classes?: string
+	dataTestId?: string
+}
+
+export default function SubmitButton({ formReady, isSubmitting, content, classes, dataTestId }: Props) {
 	return (
 		<button
 			type="submit"
