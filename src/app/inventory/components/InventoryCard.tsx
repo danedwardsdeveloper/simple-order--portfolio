@@ -1,11 +1,15 @@
 'use client'
+import FormFieldErrorMessage from '@/components/FormFieldErrorMessage'
 import SubmitButton from '@/components/SubmitButton'
 import type { HandleDeleteProduct, HandleUpdateProduct } from '@/components/providers/inventory'
 import { useUi } from '@/components/providers/ui'
 import { formatPrice, mergeClasses } from '@/library/utilities/public'
+import { type InventoryUpdateFormData, inventoryUpdateFormSchema } from '@/library/validations'
 import type { BrowserSafeMerchantProduct } from '@/types'
-import { type FormEvent, useState } from 'react'
-import DeleteProductModal from '../DeleteProductModal'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import DeleteProductModal from './DeleteProductModal'
 
 export interface InventoryCardProps {
 	product: BrowserSafeMerchantProduct
@@ -23,8 +27,6 @@ export default function InventoryCard({ product, zebraStripe, deleteProduct, isD
 
 	const [showDeleteModal, setShowDeleteModal] = useState(false)
 	const [isBeingEdited, setIsBeingEdited] = useState(false)
-	const [hasChanges, setHasChanges] = useState(false)
-	const [editedProduct, setEditedProduct] = useState(product)
 
 	const { name, priceInMinorUnits, customVat, description } = product
 
@@ -34,37 +36,56 @@ export default function InventoryCard({ product, zebraStripe, deleteProduct, isD
 		return formatPrice(priceInMinorUnits * vatMultiplier)
 	}
 
-	function handleInputChange(field: keyof BrowserSafeMerchantProduct, value: string | number) {
-		setEditedProduct((prev) => {
-			const updated = { ...prev, [field]: value }
-			setHasChanges(JSON.stringify(updated) !== JSON.stringify(product))
-			return updated
-		})
-	}
-
-	async function handleSubmit(event: FormEvent) {
-		event.preventDefault()
-		const success = await updateProduct(editedProduct)
-		if (success) {
-			setIsBeingEdited(false)
-			setHasChanges(false)
-		}
-	}
-
 	function EditView() {
+		const {
+			register,
+			handleSubmit,
+			formState: {
+				errors: {
+					name: nameError, //
+					description: descriptionError,
+					priceInMinorUnits: priceInMinorUnitsError,
+					customVat: customVatError,
+				},
+				isValid,
+				isDirty: hasChanges,
+			},
+			reset,
+		} = useForm<InventoryUpdateFormData>({
+			resolver: zodResolver(inventoryUpdateFormSchema),
+			mode: 'onChange',
+			defaultValues: {
+				name,
+				description,
+				priceInMinorUnits: String(priceInMinorUnits),
+				customVat: String(customVat),
+			},
+		})
+
+		async function onSubmit(updateData: InventoryUpdateFormData) {
+			const success = await updateProduct(product, updateData)
+			if (success) {
+				setIsBeingEdited(false)
+				reset()
+			}
+		}
+
 		return (
-			<form onSubmit={handleSubmit}>
-				<div className="flex flex-col gap-y-3 mb-3">
+			<form onSubmit={handleSubmit(onSubmit)}>
+				<div className="flex flex-col gap-y-4 mb-3">
 					<div>
-						<label htmlFor="productName" className="block  font-medium">
-							Product name
-						</label>
+						<div className="mb-1">
+							<label htmlFor="name" className="block  font-medium">
+								Name
+							</label>
+							<FormFieldErrorMessage error={nameError} />
+						</div>
 						<input
-							type="text"
-							id="productName"
-							value={editedProduct.name}
-							onChange={(e) => handleInputChange('name', e.target.value)}
-							className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+							type="text" //
+							id="name"
+							{...register('name')}
+							aria-invalid={nameError ? 'true' : 'false'}
+							className="w-full"
 						/>
 					</div>
 
@@ -72,24 +93,26 @@ export default function InventoryCard({ product, zebraStripe, deleteProduct, isD
 						<label htmlFor="description" className="block  font-medium">
 							Description
 						</label>
+						<FormFieldErrorMessage error={descriptionError} />
 						<textarea
-							id="description"
-							value={editedProduct.description || ''}
-							onChange={(event) => handleInputChange('description', event.target.value)}
-							className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:"
+							id="description" //
+							{...register('description')}
+							aria-invalid={descriptionError ? 'true' : 'false'}
+							className="w-full"
 						/>
 					</div>
 
 					<div>
 						<label htmlFor="price" className="block  font-medium">
-							Price (in pence)
+							Price in pence
 						</label>
+						<FormFieldErrorMessage error={priceInMinorUnitsError} />
 						<input
-							type="number"
+							type="number" //
 							id="price"
-							value={editedProduct.priceInMinorUnits}
-							onChange={(event) => handleInputChange('priceInMinorUnits', Number.parseInt(event.target.value, 10))}
-							className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:"
+							{...register('priceInMinorUnits')}
+							aria-invalid={priceInMinorUnitsError ? 'true' : 'false'}
+							className="w-full"
 						/>
 					</div>
 
@@ -97,13 +120,7 @@ export default function InventoryCard({ product, zebraStripe, deleteProduct, isD
 						<label htmlFor="vat" className="block  font-medium">
 							VAT %
 						</label>
-						<input
-							type="number"
-							id="vat"
-							value={editedProduct.customVat}
-							onChange={(event) => handleInputChange('customVat', Number.parseInt(event.target.value, 10))}
-							className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:"
-						/>
+						<input type="number" id="vat" {...register('customVat')} aria-invalid={customVatError ? 'true' : 'false'} className="w-full" />
 					</div>
 				</div>
 
@@ -111,7 +128,13 @@ export default function InventoryCard({ product, zebraStripe, deleteProduct, isD
 					<button type="button" onClick={() => setIsBeingEdited(false)} className="button-secondary">
 						Cancel
 					</button>
-					{hasChanges && <SubmitButton formReady={hasChanges} isSubmitting={isUpdating} content="Save changes" />}
+					{hasChanges && (
+						<SubmitButton //
+							formReady={hasChanges && isValid}
+							isSubmitting={isUpdating}
+							content="Save changes"
+						/>
+					)}
 				</div>
 			</form>
 		)
@@ -120,6 +143,7 @@ export default function InventoryCard({ product, zebraStripe, deleteProduct, isD
 	function MainView() {
 		return (
 			<>
+				<h3 className="mb-1">{name}</h3>
 				<p className="text-zinc-700">{description}</p>
 				{includeVat && <p className="text-zinc-700">{customVat}% VAT</p>}
 				<div className="flex justify-between items-center">
@@ -153,7 +177,6 @@ export default function InventoryCard({ product, zebraStripe, deleteProduct, isD
 			/>
 
 			<li className={mergeClasses('flex flex-col gap-y-2 w-full p-3 rounded-xl', zebraStripe ? 'bg-blue-50' : 'bg-zinc-50')}>
-				<h3 className="mb-1">{name}</h3>
 				{isBeingEdited ? <EditView /> : <MainView />}
 			</li>
 		</>
