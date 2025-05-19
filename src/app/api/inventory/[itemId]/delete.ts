@@ -6,6 +6,7 @@ import { initialiseDevelopmentLogger } from '@/library/utilities/public'
 import { and, equals } from '@/library/utilities/server'
 import type { BrowserSafeMerchantProduct, UserMessages } from '@/types'
 import { type NextRequest, NextResponse } from 'next/server'
+import type { InventoryItemParams } from './route'
 
 export interface InventoryDELETEresponse {
 	userMessage?: UserMessages
@@ -13,14 +14,10 @@ export interface InventoryDELETEresponse {
 	softDeletedProduct?: BrowserSafeMerchantProduct
 }
 
-export type InventoryDELETEsegment = string
-
-type InventoryDELETEparams = { itemId: InventoryDELETEsegment }
-
 // ToDo: this needs to be refactored but it works
 export async function DELETE(
 	request: NextRequest,
-	{ params }: { params: Promise<InventoryDELETEparams> },
+	{ params }: { params: Promise<InventoryItemParams> },
 ): Promise<NextResponse<InventoryDELETEresponse>> {
 	const { developmentLogger } = initialiseDevelopmentLogger('/inventory/[itemId]', 'DELETE')
 
