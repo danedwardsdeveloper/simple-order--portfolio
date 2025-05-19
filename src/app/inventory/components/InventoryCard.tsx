@@ -1,4 +1,5 @@
 'use client'
+import SubmitButton from '@/components/SubmitButton'
 import { useUi } from '@/components/providers/ui'
 import { formatPrice, mergeClasses } from '@/library/utilities/public'
 import type { BrowserSafeMerchantProduct } from '@/types'
@@ -15,10 +16,12 @@ interface Props {
 }
 
 export default function InventoryCard({ product, handleDelete, isDeleting, zebraStripe }: Props) {
-	const { name, priceInMinorUnits, customVat, description } = product
+	const { includeVat } = useUi()
+
 	const [showDeleteModal, setShowDeleteModal] = useState(false)
 	const [isBeingEdited, setIsBeingEdited] = useState(false)
-	const { includeVat } = useUi()
+
+	const { name, priceInMinorUnits, customVat, description } = product
 
 	function DisplayPrice(): string {
 		if (!includeVat) return formatPrice(priceInMinorUnits)
@@ -26,14 +29,41 @@ export default function InventoryCard({ product, handleDelete, isDeleting, zebra
 		return formatPrice(priceInMinorUnits * vatMultiplier)
 	}
 
-	if (isBeingEdited) {
+	function EditView() {
 		return (
-			<li className={mergeClasses('flex flex-col gap-y-2 w-full p-3 rounded-xl', zebraStripe ? 'bg-blue-50' : 'bg-zinc-50')}>
-				<h1>ToDo!</h1>
-				<button type="button" onClick={() => setIsBeingEdited(false)} className="button-secondary">
-					Cancel
-				</button>
-			</li>
+			<form>
+				<div className="flex gap-x-4 justify-end">
+					<button type="button" onClick={() => setIsBeingEdited(false)} className="button-secondary">
+						Cancel
+					</button>
+					<SubmitButton formReady={false} isSubmitting={false} content="Save changes" />
+				</div>
+			</form>
+		)
+	}
+
+	function MainView() {
+		return (
+			<>
+				<p className="text-zinc-700">{description}</p>
+				{includeVat && <p className="text-zinc-700">{customVat}% VAT</p>}
+				<div className="flex justify-between items-center">
+					<div className="flex gap-x-1 items-center">
+						<span className="text-lg">
+							<DisplayPrice />
+						</span>
+						<span className="text-zinc-500">{includeVat && `Including ${customVat}% VAT`}</span>
+					</div>
+					<div className="flex gap-x-4">
+						<button type="button" className="link-danger" onClick={() => setShowDeleteModal(true)}>
+							Delete...
+						</button>
+						<button type="button" className="link-primary" onClick={() => setIsBeingEdited(true)}>
+							Edit
+						</button>
+					</div>
+				</div>
+			</>
 		)
 	}
 
@@ -46,26 +76,10 @@ export default function InventoryCard({ product, handleDelete, isDeleting, zebra
 				onConfirm={handleDelete}
 				isDeleting={isDeleting}
 			/>
+
 			<li className={mergeClasses('flex flex-col gap-y-2 w-full p-3 rounded-xl', zebraStripe ? 'bg-blue-50' : 'bg-zinc-50')}>
 				<h3 className="mb-1">{name}</h3>
-				<p className="text-zinc-700 max-w-prose">{description}</p>
-				<div className="flex justify-between items-center">
-					<div className="flex gap-x-1 items-center">
-						<span className="text-lg">
-							<DisplayPrice />
-						</span>
-						<span className="text-zinc-500">{includeVat && `Including ${customVat}% VAT`}</span>
-					</div>
-					<div className="flex gap-x-4">
-						{/* Main ToDo: Make these buttons work in demo and app modes */}
-						<button type="button" className="link-danger" onClick={() => setShowDeleteModal(true)}>
-							Delete...
-						</button>
-						<button type="button" className="link-primary" onClick={() => setIsBeingEdited(true)}>
-							Edit
-						</button>
-					</div>
-				</div>
+				{isBeingEdited ? <EditView /> : <MainView />}
 			</li>
 		</>
 	)
