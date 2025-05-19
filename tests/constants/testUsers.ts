@@ -1,14 +1,6 @@
 import type { TestUserInputValues } from '@/types'
 // Cut and paste these into tests so each test uses a different person and there aren't any conflicts
 
-const _belleInputValues: TestUserInputValues = {
-	firstName: 'Belle',
-	lastName: 'Beauty',
-	businessName: 'Provincial Library',
-	email: 'belle@castle.com',
-	password: 'B00kw0rm!Rose',
-}
-
 const _mulanInputValues: TestUserInputValues = {
 	firstName: 'Fa',
 	lastName: 'Mulan',
