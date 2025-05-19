@@ -30,6 +30,7 @@ export async function PATCH(request: NextRequest): Output {
 	const respond = initialiseResponder<SettingsPATCHresponse>()
 
 	try {
+		// Best way to parse the body safely
 		let rawBody: SettingsPATCHbody
 		try {
 			rawBody = await request.json()
@@ -68,11 +69,7 @@ export async function PATCH(request: NextRequest): Output {
 			})
 		}
 
-		const { cutOffTime, leadTimeDays, minimumSpendPence } = validationResult.data
-
-		const updateData = Object.fromEntries(
-			Object.entries({ cutOffTime, leadTimeDays, minimumSpendPence }).filter(([_, value]) => value !== undefined),
-		)
+		const updateData = Object.fromEntries(Object.entries(validationResult.data).filter(([_, value]) => value !== undefined))
 
 		await database.update(users).set(updateData).where(equals(users.id, dangerousUser.id))
 
