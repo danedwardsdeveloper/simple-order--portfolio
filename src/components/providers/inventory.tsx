@@ -1,6 +1,6 @@
 'use client'
 import type { InventoryDELETEresponse } from '@/app/api/inventory/[itemId]/delete'
-import type { InventoryItemPATCHbody } from '@/app/api/inventory/[itemId]/patch'
+import type { InventoryItemPATCHbody, InventoryItemPATCHresponse } from '@/app/api/inventory/[itemId]/patch'
 import type { InventoryItemSegment } from '@/app/api/inventory/[itemId]/route'
 import type { InventoryAddPOSTbody, InventoryAddPOSTresponse } from '@/app/api/inventory/post'
 import { userMessages } from '@/library/constants'
@@ -20,11 +20,13 @@ export type HandleAddProduct = (formData: InventoryAddFormData) => Promise<boole
 // Move this to types as it's shared with DemoInventoryProvider
 export interface InventoryContextType {
 	isSubmitting: boolean
-	isDeleting: boolean
-	isUpdating: boolean
 	addProduct: HandleAddProduct
+
 	deleteProduct: HandleDeleteProduct
+	isDeleting: boolean
+
 	updateProduct: HandleUpdateProduct
+	isUpdating: boolean
 }
 
 const InventoryContext = createContext<InventoryContextType | null>(null)
@@ -130,8 +132,9 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
 		try {
 			await developmentDelay()
 
-			const { ok, userMessage } = await apiRequest<InventoryAddPOSTresponse, InventoryItemPATCHbody>({
+			const { ok, userMessage } = await apiRequest<InventoryItemPATCHresponse, InventoryItemPATCHbody>({
 				basePath: '/inventory',
+				method: 'PATCH',
 				segment: currentData.id,
 				body: updateData,
 			})
@@ -155,7 +158,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
 					})
 				})
 
-				successNotification(`Updated ${currentData.name}`)
+				successNotification(`Updated ${updateData.name || currentData.name}`)
 				return true
 			}
 
