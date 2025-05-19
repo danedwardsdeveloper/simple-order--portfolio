@@ -1,14 +1,11 @@
 import type { UserContextType } from '@/types'
-import InventoryCard, { type HandleDeleteProduct } from './InventoryCard'
+import InventoryCard, { type InventoryCardProps } from './inventoryCard'
 
-// Prop drilling here but InventoryCard is already very complicated
 type Props = {
 	inventory: UserContextType['inventory']
-	handleDelete: HandleDeleteProduct
-	isDeleting: boolean
-}
+} & Pick<InventoryCardProps, 'handleDelete' | 'handleUpdate' | 'isDeleting'>
 
-export default function InventoryList({ inventory, handleDelete, isDeleting }: Props) {
+export default function InventoryList({ inventory, handleDelete, handleUpdate, isDeleting }: Props) {
 	if (!inventory) return null // ToDo: add "No products yet" message
 
 	return (
@@ -19,6 +16,7 @@ export default function InventoryList({ inventory, handleDelete, isDeleting }: P
 					product={product}
 					zebraStripe={Boolean(index % 2)}
 					handleDelete={handleDelete}
+					handleUpdate={handleUpdate}
 					isDeleting={isDeleting}
 				/>
 			))}

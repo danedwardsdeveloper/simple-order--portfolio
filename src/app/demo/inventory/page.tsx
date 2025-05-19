@@ -1,6 +1,5 @@
 'use client'
 import AddInventoryForm from '@/app/inventory/components/AddInventoryForm'
-import type { HandleDeleteProduct } from '@/app/inventory/components/InventoryCard'
 import InventoryList from '@/app/inventory/components/InventoryList'
 import InventorySizeMessage from '@/app/inventory/components/InventorySizeMessage'
 import VatToggleButton from '@/app/inventory/components/VatToggleButton'
@@ -52,7 +51,7 @@ export default function DemoInventoryPage() {
 		return true
 	}
 
-	const handleDelete: HandleDeleteProduct = async (productId) => {
+	async function handleDelete(productId: number): Promise<boolean> {
 		setIsDeleting(true)
 		await subtleDelay()
 
@@ -69,12 +68,24 @@ export default function DemoInventoryPage() {
 		return true
 	}
 
+	async function handleUpdate() {
+		// Main ToDo!
+		return true
+	}
+
 	return (
 		<>
 			<SignedInBreadCrumbs businessName={demoUser.businessName} currentPageTitle="Inventory" demoMode />
 			<h1>Inventory</h1>
 			<TwoColumnContainer
-				mainColumn={<InventoryList inventory={inventory} handleDelete={handleDelete} isDeleting={isDeleting} />}
+				mainColumn={
+					<InventoryList //
+						inventory={inventory}
+						handleUpdate={handleUpdate}
+						handleDelete={handleDelete}
+						isDeleting={isDeleting}
+					/>
+				}
 				sideColumn={
 					<>
 						<InventorySizeMessage inventory={inventory} />

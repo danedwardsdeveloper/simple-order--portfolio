@@ -4,22 +4,26 @@ import { useUi } from '@/components/providers/ui'
 import { formatPrice, mergeClasses } from '@/library/utilities/public'
 import type { BrowserSafeMerchantProduct } from '@/types'
 import { useState } from 'react'
-import DeleteProductModal from './DeleteProductModal'
+import DeleteProductModal from '../DeleteProductModal'
 
 export type HandleDeleteProduct = (productId: number) => Promise<boolean>
+export type HandleUpdateProduct = (product: BrowserSafeMerchantProduct) => Promise<boolean>
 
-interface Props {
-	product: BrowserSafeMerchantProduct
+export interface InventoryCardProps {
+	handleUpdate: HandleUpdateProduct
 	handleDelete: HandleDeleteProduct
-	zebraStripe: boolean
 	isDeleting: boolean
+
+	product: BrowserSafeMerchantProduct
+	zebraStripe: boolean
 }
 
-export default function InventoryCard({ product, handleDelete, isDeleting, zebraStripe }: Props) {
+export default function InventoryCard({ product, handleDelete, handleUpdate, isDeleting, zebraStripe }: InventoryCardProps) {
 	const { includeVat } = useUi()
 
 	const [showDeleteModal, setShowDeleteModal] = useState(false)
 	const [isBeingEdited, setIsBeingEdited] = useState(false)
+	const [hasChanges, setHasChanges] = useState(false)
 
 	const { name, priceInMinorUnits, customVat, description } = product
 
@@ -31,12 +35,12 @@ export default function InventoryCard({ product, handleDelete, isDeleting, zebra
 
 	function EditView() {
 		return (
-			<form>
+			<form onSubmit={() => handleUpdate(product)}>
 				<div className="flex gap-x-4 justify-end">
 					<button type="button" onClick={() => setIsBeingEdited(false)} className="button-secondary">
 						Cancel
 					</button>
-					<SubmitButton formReady={false} isSubmitting={false} content="Save changes" />
+					{hasChanges && <SubmitButton formReady={hasChanges} isSubmitting={false} content="Save changes" />}
 				</div>
 			</form>
 		)
