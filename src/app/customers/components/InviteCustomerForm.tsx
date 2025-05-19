@@ -5,13 +5,12 @@ import { useNotifications } from '@/components/providers/notifications'
 import { useUser } from '@/components/providers/user'
 import { dataTestIdNames, userMessages } from '@/library/constants'
 import { apiRequest } from '@/library/utilities/public'
-import type { UserContextType } from '@/types'
 import { type FormEvent, useState } from 'react'
 
-// Main ToDo!
-type Props = {
-	setInvitationsSent: UserContextType['setInvitationsSent']
-}
+// Next ToDo after finishing Inventory
+// type Props = {
+// 	setInvitationsSent: UserContextType['setInvitationsSent']
+// }
 
 export default function InviteCustomerForm() {
 	const { user, setInvitationsSent } = useUser()
