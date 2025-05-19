@@ -1,5 +1,5 @@
 'use client'
-import AddInventoryForm, { type InventoryAddFormData } from '@/app/inventory/components/AddInventoryForm'
+import AddInventoryForm from '@/app/inventory/components/AddInventoryForm'
 import type { HandleDeleteProduct } from '@/app/inventory/components/InventoryCard'
 import InventoryList from '@/app/inventory/components/InventoryList'
 import InventorySizeMessage from '@/app/inventory/components/InventorySizeMessage'
@@ -10,6 +10,7 @@ import { useDemoUser } from '@/components/providers/demo/user'
 import { useNotifications } from '@/components/providers/notifications'
 import { useUi } from '@/components/providers/ui'
 import { subtleDelay } from '@/library/utilities/public'
+import type { InventoryAddFormData } from '@/library/validations'
 import type { BrowserSafeMerchantProduct } from '@/types'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -39,7 +40,7 @@ export default function DemoInventoryPage() {
 		const newProduct = {
 			id: Date.now(),
 			name: formData.name,
-			description: formData.description,
+			description: formData.description ?? null,
 			priceInMinorUnits: priceInMinorUnits ?? null,
 			customVat: customVat ?? 0,
 			deletedAt: null,
