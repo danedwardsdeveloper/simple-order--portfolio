@@ -8,7 +8,6 @@ export const strawberryJam: AnonymousProduct = {
 }
 
 export const gingerBeer: AnonymousProduct = {
-	id: 1,
 	name: 'Ginger beer',
 	description: 'A spicy fizzy drink',
 	priceInMinorUnits: 86,
