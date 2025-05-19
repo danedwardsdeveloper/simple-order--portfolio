@@ -6,11 +6,12 @@ type Props = {
 	formReady: boolean
 	isSubmitting: boolean
 	content: string | ReactNode
-	classes?: string
 	dataTestId?: string
+	classes?: string
+	innerClasses?: string
 }
 
-export default function SubmitButton({ formReady, isSubmitting, content, classes, dataTestId }: Props) {
+export default function SubmitButton({ formReady, isSubmitting, content, dataTestId, classes, innerClasses }: Props) {
 	return (
 		<button
 			type="submit"
@@ -26,7 +27,7 @@ export default function SubmitButton({ formReady, isSubmitting, content, classes
 				classes,
 			)}
 		>
-			<div className="min-h-7 flex justify-center">
+			<div className={mergeClasses('min-h-7 flex justify-center', innerClasses)}>
 				{/*  */}
 				{isSubmitting ? <Spinner colour="text-white" /> : content}
 			</div>
