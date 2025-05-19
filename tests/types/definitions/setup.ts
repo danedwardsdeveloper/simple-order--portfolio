@@ -1,12 +1,5 @@
 import type { AsyncFunction } from '@/types'
 
-export interface TestFile {
-	fileDescription: string
-	fileSetUp?: AsyncFunction
-	fileTearDown?: AsyncFunction
-	suites: TestSuite[]
-}
-
 export interface TestSuite {
 	suiteDescription: string
 	suiteExpectedStatus?: number
@@ -25,42 +18,53 @@ export interface TestCase {
 }
 
 /*
-import type { TestUserInputValues } from '@/types'
-import type { TestFile } from '@tests/types'
+import type { AsyncFunction } from '@/types'
 import { afterAll, beforeAll, describe, test } from 'vitest'
 
-const file: TestFile = {
-	fileDescription: 'file description',
-	suites: [
-		{
-			suiteDescription: 'Suite one',
-			cases: [
-				{
-					caseDescription: 'Test one',
-					caseSetUp: async () => {
-						//
-					},
-					caseTearDown: async () => {
-						//
-					},
-					assertions: async () => {
-						//
-					},
-				},
-			],
-		},
-	],
+interface TestSuite {
+	suiteDescription: string
+	suiteExpectedStatus?: number
+	suiteSetUp?: AsyncFunction
+	suiteMockedTime?: Date
+	suiteTearDown?: AsyncFunction
+	cases: TestCase[]
 }
 
-const { fileDescription, fileSetUp, fileTearDown, suites } = file
+interface TestCase {
+	caseDescription: string
+	caseMockedTime?: Date
+	caseSetUp?: AsyncFunction
+	caseTearDown?: AsyncFunction
+	assertions: AsyncFunction
+}
 
-describe(fileDescription, () => {
+const suites: TestSuite[] = [
+	{
+		suiteDescription: 'Suite one',
+		cases: [
+			{
+				caseDescription: 'Test one',
+				caseSetUp: async () => {
+					//
+				},
+				caseTearDown: async () => {
+					//
+				},
+				assertions: async () => {
+					//
+				},
+			},
+		],
+	},
+]
+
+describe('PATCH /api/inventory/[itemId]', () => {
 	beforeAll(async () => {
-		if (fileSetUp) await fileSetUp()
+		//
 	})
 
 	afterAll(async () => {
-		if (fileTearDown) await fileTearDown()
+		//
 	})
 
 	for (const { suiteDescription, cases } of suites) {
@@ -75,5 +79,4 @@ describe(fileDescription, () => {
 		})
 	}
 })
-
 */
