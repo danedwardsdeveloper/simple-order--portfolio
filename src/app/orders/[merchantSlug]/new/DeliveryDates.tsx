@@ -23,7 +23,7 @@ export default function DeliveryDates({
 						key={stringDate}
 						className="group flex cursor-pointer flex-col border border-zinc-200 p-4 first:rounded-tl-md first:rounded-tr-md last:rounded-bl-md last:rounded-br-md focus:outline-none has-[:checked]:relative has-[:checked]:border-blue-200 has-[:checked]:bg-blue-50"
 					>
-						<span className="flex items-center gap-3 text-sm">
+						<span className="flex items-center gap-3">
 							<input
 								defaultValue={stringDate}
 								checked={isSelected}
