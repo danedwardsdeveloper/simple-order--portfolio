@@ -1,5 +1,7 @@
 'use client'
-import type { InventoryDELETEresponse, InventoryDELETEsegment } from '@/app/api/inventory/[itemId]/delete'
+import type { InventoryDELETEresponse } from '@/app/api/inventory/[itemId]/delete'
+import type { InventoryItemPATCHbody } from '@/app/api/inventory/[itemId]/patch'
+import type { InventoryItemSegment } from '@/app/api/inventory/[itemId]/route'
 import type { InventoryAddPOSTbody, InventoryAddPOSTresponse } from '@/app/api/inventory/post'
 import { userMessages } from '@/library/constants'
 import { isDevelopment } from '@/library/environment/publicVariables'
@@ -12,9 +14,10 @@ import { useNotifications } from './notifications'
 import { useUser } from './user'
 
 export type HandleDeleteProduct = (productId: number) => Promise<boolean>
-export type HandleUpdateProduct = (product: BrowserSafeMerchantProduct) => Promise<boolean>
+export type HandleUpdateProduct = (currentData: BrowserSafeMerchantProduct, updateData: InventoryItemPATCHbody) => Promise<boolean>
 export type HandleAddProduct = (formData: InventoryAddFormData) => Promise<boolean>
 
+// Move this to types as it's shared with DemoInventoryProvider
 export interface InventoryContextType {
 	isSubmitting: boolean
 	isDeleting: boolean
@@ -80,7 +83,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
 
 	async function deleteProduct(productId: number): Promise<boolean> {
 		setIsDeleting(true)
-		const segment: InventoryDELETEsegment = String(productId)
+		const segment: InventoryItemSegment = String(productId)
 
 		const product = inventory?.find((item) => item.id === productId)
 
@@ -121,24 +124,45 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
 		}
 	}
 
-	async function updateProduct(product: BrowserSafeMerchantProduct): Promise<boolean> {
+	async function updateProduct(currentData: BrowserSafeMerchantProduct, updateData: InventoryItemPATCHbody): Promise<boolean> {
 		setIsUpdating(true)
 
 		try {
 			await developmentDelay()
 
-			// TODO: Implement the API call for updating a product
-			// For now, we'll just update the local state
-
-			setInventory((previousInventory) => {
-				if (!previousInventory) return [product]
-				return previousInventory.map((item) => (item.id === product.id ? product : item))
+			const { ok, userMessage } = await apiRequest<InventoryAddPOSTresponse, InventoryItemPATCHbody>({
+				basePath: '/inventory',
+				segment: currentData.id,
+				body: updateData,
 			})
 
-			successNotification(`${product.name} updated`)
-			return true
+			if (ok) {
+				setInventory((previousInventory) => {
+					if (!previousInventory) return previousInventory
+
+					return previousInventory.map((item) => {
+						if (item.id === currentData.id) {
+							return {
+								...item,
+								name: updateData.name ?? item.name,
+								description: updateData.description ?? item.description,
+								priceInMinorUnits:
+									updateData.priceInMinorUnits !== undefined ? Number(updateData.priceInMinorUnits) : item.priceInMinorUnits,
+								customVat: updateData.customVat !== undefined ? Number(updateData.customVat) : item.customVat,
+							}
+						}
+						return item
+					})
+				})
+
+				successNotification(`Updated ${currentData.name}`)
+				return true
+			}
+
+			if (userMessage) errorNotification(userMessage)
+			return false
 		} catch {
-			errorNotification(`Failed to update ${product.name}`)
+			errorNotification(`Failed to update ${currentData.name}`)
 			return false
 		} finally {
 			setIsUpdating(false)
