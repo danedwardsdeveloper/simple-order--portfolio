@@ -2,7 +2,7 @@ export const demoInventory = [
 	{
 		id: 1,
 		name: 'Sourdough Loaf',
-		description: 'Traditional 24-hour fermented sourdough bread (800g)',
+		description: 'Traditional 24-hour fermented sourdough bread, 800g',
 		priceInMinorUnits: 385,
 		customVat: 0,
 		deletedAt: null,
@@ -10,7 +10,7 @@ export const demoInventory = [
 	{
 		id: 2,
 		name: 'White Farmhouse Loaf',
-		description: 'Classic white bread loaf (700g)',
+		description: 'Classic white bread loaf, 700g',
 		priceInMinorUnits: 225,
 		customVat: 0,
 		deletedAt: null,
@@ -18,7 +18,7 @@ export const demoInventory = [
 	{
 		id: 3,
 		name: 'Wholemeal Loaf',
-		description: 'Nutritious wholemeal bread (800g)',
+		description: 'Nutritious wholemeal bread, 800g',
 		priceInMinorUnits: 275,
 		customVat: 0,
 		deletedAt: null,
@@ -26,7 +26,7 @@ export const demoInventory = [
 	{
 		id: 4,
 		name: 'Baguette',
-		description: 'Crusty French-style baguette (250g)',
+		description: 'Crusty French-style baguette, 250g',
 		priceInMinorUnits: 195,
 		customVat: 0,
 		deletedAt: null,
@@ -58,7 +58,7 @@ export const demoInventory = [
 	{
 		id: 8,
 		name: 'Olive Focaccia',
-		description: 'Italian flatbread with olives and rosemary (400g)',
+		description: 'Italian flatbread with olives and rosemary, 400g',
 		priceInMinorUnits: 345,
 		customVat: 0,
 		deletedAt: null,
@@ -68,14 +68,6 @@ export const demoInventory = [
 		name: 'Seeded Bagel',
 		description: 'Traditional bagel with mixed seeds',
 		priceInMinorUnits: 125,
-		customVat: 0,
-		deletedAt: null,
-	},
-	{
-		id: 10,
-		name: 'Cheese & Onion Roll',
-		description: 'Savory roll with cheese and caramelized onion',
-		priceInMinorUnits: 170,
 		customVat: 0,
 		deletedAt: null,
 	},
@@ -106,7 +98,7 @@ export const demoInventory = [
 	{
 		id: 14,
 		name: 'Artisan Rye Bread',
-		description: 'Dark rye sourdough bread (500g)',
+		description: 'Dark rye sourdough bread, 500g',
 		priceInMinorUnits: 350,
 		customVat: 0,
 		deletedAt: null,
@@ -154,7 +146,7 @@ export const demoInventory = [
 	{
 		id: 20,
 		name: 'Gluten-Free Bread',
-		description: 'Mixed seed gluten-free loaf (400g)',
+		description: 'Mixed seed gluten-free loaf, 400g',
 		priceInMinorUnits: 395,
 		customVat: 0,
 		deletedAt: null,
