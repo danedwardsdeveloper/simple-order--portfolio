@@ -16,10 +16,10 @@ export interface InventoryAddPOSTresponse {
 	addedProduct?: BrowserSafeMerchantProduct
 }
 
-type OutputPOST = Promise<NextResponse<InventoryAddPOSTresponse>>
+type Output = Promise<NextResponse<InventoryAddPOSTresponse>>
 
 // POST add an item to the inventory
-export async function POST(request: NextRequest): OutputPOST {
+export async function POST(request: NextRequest): Output {
 	const respond = initialiseResponder<InventoryAddPOSTresponse>()
 
 	let body: InventoryAddPOSTbody | undefined
@@ -149,5 +149,3 @@ export async function POST(request: NextRequest): OutputPOST {
 		})
 	}
 }
-
-// Saturday 19 April. 201 lines before refactor with Zod.
