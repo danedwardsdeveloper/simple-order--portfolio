@@ -2,9 +2,8 @@
 import { useDemoUser } from '@/components/providers/demo/user'
 import type { InventoryContextType } from '@/components/providers/inventory'
 import { useNotifications } from '@/components/providers/notifications'
-import logger from '@/library/logger'
 import { subtleDelay } from '@/library/utilities/public'
-import type { InventoryAddFormData } from '@/library/validations'
+import type { InventoryAddFormData, InventoryUpdateFormData } from '@/library/validations'
 import type { BrowserSafeMerchantProduct } from '@/types'
 import { type ReactNode, createContext, useContext, useState } from 'react'
 
@@ -44,8 +43,6 @@ export function DemoInventoryProvider({ children }: { children: ReactNode }) {
 		setIsDeleting(true)
 		await subtleDelay()
 
-		logger.debug('Product to delete ID: ', productId)
-
 		const productToDelete = inventory?.find((product) => product.id === productId)
 
 		if (!productToDelete) {
@@ -60,16 +57,25 @@ export function DemoInventoryProvider({ children }: { children: ReactNode }) {
 		return true
 	}
 
-	async function updateProduct(product: BrowserSafeMerchantProduct): Promise<boolean> {
+	async function updateProduct(currentProduct: BrowserSafeMerchantProduct, updateData: InventoryUpdateFormData): Promise<boolean> {
 		setIsUpdating(true)
 		await subtleDelay()
 
+		const updatedProduct = {
+			...currentProduct,
+			name: updateData.name ?? currentProduct.name,
+			description: updateData.description ?? currentProduct.description,
+			priceInMinorUnits:
+				updateData.priceInMinorUnits !== undefined ? Number(updateData.priceInMinorUnits) : currentProduct.priceInMinorUnits,
+			customVat: updateData.customVat !== undefined ? Number(updateData.customVat) : currentProduct.customVat,
+		}
+
 		setInventory((previousInventory) => {
-			if (!previousInventory) return [product]
-			return previousInventory.map((item) => (item.id === product.id ? product : item))
+			if (!previousInventory) return [updatedProduct]
+			return previousInventory.map((item) => (item.id === currentProduct.id ? updatedProduct : item))
 		})
 
-		successNotification(`${product.name} updated`)
+		successNotification(`${updatedProduct.name} updated`)
 		setIsUpdating(false)
 		return true
 	}
