@@ -6,7 +6,7 @@ import { equals } from '@/library/utilities/server'
 import type { AsyncFunction, DangerousBaseUser, TestUserInputValues } from '@/types'
 import { strawberryJam } from '@tests/constants'
 import type { JsonData } from '@tests/types'
-import { addProducts, createCookieString, createUser, deleteUser, initialiseTestRequestMaker } from '@tests/utilities'
+import { addProducts, createCookieString, createTestUser, deleteUser, initialiseTestRequestMaker } from '@tests/utilities'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest'
 
 // ToDo: Add a product, then delete it, then try to add it again. Previously has made a conflict...
@@ -29,7 +29,7 @@ const elizabethBennetInputValues: TestUserInputValues = {
 	emailConfirmed: true,
 }
 
-function getElizabethBennet(): DangerousBaseUser {
+function assertElizabethBennet(): DangerousBaseUser {
 	if (!elizabethBennet) throw new Error('Elizabeth Bennet not defined')
 	return elizabethBennet
 }
@@ -40,7 +40,7 @@ function getJsonData(): JsonData {
 }
 
 let elizabethBennet: DangerousBaseUser
-let validRequestCookie: string
+let validCookie: string
 let jsonData: JsonData
 
 type TestSuite = {
@@ -69,17 +69,17 @@ type Case = {
 }
 
 const validRequest = {
-	cookie: () => validRequestCookie,
-	body: () => ({ ...strawberryJam, ownerId: getElizabethBennet().id }),
+	cookie: () => validCookie,
+	body: () => ({ ...strawberryJam, ownerId: assertElizabethBennet().id }),
 }
 
 const suites: TestSuite[] = [
 	{
 		suiteDescription: 'Permissions',
 		suiteBeforeAll: async () => {
-			const { createdUser, requestCookie } = await createUser(elizabethBennetInputValues)
+			const { createdUser, validCookie: createdCookie } = await createTestUser(elizabethBennetInputValues)
 			elizabethBennet = createdUser
-			validRequestCookie = requestCookie
+			validCookie = createdCookie
 			await createFreeTrial({ userId: elizabethBennet.id })
 		},
 		suiteAfterAll: async () => {
@@ -122,23 +122,23 @@ const suites: TestSuite[] = [
 			{
 				caseDescription: 'No trial or subscription',
 				caseSetUp: async () => {
-					await deleteFreeTrial(getElizabethBennet().id)
+					await deleteFreeTrial(assertElizabethBennet().id)
 				},
 				request: validRequest,
 				caseExpectedStatus: 403,
 				caseTearDown: async () => {
-					await createFreeTrial({ userId: getElizabethBennet().id })
+					await createFreeTrial({ userId: assertElizabethBennet().id })
 				},
 			},
 			{
 				caseDescription: 'Product with duplicate name',
 				caseSetUp: async () => {
-					await addProducts([{ ...strawberryJam, ownerId: getElizabethBennet().id }])
+					await addProducts([{ ...strawberryJam, ownerId: assertElizabethBennet().id }])
 				},
 				request: validRequest,
 				caseExpectedStatus: http409conflict,
 				caseTearDown: async () => {
-					await database.delete(products).where(equals(products.ownerId, getElizabethBennet().id))
+					await database.delete(products).where(equals(products.ownerId, assertElizabethBennet().id))
 				},
 			},
 			{
@@ -152,9 +152,9 @@ const suites: TestSuite[] = [
 		suiteDescription: 'Body validations',
 		suiteExpectedStatus: 400,
 		suiteBeforeAll: async () => {
-			const { createdUser, requestCookie } = await createUser(elizabethBennetInputValues)
+			const { createdUser, validCookie: createdCookie } = await createTestUser(elizabethBennetInputValues)
 			elizabethBennet = createdUser
-			validRequestCookie = requestCookie
+			validCookie = createdCookie
 			await createFreeTrial({ userId: elizabethBennet.id })
 		},
 		suiteAfterAll: async () => {
@@ -190,9 +190,9 @@ const suites: TestSuite[] = [
 		suiteBeforeAll: async () => {
 			await deleteUser(elizabethBennetInputValues.email)
 			// For now just delete the entire user and start fresh. In the future I'll make a deleteProducts function but this has to delete orderItems too, and is complex
-			const { createdUser, requestCookie } = await createUser(elizabethBennetInputValues)
+			const { createdUser, validCookie: createdCookie } = await createTestUser(elizabethBennetInputValues)
 			elizabethBennet = createdUser
-			validRequestCookie = requestCookie
+			validCookie = createdCookie
 
 			await createFreeTrial({ userId: createdUser.id })
 		},
@@ -203,7 +203,7 @@ const suites: TestSuite[] = [
 			{
 				caseDescription: 'Rejects the 101th product',
 				caseSetUp: async () => {
-					const { id } = getElizabethBennet()
+					const { id } = assertElizabethBennet()
 
 					const oneHundredJams = Array.from({ length: 100 }, (_, i) => ({
 						...strawberryJam,
