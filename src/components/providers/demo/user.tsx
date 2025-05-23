@@ -1,5 +1,5 @@
 'use client'
-import { demoCustomerUser, demoInventory, demoMerchantUser, temporaryVat } from '@/library/constants'
+import { demoConfirmedCustomers, demoCustomer, demoInventory, demoInvitationsSent, demoMerchant, temporaryVat } from '@/library/constants'
 import type {
 	BrowserSafeCompositeUser,
 	BrowserSafeCustomerProfile,
@@ -18,26 +18,26 @@ export const DemoUserContext = createContext<DemoUserContextType>({} as DemoUser
 
 export const DemoUserProvider = ({ children }: { children: ReactNode }) => {
 	const { merchantMode } = useUi()
-	const [demoUser, setDemoUser] = useState<BrowserSafeCompositeUser>(merchantMode ? demoMerchantUser : demoCustomerUser)
-
-	// Update user when merchantMode changes
-	useEffect(() => {
-		setDemoUser(merchantMode ? demoMerchantUser : demoCustomerUser)
-	}, [merchantMode])
+	const [demoUser, setDemoUser] = useState<BrowserSafeCompositeUser>(merchantMode ? demoMerchant : demoCustomer)
 
 	const [inventory, setInventory] = useState<BrowserSafeMerchantProduct[] | null>(demoInventory)
 
 	const [confirmedMerchants, setConfirmedMerchants] = useState<BrowserSafeMerchantProfile[] | null>(null)
 
-	const [confirmedCustomers, setConfirmedCustomers] = useState<BrowserSafeCustomerProfile[] | null>(null)
+	const [confirmedCustomers, setConfirmedCustomers] = useState<BrowserSafeCustomerProfile[] | null>(demoConfirmedCustomers)
 
 	const [invitationsReceived, setInvitationsReceived] = useState<BrowserSafeInvitationReceived[] | null>(null)
 
-	const [invitationsSent, setInvitationsSent] = useState<BrowserSafeInvitationSent[] | null>(null)
+	const [invitationsSent, setInvitationsSent] = useState<BrowserSafeInvitationSent[] | null>(demoInvitationsSent)
 
 	const [ordersMade, setOrdersMade] = useState<OrderMade[] | null>(null)
 
 	const [ordersReceived, setOrdersReceived] = useState<OrderReceived[] | null>(null)
+
+	// Swap data when mode changes
+	useEffect(() => {
+		setDemoUser(merchantMode ? demoMerchant : demoCustomer)
+	}, [merchantMode])
 
 	return (
 		<DemoUserContext.Provider
