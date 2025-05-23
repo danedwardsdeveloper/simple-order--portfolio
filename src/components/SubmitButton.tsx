@@ -18,7 +18,7 @@ export default function SubmitButton({ formReady, isSubmitting, content, dataTes
 			data-test-id={dataTestId}
 			disabled={isSubmitting || !formReady}
 			className={mergeClasses(
-				'w-full rounded-lg px-3 py-2 font-medium transition-all duration-300 outline-offset-4 focus-visible:outline-orange-400 mt-4 border-2',
+				'w-full rounded-lg px-3 py-1 font-medium transition-all duration-300 outline-offset-4 focus-visible:outline-orange-400 mt-4 border-2',
 				!formReady
 					? 'text-zinc-400 bg-zinc-200 border-zinc-300 cursor-not-allowed'
 					: isSubmitting
