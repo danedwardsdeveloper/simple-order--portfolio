@@ -4,30 +4,13 @@ import type { InventoryItemPATCHbody, InventoryItemPATCHresponse } from '@/app/a
 import type { InventoryItemSegment } from '@/app/api/inventory/[itemId]/route'
 import type { InventoryAddPOSTbody, InventoryAddPOSTresponse } from '@/app/api/inventory/post'
 import { userMessages } from '@/library/constants'
-import { isDevelopment } from '@/library/environment/publicVariables'
-import { apiRequest, subtleDelay } from '@/library/utilities/public'
+import { apiRequest, developmentDelay } from '@/library/utilities/public'
 import type { InventoryAddFormData } from '@/library/validations'
-import type { BrowserSafeMerchantProduct } from '@/types'
+import type { BrowserSafeMerchantProduct, InventoryContextType } from '@/types'
 import { type ReactNode, createContext, useContext } from 'react'
 import { useState } from 'react'
 import { useNotifications } from './notifications'
 import { useUser } from './user'
-
-export type HandleDeleteProduct = (productId: number) => Promise<boolean>
-export type HandleUpdateProduct = (currentData: BrowserSafeMerchantProduct, updateData: InventoryItemPATCHbody) => Promise<boolean>
-export type HandleAddProduct = (formData: InventoryAddFormData) => Promise<boolean>
-
-// Move this to types as it's shared with DemoInventoryProvider
-export interface InventoryContextType {
-	isSubmitting: boolean
-	addProduct: HandleAddProduct
-
-	deleteProduct: HandleDeleteProduct
-	isDeleting: boolean
-
-	updateProduct: HandleUpdateProduct
-	isUpdating: boolean
-}
 
 const InventoryContext = createContext<InventoryContextType | null>(null)
 
@@ -38,13 +21,6 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [isDeleting, setIsDeleting] = useState(false)
 	const [isUpdating, setIsUpdating] = useState(false)
-
-	// Makes loading state visible in development
-	async function developmentDelay() {
-		if (isDevelopment) {
-			await subtleDelay(400, 500)
-		}
-	}
 
 	async function addProduct(formData: InventoryAddFormData): Promise<boolean> {
 		setIsSubmitting(true)
