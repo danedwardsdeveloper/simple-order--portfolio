@@ -42,7 +42,7 @@ export default function DemoCustomersPage() {
 	return (
 		<CustomersPageContent
 			user={demoUser}
-			demoMode={true}
+			isDemo={true}
 			invitationsSent={invitationsSent}
 			confirmedCustomers={confirmedCustomers}
 			setInvitationsSent={setInvitationsSent}

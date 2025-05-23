@@ -5,9 +5,9 @@ import { dataTestIdNames, userMessages } from '@/library/constants'
 import { type FormEvent, useState } from 'react'
 import type { CustomersPageContent } from './Content'
 
-type Props = Pick<CustomersPageContent, 'demoMode' | 'user' | 'setInvitationsSent' | 'isSubmitting' | 'inviteCustomer'>
+type Props = Pick<CustomersPageContent, 'isDemo' | 'user' | 'setInvitationsSent' | 'isSubmitting' | 'inviteCustomer'>
 
-export default function InviteCustomerForm({ demoMode, user, inviteCustomer, isSubmitting, setInvitationsSent }: Props) {
+export default function InviteCustomerForm({ isDemo, user, inviteCustomer, isSubmitting, setInvitationsSent }: Props) {
 	const { successNotification, errorNotification } = useNotifications()
 	const [invitedEmail, setInvitedEmail] = useState('')
 
@@ -33,7 +33,7 @@ export default function InviteCustomerForm({ demoMode, user, inviteCustomer, isS
 			const { userMessage, invitation } = await inviteCustomer(invitedEmail)
 
 			if (invitation) {
-				const phrase = demoMode ? 'Would have sent email to ' : 'Sent invitation email to '
+				const phrase = isDemo ? 'Would have sent email to ' : 'Sent invitation email to '
 
 				successNotification(`${phrase}${invitedEmail}`)
 

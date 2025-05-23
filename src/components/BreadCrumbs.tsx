@@ -56,11 +56,11 @@ interface SignedInProps {
 	businessName: string
 	trail?: BreadCrumbItem[]
 	currentPageTitle?: string
-	demoMode?: boolean
+	isDemo?: boolean
 }
 
-export function SignedInBreadCrumbs({ businessName, trail, currentPageTitle, demoMode = false }: SignedInProps) {
-	const dashboardHref = demoMode ? '/demo/dashboard' : '/dashboard'
+export function SignedInBreadCrumbs({ businessName, trail, currentPageTitle, isDemo = false }: SignedInProps) {
+	const dashboardHref = isDemo ? '/demo/dashboard' : '/dashboard'
 
 	return (
 		<nav aria-label="Breadcrumb" className="flex mb-12">

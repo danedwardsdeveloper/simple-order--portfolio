@@ -14,12 +14,12 @@ export type InviteCustomerFunction = (
 export type CustomersPageContent = {
 	isSubmitting: boolean
 	inviteCustomer: InviteCustomerFunction
-	demoMode: boolean
+	isDemo: boolean
 } & Pick<UserContextType, 'user' | 'invitationsSent' | 'setInvitationsSent' | 'confirmedCustomers'>
 
 export default function CustomersPageContent({
 	user,
-	demoMode,
+	isDemo,
 	invitationsSent,
 	setInvitationsSent,
 	confirmedCustomers,
@@ -30,7 +30,7 @@ export default function CustomersPageContent({
 
 	return (
 		<>
-			<SignedInBreadCrumbs businessName={user.businessName} currentPageTitle="Customers" demoMode={demoMode} />
+			<SignedInBreadCrumbs businessName={user.businessName} currentPageTitle="Customers" isDemo={isDemo} />
 
 			<TwoColumnContainer
 				mainColumn={(() => {
@@ -43,7 +43,7 @@ export default function CustomersPageContent({
 				sideColumn={
 					<InviteCustomerForm
 						user={user}
-						demoMode={demoMode}
+						isDemo={isDemo}
 						setInvitationsSent={setInvitationsSent}
 						isSubmitting={isSubmitting}
 						inviteCustomer={inviteCustomer}
