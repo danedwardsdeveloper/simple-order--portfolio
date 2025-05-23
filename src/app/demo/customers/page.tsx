@@ -1,18 +1,53 @@
 'use client'
-import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
-import UnderConstruction from '@/components/UnderConstruction'
+import type { InvitationsPOSTbody } from '@/app/api/invitations/route'
+import CustomersPageContent, { type InviteCustomerFunction } from '@/app/customers/components/Content'
 import { useDemoUser } from '@/components/providers/demo/user'
+import { useUi } from '@/components/providers/ui'
+import { userMessages } from '@/library/constants'
+import { invitationExpiryDate, obfuscateEmail, subtleDelay } from '@/library/utilities/public'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
-export default function DemoInventoryPage() {
-	const { demoUser } = useDemoUser()
+export default function DemoCustomersPage() {
+	const { demoUser, invitationsSent, setInvitationsSent, confirmedCustomers } = useDemoUser()
+	const { merchantMode } = useUi()
+
+	const [isSubmitting, setIsSubmitting] = useState(false)
+
+	const router = useRouter()
+
+	useEffect(() => {
+		if (!merchantMode) {
+			router.push('/demo/dashboard')
+		}
+	}, [merchantMode, router])
+
+	const inviteCustomer: InviteCustomerFunction = async (invitedEmail: InvitationsPOSTbody['invitedEmail']) => {
+		setIsSubmitting(true)
+		await subtleDelay()
+
+		const invitation = {
+			obfuscatedEmail: obfuscateEmail(invitedEmail),
+			lastEmailSentDate: new Date(),
+			expirationDate: invitationExpiryDate(),
+		}
+
+		const forceError = false
+
+		setIsSubmitting(false)
+
+		return forceError ? { userMessage: userMessages.serverError } : { invitation: invitation }
+	}
 
 	return (
-		<>
-			<SignedInBreadCrumbs businessName={demoUser.businessName} currentPageTitle="Customers" demoMode />
-			<div className="">
-				<h1>Customers</h1>
-				<UnderConstruction />
-			</div>
-		</>
+		<CustomersPageContent
+			user={demoUser}
+			demoMode={true}
+			invitationsSent={invitationsSent}
+			confirmedCustomers={confirmedCustomers}
+			setInvitationsSent={setInvitationsSent}
+			inviteCustomer={inviteCustomer}
+			isSubmitting={isSubmitting}
+		/>
 	)
 }

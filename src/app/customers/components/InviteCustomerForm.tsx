@@ -1,24 +1,16 @@
 'use client'
-import type { InvitationsPOSTbody, InvitationsPOSTresponse } from '@/app/api/invitations/route'
 import SubmitButton from '@/components/SubmitButton'
 import { useNotifications } from '@/components/providers/notifications'
-import { useUser } from '@/components/providers/user'
 import { dataTestIdNames, userMessages } from '@/library/constants'
-import { apiRequest } from '@/library/utilities/public'
 import { type FormEvent, useState } from 'react'
+import type { CustomersPageContent } from './Content'
 
-// Next ToDo after finishing Inventory
-// type Props = {
-// 	setInvitationsSent: UserContextType['setInvitationsSent']
-// }
+type Props = Pick<CustomersPageContent, 'demoMode' | 'user' | 'setInvitationsSent' | 'isSubmitting' | 'inviteCustomer'>
 
-export default function InviteCustomerForm() {
-	const { user, setInvitationsSent } = useUser()
+export default function InviteCustomerForm({ demoMode, user, inviteCustomer, isSubmitting, setInvitationsSent }: Props) {
 	const { successNotification, errorNotification } = useNotifications()
 	const [invitedEmail, setInvitedEmail] = useState('')
-	const [isSubmitting, setIsSubmitting] = useState(false)
 
-	// Move this to the app parent, and let the demo handle itself
 	if (!user || user.roles === 'customer' || !user.emailConfirmed) return null
 
 	/* ToDo: Display subscription/trial ended message
@@ -36,28 +28,24 @@ export default function InviteCustomerForm() {
 
 	async function handleSubmit(event: FormEvent) {
 		event.preventDefault()
-		setIsSubmitting(true)
 
 		try {
-			const { userMessage, browserSafeInvitationRecord } = await apiRequest<InvitationsPOSTresponse, InvitationsPOSTbody>({
-				body: { invitedEmail },
-				basePath: '/invitations',
-				method: 'POST',
-			})
+			const { userMessage, invitation } = await inviteCustomer(invitedEmail)
 
-			if (browserSafeInvitationRecord) {
-				successNotification(`Successfully sent invitation email to ${invitedEmail}`)
+			if (invitation) {
+				const phrase = demoMode ? 'Would have sent email to ' : 'Sent invitation email to '
 
-				setInvitationsSent((prev) => (prev ? [browserSafeInvitationRecord, ...prev] : [browserSafeInvitationRecord]))
+				successNotification(`${phrase}${invitedEmail}`)
+
+				setInvitationsSent((prev) => (prev ? [invitation, ...prev] : [invitation]))
 				setInvitedEmail('')
+				// Demo mode enhancement - open the token in a new tab?
 			}
 
 			// ToDo: Add error if user has already been invited
 			if (userMessage) errorNotification(userMessage)
 		} catch {
 			errorNotification(userMessages.serverError)
-		} finally {
-			setIsSubmitting(false)
 		}
 	}
 

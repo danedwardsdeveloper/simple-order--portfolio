@@ -1,22 +1,45 @@
 'use client'
-import PleaseConfirmYourEmailMessage from '@/components/PleaseConfirmYourEmailMessage'
-import TwoColumnContainer from '@/components/TwoColumnContainer'
-import UnauthorisedLinks from '@/components/UnauthorisedLinks'
 import { useUser } from '@/components/providers/user'
-import CustomersList from './components/CustomersList'
-import InviteCustomerForm from './components/InviteCustomerForm'
+import { userMessages } from '@/library/constants'
+import { apiRequest, developmentDelay } from '@/library/utilities/public'
+import { useState } from 'react'
+import type { InvitationsPOSTbody, InvitationsPOSTresponse } from '../api/invitations/route'
+import CustomersPageContent, { type InviteCustomerFunction } from './components/Content'
 
 export default function CustomersPage() {
-	const { user } = useUser()
+	const { user, invitationsSent, setInvitationsSent, confirmedCustomers } = useUser()
+	const [isSubmitting, setIsSubmitting] = useState(false)
 
-	if (!user) return <UnauthorisedLinks />
+	const inviteCustomer: InviteCustomerFunction = async (invitedEmail: InvitationsPOSTbody['invitedEmail']) => {
+		setIsSubmitting(true)
+		await developmentDelay()
+
+		const { userMessage, browserSafeInvitationRecord } = await apiRequest<InvitationsPOSTresponse, InvitationsPOSTbody>({
+			body: { invitedEmail },
+			basePath: '/invitations',
+			method: 'POST',
+		})
+
+		if (browserSafeInvitationRecord) {
+			setInvitationsSent(invitationsSent ? [browserSafeInvitationRecord, ...invitationsSent] : [browserSafeInvitationRecord])
+		}
+
+		setIsSubmitting(false)
+
+		return browserSafeInvitationRecord
+			? { invitation: browserSafeInvitationRecord }
+			: { userMessage: userMessage || userMessages.serverError }
+	}
 
 	return (
-		<>
-			<TwoColumnContainer
-				mainColumn={!user.emailConfirmed ? <PleaseConfirmYourEmailMessage email={user.email} /> : <CustomersList />}
-				sideColumn={<InviteCustomerForm />}
-			/>
-		</>
+		<CustomersPageContent
+			user={user}
+			demoMode={false}
+			invitationsSent={invitationsSent}
+			confirmedCustomers={confirmedCustomers}
+			setInvitationsSent={setInvitationsSent}
+			inviteCustomer={inviteCustomer}
+			isSubmitting={isSubmitting}
+		/>
 	)
 }

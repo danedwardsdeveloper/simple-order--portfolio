@@ -1,11 +1,11 @@
-import { durationSettings, http202accepted, userMessages } from '@/library/constants'
+import { http202accepted, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkAccess, checkRelationship } from '@/library/database/operations'
 import { invitations, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import { createExistingUserInvitation, createNewUserInvitation } from '@/library/email/templates'
 import logger from '@/library/logger'
-import { convertEmptyToUndefined, emailRegex, obfuscateEmail } from '@/library/utilities/public'
+import { convertEmptyToUndefined, emailRegex, invitationExpiryDate, obfuscateEmail } from '@/library/utilities/public'
 import { and, createInvitation, createInvitationURL, equals, inArray, initialiseResponder } from '@/library/utilities/server'
 import type { BrowserSafeInvitationReceived, BrowserSafeInvitationSent, DangerousBaseUser, Invitation, UserMessages } from '@/types'
 import type { NextRequest, NextResponse } from 'next/server'
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest): OutputGET {
 }
 
 export interface InvitationsPOSTresponse {
-	userMessage?: string
+	userMessage?: typeof userMessages.serverError
 	developerMessage?: string
 	browserSafeInvitationRecord?: BrowserSafeInvitationSent
 }
@@ -186,7 +186,7 @@ export async function POST(request: NextRequest): OutputPOST {
 			})
 		}
 
-		const newInvitationExpiryDate = new Date(Date.now() + durationSettings.acceptInvitationExpiry)
+		const newInvitationExpiryDate = invitationExpiryDate()
 
 		let txError: { message: string; status: number } | undefined = { message: 'unknown transaction error', status: 503 }
 
