@@ -3,7 +3,7 @@ import PageContainer from '@/components/PageContainer'
 import { useDemoUser } from '@/components/providers/demo/user'
 import { useUi } from '@/components/providers/ui'
 import { useUser } from '@/components/providers/user'
-import { demoCustomerUser } from '@/library/constants'
+import { demoCustomer } from '@/library/constants'
 import { isProduction } from '@/library/environment/publicVariables'
 import { notFound } from 'next/navigation'
 
@@ -17,7 +17,7 @@ export default function MenuBarTestPage() {
 
 	function toggleUser() {
 		if (!user) {
-			setUser(demoCustomerUser) // Using the demo user on the actual app user provider for convenience
+			setUser(demoCustomer) // Using the demo user on the actual app user provider for convenience
 		} else {
 			setUser(null)
 		}
