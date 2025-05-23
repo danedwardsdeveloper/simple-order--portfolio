@@ -71,3 +71,15 @@ export function formatTime(time: Date | null) {
 	if (!time) return ''
 	return formatInTimeZone(time, 'UTC', 'h:mm a').toLowerCase()
 }
+
+/**
+ * Adds an "s" to the end of a phrase based on the length of an array.
+ * Handles null, undefined, and empty arrays.
+ */
+export function pluralise<T>(phrase: string, array: T[] | null | undefined): string {
+	if (!array || array.length === 0) {
+		return `${phrase}s`
+	}
+
+	return array.length === 1 ? phrase : `${phrase}s`
+}
