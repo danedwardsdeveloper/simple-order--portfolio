@@ -2,7 +2,7 @@ import { august, daysOfTheWeek, friday, january, monday, thursday, tuesday, wedn
 import type { AsyncFunction } from '@/types'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
 import { type Props as FunctionProps, getAvailableDeliveryDays } from '.'
-import { createDate } from '../createDate'
+import { createDate } from '../dateTime'
 import { formatDateWithDayName } from '../formatting'
 import { createCutOffTime } from '../time'
 

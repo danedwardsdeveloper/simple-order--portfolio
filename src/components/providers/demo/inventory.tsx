@@ -1,10 +1,9 @@
 'use client'
 import { useDemoUser } from '@/components/providers/demo/user'
-import type { InventoryContextType } from '@/components/providers/inventory'
 import { useNotifications } from '@/components/providers/notifications'
 import { subtleDelay } from '@/library/utilities/public'
 import type { InventoryAddFormData, InventoryUpdateFormData } from '@/library/validations'
-import type { BrowserSafeMerchantProduct } from '@/types'
+import type { BrowserSafeMerchantProduct, InventoryContextType } from '@/types'
 import { type ReactNode, createContext, useContext, useState } from 'react'
 
 const DemoInventoryContext = createContext<InventoryContextType | null>(null)
