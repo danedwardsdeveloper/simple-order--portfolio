@@ -1,26 +1,19 @@
 'use client'
 import FormFieldErrorMessage from '@/components/FormFieldErrorMessage'
 import SubmitButton from '@/components/SubmitButton'
-import type { HandleDeleteProduct, HandleUpdateProduct } from '@/components/providers/inventory'
 import { useUi } from '@/components/providers/ui'
 import { formatPrice, mergeClasses } from '@/library/utilities/public'
 import { type InventoryUpdateFormData, inventoryUpdateFormSchema } from '@/library/validations'
-import type { BrowserSafeMerchantProduct } from '@/types'
+import type { BrowserSafeMerchantProduct, InventoryContextType } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import DeleteProductModal from './DeleteProductModal'
 
-export interface InventoryCardProps {
+export type InventoryCardProps = {
 	product: BrowserSafeMerchantProduct
 	zebraStripe: boolean
-
-	// Drilled props
-	deleteProduct: HandleDeleteProduct
-	isDeleting: boolean
-	updateProduct: HandleUpdateProduct
-	isUpdating: boolean
-}
+} & Pick<InventoryContextType, 'deleteProduct' | 'isDeleting' | 'updateProduct' | 'isUpdating'>
 
 export default function InventoryCard({ product, zebraStripe, deleteProduct, isDeleting, updateProduct, isUpdating }: InventoryCardProps) {
 	const { includeVat } = useUi()
