@@ -6,8 +6,7 @@ import type { SettingsPATCHbody, SettingsPATCHresponse } from '@/app/api/setting
 import { useNotifications } from '@/components/providers/notifications'
 import { useUser } from '@/components/providers/user'
 import { userNotifications } from '@/library/constants'
-import { isDevelopment } from '@/library/environment/publicVariables'
-import { apiRequest, subtleDelay } from '@/library/utilities/public'
+import { apiRequest, developmentDelay } from '@/library/utilities/public'
 import type { BrowserSafeCompositeUser, Holiday, SettingsContextType, WeekDayIndex } from '@/types'
 import { produce } from 'immer'
 import { type ReactNode, createContext, useContext, useEffect, useRef, useState } from 'react'
@@ -32,13 +31,6 @@ export function MerchantSettingsProvider({ children }: { children: ReactNode }) 
 		holidays: null,
 		acceptedWeekDayIndices: null,
 	})
-
-	// Make the loading state visible in production
-	async function developmentDelay() {
-		if (isDevelopment) {
-			await subtleDelay(400, 500)
-		}
-	}
 
 	const settingsFetched = useRef(false)
 
