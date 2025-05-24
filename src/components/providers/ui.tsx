@@ -30,7 +30,7 @@ export function UiProvider({ children }: { children: ReactNode }) {
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 	const [demoMode, setDemoMode] = useState(false)
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies:
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <run on mount>
 	useEffect(() => {
 		if (storedMerchantMode === null) {
 			localStorage.setItem(localStorageItems.merchantMode, initialMerchantMode.toString())
