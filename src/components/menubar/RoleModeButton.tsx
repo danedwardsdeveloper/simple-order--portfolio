@@ -17,7 +17,10 @@ export function RoleModeToggle() {
 
 export function RoleModeToggleSection() {
 	return (
-		<div className="px-4 pt-2 pb-8 rounded-xl bg-blue-50 flex flex-col gap-y-4 text-center max-w-xl items-center">
+		<div
+			data-component="RoleModeToggleSection"
+			className="px-4 pt-2 pb-8 rounded-xl bg-blue-50 flex flex-col gap-y-4 text-center max-w-xl items-center"
+		>
 			<h2>Mode</h2>
 			<RoleModeToggle />
 		</div>
