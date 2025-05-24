@@ -1,5 +1,5 @@
 'use client'
-import SubmitButton from '@/components/Buttons'
+import { SubmitButton } from '@/components/Buttons'
 import { useNotifications } from '@/components/providers/notifications'
 import { dataTestIdNames, userMessages } from '@/library/constants'
 import { type FormEvent, useState } from 'react'

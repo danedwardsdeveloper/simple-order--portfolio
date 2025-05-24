@@ -1,5 +1,5 @@
 'use client'
-import SubmitButton from '@/components/Buttons'
+import { SubmitButton } from '@/components/Buttons'
 import FormFieldErrorMessage from '@/components/FormFieldErrorMessage'
 import { serviceConstraints } from '@/library/constants'
 import { type InventoryAddFormData, inventoryAddFormInputSchema } from '@/library/validations'
