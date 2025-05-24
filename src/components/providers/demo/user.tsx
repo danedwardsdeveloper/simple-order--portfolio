@@ -1,5 +1,16 @@
 'use client'
-import { demoConfirmedCustomers, demoCustomer, demoInventory, demoInvitationsSent, demoMerchant, temporaryVat } from '@/library/constants'
+import { useUi } from '@/components/providers/ui'
+import { temporaryVat } from '@/library/constants'
+import {
+	demoConfirmedCustomers,
+	demoConfirmedMerchants,
+	demoCustomer,
+	demoInventory,
+	demoInvitationsSent,
+	demoMerchant,
+	demoOrdersMade,
+	demoOrdersReceived,
+} from '@/library/constants/demo'
 import type {
 	BrowserSafeCompositeUser,
 	BrowserSafeCustomerProfile,
@@ -12,7 +23,6 @@ import type {
 	OrderReceived,
 } from '@/types'
 import { type ReactNode, createContext, useContext, useEffect, useState } from 'react'
-import { useUi } from '../ui'
 
 export const DemoUserContext = createContext<DemoUserContextType>({} as DemoUserContextType)
 
@@ -22,7 +32,7 @@ export const DemoUserProvider = ({ children }: { children: ReactNode }) => {
 
 	const [inventory, setInventory] = useState<BrowserSafeMerchantProduct[] | null>(demoInventory)
 
-	const [confirmedMerchants, setConfirmedMerchants] = useState<BrowserSafeMerchantProfile[] | null>(null)
+	const [confirmedMerchants, setConfirmedMerchants] = useState<BrowserSafeMerchantProfile[] | null>(demoConfirmedMerchants)
 
 	const [confirmedCustomers, setConfirmedCustomers] = useState<BrowserSafeCustomerProfile[] | null>(demoConfirmedCustomers)
 
@@ -30,11 +40,10 @@ export const DemoUserProvider = ({ children }: { children: ReactNode }) => {
 
 	const [invitationsSent, setInvitationsSent] = useState<BrowserSafeInvitationSent[] | null>(demoInvitationsSent)
 
-	const [ordersMade, setOrdersMade] = useState<OrderMade[] | null>(null)
+	const [ordersMade, setOrdersMade] = useState<OrderMade[] | null>(demoOrdersMade)
 
-	const [ordersReceived, setOrdersReceived] = useState<OrderReceived[] | null>(null)
+	const [ordersReceived, setOrdersReceived] = useState<OrderReceived[] | null>(demoOrdersReceived)
 
-	// Swap data when mode changes
 	useEffect(() => {
 		setDemoUser(merchantMode ? demoMerchant : demoCustomer)
 	}, [merchantMode])
