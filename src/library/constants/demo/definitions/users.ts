@@ -1,6 +1,6 @@
+import { defaultMinimumSpendPence } from '@/library/constants'
 import { createCutOffTime, obfuscateEmail } from '@/library/utilities/public'
 import type { BrowserSafeCompositeUser, UserContextType } from '@/types'
-import { defaultMinimumSpendPence } from './minimumSpend'
 
 const sixPM = createCutOffTime({ hours: 18, minutes: 0 })
 
@@ -42,6 +42,16 @@ export const demoInvitationsSent: UserContextType['invitationsSent'] = [
 		obfuscatedEmail: 'orders@riversidecafes.com',
 		lastEmailSentDate: new Date(), // ToDo
 		expirationDate: new Date(),
+	},
+]
+
+export const demoConfirmedMerchants: UserContextType['confirmedMerchants'] = [
+	{
+		businessName: demoMerchant.businessName,
+		slug: demoMerchant.slug,
+		cutOffTime: demoMerchant.cutOffTime,
+		leadTimeDays: demoMerchant.leadTimeDays,
+		minimumSpendPence: demoMerchant.minimumSpendPence,
 	},
 ]
 
