@@ -1,6 +1,6 @@
 'use client'
+import { SubmitButton } from '@/components/Buttons'
 import FormFieldErrorMessage from '@/components/FormFieldErrorMessage'
-import SubmitButton from '@/components/SubmitButton'
 import { useUi } from '@/components/providers/ui'
 import { formatPrice, mergeClasses } from '@/library/utilities/public'
 import { type InventoryUpdateFormData, inventoryUpdateFormSchema } from '@/library/validations'

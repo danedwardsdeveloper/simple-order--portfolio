@@ -3,7 +3,7 @@ import PageContainer from '@/components/PageContainer'
 import { useDemoUser } from '@/components/providers/demo/user'
 import { useUi } from '@/components/providers/ui'
 import { useUser } from '@/components/providers/user'
-import { demoCustomer } from '@/library/constants'
+import { demoCustomer } from '@/library/constants/demo'
 import { isProduction } from '@/library/environment/publicVariables'
 import { notFound } from 'next/navigation'
 
