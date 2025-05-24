@@ -15,9 +15,9 @@ export default function TwoColumnContainer({ mainColumn, mainColumnClasses, side
 				{mainColumn}
 			</div>
 
-			{/* Aside column */}
+			{/* Side column */}
 			<div className="shrink-0 lg:w-96 order-first lg:order-last min-w-0 w-full">
-				<div className="flex flex-col gap-y-4">{sideColumn}</div>
+				<div className="flex flex-col gap-y-4 sticky top-16">{sideColumn}</div>
 			</div>
 		</div>
 	)
