@@ -1,14 +1,12 @@
 'use client'
-import UnauthorisedLinks from '@/components/UnauthorisedLinks'
 import { useUi } from '@/components/providers/ui'
-import { useUser } from '@/components/providers/user'
-import OrderMadeCard from './components/OrderMadeCard'
+import type { OrdersPageContentProps } from '../Content'
+import OrderMadeCard from './OrderMadeCard'
 
-export default function OrdersMadeSection() {
-	const { user, ordersMade } = useUser()
+type Props = Pick<OrdersPageContentProps, 'ordersMade'>
+
+export default function OrdersMadeSection({ ordersMade }: Props) {
 	const { includeVat } = useUi()
-
-	if (!user) return <UnauthorisedLinks />
 
 	if (!ordersMade) {
 		return <p className="lg:-mx-3 w-full text-blue-600 p-3 border-2 border-blue-300 bg-blue-50 rounded-xl max-w-xl">No orders found</p>

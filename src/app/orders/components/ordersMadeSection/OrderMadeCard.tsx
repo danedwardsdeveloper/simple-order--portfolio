@@ -1,6 +1,7 @@
 import ZebraContainer from '@/components/ZebraContainer'
 import { calculateOrderTotal, formatDate, formatPrice } from '@/library/utilities/public'
 import type { BrowserOrderItem, OrderMade } from '@/types'
+import OrderStatusIcon from '../OrderStatusIcon'
 
 interface Props {
 	orderDetails: OrderMade
@@ -38,12 +39,14 @@ export default function OrderMadeCard({ orderDetails, includeVat, index }: Props
 
 	return (
 		<li>
-			<ZebraContainer index={index} oddStyles="bg-blue-50" evenStyles="bg-zinc-50" baseStyles="flex flex-col gap-y-6 w-full p-3 rounded-xl">
+			<ZebraContainer index={index}>
 				{/* Card header */}
 				<div className="flex justify-between">
 					<h3>{businessName}</h3>
+					<OrderStatusIcon status={statusName} />
+				</div>
+				<div className="flex justify-end">
 					<div className="flex flex-col gap-y-2 justify-end text-right">
-						<span className="text-orange-600">{statusName}</span>
 						<div className="block">
 							<span className="text-zinc-600 mr-2">Requested delivery date</span>
 							<time dateTime={requestedDeliveryDate.toString()}>{formatDate(requestedDeliveryDate)}</time>

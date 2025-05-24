@@ -1,30 +1,27 @@
 'use client'
-import type { OrderAdminOrderIdPATCHbody, OrderAdminOrderIdPATCHresponse } from '@/app/api/orders/admin/[orderId]/route'
+import type {} from '@/app/api/orders/admin/[orderId]/route'
 import ConfirmationModal from '@/components/ConfirmationModal'
-import Spinner from '@/components/Spinner'
-import UnauthorisedLinks from '@/components/UnauthorisedLinks'
 import { useNotifications } from '@/components/providers/notifications'
 import { useUi } from '@/components/providers/ui'
-import { useUser } from '@/components/providers/user'
 import { orderStatusNameToId, userMessages } from '@/library/constants'
-import { apiRequest, capitaliseFirstLetter } from '@/library/utilities/public'
+import { capitaliseFirstLetter } from '@/library/utilities/public'
 import type { OrderStatusName } from '@/types'
 import { useState } from 'react'
-import OrderReceivedCard from './components/OrderReceivedCard'
+import type { OrdersPageContentProps } from '../Content'
+import OrderReceivedCard from './OrderReceivedCard'
 
-export default function OrdersReceivedSection() {
-	const { createNotification } = useNotifications()
-	const { user, ordersReceived, setOrdersReceived } = useUser()
+type Props = Pick<OrdersPageContentProps, 'ordersReceived' | 'setOrdersReceived' | 'updateOrderStatus'>
+
+export default function OrdersReceivedSection({ ordersReceived, setOrdersReceived, updateOrderStatus }: Props) {
+	const { errorNotification, successNotification } = useNotifications()
 	const [confirmationModalOpen, setConfirmationModalOpen] = useState(false)
 	const [pendingStatusChange, setPendingStatusChange] = useState<{
 		orderId: number
 		currentStatus: OrderStatusName
 		newStatus: OrderStatusName
 	} | null>(null)
-	const [isUpdating, setIsUpdating] = useState(false)
 	const { includeVat } = useUi()
 
-	if (!user) return <UnauthorisedLinks />
 	if (!ordersReceived)
 		return <p className="lg:-mx-3 w-full text-blue-600 p-3 border-2 border-blue-300 bg-blue-50 rounded-xl max-w-xl">No orders found</p>
 
@@ -36,27 +33,11 @@ export default function OrdersReceivedSection() {
 	async function confirmStatusChange() {
 		if (!pendingStatusChange) return
 
-		setIsUpdating(true)
 		try {
 			const { orderId, newStatus } = pendingStatusChange
-
 			const newOrderStatusId = orderStatusNameToId[newStatus]
 
-			const { updatedOrder, userMessage } = await apiRequest<OrderAdminOrderIdPATCHresponse, OrderAdminOrderIdPATCHbody>({
-				basePath: 'orders/admin',
-				segment: orderId,
-				method: 'PATCH',
-				body: { statusId: newOrderStatusId, id: orderId },
-			})
-
-			// Create failure notification
-			if (userMessage) {
-				createNotification({
-					level: 'error',
-					title: 'Error',
-					message: userMessage,
-				})
-			}
+			const { updatedOrder, userMessage } = await updateOrderStatus(orderId, newOrderStatusId)
 
 			if (updatedOrder) {
 				setOrdersReceived((prevOrders) => {
@@ -72,17 +53,14 @@ export default function OrdersReceivedSection() {
 							: order,
 					)
 				})
+				successNotification(`Changed order status to ${newStatus}`)
 			}
+
+			if (userMessage) errorNotification(userMessage)
 
 			setConfirmationModalOpen(false)
 		} catch {
-			createNotification({
-				level: 'error',
-				title: 'Error',
-				message: userMessages.serverError,
-			})
-		} finally {
-			setIsUpdating(false)
+			errorNotification(userMessages.serverError)
 		}
 	}
 
@@ -98,15 +76,7 @@ export default function OrdersReceivedSection() {
 							<strong>{capitaliseFirstLetter(pendingStatusChange.newStatus)}</strong>?
 						</>
 					}
-					confirmButtonContent={
-						isUpdating ? (
-							<>
-								<Spinner colour="text-white" />
-							</>
-						) : (
-							'Update status'
-						)
-					}
+					confirmButtonText="Update status"
 					isOpen={confirmationModalOpen}
 					onClose={() => setConfirmationModalOpen(false)}
 					onConfirm={() => confirmStatusChange()}

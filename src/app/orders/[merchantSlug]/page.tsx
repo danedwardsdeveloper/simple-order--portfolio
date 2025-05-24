@@ -3,16 +3,14 @@ import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
 import { useUser } from '@/components/providers/user'
 import { use } from 'react'
 
-export default function Page({
-	params,
-}: {
-	params: Promise<{
-		merchantSlug: string
-	}>
-}) {
-	const resolvedParams = use(params)
-	const merchantSlug = resolvedParams.merchantSlug
+export type MerchantSlugResolvedParams = { merchantSlug: string }
+export type MerchantSlugParams = { params: Promise<MerchantSlugResolvedParams> }
+
+export default function Page({ params }: MerchantSlugParams) {
+	const merchantSlug = use(params).merchantSlug
+
 	const { user, confirmedMerchants } = useUser()
+
 	const merchantDetails = confirmedMerchants?.find((merchant) => merchant.slug === merchantSlug)
 
 	if (!user) return null

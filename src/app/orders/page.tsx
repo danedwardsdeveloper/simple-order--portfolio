@@ -1,38 +1,44 @@
 'use client'
-import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
-import TwoColumnContainer from '@/components/TwoColumnContainer'
+import { SignedOutBreadCrumbs } from '@/components/BreadCrumbs'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
-import { RoleModeToggleSection } from '@/components/menubar/RoleModeButton'
-import { useUi } from '@/components/providers/ui'
 import { useUser } from '@/components/providers/user'
-import OrdersMadePage from './ordersMadeSection'
-import MerchantsList from './ordersMadeSection/components/MerchantsList'
-import OrdersReceivedPage from './ordersReceivedSection'
+import { apiRequest } from '@/library/utilities/public'
+import type { OrderStatusId } from '@/types'
+import type { OrderAdminOrderIdPATCHbody, OrderAdminOrderIdPATCHresponse } from '../api/orders/admin/[orderId]/route'
+import OrdersPageContent, { type UpdateOrderStatusFunction } from './components/Content'
 
 export default function OrdersPage() {
-	const { merchantMode } = useUi()
-	const { user } = useUser()
+	const { user, confirmedMerchants, ordersReceived, ordersMade, setOrdersReceived } = useUser()
 
-	if (!user) return <UnauthorisedLinks />
+	const updateOrderStatus: UpdateOrderStatusFunction = async function updateOrderStatus(orderId: number, newOrderStatusId: OrderStatusId) {
+		const { updatedOrder, userMessage } = await apiRequest<OrderAdminOrderIdPATCHresponse, OrderAdminOrderIdPATCHbody>({
+			basePath: 'orders/admin',
+			segment: orderId,
+			method: 'PATCH',
+			body: { statusId: newOrderStatusId, id: orderId },
+		})
 
-	const dynamicTitle = user.roles === 'both' ? (merchantMode ? 'Orders received' : 'Orders made') : 'Orders'
+		return { updatedOrder, userMessage }
+	}
+
+	if (!user)
+		return (
+			<>
+				<SignedOutBreadCrumbs currentPageTitle="Orders" />
+				<h1>Orders</h1>
+				<UnauthorisedLinks />
+			</>
+		)
 
 	return (
-		<>
-			<SignedInBreadCrumbs businessName={user.businessName} currentPageTitle={dynamicTitle} />
-			<h1>{dynamicTitle}</h1>
-			<TwoColumnContainer
-				mainColumn={merchantMode ? <OrdersReceivedPage /> : <OrdersMadePage />}
-				sideColumn={(() => {
-					if (!merchantMode) {
-						return <MerchantsList />
-					}
-
-					if (user.roles === 'both') {
-						return <RoleModeToggleSection />
-					}
-				})()}
-			/>
-		</>
+		<OrdersPageContent
+			user={user}
+			isDemo={false}
+			confirmedMerchants={confirmedMerchants}
+			ordersReceived={ordersReceived}
+			ordersMade={ordersMade}
+			setOrdersReceived={setOrdersReceived}
+			updateOrderStatus={updateOrderStatus}
+		/>
 	)
 }

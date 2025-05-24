@@ -20,12 +20,7 @@ export default function OrderReceivedCard({ orderDetails, includeVat, index, onS
 
 	return (
 		<li>
-			<ZebraContainer
-				index={index}
-				oddStyles="bg-blue-50 border-blue-100"
-				evenStyles="bg-zinc-50 border-zinc-100"
-				baseStyles="flex flex-col gap-y-6 w-full p-4 border-2 rounded-xl"
-			>
+			<ZebraContainer index={index}>
 				{/* Order heading */}
 				<div className="flex justify-between">
 					<h3>{businessName}</h3>
@@ -38,6 +33,7 @@ export default function OrderReceivedCard({ orderDetails, includeVat, index, onS
 						/>
 					</div>
 				</div>
+
 				{/* Merchant note */}
 				<div>
 					<h4 className="font-medium">Private note</h4>
@@ -71,6 +67,7 @@ export default function OrderReceivedCard({ orderDetails, includeVat, index, onS
 						</li>
 					))}
 				</ul>
+
 				{/* Order total */}
 				<div className="w-full flex gap-x-3 items-end justify-end text-xl">
 					<span className="text-zinc-600">Total</span>
