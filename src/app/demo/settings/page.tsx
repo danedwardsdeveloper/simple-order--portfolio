@@ -9,7 +9,7 @@ export default function DemoSettingsPage() {
 
 	return (
 		<>
-			<SignedInBreadCrumbs businessName={demoUser.businessName} currentPageTitle="Settings" demoMode />
+			<SignedInBreadCrumbs businessName={demoUser.businessName} currentPageTitle="Settings" isDemo={true} />
 			<div className="flex flex-col gap-y-4 items-start">
 				<h1>Settings</h1>
 				<UserInformation user={demoUser} />

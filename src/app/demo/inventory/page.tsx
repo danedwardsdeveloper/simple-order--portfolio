@@ -26,7 +26,7 @@ export default function DemoInventoryPage() {
 
 	return (
 		<>
-			<SignedInBreadCrumbs businessName={demoUser.businessName} currentPageTitle="Inventory" demoMode />
+			<SignedInBreadCrumbs businessName={demoUser.businessName} currentPageTitle="Inventory" isDemo={true} />
 			<h1>Inventory</h1>
 			<TwoColumnContainer
 				mainColumn={
