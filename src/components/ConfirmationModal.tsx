@@ -1,12 +1,14 @@
 'use client'
+import { developmentDelay } from '@/library/utilities/public'
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
-import type { ReactNode } from 'react'
+import { type ReactNode, useState } from 'react'
+import { LoadingButton } from './Buttons'
 
 export default function ConfirmationModal({
 	title,
 	content,
-	confirmButtonContent,
+	confirmButtonText,
 	isOpen,
 	onClose,
 	onConfirm,
@@ -14,15 +16,20 @@ export default function ConfirmationModal({
 }: {
 	title: string
 	content: ReactNode
-	confirmButtonContent: ReactNode
+	confirmButtonText: string
 	isOpen: boolean
 	onClose: () => void
 	onConfirm: () => Promise<void> | void
 	dataTestId: string
 }) {
+	const [isSubmitting, setIsSubmitting] = useState(false)
+
 	async function handleConfirm() {
+		setIsSubmitting(true)
+		await developmentDelay()
 		await onConfirm()
 		onClose()
+		setIsSubmitting(false)
 	}
 
 	return (
@@ -52,9 +59,13 @@ export default function ConfirmationModal({
 							</div>
 						</div>
 						<div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse sm:justify-center">
-							<button type="button" onClick={handleConfirm} className="button-primary w-auto sm:ml-3">
-								{confirmButtonContent}
-							</button>
+							<LoadingButton
+								onClick={handleConfirm}
+								text={confirmButtonText}
+								isLoading={isSubmitting}
+								isDisabled={isSubmitting}
+								classes="sm:ml-3 max-w-44"
+							/>
 							<button
 								type="button"
 								data-autofocus
