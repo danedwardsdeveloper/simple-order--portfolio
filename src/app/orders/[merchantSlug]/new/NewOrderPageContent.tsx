@@ -9,13 +9,14 @@ import { calculateOrderTotal, checkMinimumSpend, epochDateToAmPm, formatPrice } 
 import type { BrowserOrderItem, BrowserSafeCustomerProduct, UserContextType } from '@/types'
 import { useRouter } from 'next/navigation'
 import { type FormEvent, useEffect, useState } from 'react'
-import CustomerFacingProductCard from '../components/CustomerFacingProductCard'
 import type { MerchantSlugResolvedParams } from '../page'
 import DeliveryDates from './DeliveryDates'
+import MinimumMaximumSpend from './MinimumMaximumSpend'
+import ProductInput from './ProductInput'
 
 export type CreateOrderFunction = (params: OrdersPOSTbody) => Promise<OrdersPOSTresponse>
 
-type Props = {
+export type NewOrderPageContentProps = {
 	user: NonNullable<UserContextType['user']>
 	createOrder: CreateOrderFunction
 	products: BrowserSafeCustomerProduct[] | null
@@ -34,11 +35,13 @@ export function NewOrderPageContent({
 	setOrdersMade,
 	createOrder,
 	availableDeliveryDays,
-}: Props) {
+}: NewOrderPageContentProps) {
 	const router = useRouter()
 	const { errorNotification, successNotification } = useNotifications()
 
-	// Might need to useRef here as input values are occasionally getting wiped. However it could just be a development issues with hot reloading
+	// Use proper type
+	// Add validations & feedback
+	// Prevent error if maximum order value is exceeded
 	const [selectedProducts, setSelectedProducts] = useState<Record<string, number>>({})
 	const [requestedDeliveryDate, setRequestedDeliveryDate] = useState<Date | null>(availableDeliveryDays[0])
 	const [isSubmitting, setIsSubmitting] = useState(false)
@@ -65,14 +68,14 @@ export function NewOrderPageContent({
 				vat: product.customVat || vat,
 			})) || []
 
-	const { totalWithVAT, totalWithoutVAT } = calculateOrderTotal(orderItems)
+	const { totalWithVAT, totalWithoutVAT, maximumOrderValueExceeded } = calculateOrderTotal(orderItems)
 
 	const { minimumSpendReached, percentageTowardsMinimumSpend } = checkMinimumSpend({
 		minimumSpend: merchantDetails.minimumSpendPence,
 		totalWithoutVAT,
 	})
 
-	function handleQuantityChange(productId: number, quantity: number) {
+	function handleQuantityChange(productId: number, quantity: string) {
 		setSelectedProducts((previous) => ({
 			...previous,
 			[productId]: quantity,
@@ -85,6 +88,7 @@ export function NewOrderPageContent({
 
 		setIsSubmitting(true)
 
+		// Transform quantities to numbers here
 		const orderItems = Object.keys(selectedProducts)
 			.filter((productId) => selectedProducts[Number(productId)] > 0)
 			.map((productId) => ({
@@ -98,11 +102,14 @@ export function NewOrderPageContent({
 
 			if (createdOrder) {
 				successNotification(`Submitted order to ${merchantDetails.businessName}`)
+
 				setOrdersMade(
 					(prevOrders) => [createdOrder, ...(prevOrders || [])], //
 				)
-				setSelectedProducts({})
+
 				router.push(isDemo ? '/demo/orders' : '/orders')
+
+				setSelectedProducts({})
 			}
 
 			if (userMessage) errorNotification(userMessage)
@@ -114,12 +121,29 @@ export function NewOrderPageContent({
 	}
 
 	function OrderSummary() {
+		// List of products
+
 		return (
 			<>
 				<h3 className="mb-2">Order summary</h3>
-				<div className="text-right tabular-nums">
-					<p>Total with VAT: {formatPrice(totalWithVAT)}</p>
-					<p>Total without VAT: {formatPrice(totalWithoutVAT)}</p>
+
+				<div className="space-y-2 tabular-nums">
+					<div className="flex justify-between">
+						<span>Subtotal</span>
+						<span>{formatPrice(totalWithoutVAT)}</span>
+					</div>
+					<div className="flex justify-between">
+						<span>VAT</span>
+						<span>{formatPrice(totalWithVAT - totalWithoutVAT)}</span>
+					</div>
+					<div className="flex justify-between font-semibold border-t pt-2">
+						<span>Total without VAT</span>
+						<span>{formatPrice(totalWithoutVAT)}</span>
+					</div>
+					<div className="flex justify-between font-semibold">
+						<span>Total with VAT</span>
+						<span>{formatPrice(totalWithVAT)}</span>
+					</div>
 				</div>
 			</>
 		)
@@ -167,32 +191,23 @@ export function NewOrderPageContent({
 
 						<OrderSummary />
 
-						{/* Minimum spend progress bar */}
-						<div className="max-w-xl my-8">
-							<div className="flex justify-between mb-1">
-								<div>
-									<span className="font-medium">Minimum spend: </span>
-									<span>{formatPrice(merchantDetails.minimumSpendPence)} without VAT</span>
-								</div>
-								{!minimumSpendReached && (
-									<span className="text-zinc-600">{formatPrice(merchantDetails.minimumSpendPence - totalWithoutVAT)} to go</span>
-								)}
-							</div>
-							<div className="overflow-hidden rounded-full bg-gray-200">
-								<div
-									style={{
-										width: `${percentageTowardsMinimumSpend}%`, //
-									}}
-									className="h-2 rounded-full transition-all duration-500 bg-blue-600 ease-in-out"
-								/>
-							</div>
+						<div className="my-4">
+							<MinimumMaximumSpend
+								percentageTowardsMinimumSpend={percentageTowardsMinimumSpend}
+								merchantDetails={merchantDetails}
+								minimumSpendReached={minimumSpendReached}
+								maximumOrderValueExceeded={maximumOrderValueExceeded}
+								totalWithoutVAT={totalWithoutVAT}
+							/>
 						</div>
 
 						<div className="mt-4 flex flex-col gap-y-4">
 							<SubmitButton
 								formId={formId}
 								isSubmitting={isSubmitting}
-								formReady={Object.values(selectedProducts).some((quantity) => quantity > 0) && minimumSpendReached}
+								formReady={
+									Object.values(selectedProducts).some((quantity) => quantity > 0) && minimumSpendReached && !maximumOrderValueExceeded
+								}
 								content="Place order"
 							/>
 						</div>
@@ -204,11 +219,11 @@ export function NewOrderPageContent({
 						<form id={formId} onSubmit={handleSubmit}>
 							<ul className="flex flex-col w-full gap-y-4 max-w-xl">
 								{products?.map((product, index) => (
-									<CustomerFacingProductCard
+									<ProductInput
 										key={product.id}
 										product={product}
 										zebraStripe={Boolean(index % 2)}
-										quantity={selectedProducts[product.id] || 0}
+										quantity={selectedProducts[product.id]?.toString() || ''}
 										onQuantityChange={(quantity) => handleQuantityChange(product.id, quantity)}
 									/>
 								))}
