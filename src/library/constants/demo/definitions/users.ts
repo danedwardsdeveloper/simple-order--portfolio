@@ -1,10 +1,8 @@
-import { defaultMinimumSpendPence } from '@/library/constants'
-import { createCutOffTime, obfuscateEmail } from '@/library/utilities/public'
-import type { BrowserSafeCompositeUser, UserContextType } from '@/types'
+import { december, defaultMinimumSpendPence, january, sixPm } from '@/library/constants'
+import { createDate, obfuscateEmail } from '@/library/utilities/public'
+import type { DemoUserContextType, Holiday } from '@/types'
 
-const sixPM = createCutOffTime({ hours: 18, minutes: 0 })
-
-export const demoMerchant: BrowserSafeCompositeUser = {
+export const demoMerchant: DemoUserContextType['merchant'] = {
 	firstName: 'Jane',
 	lastName: 'Smith',
 	email: 'jane@janesbakery.com',
@@ -12,32 +10,32 @@ export const demoMerchant: BrowserSafeCompositeUser = {
 	businessName: "Jane's Bakery",
 	slug: 'janes-bakery',
 	emailConfirmed: true,
-	cutOffTime: sixPM,
+	cutOffTime: sixPm,
 	leadTimeDays: 1,
 	minimumSpendPence: defaultMinimumSpendPence,
 }
 
-export const demoCustomer: BrowserSafeCompositeUser = {
+export const demoCustomer: DemoUserContextType['customer'] = {
 	firstName: 'Grand',
 	lastName: 'Hotel',
 	email: 'purchasing@grandhotel.com',
 	roles: 'customer',
 	businessName: 'The Grand Hotel',
-	slug: 'the-grand-hotel',
+	slug: 'the-grand-hotel', // Set but not used
 	emailConfirmed: true,
-	cutOffTime: sixPM,
-	leadTimeDays: 1,
-	minimumSpendPence: defaultMinimumSpendPence,
+	cutOffTime: sixPm, // Set but not used
+	leadTimeDays: 1, // Set but not used
+	minimumSpendPence: defaultMinimumSpendPence, // Set but not used
 }
 
-export const demoConfirmedCustomers: UserContextType['confirmedCustomers'] = [
+export const demoConfirmedCustomers: DemoUserContextType['confirmedCustomers'] = [
 	{
 		businessName: demoCustomer.businessName,
 		obfuscatedEmail: obfuscateEmail(demoCustomer.email),
 	},
 ]
 
-export const demoInvitationsSent: UserContextType['invitationsSent'] = [
+export const demoInvitationsSent: DemoUserContextType['invitationsSent'] = [
 	{
 		obfuscatedEmail: 'orders@riversidecafes.com',
 		lastEmailSentDate: new Date(), // ToDo
@@ -45,13 +43,10 @@ export const demoInvitationsSent: UserContextType['invitationsSent'] = [
 	},
 ]
 
-export const demoConfirmedMerchants: UserContextType['confirmedMerchants'] = [
+export const demoHolidays: Holiday[] = [
 	{
-		businessName: demoMerchant.businessName,
-		slug: demoMerchant.slug,
-		cutOffTime: demoMerchant.cutOffTime,
-		leadTimeDays: demoMerchant.leadTimeDays,
-		minimumSpendPence: demoMerchant.minimumSpendPence,
+		startDate: createDate(20, december, 2025), //
+		endDate: createDate(4, january, 2026),
 	},
 ]
 
