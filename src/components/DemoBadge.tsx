@@ -17,7 +17,7 @@ export default function DemoBadge() {
 	}
 
 	return (
-		<div className="fixed bottom-4 left-0 right-0 mx-auto w-fit md:w-auto md:left-auto md:right-4 bg-orange-600 text-white rounded-full shadow-lg overflow-hidden">
+		<div className="fixed bottom-4 left-0 right-0 mx-auto w-fit sm:w-auto sm:left-auto sm:right-4 bg-orange-600 text-white rounded-full shadow-lg overflow-hidden">
 			<div className="flex items-center">
 				<button type="button" className="px-4 py-2 font-medium">
 					Demo
