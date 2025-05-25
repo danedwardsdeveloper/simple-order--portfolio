@@ -8,7 +8,7 @@ import { userMessages } from '@/library/constants'
 import { calculateOrderTotal, checkMinimumSpend, epochDateToAmPm, formatPrice } from '@/library/utilities/public'
 import type { BrowserOrderItem, BrowserSafeCustomerProduct, UserContextType } from '@/types'
 import { useRouter } from 'next/navigation'
-import { type FormEvent, useState } from 'react'
+import { type FormEvent, useEffect, useState } from 'react'
 import CustomerFacingProductCard from '../components/CustomerFacingProductCard'
 import type { MerchantSlugResolvedParams } from '../page'
 import DeliveryDates from './DeliveryDates'
@@ -45,6 +45,10 @@ export function NewOrderPageContent({
 
 	const merchantDetails = confirmedMerchants?.find((merchant) => merchant.slug === merchantSlug)
 
+	useEffect(() => {
+		document.title = `New order: ${merchantDetails?.businessName || ''}`
+	}, [merchantDetails])
+
 	if (!merchantDetails) return null
 
 	const { leadTimeDays, cutOffTime } = merchantDetails
@@ -77,9 +81,9 @@ export function NewOrderPageContent({
 
 	async function handleSubmit(event: FormEvent) {
 		event.preventDefault()
-		setIsSubmitting(true)
-
 		if (!requestedDeliveryDate || !merchantDetails) return null
+
+		setIsSubmitting(true)
 
 		const orderItems = Object.keys(selectedProducts)
 			.filter((productId) => selectedProducts[Number(productId)] > 0)
@@ -89,6 +93,7 @@ export function NewOrderPageContent({
 			}))
 
 		try {
+			// createOrder is a function provided as a prop that interacts with the database in the real app
 			const { createdOrder, userMessage } = await createOrder({ merchantSlug, products: orderItems, requestedDeliveryDate })
 
 			if (createdOrder) {
@@ -120,6 +125,8 @@ export function NewOrderPageContent({
 		)
 	}
 
+	const formId = 'order-form'
+
 	return (
 		<>
 			<SignedInBreadCrumbs
@@ -137,8 +144,9 @@ export function NewOrderPageContent({
 				currentPageTitle="New order"
 			/>
 			<TwoColumnContainer
+				sideColumnClasses="p-4 border-2 border-zinc-200 rounded-xl max-w-xl"
 				sideColumn={
-					<div className="flex flex-col gap-y-4 mb-20 p-4 border-2 border-zinc-200 rounded-xl max-w-xl">
+					<>
 						<p>
 							<span className="font-medium">Cut off time: </span>
 							<span>{epochDateToAmPm(cutOffTime)}</span>
@@ -182,17 +190,18 @@ export function NewOrderPageContent({
 
 						<div className="mt-4 flex flex-col gap-y-4">
 							<SubmitButton
+								formId={formId}
 								isSubmitting={isSubmitting}
 								formReady={Object.values(selectedProducts).some((quantity) => quantity > 0) && minimumSpendReached}
 								content="Place order"
 							/>
 						</div>
-					</div>
+					</>
 				}
 				mainColumn={
 					<>
 						<h1>New order</h1>
-						<form onSubmit={handleSubmit}>
+						<form id={formId} onSubmit={handleSubmit}>
 							<ul className="flex flex-col w-full gap-y-4 max-w-xl">
 								{products?.map((product, index) => (
 									<CustomerFacingProductCard
