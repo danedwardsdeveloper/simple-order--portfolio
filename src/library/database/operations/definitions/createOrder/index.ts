@@ -13,6 +13,7 @@ type Input = {
 	products: SelectedProduct[]
 }
 
+// Database transaction that creates an order
 export async function createOrder({
 	customerId,
 	merchantProfile,
