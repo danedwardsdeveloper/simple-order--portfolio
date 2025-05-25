@@ -1,4 +1,4 @@
-import { cookieDurations, http500serverError, userMessages } from '@/library/constants'
+import { cookieDurations, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkActiveSubscriptionOrTrial, getUserRoles } from '@/library/database/operations'
 import { confirmationTokens, users } from '@/library/database/schema'
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest): Output {
 
 		const { updatedUser } = await database.transaction(async (tx) => {
 			transactionFailureMessage = 'transaction error updating user'
-			transactionFailureStatus = http500serverError
+			transactionFailureStatus = 500
 			const [updatedUser] = await tx.update(users).set({ emailConfirmed: true }).where(equals(users.id, foundDangerousUser.id)).returning()
 
 			transactionFailureMessage = 'transaction error expiring token'
