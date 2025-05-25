@@ -1,39 +1,29 @@
-import type { DayOfTheWeek } from '@/types'
+import type { Holiday, WeekDayIndex } from '@/types'
+import { flattenHolidays } from '../flattenHolidays'
+import { getLookAheadRange } from '../getLookAheadRange'
 import { givesEnoughNotice } from '../givesEnoughNotice'
 
 export type Props = {
-	acceptedWeekDays: DayOfTheWeek[]
-	merchantHolidays: Date[] | null
+	acceptedWeekDayIndices: WeekDayIndex[]
+	holidays: Holiday[] | null
 	lookAheadDays: number
 	cutOffTime: Date
 	leadTimeDays: number
 }
 
-// Update: I don't need the week days here, just the indices
-export function getAvailableDeliveryDays({
-	acceptedWeekDays,
-	merchantHolidays,
-	lookAheadDays,
-	cutOffTime,
-	leadTimeDays,
-}: Props): Date[] | null {
-	if (acceptedWeekDays.length === 0) return null
+export function getAvailableDeliveryDays(props: Props): Date[] | null {
+	if (props.acceptedWeekDayIndices.length === 0) return null
 
-	const today = new Date()
-	today.setUTCHours(0, 0, 0, 0)
+	const { today, rangeEnd } = getLookAheadRange(props.lookAheadDays)
 
-	const futureDate = new Date()
-	futureDate.setUTCDate(today.getUTCDate() + lookAheadDays)
-	futureDate.setUTCHours(0, 0, 0, 0)
+	const flatHolidays = flattenHolidays({ holidays: props.holidays, today, rangeEnd })
 
-	const holidayStrings = merchantHolidays ? merchantHolidays.map((date) => date.toISOString().split('T')[0]) : []
-
-	const acceptedWeekDaySortOrders = new Set(acceptedWeekDays.map((day) => day.sortOrder))
+	const holidayStrings = flatHolidays ? flatHolidays.map((date) => date.toISOString().split('T')[0]) : []
 
 	const acceptedDeliveryDays: Date[] = []
-	const iterationDate = new Date(today)
+	const iterationDate = today
 
-	while (iterationDate < futureDate) {
+	while (iterationDate < rangeEnd) {
 		// Convert JavaScript Sunday (0) to my system (7)
 		const dayOfWeek = iterationDate.getDay() || 7
 
@@ -41,12 +31,12 @@ export function getAvailableDeliveryDays({
 
 		const enoughNotice = givesEnoughNotice({
 			requestedDeliveryDate: iterationDate,
-			cutOffTime,
-			leadTimeDays,
+			cutOffTime: props.cutOffTime,
+			leadTimeDays: props.leadTimeDays,
 		})
 
 		if (
-			acceptedWeekDaySortOrders.has(dayOfWeek) && //
+			props.acceptedWeekDayIndices.includes(dayOfWeek as WeekDayIndex) && //
 			!holidayStrings.includes(dateString) &&
 			enoughNotice
 		) {

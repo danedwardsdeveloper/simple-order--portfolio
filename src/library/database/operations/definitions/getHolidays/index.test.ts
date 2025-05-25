@@ -4,7 +4,7 @@ import { holidays } from '@/library/database/schema'
 import { createDate } from '@/library/utilities/public'
 import { equals } from '@/library/utilities/server'
 import type { AsyncFunction, DangerousBaseUser, TestUserInputValues } from '@/types'
-import { createUser, deleteUser } from '@tests/utilities'
+import { createTestUser, deleteUser } from '@tests/utilities'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
 import { getHolidays } from '.'
 
@@ -53,7 +53,7 @@ function getKimWoodburn(): DangerousBaseUser {
 const file: TestFile = {
 	fileDescription: 'getHolidays',
 	fileSetUp: async () => {
-		const { createdUser } = await createUser(userInputValues)
+		const { createdUser } = await createTestUser(userInputValues)
 		kimWoodburn = createdUser
 	},
 	fileTearDown: async () => {

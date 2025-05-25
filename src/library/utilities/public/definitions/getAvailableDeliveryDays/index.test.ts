@@ -1,4 +1,4 @@
-import { august, daysOfTheWeek, friday, january, monday, thursday, tuesday, wednesday } from '@/library/constants'
+import { august, friday, january, monday, thursday, tuesday, wednesday } from '@/library/constants'
 import type { AsyncFunction } from '@/types'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
 import { type Props as FunctionProps, getAvailableDeliveryDays } from '.'
@@ -14,14 +14,8 @@ interface TestFile {
 }
 
 const defaultInput: FunctionProps = {
-	acceptedWeekDays: [
-		daysOfTheWeek[monday],
-		daysOfTheWeek[tuesday],
-		daysOfTheWeek[wednesday],
-		daysOfTheWeek[thursday],
-		daysOfTheWeek[friday],
-	],
-	merchantHolidays: null,
+	acceptedWeekDayIndices: [monday, tuesday, wednesday, thursday, friday],
+	holidays: null,
 	lookAheadDays: 14,
 	cutOffTime: createCutOffTime({ hours: 18, minutes: 0 }),
 	leadTimeDays: 1,
@@ -130,7 +124,7 @@ const file: TestFile = {
 					caseDescription: 'Standard weekdays with a bank holiday',
 					input: {
 						...defaultInput, //
-						merchantHolidays: [createDate(4, august, 2025)],
+						holidays: [{ startDate: createDate(4, august, 2025), endDate: createDate(4, august, 2025) }],
 					},
 					expectedFormattedOutput: [
 						// Saturday 2,

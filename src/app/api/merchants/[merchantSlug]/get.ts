@@ -1,6 +1,6 @@
 import { http403forbidden, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
-import { checkAccess, checkRelationship, getAcceptedWeekDays, getHolidays } from '@/library/database/operations'
+import { checkAccess, checkRelationship, getAcceptedWeekDayIndices, getHolidays } from '@/library/database/operations'
 import { products, users } from '@/library/database/schema'
 import { convertEmptyToUndefined, getAvailableDeliveryDays } from '@/library/utilities/public'
 import { and, equals, initialiseResponder, isNull } from '@/library/utilities/server'
@@ -69,18 +69,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 				.where(and(equals(products.ownerId, merchantId), isNull(products.deletedAt))),
 		)
 
-		const acceptedWeekDays = await getAcceptedWeekDays(merchantId)
+		const acceptedWeekDayIndices = await getAcceptedWeekDayIndices(merchantId)
 
 		const lookAheadDays = 14
 
-		const merchantHolidays = await getHolidays({
+		const holidays = await getHolidays({
 			merchantProfile: dangerousMerchantProfile, //
 			lookAheadDays,
 		})
 
 		const availableDeliveryDays = getAvailableDeliveryDays({
-			acceptedWeekDays,
-			merchantHolidays,
+			acceptedWeekDayIndices,
+			holidays,
 			lookAheadDays,
 			cutOffTime,
 			leadTimeDays,
