@@ -15,3 +15,7 @@ export type SettingsContextType = {
 	addHoliday: SaveSetting<Date, Date>
 	saveDeliveryDays: SaveSetting<number[]>
 }
+
+export type DemoSettingsContextType = {
+	[K in keyof SettingsContextType]: NonNullable<SettingsContextType[K]>
+}
