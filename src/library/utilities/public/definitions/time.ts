@@ -1,4 +1,4 @@
-import { january } from '@/library/constants'
+// time is not part of the barrel as it will cause a treeshaking issue that breaks Drizzle studio
 import { HoursSchema, MinutesSchema } from '@/library/validations/definitions/time'
 import type { Hours, Minutes } from '@/types'
 import { z } from 'zod'
@@ -38,7 +38,8 @@ export function createCutOffTime({ hours, minutes }: { hours: Hours; minutes: Mi
 	HoursSchema.parse(hours)
 	MinutesSchema.parse(minutes)
 
-	const epochDay = new Date(Date.UTC(1970, january, 1))
+	// Don't import january here or it causes a circular dependency!
+	const epochDay = new Date(Date.UTC(1970, 0, 1))
 	epochDay.setUTCHours(hours, minutes)
 	return epochDay
 }
