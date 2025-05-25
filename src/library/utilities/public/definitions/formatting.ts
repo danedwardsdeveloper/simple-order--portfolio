@@ -1,4 +1,3 @@
-import { serviceConstraints } from '@/library/constants'
 import { format } from 'date-fns'
 import { formatInTimeZone } from 'date-fns-tz'
 
@@ -42,12 +41,7 @@ export function capitaliseFirstLetter(str: string): string {
 	return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
-// ToDo: use the Zod product schema to reject large numbers more elegantly
 export function formatPrice(pence: number): string {
-	if (pence > serviceConstraints.maximumProductValueInMinorUnits) {
-		throw new Error('formatPrice: maximum price exceeded')
-	}
-
 	if (Number.isNaN(pence)) throw new Error('formatPrice: tried to format NaN')
 
 	const roundedPence = Math.round(pence)
