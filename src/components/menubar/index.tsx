@@ -14,7 +14,7 @@ import { DesktopMenuItem, MobileMenuItem } from './MenuItems'
 export default function MenuBar() {
 	const pathname = usePathname()
 	const { user } = useUser()
-	const { demoUser } = useDemoUser()
+	const { resolvedUser: resolvedDemoUser } = useDemoUser()
 	const { mobileMenuOpen, setMobileMenuOpen, toggleMobileMenuOpen, demoMode, setDemoMode } = useUi()
 
 	useEffect(() => {
@@ -27,7 +27,8 @@ export default function MenuBar() {
 		return demoMode ? `/demo${path}` : path
 	}
 
-	const resolvedUser = demoMode ? demoUser : user
+	const resolvedUser = demoMode ? resolvedDemoUser : user
+
 	const notJustACustomer = resolvedUser && (resolvedUser.roles === 'merchant' || resolvedUser.roles === 'both')
 
 	function MobileMenu() {

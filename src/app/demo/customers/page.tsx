@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 export default function DemoCustomersPage() {
-	const { demoUser, invitationsSent, setInvitationsSent, confirmedCustomers } = useDemoUser()
+	const { merchant, invitationsSent, setInvitationsSent, confirmedCustomers } = useDemoUser()
 	const { merchantMode } = useUi()
 
 	const [isSubmitting, setIsSubmitting] = useState(false)
@@ -41,7 +41,7 @@ export default function DemoCustomersPage() {
 
 	return (
 		<CustomersPageContent
-			user={demoUser}
+			user={merchant}
 			isDemo={true}
 			invitationsSent={invitationsSent}
 			confirmedCustomers={confirmedCustomers}

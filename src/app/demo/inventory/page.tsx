@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
 export default function DemoInventoryPage() {
-	const { demoUser, inventory, vat } = useDemoUser()
+	const { merchant, inventory, vat } = useDemoUser()
 	const { addProduct, updateProduct, isUpdating, deleteProduct, isDeleting, isSubmitting } = useDemoInventory()
 
 	const { merchantMode } = useUi()
@@ -26,7 +26,7 @@ export default function DemoInventoryPage() {
 
 	return (
 		<>
-			<SignedInBreadCrumbs businessName={demoUser.businessName} currentPageTitle="Inventory" isDemo={true} />
+			<SignedInBreadCrumbs businessName={merchant.businessName} currentPageTitle="Inventory" isDemo={true} />
 			<h1>Inventory</h1>
 			<TwoColumnContainer
 				mainColumn={

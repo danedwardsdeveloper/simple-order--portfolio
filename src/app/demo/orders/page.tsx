@@ -6,7 +6,7 @@ import { subtleDelay } from '@/library/utilities/public'
 import type { OrderStatusId } from '@/types'
 
 export default function DemoOrdersPage() {
-	const { demoUser, confirmedMerchants, ordersReceived, setOrdersReceived, ordersMade, setOrdersMade } = useDemoUser()
+	const { resolvedUser, confirmedMerchants, ordersReceived, setOrdersReceived, ordersMade, setOrdersMade } = useDemoUser()
 
 	const updateOrderStatus: UpdateOrderStatusFunction = async (orderId: number, newOrderStatusId: OrderStatusId) => {
 		await subtleDelay()
@@ -24,7 +24,7 @@ export default function DemoOrdersPage() {
 
 	return (
 		<OrdersPageContent
-			user={demoUser}
+			user={resolvedUser}
 			confirmedMerchants={confirmedMerchants}
 			isDemo={true}
 			ordersReceived={ordersReceived}

@@ -38,6 +38,9 @@ export interface UserContextType {
 }
 
 export type DemoUserContextType = Omit<UserContextType, 'user' | 'setUser'> & {
-	demoUser: BrowserSafeCompositeUser
-	setDemoUser: Dispatch<SetStateAction<BrowserSafeCompositeUser>>
+	customer: BrowserSafeCompositeUser
+	setCustomer: Dispatch<SetStateAction<BrowserSafeCompositeUser>>
+	merchant: BrowserSafeCompositeUser
+	setMerchant: Dispatch<SetStateAction<BrowserSafeCompositeUser>>
+	resolvedUser: BrowserSafeCompositeUser
 }

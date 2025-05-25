@@ -1,12 +1,13 @@
 'use client'
 import { useNotifications } from '@/components/providers/notifications'
-import { userNotifications } from '@/library/constants'
+import { defaultAcceptedDeliveryDayIndices, userNotifications } from '@/library/constants'
+import { demoHolidays } from '@/library/constants/demo'
 import { subtleDelay } from '@/library/utilities/public'
-import type { Holiday, SettingsContextType, WeekDayIndex } from '@/types'
+import type { DemoSettingsContextType, Holiday, WeekDayIndex } from '@/types'
 import { type ReactNode, createContext, useContext, useState } from 'react'
 import { useDemoUser } from './user'
 
-const DemoSettingsContext = createContext<SettingsContextType | null>(null)
+const DemoSettingsContext = createContext<DemoSettingsContextType | null>(null)
 
 const {
 	settingsUpdated: { cutOffMessage, minimumSpendMessage, holidayAddedMessage, leadTimeDaysMessage, deliveryDaysMessage },
@@ -14,21 +15,21 @@ const {
 
 export function DemoSettingsProvider({ children }: { children: ReactNode }) {
 	const { successNotification } = useNotifications()
-	const { setDemoUser } = useDemoUser()
+	const { setMerchant } = useDemoUser()
 
 	// Settings that aren't already in the user object
 	const [retrievedSettings, setRetrievedSettings] = useState<{
-		holidays: Holiday[] | null
-		acceptedWeekDayIndices: WeekDayIndex[] | null
+		holidays: Holiday[]
+		acceptedWeekDayIndices: WeekDayIndex[]
 	}>({
-		holidays: null,
-		acceptedWeekDayIndices: [1, 2, 3, 4, 5], // Initialize with some demo days
+		holidays: demoHolidays,
+		acceptedWeekDayIndices: defaultAcceptedDeliveryDayIndices,
 	})
 
 	async function saveCutOffTime(value: Date): Promise<boolean> {
 		await subtleDelay()
 
-		setDemoUser((prev) => ({ ...prev, cutOffTime: value }))
+		setMerchant((prev) => ({ ...prev, cutOffTime: value }))
 		successNotification(cutOffMessage)
 		return true
 	}
@@ -36,7 +37,7 @@ export function DemoSettingsProvider({ children }: { children: ReactNode }) {
 	async function saveLeadTime(value: number): Promise<boolean> {
 		await subtleDelay()
 
-		setDemoUser((prev) => ({ ...prev, leadTimeDays: value }))
+		setMerchant((prev) => ({ ...prev, leadTimeDays: value }))
 		successNotification(leadTimeDaysMessage)
 		return true
 	}
@@ -44,7 +45,7 @@ export function DemoSettingsProvider({ children }: { children: ReactNode }) {
 	async function saveMinimumSpendPence(value: number): Promise<boolean> {
 		await subtleDelay()
 
-		setDemoUser((prev) => ({ ...prev, minimumSpendPence: value }))
+		setMerchant((prev) => ({ ...prev, minimumSpendPence: value }))
 		successNotification(minimumSpendMessage)
 		return true
 	}

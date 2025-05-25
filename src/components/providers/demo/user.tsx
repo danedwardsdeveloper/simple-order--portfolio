@@ -3,7 +3,6 @@ import { useUi } from '@/components/providers/ui'
 import { temporaryVat } from '@/library/constants'
 import {
 	demoConfirmedCustomers,
-	demoConfirmedMerchants,
 	demoCustomer,
 	demoInventory,
 	demoInvitationsSent,
@@ -11,6 +10,7 @@ import {
 	demoOrdersMade,
 	demoOrdersReceived,
 } from '@/library/constants/demo'
+import { createCutOffTime } from '@/library/utilities/public'
 import type {
 	BrowserSafeCompositeUser,
 	BrowserSafeCustomerProfile,
@@ -22,21 +22,23 @@ import type {
 	OrderMade,
 	OrderReceived,
 } from '@/types'
-import { type ReactNode, createContext, useContext, useEffect, useState } from 'react'
+import { type ReactNode, createContext, useContext, useMemo, useState } from 'react'
 
 export const DemoUserContext = createContext<DemoUserContextType>({} as DemoUserContextType)
 
 export const DemoUserProvider = ({ children }: { children: ReactNode }) => {
 	const { merchantMode } = useUi()
-	const [demoUser, setDemoUser] = useState<BrowserSafeCompositeUser>(merchantMode ? demoMerchant : demoCustomer)
+
+	const [customer, setCustomer] = useState<BrowserSafeCompositeUser>(demoCustomer)
+	const [merchant, setMerchant] = useState<BrowserSafeCompositeUser>(demoMerchant)
 
 	const [inventory, setInventory] = useState<BrowserSafeMerchantProduct[] | null>(demoInventory)
 
-	const [confirmedMerchants, setConfirmedMerchants] = useState<BrowserSafeMerchantProfile[] | null>(demoConfirmedMerchants)
+	const [_confirmedMerchants, setConfirmedMerchants] = useState<BrowserSafeMerchantProfile[] | null>(null)
 
 	const [confirmedCustomers, setConfirmedCustomers] = useState<BrowserSafeCustomerProfile[] | null>(demoConfirmedCustomers)
 
-	const [invitationsReceived, setInvitationsReceived] = useState<BrowserSafeInvitationReceived[] | null>(null)
+	const [invitationsReceived, setInvitationsReceived] = useState<BrowserSafeInvitationReceived[] | null>([])
 
 	const [invitationsSent, setInvitationsSent] = useState<BrowserSafeInvitationSent[] | null>(demoInvitationsSent)
 
@@ -44,15 +46,38 @@ export const DemoUserProvider = ({ children }: { children: ReactNode }) => {
 
 	const [ordersReceived, setOrdersReceived] = useState<OrderReceived[] | null>(demoOrdersReceived)
 
-	useEffect(() => {
-		setDemoUser(merchantMode ? demoMerchant : demoCustomer)
-	}, [merchantMode])
+	const confirmedMerchants = useMemo(
+		() => [
+			{
+				// This is kept in sync
+				businessName: merchant.businessName,
+				slug: merchant.slug,
+				cutOffTime: merchant.cutOffTime,
+				leadTimeDays: merchant.leadTimeDays,
+				minimumSpendPence: merchant.minimumSpendPence,
+			},
+			{
+				// This is static
+				businessName: 'Crown & Bloom Flowers',
+				slug: 'crown-and-bloom-flowers',
+				cutOffTime: createCutOffTime({ hours: 14, minutes: 0 }),
+				leadTimeDays: 1,
+				minimumSpendPence: 10000,
+			},
+		],
+		[merchant],
+	)
 
 	return (
 		<DemoUserContext.Provider
 			value={{
-				demoUser,
-				setDemoUser,
+				customer,
+				setCustomer,
+
+				merchant,
+				setMerchant,
+
+				resolvedUser: merchantMode ? merchant : customer,
 
 				inventory,
 				setInventory,
