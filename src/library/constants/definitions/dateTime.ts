@@ -1,3 +1,4 @@
+import { createCutOffTime } from '@/library/utilities/public'
 import type { DayOfTheWeek, Month, WeekDayIndex } from '@/types'
 
 export const january: Month = 0
@@ -53,3 +54,6 @@ export const daysOfTheWeek: DayOfTheWeek[] = [
 		sortOrder: 7,
 	},
 ]
+
+export const minuteBeforeMidnight = createCutOffTime({ hours: 23, minutes: 59 })
+export const sixPm = createCutOffTime({ hours: 18, minutes: 0 })
