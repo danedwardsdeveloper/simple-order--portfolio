@@ -10,12 +10,14 @@ type BaseButtonProps = {
 	onClick?: (event: MouseEvent<HTMLButtonElement>) => void
 	dataTestId?: string
 	children: ReactNode
+	formId?: string
 }
 
-function BaseButton({ type = 'button', isDisabled, isLoading, onClick, dataTestId, children, classes }: BaseButtonProps) {
+function BaseButton({ type = 'button', isDisabled, isLoading, onClick, dataTestId, children, classes, formId }: BaseButtonProps) {
 	return (
 		<button
 			type={type}
+			form={formId}
 			disabled={isDisabled}
 			data-test-id={dataTestId}
 			onClick={onClick}
@@ -40,11 +42,12 @@ type SubmitButtonProps = {
 	content: string | ReactNode
 	dataTestId?: string
 	classes?: string
+	formId?: string
 }
 
-export function SubmitButton({ formReady, isSubmitting, content, dataTestId, classes }: SubmitButtonProps) {
+export function SubmitButton({ formReady, isSubmitting, content, dataTestId, classes, formId }: SubmitButtonProps) {
 	return (
-		<BaseButton type="submit" isDisabled={!formReady || isSubmitting} isLoading={isSubmitting} dataTestId={dataTestId}>
+		<BaseButton type="submit" formId={formId} isDisabled={!formReady || isSubmitting} isLoading={isSubmitting} dataTestId={dataTestId}>
 			<div className={mergeClasses('min-h-7 flex justify-center', classes)}>{isSubmitting ? <Spinner colour="text-white" /> : content}</div>
 		</BaseButton>
 	)
