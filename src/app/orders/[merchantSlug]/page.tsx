@@ -1,6 +1,8 @@
 'use client'
 import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
 import { useUser } from '@/components/providers/user'
+import { isProduction } from '@/library/environment/publicVariables'
+import { notFound } from 'next/navigation'
 import { use } from 'react'
 
 export type MerchantSlugResolvedParams = { merchantSlug: string }
@@ -14,6 +16,9 @@ export default function Page({ params }: MerchantSlugParams) {
 	const merchantDetails = confirmedMerchants?.find((merchant) => merchant.slug === merchantSlug)
 
 	if (!user) return null
+
+	// ToDo!
+	if (isProduction) return notFound()
 
 	return (
 		<>
