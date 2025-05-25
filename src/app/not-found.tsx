@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 function NotFoundComponent() {
 	return (
-		<main className="grid min-h-full place-items-center bg-white px-6 py-24 sm:py-32 lg:px-8">
+		<main className="grid min-h-full place-items-center bg-white px-6 pt-12 lg:px-8 mt-menubar-offset">
 			<div className="text-center">
 				<p className="text-base font-semibold text-blue-600">404</p>
 				<h1 className="mt-4 text-5xl font-semibold tracking-tight text-balance text-gray-900 sm:text-7xl">Page not found</h1>
