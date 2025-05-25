@@ -3,8 +3,6 @@ import logger from '@/library/logger'
 import { type Dispatch, type ReactNode, type SetStateAction, createContext, useContext, useEffect, useState } from 'react'
 
 interface LoadingContextType {
-	siteLoading: boolean
-
 	dataLoading: boolean
 	setDataLoading: Dispatch<SetStateAction<boolean>>
 
@@ -16,8 +14,6 @@ interface LoadingContextType {
 }
 
 const initialLoadingContext: LoadingContextType = {
-	siteLoading: true,
-
 	dataLoading: false,
 	setDataLoading: () => {},
 
@@ -30,8 +26,16 @@ const initialLoadingContext: LoadingContextType = {
 
 export const LoadingContext = createContext<LoadingContextType>(initialLoadingContext)
 
+/**
+ * Update Sunday 25 May, 2025. This is a fantastic, flawless system that results in a polished UI without flickering or obscuring the menubar
+ */
 export function LoadingProvider({ children }: { children: ReactNode }) {
-	const [siteLoading, setSiteLoading] = useState<boolean>(true)
+	const [siteLoading, setSiteLoading] = useState<boolean>(() => {
+		if (typeof window !== 'undefined') {
+			return document.fonts.status !== 'loaded'
+		}
+		return true
+	})
 	const [dataLoading, setDataLoading] = useState<boolean>(false)
 	const [siteSplashExists, setSplashExists] = useState(true)
 	const [contentSplashExists, setContentSplashExists] = useState(false)
@@ -43,7 +47,14 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
 	const showContentSplash = forceContentSplash || dataLoading
 
 	useEffect(() => {
+		if (document.fonts.status === 'loaded') {
+			setSiteLoading(false)
+			return
+		}
+
 		const fontsPromise = document.fonts.ready
+
+		// Always show the splash for nearly a second for a more professional presentation
 		const timeoutPromise = new Promise<void>((resolve) => setTimeout(() => resolve(), 800))
 
 		Promise.all([fontsPromise, timeoutPromise])
@@ -81,8 +92,6 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
 	}, [showContentSplash])
 
 	const contextValue: LoadingContextType = {
-		siteLoading,
-
 		dataLoading,
 		setDataLoading,
 
