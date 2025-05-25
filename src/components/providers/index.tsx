@@ -24,6 +24,10 @@ const NotificationsContainer = dynamic(() => import('@/components/notifications/
 	ssr: false,
 })
 
+// DemoUserProvider wraps the entire site as it's used by the menu bar
+// DemoSettingsProvider only wraps the /demo pages because it's used /settings and /orders/merchantSlug/new
+// DemoInventoryProvider only wraps the /demo/inventory page
+
 export default function Providers({ children }: { children: ReactNode }) {
 	function ProductionProviders({ children }: { children: ReactNode }) {
 		return (
