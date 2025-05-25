@@ -7,18 +7,8 @@ import fruitSeller from '../../../public/images/fruit-seller.png'
 import furnitureManufacturer from '../../../public/images/furniture-manufacturer.png'
 import defaultSocialImage from '../../../public/images/simple-order-wholesale-order-management-software-website.png'
 import threeBakers from '../../../public/images/three-bakers.png'
-import underConstruction from '../../../public/images/under-construction.png'
 
-type ImageKey =
-	| 'autoParts'
-	| 'cheeseMaker'
-	| 'baristas'
-	| 'default'
-	| 'baker'
-	| 'fruitSeller'
-	| 'furnitureManufacturer'
-	| 'threeBakers'
-	| 'underConstruction'
+type ImageKey = 'autoParts' | 'cheeseMaker' | 'baristas' | 'default' | 'baker' | 'fruitSeller' | 'furnitureManufacturer' | 'threeBakers'
 
 type ImagesCollection = {
 	[key in ImageKey]: ImageWithAlt
@@ -59,9 +49,5 @@ export const imagesCollection: ImagesCollection = {
 	threeBakers: {
 		src: threeBakers,
 		alt: 'Three bakers in chef hats and aprons looking at a tablet while packaging freshly baked bread rolls.',
-	},
-	underConstruction: {
-		src: underConstruction,
-		alt: 'Road sign with construction worker digging symbol',
 	},
 }
