@@ -2,6 +2,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "next dev --turbo",
+		"start": "node .next/standalone/server.js",
 		"format": "biome format . --write",
 		"check": "biome check . --write --unsafe",
 		"stripe": "stripe listen --events customer.subscription.created,customer.subscription.updated,invoice.paid,invoice.payment_failed,customer.subscription.deleted --forward-to localhost:3000/api/payments/webhook",
