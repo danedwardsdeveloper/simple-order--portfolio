@@ -10,7 +10,7 @@ import { apiRequest } from '@/library/utilities/public'
 import type { BrowserSafeCustomerProduct } from '@/types'
 import { use, useEffect, useState } from 'react'
 import type { MerchantSlugParams } from '../page'
-import { type CreateOrderFunction, NewOrderPageContent } from './Content'
+import { type CreateOrderFunction, NewOrderPageContent } from './NewOrderPageContent'
 
 export default function NewOrderPage({ params }: MerchantSlugParams) {
 	const resolvedParams = use(params)
