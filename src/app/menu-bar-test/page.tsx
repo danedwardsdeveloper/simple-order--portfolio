@@ -10,7 +10,7 @@ import { notFound } from 'next/navigation'
 export default function MenuBarTestPage() {
 	const { user, setUser } = useUser()
 	const { demoMode, toggleDemoMode, merchantMode } = useUi()
-	const { demoUser } = useDemoUser()
+	const { resolvedUser: resolvedDemoUser } = useDemoUser()
 
 	// Development-only page so I can quickly visualise how my menu looks in its various states.
 	if (isProduction) return notFound()
@@ -23,7 +23,7 @@ export default function MenuBarTestPage() {
 		}
 	}
 
-	const resolvedUser = demoMode ? demoUser : user
+	const resolvedUser = demoMode ? resolvedDemoUser : user
 
 	return (
 		<PageContainer>
