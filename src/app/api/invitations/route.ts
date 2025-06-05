@@ -5,7 +5,7 @@ import { invitations, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
 import { createExistingUserInvitation, createNewUserInvitation } from '@/library/email/templates'
 import logger from '@/library/logger'
-import { convertEmptyToUndefined, emailRegex, invitationExpiryDate, obfuscateEmail } from '@/library/utilities/public'
+import { emailRegex, emptyToUndefined, invitationExpiryDate, obfuscateEmail } from '@/library/utilities/public'
 import { and, createInvitation, createInvitationURL, equals, inArray, initialiseResponder } from '@/library/utilities/server'
 import type { BrowserSafeInvitationReceived, BrowserSafeInvitationSent, DangerousBaseUser, Invitation, UserMessages } from '@/types'
 import type { NextRequest, NextResponse } from 'next/server'
@@ -35,11 +35,11 @@ export async function GET(request: NextRequest): OutputGET {
 			})
 		}
 
-		const rawInvitationsReceived = convertEmptyToUndefined(
+		const rawInvitationsReceived = emptyToUndefined(
 			await database.select().from(invitations).where(equals(invitations.email, dangerousUser.email)),
 		)
 
-		const rawInvitationsSent = convertEmptyToUndefined(
+		const rawInvitationsSent = emptyToUndefined(
 			await database.select().from(invitations).where(equals(invitations.senderUserId, dangerousUser.id)),
 		)
 
@@ -248,5 +248,3 @@ export async function POST(request: NextRequest): OutputPOST {
 		})
 	}
 }
-
-// Was 266 lines before refactor

@@ -1,41 +1,41 @@
 'use client'
-import { localStorageItems } from '@/library/constants/definitions/localStorage'
-import { type Dispatch, type ReactNode, type SetStateAction, createContext, useContext, useEffect, useState } from 'react'
-
-interface UiContextType {
-	mobileMenuOpen: boolean
-	setMobileMenuOpen: Dispatch<SetStateAction<boolean>>
-	toggleMobileMenuOpen: () => void
-
-	merchantMode: boolean
-	setMerchantMode: Dispatch<SetStateAction<boolean>>
-	toggleMerchantMode: () => void
-
-	demoMode: boolean
-	setDemoMode: Dispatch<SetStateAction<boolean>>
-	toggleDemoMode: () => void
-
-	includeVat: boolean
-	setIncludeVat: Dispatch<SetStateAction<boolean>>
-	toggleIncludeVat: () => void
-}
+import { defaultMerchantModeBoolean, localStorageItems } from '@/library/constants'
+import type { CurrencyCode, Roles } from '@/types'
+import type { UiContextType } from '@/types/definitions/contexts/ui'
+import { type ReactNode, createContext, useContext, useEffect, useState } from 'react'
 
 const UiContext = createContext<UiContextType | undefined>(undefined)
 
 export function UiProvider({ children }: { children: ReactNode }) {
-	// Default has to be merchant mode, or new free trials can't invite customers
 	const storedMerchantMode = localStorage.getItem(localStorageItems.merchantMode)
-	const initialMerchantMode = storedMerchantMode === null ? true : storedMerchantMode === 'true'
+	const initialMerchantMode = storedMerchantMode === null ? defaultMerchantModeBoolean : storedMerchantMode === 'true'
 	const [merchantMode, setMerchantMode] = useState(initialMerchantMode)
+
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
 	const [demoMode, setDemoMode] = useState(false)
+
+	const storedCurrency = localStorage.getItem(localStorageItems.currency) as CurrencyCode | null
+	const [currency, setCurrency] = useState<CurrencyCode>(storedCurrency || 'GBP')
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <run on mount>
 	useEffect(() => {
 		if (storedMerchantMode === null) {
 			localStorage.setItem(localStorageItems.merchantMode, initialMerchantMode.toString())
 		}
+
+		if (!storedCurrency) {
+			localStorage.setItem(localStorageItems.currency, currency)
+		}
 	}, [])
+
+	function storeCurrency(newCurrency: CurrencyCode | ((prev: CurrencyCode) => CurrencyCode)) {
+		setCurrency((current) => {
+			const resolvedCurrency = typeof newCurrency === 'function' ? newCurrency(current) : newCurrency
+			localStorage.setItem(localStorageItems.currency, resolvedCurrency)
+			return resolvedCurrency
+		})
+	}
 
 	function toggleMerchantMode() {
 		setMerchantMode((current) => {
@@ -43,6 +43,18 @@ export function UiProvider({ children }: { children: ReactNode }) {
 			localStorage.setItem(localStorageItems.merchantMode, newValue.toString())
 			return newValue
 		})
+	}
+
+	function setMerchantModeFromRoles(roles: Roles | undefined) {
+		const mode =
+			roles === 'merchant'
+				? true
+				: roles === 'customer'
+					? false
+					: localStorage.getItem(localStorageItems.merchantMode) === 'true' || defaultMerchantModeBoolean
+
+		localStorage.setItem(localStorageItems.merchantMode, mode.toString())
+		setMerchantMode(mode)
 	}
 
 	function toggleDemoMode() {
@@ -66,6 +78,7 @@ export function UiProvider({ children }: { children: ReactNode }) {
 		merchantMode,
 		setMerchantMode,
 		toggleMerchantMode,
+		setMerchantModeFromRoles,
 
 		demoMode,
 		setDemoMode,
@@ -74,6 +87,9 @@ export function UiProvider({ children }: { children: ReactNode }) {
 		includeVat,
 		setIncludeVat,
 		toggleIncludeVat,
+
+		currency,
+		storeCurrency,
 	}
 
 	return <UiContext.Provider value={value}>{children}</UiContext.Provider>

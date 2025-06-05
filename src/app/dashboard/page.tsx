@@ -1,19 +1,9 @@
 'use client'
-import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
-import UnauthorisedLinks from '@/components/UnauthorisedLinks'
 import { useUser } from '@/components/providers/user'
-import WelcomeMessages from './components/WelcomeMessages'
+import DashboardPageContent from './components/DashboardPageContent'
 
 export default function DashboardPage() {
-	const { user } = useUser()
+	const { user, ordersReceived } = useUser()
 
-	if (!user) return <UnauthorisedLinks />
-
-	return (
-		<>
-			<SignedInBreadCrumbs businessName={user.businessName} />
-			<h1>Dashboard</h1>
-			<WelcomeMessages />
-		</>
-	)
+	return <DashboardPageContent demoMode={false} user={user} ordersReceived={ordersReceived} />
 }

@@ -11,7 +11,7 @@ export default function InventoryList({ inventory, updateProduct, isUpdating, de
 	}
 
 	return (
-		<ul className="flex flex-col w-full gap-y-4 max-w-xl lg:-mx-3">
+		<ul className="flex flex-col w-full gap-y-4 max-w-xl">
 			{inventory.map((product, index) => (
 				<InventoryCard //
 					key={product.id}

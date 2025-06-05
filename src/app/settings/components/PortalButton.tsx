@@ -5,11 +5,12 @@ import { useNotifications } from '@/components/providers/notifications'
 import { useUser } from '@/components/providers/user'
 import { userMessages } from '@/library/constants'
 import { apiRequest } from '@/library/utilities/public'
+import type { BrowserSafeCompositeUser } from '@/types'
 import { ArrowUpRightIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-export default function PortalButton({ subscriptionEnd }: { subscriptionEnd: Date | undefined }) {
+export default function PortalButton({ subscriptionEnd }: { subscriptionEnd: BrowserSafeCompositeUser['subscriptionEnd'] }) {
 	const { user } = useUser()
 	const { createNotification } = useNotifications()
 	const [isLoading, setIsLoading] = useState(false)

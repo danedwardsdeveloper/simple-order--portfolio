@@ -1,9 +1,11 @@
+/*
+/utilities can only import from anywhere except /database
+*/
 import { v4 as generateUuid, validate as validateUuid } from 'uuid'
 import { cn as mergeClasses } from './definitions/shadcn'
 
 export { mergeClasses, generateUuid, validateUuid }
-
-export * from './definitions/createMerchantSlug'
+export * from './definitions/strictSlugify'
 export * from './definitions/formatting'
 export * from './definitions/createFreeTrialEndTime'
 export * from './definitions/generateRandomString'
@@ -19,7 +21,6 @@ export * from './definitions/emailRegex'
 export * from './definitions/mapOrders'
 export * from './definitions/createApiUrl'
 export * from './definitions/apiRequest'
-export * from './definitions/time'
 export * from './definitions/givesEnoughNotice'
 export * from './definitions/getAvailableDeliveryDays'
 export * from './definitions/checkMinimumSpend'
@@ -27,3 +28,10 @@ export * from './definitions/weekDaysFromIndices'
 export * from './definitions/subtleDelay'
 export * from './definitions/getLookAheadRange'
 export * from './definitions/flattenHolidays'
+export * from './definitions/getUseCaseWordForms'
+export * from './definitions/formatFirstError'
+export * from './definitions/relativeDateLabel'
+export * from './definitions/mapOrdersNew'
+export * from './definitions/formatPrice'
+export * from './definitions/articlePath'
+export * from './definitions/minorUnitsName'

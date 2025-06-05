@@ -12,7 +12,7 @@ import InventorySizeMessage from './components/InventorySizeMessage'
 import VatToggleButton from './components/VatToggleButton'
 
 export default function InventoryPage() {
-	const { user, inventory, vat } = useUser()
+	const { user, inventory } = useUser()
 	const { addProduct, isSubmitting, updateProduct, isUpdating, deleteProduct, isDeleting } = useInventory()
 	const router = useRouter()
 
@@ -42,7 +42,7 @@ export default function InventoryPage() {
 					<>
 						<InventorySizeMessage inventory={inventory} />
 						<VatToggleButton />
-						<AddInventoryForm addProduct={addProduct} inventory={inventory} vat={vat} isSubmitting={isSubmitting} />
+						<AddInventoryForm addProduct={addProduct} inventory={inventory} isSubmitting={isSubmitting} />
 					</>
 				}
 			/>

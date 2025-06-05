@@ -53,13 +53,13 @@ export function SubmitButton({ formReady, isSubmitting, content, dataTestId, cla
 	)
 }
 
-type LoadingButtonProps = Pick<BaseButtonProps, 'onClick' | 'dataTestId' | 'classes'> & {
-	text: string
+type ActionButtonProps = Pick<BaseButtonProps, 'onClick' | 'dataTestId' | 'classes'> & {
+	content: ReactNode
 	isDisabled: boolean
 	isLoading: boolean
 }
 
-export function LoadingButton({ isDisabled, isLoading, onClick, text, dataTestId, classes }: LoadingButtonProps) {
+export function ActionButton({ isDisabled, isLoading, onClick, content, dataTestId, classes }: ActionButtonProps) {
 	return (
 		<BaseButton
 			type="button"
@@ -69,7 +69,7 @@ export function LoadingButton({ isDisabled, isLoading, onClick, text, dataTestId
 			onClick={onClick}
 			classes={classes}
 		>
-			<div className="min-h-7 flex justify-center">{isLoading ? <Spinner colour="text-white" /> : text}</div>
+			<div className="min-h-7 flex justify-center gap-x-2">{isLoading ? <Spinner colour="text-white" /> : content}</div>
 		</BaseButton>
 	)
 }

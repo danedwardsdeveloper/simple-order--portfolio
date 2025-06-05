@@ -1,7 +1,8 @@
 'use client'
 import { formatPrice } from '@/library/utilities/public'
 import type { SettingsContextType } from '@/types'
-import SettingForm from './Setting'
+import { useUi } from '../providers/ui'
+import SettingForm from './SettingForm'
 
 type Props = {
 	minimumSpendPence: number
@@ -9,12 +10,14 @@ type Props = {
 }
 
 export default function MinimumSpend({ minimumSpendPence, saveMinimumSpendPence }: Props) {
+	const { currency } = useUi()
 	return (
 		<SettingForm
 			title="Minimum spend"
+			helpText="The smallest order value you'll accept, excluding VAT. Customers won't be able to make orders below this amount."
 			initialValue={minimumSpendPence}
 			onSave={saveMinimumSpendPence}
-			renderView={(value) => <span>{formatPrice(value)}</span>}
+			renderView={(value) => <span>{formatPrice(value, currency)}</span>}
 			renderEdit={(value, onChange) => (
 				<input
 					type="number"

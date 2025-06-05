@@ -1,13 +1,14 @@
 'use client'
 import { useUi } from '@/components/providers/ui'
 import { useUser } from '@/components/providers/user'
-import { websiteCopy } from '@/library/constants'
 import { mergeClasses } from '@/library/utilities/public'
 import { Transition } from '@headlessui/react'
-import Link from 'next/link'
+
 import { usePathname } from 'next/navigation'
 import { useEffect } from 'react'
+import CtaPair from '../CtaPair'
 import { useDemoUser } from '../providers/demo/user'
+import BlurredBackdrop from './BlurredBackdrop'
 import HomePageLink from './HomePageLink'
 import { DesktopMenuItem, MobileMenuItem } from './MenuItems'
 
@@ -22,6 +23,8 @@ export default function MenuBar() {
 			setDemoMode(true)
 		}
 	}, [pathname, setDemoMode])
+
+	const alreadyOnHomePage = pathname === '/'
 
 	function demoHref(path: string) {
 		return demoMode ? `/demo${path}` : path
@@ -39,7 +42,7 @@ export default function MenuBar() {
 					className="flex md:hidden fixed inset-x-0 top-0 h-14 bg-white  border-b-2 border-zinc-200 z-menu backdrop-blur"
 				>
 					<div className="w-full mx-auto px-5 flex items-center justify-between">
-						<HomePageLink />
+						<HomePageLink onClick={() => setMobileMenuOpen(false)} alreadyOnHomePage={alreadyOnHomePage} />
 
 						<button
 							type="button"
@@ -53,31 +56,9 @@ export default function MenuBar() {
 						</button>
 					</div>
 				</nav>
-				<BlurredBackdrop />
+				<BlurredBackdrop mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />
 				<MobilePanel />
 			</>
-		)
-	}
-
-	function BlurredBackdrop() {
-		return (
-			<Transition
-				show={mobileMenuOpen}
-				appear={true}
-				enter="transition-opacity duration-300 ease-in-out"
-				enterFrom="opacity-0"
-				enterTo="opacity-50"
-				leave="transition-opacity duration-300 ease-in-out"
-				leaveFrom="opacity-50"
-				leaveTo="opacity-0"
-			>
-				<button
-					data-component="mobile-panel-blurred-backdrop"
-					type="button"
-					onClick={() => setMobileMenuOpen(false)}
-					className="fixed md:hidden inset-0 h-screen w-screen backdrop-blur-sm bg-white/50 blur z-mobile-blurred-backdrop"
-				/>
-			</Transition>
 		)
 	}
 
@@ -110,12 +91,7 @@ export default function MenuBar() {
 						<>
 							<MobileMenuItem onClick={toggleMobileMenuOpen} href="/articles" text="Articles" />
 							<MobileMenuItem onClick={toggleMobileMenuOpen} href="/sign-in" text="Sign in" />
-							<Link href={websiteCopy.CTAs.demo.href} onClick={toggleMobileMenuOpen} className="button-secondary text-center text-xl">
-								{websiteCopy.CTAs.demo.displayText}
-							</Link>
-							<Link href={websiteCopy.CTAs.trial.href} className="button-primary text-center text-xl" onClick={toggleMobileMenuOpen}>
-								{websiteCopy.CTAs.trial.displayText}
-							</Link>
+							<CtaPair startWith="secondary" dualStyles="text-center" onClick={() => setMobileMenuOpen(false)} />
 						</>
 					)}
 				</div>
@@ -131,8 +107,7 @@ export default function MenuBar() {
 			>
 				<div className="w-full max-w-7xl mx-auto px-4 lg:px-8 flex items-center justify-between">
 					<div className="flex gap-x-2 items-center">
-						<HomePageLink />
-						{/* {demoMode && <DemoBadge />} */}
+						<HomePageLink alreadyOnHomePage={alreadyOnHomePage} />
 					</div>
 					<div className="flex h-full items-center gap-x-6">
 						{resolvedUser ? (
@@ -152,12 +127,7 @@ export default function MenuBar() {
 								<DesktopMenuItem href="/articles" text="Articles" />
 								<DesktopMenuItem href="/sign-in" text="Sign in" />
 								<div className="flex gap-x-2 items-center">
-									<Link href={websiteCopy.CTAs.demo.href} title={websiteCopy.linkDescriptions.howItWorks} className="button-secondary">
-										{websiteCopy.CTAs.demo.displayText}
-									</Link>
-									<Link href={websiteCopy.CTAs.trial.href} className="button-primary">
-										{websiteCopy.CTAs.trial.displayText}
-									</Link>
+									<CtaPair />
 								</div>
 							</>
 						)}

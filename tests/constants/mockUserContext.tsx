@@ -19,6 +19,9 @@ export const baseUser: BrowserSafeCompositeUser = {
     cutOffTime: defaultCutOffTime,
     leadTimeDays: defaultLeadTimeDays,
     minimumSpendPence: defaultMinimumSpendPence,
+    trialEnd: null,
+    subscriptionEnd: null,
+    subscriptionCancelled: false
 }
 
 export const baseContext: UserContextType = {
@@ -38,6 +41,5 @@ export const baseContext: UserContextType = {
     setOrdersMade: vi.fn(),
     ordersReceived: null,
     setOrdersReceived: vi.fn(),
-    vat: 20,
 }
 

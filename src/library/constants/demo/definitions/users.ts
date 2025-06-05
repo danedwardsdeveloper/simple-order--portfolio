@@ -1,5 +1,4 @@
-import { december, defaultMinimumSpendPence, january, sixPm } from '@/library/constants'
-import { createDate, obfuscateEmail } from '@/library/utilities/public'
+import { defaultMinimumSpendPence, sixPm } from '@/library/constants'
 import type { DemoUserContextType, Holiday } from '@/types'
 
 export const demoMerchant: DemoUserContextType['merchant'] = {
@@ -13,6 +12,9 @@ export const demoMerchant: DemoUserContextType['merchant'] = {
 	cutOffTime: sixPm,
 	leadTimeDays: 1,
 	minimumSpendPence: defaultMinimumSpendPence,
+	trialEnd: null,
+	subscriptionEnd: null, // ToDo!
+	subscriptionCancelled: false,
 }
 
 export const demoCustomer: DemoUserContextType['customer'] = {
@@ -21,17 +23,22 @@ export const demoCustomer: DemoUserContextType['customer'] = {
 	email: 'purchasing@grandhotel.com',
 	roles: 'customer',
 	businessName: 'The Grand Hotel',
-	slug: 'the-grand-hotel', // Set but not used
 	emailConfirmed: true,
-	cutOffTime: sixPm, // Set but not used
-	leadTimeDays: 1, // Set but not used
-	minimumSpendPence: defaultMinimumSpendPence, // Set but not used
+
+	// Set but not used
+	slug: 'the-grand-hotel',
+	cutOffTime: sixPm,
+	leadTimeDays: 1,
+	minimumSpendPence: defaultMinimumSpendPence,
+	trialEnd: null,
+	subscriptionEnd: null,
+	subscriptionCancelled: false,
 }
 
 export const demoConfirmedCustomers: DemoUserContextType['confirmedCustomers'] = [
 	{
 		businessName: demoCustomer.businessName,
-		obfuscatedEmail: obfuscateEmail(demoCustomer.email),
+		obfuscatedEmail: 'pur****ing@gr****otel.com',
 	},
 ]
 
@@ -43,10 +50,11 @@ export const demoInvitationsSent: DemoUserContextType['invitationsSent'] = [
 	},
 ]
 
+// Don't use utilities in /constants
 export const demoHolidays: Holiday[] = [
 	{
-		startDate: createDate(20, december, 2025), //
-		endDate: createDate(4, january, 2026),
+		startDate: new Date(2025, 11, 20), // December 20, 2025
+		endDate: new Date(2026, 0, 4), // January 4, 2026
 	},
 ]
 

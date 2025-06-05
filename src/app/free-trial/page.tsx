@@ -2,7 +2,7 @@
 import Spinner from '@/components/Spinner'
 import { useUi } from '@/components/providers/ui'
 import { useUser } from '@/components/providers/user'
-import { dataTestIdNames, websiteCopy } from '@/library/constants'
+import { ctaOptions, dataTestIdNames, serviceConstraints } from '@/library/constants'
 import { apiRequest, emailRegex, mergeClasses } from '@/library/utilities/public'
 import { allowedCharacters, containsIllegalCharacters } from '@/library/utilities/public/definitions/allowedCharactersRegex'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
@@ -86,12 +86,10 @@ export default function CreateAccountPage() {
 
 	return (
 		<div className="max-w-md mx-auto mt-8 md:p-6">
-			<h1 className="text-pretty">Start your 30-day free trial</h1>
+			<h1 className="text-pretty">Start your {serviceConstraints.trialLength}-day free trial</h1>
 			<form onSubmit={handleSubmit} className="flex flex-col gap-y-6">
 				<div>
-					<label htmlFor="firstName" className="block mb-1">
-						First name
-					</label>
+					<label htmlFor="firstName">First name</label>
 					<input
 						data-test-id={dataTestIdNames.createAccountFirstNameInput}
 						id="firstName"
@@ -110,9 +108,7 @@ export default function CreateAccountPage() {
 				</div>
 
 				<div>
-					<label htmlFor="lastName" className="block mb-1">
-						Last name
-					</label>
+					<label htmlFor="lastName">Last name</label>
 					<input
 						data-test-id={dataTestIdNames.createAccountLastNameInput}
 						id="lastName"
@@ -131,9 +127,7 @@ export default function CreateAccountPage() {
 				</div>
 
 				<div>
-					<div className="block mb-1">
-						<label htmlFor="businessName">Business name</label>
-					</div>
+					<label htmlFor="businessName">Business name</label>
 					<input
 						data-test-id={dataTestIdNames.createAccountBusinessNameInput}
 						id="businessName"
@@ -153,9 +147,7 @@ export default function CreateAccountPage() {
 				</div>
 				{/* Optimisation ToDo: add honeypot */}
 				<div>
-					<label htmlFor="email" className="block mb-1">
-						Email
-					</label>
+					<label htmlFor="email">Email</label>
 					<input
 						data-test-id={dataTestIdNames.createAccountEmailInput}
 						id="email"
@@ -197,7 +189,7 @@ export default function CreateAccountPage() {
 							type="button"
 							aria-label="Toggle password visibility"
 							onClick={() => setShowPassword(!showPassword)}
-							className="absolute right-3 top-1/2 -translate-y-1/2 z-10 focus-visible:outline-orange-400 focus-visible:outline-2 focus-visible:outline focus-visible:rounded"
+							className="absolute right-3 top-1/2 -translate-y-1/2 z-10 focus-visible:outline-orange-400 focus-visible:outline-2 focus-visible:rounded"
 							tabIndex={0}
 						>
 							{showPassword ? <EyeIcon className="text-zinc-600 size-6" /> : <EyeSlashIcon className="text-zinc-600 size-6" />}
@@ -226,7 +218,7 @@ export default function CreateAccountPage() {
 					{(() => {
 						if (isSubmitting) return <Spinner colour="text-white" />
 
-						return <span>{websiteCopy.CTAs.trial.displayText}</span>
+						return <span>{ctaOptions.trial.displayText}</span>
 					})()}
 				</button>
 			</form>

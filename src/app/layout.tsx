@@ -1,16 +1,22 @@
 import MenuBar from '@/components/menubar'
-import { websiteCopy } from '@/library/constants'
+import { getMetaDescription, websiteCopy } from '@/library/constants'
 import { dynamicBaseURL, isProduction } from '@/library/environment/publicVariables'
 import type { Metadata, Viewport } from 'next'
-import './globals.tailwind.css'
+import '@/styles/globals.tailwind.css'
 import DemoBadge from '@/components/DemoBadge'
 import Footer from '@/components/footer'
 import Providers from '@/components/providers'
 import { ContentSplash, SiteSplash } from '@/components/splashes'
+import { defaultImageWithPaths } from '@/library/imagesCollection'
 import Script from 'next/script'
 import type { ReactNode } from 'react'
 
-const socialImagePath = '/images/simple-order-wholesale-order-management-software-website.png'
+const metadataImageDetails = {
+	url: defaultImageWithPaths.relative,
+	height: 630,
+	width: 1200,
+	alt: websiteCopy.extras.selfContainedDescription,
+}
 
 export const metadata: Metadata = {
 	metadataBase: new URL(dynamicBaseURL),
@@ -18,22 +24,12 @@ export const metadata: Metadata = {
 		default: 'Simple Order | Wholesale order management website',
 		template: '%s | Simple Order - Wholesale order management website',
 	},
-	description: websiteCopy.metadata.descriptions.home138,
+	description: getMetaDescription('GBP'),
 	openGraph: {
-		images: {
-			url: socialImagePath,
-			height: 630,
-			width: 1200,
-			alt: websiteCopy.extras.selfContainedDescription,
-		},
+		images: metadataImageDetails,
 	},
 	twitter: {
-		images: {
-			url: socialImagePath,
-			height: 630,
-			width: 1200,
-			alt: websiteCopy.extras.selfContainedDescription,
-		},
+		images: metadataImageDetails,
 	},
 	alternates: {
 		canonical: dynamicBaseURL,

@@ -3,7 +3,7 @@ import type { Holiday, SettingsContextType } from '@/types'
 import { differenceInCalendarDays, format, isSameDay } from 'date-fns'
 import { XCircleIcon } from 'lucide-react'
 import { useState } from 'react'
-import SettingForm from './Setting'
+import SettingForm from './SettingForm'
 
 type Props = {
 	holidays: Holiday[] | null
@@ -88,6 +88,18 @@ export default function HolidaySettings({ holidays, addHoliday }: Props) {
 	return (
 		<SettingForm
 			title="Holidays"
+			helpText={
+				<>
+					<p key={0}>
+						{`Inclusive date ranges when your business is closed and won't fulfill orders. Customers can still place orders, but the next
+						available delivery date will be after your holiday.`}
+					</p>
+					<p key={1}>
+						For example, if you have a break over Christmas from from 20 December to 4 January, customers will see the next available date
+						as 5 January, providing that that date is one of your accepted delivery days of the week.
+					</p>
+				</>
+			}
 			initialValue={holidays || []}
 			onSave={handleAddHoliday}
 			renderView={(value) => <HolidaysList holidays={value} />}

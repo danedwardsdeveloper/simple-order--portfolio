@@ -1,8 +1,8 @@
 'use client'
 import { useUi } from '@/components/providers/ui'
-import { useUser } from '@/components/providers/user'
+import { updateUserData, useUser } from '@/components/providers/user'
 import { dataTestIdNames, userMessages } from '@/library/constants'
-import { apiRequest } from '@/library/utilities/public'
+import { apiRequestNew } from '@/library/utilities/public'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -10,8 +10,18 @@ import { type FormEvent, useState } from 'react'
 import type { SignInPOSTbody, SignInPOSTresponse } from '../api/authentication/sign-in/route'
 
 export default function SignInPage() {
-	const { user, setUser } = useUser()
-	const { setMerchantMode } = useUi()
+	const {
+		user,
+		setUser,
+		setConfirmedCustomers,
+		setConfirmedMerchants,
+		setInvitationsSent,
+		setInvitationsReceived,
+		setOrdersMade,
+		setOrdersReceived,
+		setInventory,
+	} = useUser()
+	const { setMerchantModeFromRoles } = useUi()
 	const router = useRouter()
 	const [showPassword, setShowPassword] = useState(false)
 	const [formData, setFormData] = useState<SignInPOSTbody>({
@@ -25,20 +35,25 @@ export default function SignInPage() {
 		setError('')
 
 		try {
-			const { userMessage, user } = await apiRequest<SignInPOSTresponse, SignInPOSTbody>({
+			const { userMessage, userData } = await apiRequestNew<SignInPOSTresponse, SignInPOSTbody>({
 				basePath: '/authentication/sign-in',
 				method: 'POST',
 				body: formData,
 			})
 
-			if (user) {
-				setUser(user)
+			if (userData) {
+				updateUserData(userData, {
+					setUser,
+					setInventory,
+					setConfirmedCustomers,
+					setConfirmedMerchants,
+					setInvitationsReceived,
+					setInvitationsSent,
+					setOrdersMade,
+					setOrdersReceived,
+				})
 
-				if (user.roles === 'both' || user.roles === 'merchant') {
-					setMerchantMode(true)
-				} else {
-					setMerchantMode(false)
-				}
+				setMerchantModeFromRoles(userData.user?.roles)
 
 				router.push('/dashboard')
 				return
@@ -101,7 +116,7 @@ export default function SignInPage() {
 							type="button"
 							aria-label="Toggle password visibility"
 							onClick={() => setShowPassword(!showPassword)}
-							className="absolute right-3 top-1/2 -translate-y-1/2 z-10 focus-visible:outline-orange-400 focus-visible:outline-2 focus-visible:outline focus-visible:rounded"
+							className="absolute right-3 top-1/2 -translate-y-1/2 z-10 focus-visible:outline-orange-400 focus-visible:outline-2 focus-visible:rounded"
 							tabIndex={0}
 						>
 							{showPassword ? <EyeIcon className="text-blue-600 size-6" /> : <EyeSlashIcon className="text-blue-600 size-6" />}

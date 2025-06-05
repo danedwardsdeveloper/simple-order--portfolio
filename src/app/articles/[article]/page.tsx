@@ -1,4 +1,4 @@
-import { articlesData } from '@/app/articles/data'
+import { allArticlesData } from '@/app/articles/data'
 import { SignedOutBreadCrumbs } from '@/components/BreadCrumbs'
 import { dynamicBaseURL } from '@/library/environment/publicVariables'
 import { isArticleSlug } from '@/library/utilities/tsx'
@@ -12,13 +12,13 @@ type Params = Promise<ResolvedParams>
 type StaticParams = Promise<ResolvedParams[]>
 
 export async function generateStaticParams(): StaticParams {
-	return Object.keys(articlesData).map((article) => ({ article }))
+	return Object.keys(allArticlesData).map((article) => ({ article }))
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
 	const { article } = await params
 	if (!isArticleSlug(article)) return notFound()
-	const articleData = articlesData[article]
+	const articleData = allArticlesData[article]
 
 	if (!articleData) notFound()
 
@@ -26,6 +26,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
 	return {
 		title: { absolute: metaTitle },
+		// ToDo: use optimise metadata!
 		description: metaDescription,
 		alternates: {
 			canonical: `${dynamicBaseURL}/articles/${article}`,
@@ -37,7 +38,7 @@ export default async function ArticlePage({ params }: { params: Params }) {
 	const { article } = await params
 	if (!isArticleSlug(article)) return notFound()
 
-	const articleData = articlesData[article]
+	const articleData = allArticlesData[article]
 	if (!articleData) return notFound()
 
 	const {
@@ -52,9 +53,15 @@ export default async function ArticlePage({ params }: { params: Params }) {
 				trail={[{ href: '/articles', displayName: 'Articles' }]} //
 				currentPageTitle={displayTitle}
 			/>
-			<h1>{displayTitle}</h1>
+			<h1 className="sm:text-5xl text-balance">{displayTitle}</h1>
 			<p className="mb-12">By Dan Edwards</p>
-			<Image src={src} alt={alt} className="max-w-xl w-full rounded-md mb-12" sizes="ToDo" />
+			<Image
+				src={src}
+				alt={alt}
+				className="max-w-xl w-full rounded-md mb-12"
+				// sizes="ToDo"
+				priority
+			/>
 			<div className="article-content flex flex-col max-w-prose gap-y-4 my-8 text-lg">
 				{content.map((block, index) => {
 					if (typeof block === 'string') {
@@ -65,8 +72,7 @@ export default async function ArticlePage({ params }: { params: Params }) {
 					return <Fragment key={index}>{block}</Fragment>
 				})}
 			</div>
-			{/* Testimonials */}
-			{/* CTA section */}
+			<hr className="border-t-2 border-zinc-300 mt-32 h-2" />
 		</>
 	)
 }

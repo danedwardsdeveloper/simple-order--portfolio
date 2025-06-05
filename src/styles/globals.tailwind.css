@@ -1,0 +1,101 @@
+@import './shadcn.tailwind.css';
+@import 'tailwindcss';
+
+@theme {
+	--text-base: 1.125rem;
+	--text-lg: 1.2rem;
+	--spacing-menubar-offset: 3.5rem;
+	--z-index-diagonal-graphic: 10;
+	--z-index-notifications-container: 10;
+	--z-index-notification-item: 20;
+	--z-index-mobile-blurred-backdrop: 20;
+	--z-index-menu: 30;
+	--z-index-modal: 40;
+	--z-index-splash-screen: 50;
+}
+
+@layer base {
+	label {
+		@apply mr-2 mb-1 block;
+	}
+
+	h1 {
+		@apply text-3xl font-semibold mb-8;
+	}
+
+	h2 {
+		@apply text-2xl font-semibold;
+	}
+
+	h3 {
+		@apply text-xl font-medium;
+	}
+
+	input:not([type='checkbox']):not([type='radio']):not([type='range']):not(
+			[type='date']
+		),
+	textarea {
+		@apply p-2 text-lg bg-slate-50 rounded border-2 border-blue-100 outline-offset-4 focus-visible:outline-orange-400;
+	}
+}
+
+@layer components {
+	/* Not in use - could potentially be deleted. 25 March 2025 */
+	input[type='checkbox'] {
+		@apply col-start-1 row-start-1 appearance-none rounded border border-gray-300 bg-white 
+			checked:border-blue-600 checked:bg-blue-600 
+			indeterminate:border-blue-600 indeterminate:bg-blue-600 
+			focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-400 
+			disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 
+			forced-colors:appearance-auto outline-offset-4;
+	}
+
+	.button-primary {
+		@apply rounded-lg px-3 py-1 font-medium transition-all duration-300 outline-offset-4 focus-visible:outline-orange-400 disabled:cursor-not-allowed border-2 bg-blue-600 border-blue-600 hover:bg-blue-500 hover:border-blue-500 active:border-blue-400 active:bg-blue-400 text-white;
+	}
+	.button-secondary {
+		@apply rounded-lg px-3 py-1 font-medium transition-all duration-300 outline-offset-4 focus-visible:outline-orange-400 disabled:cursor-not-allowed border-2 bg-white text-zinc-700 hover:text-blue-500 active:text-blue-400 border-blue-600 hover:border-blue-500 active:border-blue-400;
+	}
+	.button-tertiary {
+		@apply rounded-lg px-3 py-1 font-medium transition-all duration-300 outline-offset-4 focus-visible:outline-orange-400 disabled:cursor-not-allowed border-2 bg-white text-zinc-700 hover:text-blue-500 active:text-blue-400 border-zinc-200 hover:border-blue-300 active:border-blue-200;
+	}
+	.link-primary {
+		@apply transition-all duration-300 text-zinc-600 hover:cursor-pointer hover:text-blue-600 active:text-blue-700;
+	}
+	.link-secondary {
+		@apply transition-all duration-300 text-zinc-600 hover:cursor-pointer hover:text-zinc-700 active:text-zinc-800;
+	}
+	.link-danger {
+		@apply transition-all duration-300 text-zinc-600 hover:cursor-pointer hover:text-red-600 active:text-red-700;
+	}
+
+	.article-content {
+		h2 {
+			@apply mt-12;
+		}
+
+		ol {
+			@apply list-decimal;
+		}
+
+		ul {
+			@apply list-disc;
+		}
+
+		a {
+			@apply transition-all duration-300 text-zinc-600 hover:cursor-pointer hover:text-blue-600 active:text-blue-700;
+		}
+
+		ol li,
+		ul li,
+		ol li ol li,
+		ul li ul li {
+			@apply mb-4 list-inside;
+		}
+
+		ol li ul li,
+		ul li ol li {
+			@apply mt-2 ml-4;
+		}
+	}
+}

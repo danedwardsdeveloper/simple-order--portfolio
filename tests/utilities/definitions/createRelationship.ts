@@ -1,9 +1,9 @@
 import { database } from '@/library/database/connection'
 import { relationships } from '@/library/database/schema'
 import logger from '@/library/logger'
-import type { AsyncSuccessFlag, RelationshipJoinRow } from '@/types'
+import type { AsyncSuccessFlag, RelationshipRecord } from '@/types'
 
-export async function createRelationship({ customerId, merchantId }: RelationshipJoinRow): AsyncSuccessFlag {
+export async function createRelationship({ customerId, merchantId }: RelationshipRecord): AsyncSuccessFlag {
 	try {
 		await database.insert(relationships).values({
 			merchantId,

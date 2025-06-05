@@ -1,5 +1,5 @@
 'use client'
-import OrdersPageContent, { type UpdateOrderStatusFunction } from '@/app/orders/components/Content'
+import OrdersPageContent, { type UpdateOrderStatusFunction } from '@/app/orders/components/OrdersPageContent'
 import { useDemoUser } from '@/components/providers/demo/user'
 import { orderStatusIdToName } from '@/library/constants'
 import { subtleDelay } from '@/library/utilities/public'
@@ -30,7 +30,7 @@ export default function DemoOrdersPage() {
 			ordersReceived={ordersReceived}
 			ordersMade={ordersMade}
 			setOrdersReceived={setOrdersReceived}
-			updateOrderStatus={updateOrderStatus}
+			onUpdateStatus={updateOrderStatus}
 		/>
 	)
 }

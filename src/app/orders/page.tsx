@@ -1,11 +1,9 @@
 'use client'
-import { SignedOutBreadCrumbs } from '@/components/BreadCrumbs'
-import UnauthorisedLinks from '@/components/UnauthorisedLinks'
 import { useUser } from '@/components/providers/user'
 import { apiRequest } from '@/library/utilities/public'
 import type { OrderStatusId } from '@/types'
 import type { OrderAdminOrderIdPATCHbody, OrderAdminOrderIdPATCHresponse } from '../api/orders/admin/[orderId]/route'
-import OrdersPageContent, { type UpdateOrderStatusFunction } from './components/Content'
+import OrdersPageContent, { type UpdateOrderStatusFunction } from './components/OrdersPageContent'
 
 export default function OrdersPage() {
 	const { user, confirmedMerchants, ordersReceived, ordersMade, setOrdersReceived } = useUser()
@@ -21,15 +19,6 @@ export default function OrdersPage() {
 		return { updatedOrder, userMessage }
 	}
 
-	if (!user)
-		return (
-			<>
-				<SignedOutBreadCrumbs currentPageTitle="Orders" />
-				<h1>Orders</h1>
-				<UnauthorisedLinks />
-			</>
-		)
-
 	return (
 		<OrdersPageContent
 			user={user}
@@ -38,7 +27,7 @@ export default function OrdersPage() {
 			ordersReceived={ordersReceived}
 			ordersMade={ordersMade}
 			setOrdersReceived={setOrdersReceived}
-			updateOrderStatus={updateOrderStatus}
+			onUpdateStatus={updateOrderStatus}
 		/>
 	)
 }

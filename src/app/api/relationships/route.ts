@@ -1,20 +1,23 @@
-import { database } from '@/library/database/connection'
-import { checkAccess } from '@/library/database/operations'
-import { relationships, users } from '@/library/database/schema'
-import { convertEmptyToUndefined, obfuscateEmail } from '@/library/utilities/public'
-import { and, equals, initialiseResponder, or } from '@/library/utilities/server'
-import type { BrowserSafeCustomerProfile, BrowserSafeMerchantProfile } from '@/types'
+import { userMessages } from '@/library/constants'
+import { checkAccess, getRelationshipsOld } from '@/library/database/operations'
+import { initialiseResponderNew } from '@/library/utilities/server'
+import type { ApiResponse, UserContextType, UserMessages } from '@/types'
 import type { NextRequest, NextResponse } from 'next/server'
 
-export interface RelationshipsGETresponse {
-	developmentMessage?: string
-	merchants?: BrowserSafeMerchantProfile[]
-	customers?: BrowserSafeCustomerProfile[]
+type Success = {
+	ok: true
+} & Pick<UserContextType, 'confirmedCustomers' | 'confirmedMerchants'>
+
+type Failure = {
+	ok: false
+	userMessage: UserMessages
 }
+
+export type RelationshipsGETresponse = ApiResponse<Success, Failure>
 
 // GET confirmed customers & merchants for the signed-in user
 export async function GET(request: NextRequest): Promise<NextResponse<RelationshipsGETresponse>> {
-	const respond = initialiseResponder<RelationshipsGETresponse>()
+	const respond = initialiseResponderNew<Success, Failure>()
 	try {
 		const { dangerousUser, accessDenied } = await checkAccess({
 			request,
@@ -24,76 +27,29 @@ export async function GET(request: NextRequest): Promise<NextResponse<Relationsh
 
 		if (accessDenied) {
 			return respond({
+				body: { userMessage: userMessages.authenticationError },
 				status: accessDenied.status,
 				developmentMessage: accessDenied.message,
 			})
 		}
 
-		// Not sure about this... it's efficient but confusing and not reuseable
-		const relationshipsResult = convertEmptyToUndefined(
-			await database
-				.select({
-					userId: users.id,
-					businessName: users.businessName,
-					email: users.email,
-					slug: users.slug,
-					cutOffTime: users.cutOffTime,
-					leadTimeDays: users.leadTimeDays,
-					minimumSpendPence: users.minimumSpendPence,
-					isMerchant: equals(relationships.merchantId, users.id),
-				})
-				.from(relationships)
-				.innerJoin(
-					users,
-					or(
-						and(equals(relationships.merchantId, dangerousUser.id), equals(relationships.customerId, users.id)),
-						and(equals(relationships.customerId, dangerousUser.id), equals(relationships.merchantId, users.id)),
-					),
-				),
-		)
+		const { confirmedCustomers, confirmedMerchants } = await getRelationshipsOld(dangerousUser.id)
 
-		if (!relationshipsResult) {
+		if (!confirmedCustomers && !confirmedMerchants) {
 			return respond({
+				body: { confirmedCustomers: null, confirmedMerchants: null },
 				status: 200,
-				developmentMessage: 'Legitimately no users',
+				developmentMessage: 'Legitimately no relationships',
 			})
 		}
 
-		const merchants = convertEmptyToUndefined(
-			relationshipsResult
-				.filter((user) => user.isMerchant)
-				.map(
-					({
-						businessName, //
-						slug,
-						cutOffTime,
-						leadTimeDays,
-						minimumSpendPence,
-					}) => ({
-						businessName,
-						slug,
-						cutOffTime,
-						leadTimeDays,
-						minimumSpendPence,
-					}),
-				),
-		)
-
-		const customers = convertEmptyToUndefined(
-			relationshipsResult
-				.filter((relatedUser) => !relatedUser.isMerchant)
-				.map((customer) => ({
-					businessName: customer.businessName,
-					obfuscatedEmail: obfuscateEmail(customer.email),
-				})),
-		)
-
 		return respond({
-			body: { customers, merchants },
+			body: { confirmedCustomers, confirmedMerchants },
 			status: 200,
 		})
 	} catch (caughtError) {
 		return respond({
+			body: { userMessage: userMessages.serverError },
 			status: 500,
 			caughtError,
 		})

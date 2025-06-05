@@ -4,6 +4,7 @@ import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
 import { SubmitButton } from '@/components/Buttons'
 import TwoColumnContainer from '@/components/TwoColumnContainer'
 import { useNotifications } from '@/components/providers/notifications'
+import { useUi } from '@/components/providers/ui'
 import { userMessages } from '@/library/constants'
 import { calculateOrderTotal, checkMinimumSpend, epochDateToAmPm, formatPrice } from '@/library/utilities/public'
 import type { BrowserOrderItem, BrowserSafeCustomerProduct, UserContextType } from '@/types'
@@ -22,7 +23,7 @@ export type NewOrderPageContentProps = {
 	products: BrowserSafeCustomerProduct[] | null
 	availableDeliveryDays: Date[]
 	isDemo: boolean
-} & Pick<UserContextType, 'confirmedMerchants' | 'setOrdersMade' | 'vat'> &
+} & Pick<UserContextType, 'confirmedMerchants' | 'setOrdersMade'> &
 	MerchantSlugResolvedParams
 
 export function NewOrderPageContent({
@@ -30,13 +31,13 @@ export function NewOrderPageContent({
 	confirmedMerchants,
 	user,
 	products,
-	vat,
 	isDemo,
 	setOrdersMade,
 	createOrder,
 	availableDeliveryDays,
 }: NewOrderPageContentProps) {
 	const router = useRouter()
+	const { currency } = useUi()
 	const { errorNotification, successNotification } = useNotifications()
 
 	// Use proper type
@@ -49,12 +50,12 @@ export function NewOrderPageContent({
 	const merchantDetails = confirmedMerchants?.find((merchant) => merchant.slug === merchantSlug)
 
 	useEffect(() => {
-		document.title = `New order: ${merchantDetails?.businessName || ''}`
+		document.title = `Place an order from ${merchantDetails?.businessName || ''}`
 	}, [merchantDetails])
 
 	if (!merchantDetails) return null
 
-	const { leadTimeDays, cutOffTime } = merchantDetails
+	const { cutOffTime } = merchantDetails
 
 	const orderItems: BrowserOrderItem[] =
 		products
@@ -65,7 +66,7 @@ export function NewOrderPageContent({
 				description: product.description || '',
 				priceInMinorUnitsWithoutVat: product.priceInMinorUnits,
 				quantity: selectedProducts[product.id] || 0,
-				vat: product.customVat || vat,
+				vat: product.customVat,
 			})) || []
 
 	const { totalWithVAT, totalWithoutVAT, maximumOrderValueExceeded } = calculateOrderTotal(orderItems)
@@ -130,19 +131,19 @@ export function NewOrderPageContent({
 				<div className="space-y-2 tabular-nums">
 					<div className="flex justify-between">
 						<span>Subtotal</span>
-						<span>{formatPrice(totalWithoutVAT)}</span>
+						<span>{formatPrice(totalWithoutVAT, currency)}</span>
 					</div>
 					<div className="flex justify-between">
 						<span>VAT</span>
-						<span>{formatPrice(totalWithVAT - totalWithoutVAT)}</span>
+						<span>{formatPrice(totalWithVAT - totalWithoutVAT, currency)}</span>
 					</div>
 					<div className="flex justify-between font-semibold border-t pt-2">
 						<span>Total without VAT</span>
-						<span>{formatPrice(totalWithoutVAT)}</span>
+						<span>{formatPrice(totalWithoutVAT, currency)}</span>
 					</div>
 					<div className="flex justify-between font-semibold">
 						<span>Total with VAT</span>
-						<span>{formatPrice(totalWithVAT)}</span>
+						<span>{formatPrice(totalWithVAT, currency)}</span>
 					</div>
 				</div>
 			</>
@@ -171,15 +172,10 @@ export function NewOrderPageContent({
 				sideColumnClasses="p-4 border-2 border-zinc-200 rounded-xl max-w-xl"
 				sideColumn={
 					<>
-						<p>
-							<span className="font-medium">Cut off time: </span>
+						<p className="flex justify-between mb-4">
+							<span className="font-medium">Cut off time </span>
 							<span>{epochDateToAmPm(cutOffTime)}</span>
 						</p>
-						<p>
-							<span className="font-medium">Lead time days: </span>
-							<span>{String(leadTimeDays)}</span>
-						</p>
-
 						<div>
 							<p className="font-medium mb-2">Requested delivery date</p>
 							<DeliveryDates
@@ -198,6 +194,7 @@ export function NewOrderPageContent({
 								minimumSpendReached={minimumSpendReached}
 								maximumOrderValueExceeded={maximumOrderValueExceeded}
 								totalWithoutVAT={totalWithoutVAT}
+								currency={currency}
 							/>
 						</div>
 
@@ -225,6 +222,7 @@ export function NewOrderPageContent({
 										zebraStripe={Boolean(index % 2)}
 										quantity={selectedProducts[product.id]?.toString() || ''}
 										onQuantityChange={(quantity) => handleQuantityChange(product.id, quantity)}
+										currency={currency}
 									/>
 								))}
 							</ul>

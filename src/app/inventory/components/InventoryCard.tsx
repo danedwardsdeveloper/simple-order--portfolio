@@ -16,7 +16,7 @@ export type InventoryCardProps = {
 } & Pick<InventoryContextType, 'deleteProduct' | 'isDeleting' | 'updateProduct' | 'isUpdating'>
 
 export default function InventoryCard({ product, zebraStripe, deleteProduct, isDeleting, updateProduct, isUpdating }: InventoryCardProps) {
-	const { includeVat } = useUi()
+	const { includeVat, currency } = useUi()
 
 	const [showDeleteModal, setShowDeleteModal] = useState(false)
 	const [isBeingEdited, setIsBeingEdited] = useState(false)
@@ -24,9 +24,9 @@ export default function InventoryCard({ product, zebraStripe, deleteProduct, isD
 	const { name, priceInMinorUnits, customVat, description } = product
 
 	function DisplayPrice(): string {
-		if (!includeVat) return formatPrice(priceInMinorUnits)
+		if (!includeVat) return formatPrice(priceInMinorUnits, currency)
 		const vatMultiplier = 1 + customVat / 100
-		return formatPrice(priceInMinorUnits * vatMultiplier)
+		return formatPrice(priceInMinorUnits * vatMultiplier, currency)
 	}
 
 	function EditView() {

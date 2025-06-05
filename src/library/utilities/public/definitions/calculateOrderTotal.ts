@@ -1,29 +1,27 @@
 import { serviceConstraints } from '@/library/constants'
 import type { BrowserOrderItem } from '@/types'
+import { itemVAT } from './itemVat'
 
-// Add maximum order quantity exceeded
 export function calculateOrderTotal(orderItems: BrowserOrderItem[]): {
 	totalWithVAT: number
 	totalWithoutVAT: number
 	maximumOrderValueExceeded: boolean
+	vatOnly: number
 } {
-	let totalWithVAT = 0
 	let totalWithoutVAT = 0
-	let maximumOrderValueExceeded = false
+	let vatOnly = 0
 
 	for (const item of orderItems) {
 		const subtotalWithoutVat = item.priceInMinorUnitsWithoutVat * item.quantity
-
 		totalWithoutVAT += subtotalWithoutVat
 
-		const vatMultiplier = item.vat <= 1 ? item.vat : item.vat / 100
-		const vatAmount = subtotalWithoutVat * vatMultiplier
-		totalWithVAT += subtotalWithoutVat + vatAmount
+		const { itemVatOnly } = itemVAT(item.priceInMinorUnitsWithoutVat, item.vat)
+
+		vatOnly += itemVatOnly * item.quantity
 	}
 
-	if (totalWithVAT > serviceConstraints.maximumOrderValueInMinorUnits) {
-		maximumOrderValueExceeded = true
-	}
+	const totalWithVAT = totalWithoutVAT + vatOnly
+	const maximumOrderValueExceeded = totalWithVAT > serviceConstraints.maximumOrderValueInMinorUnits
 
-	return { totalWithVAT, totalWithoutVAT, maximumOrderValueExceeded }
+	return { totalWithVAT, totalWithoutVAT, maximumOrderValueExceeded, vatOnly }
 }

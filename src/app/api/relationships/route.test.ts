@@ -1,7 +1,8 @@
 import type { AsyncFunction, DangerousBaseUser, TestUserInputValues } from '@/types'
-import { createUser, deleteUser, initialiseTestGETRequestMaker } from '@tests/utilities'
+import { createTestUser, deleteUser, initialiseTestGETRequestMaker } from '@tests/utilities'
 import { createRelationship } from '@tests/utilities/definitions/createRelationship'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
+import type { RelationshipsGETresponse } from './route'
 
 describe('/api/relationships', () => {
 	const makeRequest = initialiseTestGETRequestMaker('/relationships')
@@ -27,11 +28,11 @@ describe('/api/relationships', () => {
 	}
 
 	beforeAll(async () => {
-		const { createdUser, requestCookie: createdRequestCookie } = await createUser(emilyGilmoreInputValues)
+		const { createdUser, validCookie } = await createTestUser(emilyGilmoreInputValues)
 
-		if (!createdUser || !createdRequestCookie) throw new Error('Failed to create new user')
+		if (!createdUser || !validCookie) throw new Error('Failed to create new user')
 		userOne = createdUser
-		validRequestCookie = createdRequestCookie
+		validRequestCookie = validCookie
 	})
 
 	afterAll(async () => {
@@ -84,45 +85,28 @@ describe('/api/relationships', () => {
 
 		const acceptedCases: AcceptedCase[] = [
 			{
-				caseDescription: 'Only returns a developmentMessage when there are legitimately no users',
-				caseAssertions: async () => {
-					expect(Object.keys(jsonBody).length).toBe(1)
-					expect(jsonBody).toHaveProperty('developmentMessage')
-				},
-			},
-			{
 				caseDescription: 'One relationship as customer',
 				caseSetUp: async () => {
-					const { createdUser } = await createUser(lukeDanesInputValues)
+					const { createdUser } = await createTestUser(lukeDanesInputValues)
 					userTwo = createdUser
 					if (!userOne) throw new Error('User one was undefined')
 					await createRelationship({ merchantId: userOne.id, customerId: userTwo?.id })
 				},
 				caseAssertions: async () => {
 					expect(jsonBody).toEqual({
-						customers: [
+						ok: true,
+						confirmedCustomers: [
 							{
 								businessName: "Luke's Diner",
 								// cspell:disable-next-line
 								obfuscatedEmail: 'l***@lukesd****.com',
 							},
 						],
-					})
+						confirmedMerchants: null,
+					} satisfies RelationshipsGETresponse)
 				},
 			},
 		]
-
-		test.skip('One relationship as merchant', async () => {
-			//
-		})
-
-		test.skip('Merchant and customer relationship to the same user', async () => {
-			//
-		})
-
-		test.skip('One merchant and one customer', async () => {
-			//
-		})
 
 		for (const { caseDescription, caseSetUp, caseAssertions } of acceptedCases) {
 			test(caseDescription, async () => {

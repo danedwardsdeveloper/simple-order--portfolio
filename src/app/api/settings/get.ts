@@ -1,23 +1,25 @@
 import { userMessages } from '@/library/constants'
-import { database } from '@/library/database/connection'
-import { checkAccess, getAcceptedWeekDayIndices } from '@/library/database/operations'
-import { holidays } from '@/library/database/schema'
-import { and, equals, initialiseResponder } from '@/library/utilities/server'
-import type { Holiday, WeekDayIndex } from '@/types'
+import { checkAccess, getAcceptedWeekDayIndices, getHolidays } from '@/library/database/operations'
+import { initialiseResponderNew } from '@/library/utilities/server'
+import type { ApiResponse, SettingsData } from '@/types'
 import type { NextRequest, NextResponse } from 'next/server'
 
-export type SettingsGETresponse = {
+type Success = SettingsData & { ok: true }
+type Failure = {
+	ok: false
 	userMessage?: string
 	developmentMessage?: string
-	acceptedWeekDayIndices?: WeekDayIndex[]
-	holidays?: Holiday[]
 }
+
+export type SettingsGETresponse = ApiResponse<Success, Failure>
 
 type OutputGET = Promise<NextResponse<SettingsGETresponse>>
 
+// Optimisation - add lookAheadDays search param to extend range on request
+
 // Get information about your own settings as a merchant
 export async function GET(request: NextRequest): OutputGET {
-	const respond = initialiseResponder<SettingsGETresponse>()
+	const respond = initialiseResponderNew<Success, Failure>()
 	try {
 		const { dangerousUser, accessDenied } = await checkAccess({
 			request,
@@ -27,23 +29,21 @@ export async function GET(request: NextRequest): OutputGET {
 
 		if (accessDenied) {
 			return respond({
+				body: {},
 				status: accessDenied.status,
 				developmentMessage: accessDenied.message,
 			})
 		}
 
-		const acceptedWeekDayIndices = await getAcceptedWeekDayIndices(dangerousUser.id)
-
-		const merchantHolidays: Holiday[] = await database
-			.select({ startDate: holidays.startDate, endDate: holidays.endDate })
-			.from(holidays)
-			.where(and(equals(holidays.userId, dangerousUser.id)))
-			.orderBy(holidays.startDate)
+		const [acceptedWeekDayIndices, holidays] = await Promise.all([
+			getAcceptedWeekDayIndices(dangerousUser.id),
+			getHolidays({ userId: dangerousUser.id, lookAheadDays: 365 }),
+		])
 
 		return respond({
 			body: {
 				acceptedWeekDayIndices,
-				holidays: merchantHolidays,
+				holidays,
 			},
 			status: 200,
 		})

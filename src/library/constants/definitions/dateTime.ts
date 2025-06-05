@@ -1,7 +1,7 @@
-import { createCutOffTime } from '@/library/utilities/public'
+import { createCutOffTime } from '@/library/shared'
 import type { DayOfTheWeek, Month, WeekDayIndex } from '@/types'
 
-export const january: Month = 0
+// january is in /shared to avoid a circular dependency
 export const february: Month = 1
 export const march: Month = 2
 export const april: Month = 3

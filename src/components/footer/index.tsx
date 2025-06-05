@@ -1,4 +1,4 @@
-import type { ArticleSlug } from '@/types'
+import { articlePath } from '@/library/utilities/public'
 import CompanyLogo from '../Icons'
 import FooterLink from './FooterLink'
 
@@ -7,10 +7,6 @@ type NavigationMap = {
 		name: string
 		href: string
 	}>
-}
-
-function articlePath(slug: ArticleSlug) {
-	return `/articles/${slug}`
 }
 
 const navigationMap: NavigationMap = {

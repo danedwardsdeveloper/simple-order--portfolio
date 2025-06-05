@@ -6,7 +6,7 @@ import { useDemoSettings } from '@/components/providers/demo/settings'
 import { useDemoUser } from '@/components/providers/demo/user'
 import { useUi } from '@/components/providers/ui'
 import { userMessages } from '@/library/constants'
-import { demoInventory, demoMerchant, floristInventory } from '@/library/constants/demo'
+import { demoInventory, demoMerchant, floristInventory, orderIdStartNumber } from '@/library/constants/demo'
 import { isProduction } from '@/library/environment/publicVariables'
 import { getAvailableDeliveryDays } from '@/library/utilities/public'
 import type { BrowserOrderItem, OrderMade } from '@/types'
@@ -17,7 +17,7 @@ export default function DemoNewOrderPage({ params }: MerchantSlugParams) {
 	const resolvedParams = use(params)
 	const merchantSlug = resolvedParams.merchantSlug
 
-	const { customer, ordersMade, setOrdersMade, setOrdersReceived, confirmedMerchants, vat, inventory } = useDemoUser()
+	const { customer, ordersMade, setOrdersMade, setOrdersReceived, confirmedMerchants, inventory } = useDemoUser()
 	const { merchantMode } = useUi()
 	const { acceptedWeekDayIndices, holidays } = useDemoSettings()
 	const router = useRouter()
@@ -28,31 +28,34 @@ export default function DemoNewOrderPage({ params }: MerchantSlugParams) {
 		}
 	}, [merchantMode, router])
 
-	// Major ToDo: use the right inventory!
-	// Actually this might be a premature optimisation...
-
 	const createOrder: CreateOrderFunction = async (props: OrdersPOSTbody) => {
 		if (!inventory) return { userMessage: userMessages.serverError }
 
-		const orderId = (ordersMade?.length || 0) + 1
+		const hasOrders = ordersMade && ordersMade.length > 0
+		const orderId = hasOrders ? ordersMade[ordersMade.length - 1].id + 1 : orderIdStartNumber
+
+		const relevantInventory = props.merchantSlug === demoMerchant.slug ? demoInventory : floristInventory
+
 		const orderItems: BrowserOrderItem[] = props.products.map((selectedProduct) => {
-			const inventoryProduct = inventory.find((item) => item.id === selectedProduct.productId)
+			const inventoryProduct = relevantInventory.find((item) => item.id === selectedProduct.productId)
 
 			if (!inventoryProduct) {
 				throw new Error(`Product with id ${selectedProduct.productId} not found in inventory`)
 			}
 
 			return {
+				orderId,
 				id: inventoryProduct.id,
 				name: inventoryProduct.name,
 				description: inventoryProduct.description,
-				orderId: orderId, // You'll need to provide this
 				productId: selectedProduct.productId,
 				quantity: selectedProduct.quantity,
 				priceInMinorUnitsWithoutVat: inventoryProduct.priceInMinorUnits,
-				vat: inventoryProduct.customVat || vat,
+				vat: inventoryProduct.customVat,
 			}
 		})
+
+		const now = new Date()
 
 		const createdOrder: OrderMade = {
 			id: orderId,
@@ -60,8 +63,8 @@ export default function DemoNewOrderPage({ params }: MerchantSlugParams) {
 			businessName: confirmedMerchants?.find((merchant) => merchant.slug === props.merchantSlug)?.businessName || '',
 			requestedDeliveryDate: props.requestedDeliveryDate,
 			products: orderItems,
-			createdAt: new Date(),
-			updatedAt: new Date(),
+			createdAt: now,
+			updatedAt: now,
 		}
 
 		if (props.merchantSlug === demoMerchant.slug) {
@@ -96,7 +99,6 @@ export default function DemoNewOrderPage({ params }: MerchantSlugParams) {
 			createOrder={createOrder}
 			confirmedMerchants={confirmedMerchants}
 			setOrdersMade={setOrdersMade}
-			vat={vat}
 		/>
 	)
 }

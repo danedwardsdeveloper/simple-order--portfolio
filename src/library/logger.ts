@@ -1,6 +1,36 @@
-import type { LogLevel, LogVerb } from '@/types'
-import { browserColours, logLevels, serverColors } from './constants'
-import { browserLogLevel, serverLogLevel } from './environment/publicVariables'
+import { isDevelopment } from './environment/publicVariables'
+
+export type LogLevel = keyof typeof logLevels
+export type LogVerb = 'debug' | 'info' | 'success' | 'warn' | 'error'
+
+export const serverLogLevel: LogLevel = 'level5debug'
+export const browserLogLevel: LogLevel = isDevelopment ? 'level5debug' : 'level5debug'
+
+export const logLevels = {
+	level0none: 0,
+	level1error: 1,
+	level2warn: 2,
+	level3success: 3,
+	level4info: 4,
+	level5debug: 5,
+} as const
+
+export const browserColours = {
+	debug: 'color: #c084fc', // Purple
+	info: 'color: #3498DB', // Blue
+	success: 'color: #16a34a', // Green
+	warn: 'color: #FFA500', // Orange
+	error: 'color: #FF3838', // Red
+}
+
+export const serverColors = {
+	reset: '\x1b[0m',
+	debug: '\x1b[35m', // Magenta
+	info: '\x1b[34m', // Blue
+	success: '\x1b[32m', // Green
+	warn: '\x1b[33m', // Yellow
+	error: '\x1b[31m', // Red
+} as const
 
 const isServer = typeof window === 'undefined'
 
@@ -53,6 +83,9 @@ const browserLogger =
 	}
 
 const createLogger = (type: LogVerb, label: string) => (isServer ? serverLogger(type, label) : browserLogger(type, label))
+
+// ToDo: add this:
+// 	logger.error(error instanceof Error ? error.message : 'Unknown error')
 
 const logger = {
 	debug: shouldLog('level5debug') ? createLogger('debug', '[DEBUG]') : () => {},

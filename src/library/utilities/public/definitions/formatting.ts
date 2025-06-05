@@ -1,5 +1,7 @@
+import { monthlySubscriptionPriceInPence } from '@/library/constants/definitions/subscriptionPrice'
 import { format } from 'date-fns'
 import { formatInTimeZone } from 'date-fns-tz'
+import { formatPrice } from './formatPrice'
 
 /**
  * Example:
@@ -41,25 +43,12 @@ export function capitaliseFirstLetter(str: string): string {
 	return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
-export function formatPrice(pence: number): string {
-	if (Number.isNaN(pence)) throw new Error('formatPrice: tried to format NaN')
-
-	const roundedPence = Math.round(pence)
-	const isNegative = roundedPence < 0
-	const negativeSign = isNegative ? '-' : ''
-	const absoluteRoundedPence = Math.abs(roundedPence)
-
-	if (absoluteRoundedPence < 100) return `${negativeSign}${absoluteRoundedPence}p`
-
-	const absolutePounds = absoluteRoundedPence / 100
-
-	if (Number.isInteger(absolutePounds)) return `${negativeSign}£${absolutePounds.toLocaleString('en-GB')}`
-
-	return `${negativeSign}£${absolutePounds.toLocaleString('en-GB', {
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	})}`
-}
+// Used in programmatically generated articles. Should be currency specific
+// This is a constant but it can cause circular dependency issues
+/**
+ * @deprecated
+ */
+export const formattedSubscriptionPrice = formatPrice(monthlySubscriptionPriceInPence, 'GBP')
 
 export function formatTime(time: Date | null) {
 	if (!time) return ''

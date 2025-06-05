@@ -3,7 +3,7 @@ import { developmentDelay } from '@/library/utilities/public'
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { type ReactNode, useState } from 'react'
-import { LoadingButton } from './Buttons'
+import { ActionButton } from './Buttons'
 
 export default function ConfirmationModal({
 	title,
@@ -20,7 +20,7 @@ export default function ConfirmationModal({
 	isOpen: boolean
 	onClose: () => void
 	onConfirm: () => Promise<void> | void
-	dataTestId: string
+	dataTestId?: string
 }) {
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -33,7 +33,7 @@ export default function ConfirmationModal({
 	}
 
 	return (
-		<Dialog data-test-id={dataTestId} open={isOpen} onClose={onClose} className="relative z-modal">
+		<Dialog data-test-id={dataTestId || 'Not set'} open={isOpen} onClose={onClose} className="relative z-modal">
 			<DialogBackdrop
 				transition
 				className="fixed inset-0 bg-gray-500/75 transition-opacity data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in"
@@ -59,9 +59,9 @@ export default function ConfirmationModal({
 							</div>
 						</div>
 						<div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse sm:justify-center">
-							<LoadingButton
+							<ActionButton
 								onClick={handleConfirm}
-								text={confirmButtonText}
+								content={confirmButtonText}
 								isLoading={isSubmitting}
 								isDisabled={isSubmitting}
 								classes="sm:ml-3 max-w-44"

@@ -1,6 +1,9 @@
-import { CtaPair } from '@/components/heroSection'
+import CtaPair from '@/components/CtaPair'
+import HomePageContent from '@/components/HomePageContent'
+import { currencyOptions } from '@/library/constants'
 import type { Metadata } from 'next'
-import { HomePageContent } from './page'
+
+// ToDo: currency pages
 
 export const metadata: Metadata = {
 	title: 'Page not found',
@@ -27,7 +30,7 @@ export default function NotFoundPage() {
 	return (
 		<>
 			<NotFoundComponent />
-			<HomePageContent />
+			<HomePageContent pricingDetails={currencyOptions.GBP} />
 		</>
 	)
 }

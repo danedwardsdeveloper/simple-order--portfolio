@@ -4,3 +4,5 @@ export const checkoutSearchParamValues = {
 	incomplete: 'incomplete',
 	cancelled: 'cancelled',
 }
+
+// ToDo: move to searchParams.ts

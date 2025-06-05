@@ -1,5 +1,6 @@
 import { formatPrice, mergeClasses } from '@/library/utilities/public'
 import type { BrowserSafeCustomerProduct } from '@/types'
+import type { UiContextData } from '@/types/definitions/contexts/ui'
 import type { ChangeEvent, KeyboardEvent } from 'react'
 
 interface Props {
@@ -7,9 +8,10 @@ interface Props {
 	quantity: string
 	onQuantityChange: (quantity: string) => void
 	zebraStripe: boolean
+	currency: UiContextData['currency']
 }
 
-export default function ProductInput({ product, quantity, onQuantityChange, zebraStripe }: Props) {
+export default function ProductInput({ product, quantity, onQuantityChange, zebraStripe, currency }: Props) {
 	function handleQuantityChange(event: ChangeEvent<HTMLInputElement>) {
 		const value = event.target.value
 
@@ -44,7 +46,7 @@ export default function ProductInput({ product, quantity, onQuantityChange, zebr
 			<p className="text-zinc-700 max-w-prose">{product.description}</p>
 			<div className="mt-4 flex justify-between items-end">
 				<div className="flex gap-x-1 items-center">
-					<span className="text-lg">{formatPrice(product.priceInMinorUnits)}</span>
+					<span className="text-lg">{formatPrice(product.priceInMinorUnits, currency)}</span>
 				</div>
 				<div>
 					<label htmlFor={`quantity-${product.id}`} className="text-zinc-600">

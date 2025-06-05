@@ -1,16 +1,5 @@
 ## Current Task
 
-src/app/api/authentication
-src/app/api/orders
-src/app/api/payments
-src/library/database
-src/library/email
-public/images
-src/library/stripe
-src/library/utilities/server
-src/library/validations
-src/types
-
 -
 
 .

@@ -1,4 +1,5 @@
-import { createApiUrl } from '@/library/utilities/public'
+import { developmentBaseURL } from '@/library/environment/publicVariables'
+import { createApiUrlNew } from '@/library/utilities/public'
 import type { TestRequestResponse } from '@tests/types'
 import { parseTokenCookie } from '@tests/utilities'
 import fetch from 'node-fetch'
@@ -34,10 +35,10 @@ export function initialiseTestGETRequestMaker(basePath: string): GETRequestMaker
 			headers.Cookie = requestCookie
 		}
 
-		const url = createApiUrl({
-			basePath,
-			segment: segment,
-			searchParam: searchParam,
+		const url = createApiUrlNew({
+			absoluteBase: developmentBaseURL,
+			segments: [basePath, segment || ''],
+			searchParams: searchParam,
 		})
 
 		const response = await fetch(url, {

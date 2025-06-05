@@ -1,6 +1,6 @@
 'use client'
 import type { SettingsContextType } from '@/types'
-import SettingForm from './Setting'
+import SettingForm from './SettingForm'
 
 type Props = {
 	leadTimeDays: number
@@ -11,6 +11,7 @@ export default function LeadTime({ leadTimeDays, saveLeadTime }: Props) {
 	return (
 		<SettingForm
 			title="Lead time"
+			helpText="How many days' notice you need to prepare an order. For example, set it to 0 if you accept same-day orders, or set to 1 if you fulfill orders the day after they're placed."
 			initialValue={leadTimeDays}
 			onSave={saveLeadTime}
 			renderView={(value) => <span>{`${value || 0} day${value !== 1 ? 's' : ''}`}</span>}

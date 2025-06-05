@@ -1,20 +1,22 @@
 'use client'
 import { SubmitButton } from '@/components/Buttons'
 import FormFieldErrorMessage from '@/components/FormFieldErrorMessage'
-import { serviceConstraints } from '@/library/constants'
+import { useUi } from '@/components/providers/ui'
+import { defaultVat, serviceConstraints } from '@/library/constants'
+import { minorUnitsName } from '@/library/utilities/public'
 import { type InventoryAddFormData, inventoryAddFormInputSchema } from '@/library/validations'
 import type { BrowserSafeMerchantProduct } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 
-export interface AddInventoryFormProps {
+export type AddInventoryFormProps = {
 	inventory: BrowserSafeMerchantProduct[] | null
-	vat: number
 	addProduct: (formData: InventoryAddFormData) => Promise<boolean>
 	isSubmitting: boolean
 }
 
-export default function AddInventoryForm({ inventory, vat, addProduct, isSubmitting }: AddInventoryFormProps) {
+export default function AddInventoryForm({ inventory, addProduct, isSubmitting }: AddInventoryFormProps) {
+	const { currency } = useUi()
 	const {
 		register,
 		handleSubmit,
@@ -35,7 +37,7 @@ export default function AddInventoryForm({ inventory, vat, addProduct, isSubmitt
 			name: '',
 			description: '',
 			priceInMinorUnits: '',
-			customVat: String(vat),
+			customVat: String(defaultVat),
 		},
 	})
 
@@ -52,7 +54,7 @@ export default function AddInventoryForm({ inventory, vat, addProduct, isSubmitt
 	}
 
 	return (
-		<form onSubmit={handleSubmit(onSubmit)} className="p-4 border-2 border-zinc-200 rounded-xl flex flex-col gap-y-4 max-w-xl lg:-mx-3">
+		<form onSubmit={handleSubmit(onSubmit)} className="p-4 border-2 border-zinc-200 rounded-xl flex flex-col gap-y-4 max-w-xl">
 			<h2>Add an item</h2>
 
 			<div>
@@ -86,7 +88,7 @@ export default function AddInventoryForm({ inventory, vat, addProduct, isSubmitt
 
 			<div>
 				<label htmlFor="price" className="block mb-1">
-					Price in pence
+					Price in {minorUnitsName(currency)}
 				</label>
 				<FormFieldErrorMessage error={priceInMinorUnitsError} />
 				<input

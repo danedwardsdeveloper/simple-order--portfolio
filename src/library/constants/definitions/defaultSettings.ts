@@ -5,4 +5,8 @@ export const defaultLeadTimeDays = 1
 
 export const defaultAcceptedDeliveryDayIndices = [monday, tuesday, wednesday, thursday, friday]
 
-export const temporaryVat = 20
+export const defaultVat = 20
+
+// merchantMode=true is the default if there's uncertainty
+// Default has to be merchant mode, or new free trials can't invite customers
+export const defaultMerchantModeBoolean = true

@@ -1,22 +1,25 @@
 import { userMessages } from '@/library/constants'
-import { database } from '@/library/database/connection'
-import { checkAccess } from '@/library/database/operations'
-import { products } from '@/library/database/schema'
-import { convertEmptyToUndefined } from '@/library/utilities/public'
-import { initialiseResponder } from '@/library/utilities/server'
-import type { BrowserSafeMerchantProduct } from '@/types'
-import { and, eq, isNull } from 'drizzle-orm'
-import { type NextRequest, NextResponse } from 'next/server'
+import { checkAccess, getInventory } from '@/library/database/operations'
+import { initialiseResponderNew } from '@/library/utilities/server'
+import type { ApiResponse, UserContextType } from '@/types'
+import type { NextRequest, NextResponse } from 'next/server'
 
-export interface InventoryAdminGETresponse {
-	userMessage?: typeof userMessages.serverError
-	developmentMessage?: string
-	inventory?: BrowserSafeMerchantProduct[]
+type Success = {
+	ok: true
+	inventory: UserContextType['inventory']
 }
+
+type Failure = {
+	userMessage: typeof userMessages.serverError | typeof userMessages.authenticationError
+	developmentMessage?: string
+	ok: false
+}
+
+export type InventoryAdminGETresponse = ApiResponse<Success, Failure>
 
 // GET all products for the signed-in merchant
 export async function GET(request: NextRequest): Promise<NextResponse<InventoryAdminGETresponse>> {
-	const respond = initialiseResponder<InventoryAdminGETresponse>()
+	const respond = initialiseResponderNew<Success, Failure>()
 
 	try {
 		const { dangerousUser, accessDenied } = await checkAccess({
@@ -27,35 +30,28 @@ export async function GET(request: NextRequest): Promise<NextResponse<InventoryA
 
 		if (accessDenied) {
 			return respond({
+				body: {
+					userMessage: userMessages.authenticationError,
+				},
 				status: accessDenied.status,
 				developmentMessage: accessDenied.message,
 			})
 		}
 
-		const foundInventory: BrowserSafeMerchantProduct[] = await database
-			.select({
-				id: products.id,
-				name: products.name,
-				description: products.description,
-				priceInMinorUnits: products.priceInMinorUnits,
-				customVat: products.customVat,
-				deletedAt: products.deletedAt,
-			})
-			.from(products)
-			.where(and(eq(products.ownerId, dangerousUser.id), isNull(products.deletedAt)))
-
-		const inventory = convertEmptyToUndefined(foundInventory)
-
-		let developmentMessage: string | undefined
+		const inventory = await getInventory(dangerousUser.id)
 
 		if (!inventory) {
 			return respond({
+				body: { inventory },
 				status: 200,
 				developmentMessage: 'Legitimately no products found',
 			})
 		}
 
-		return NextResponse.json({ inventory, developmentMessage }, { status: 200 })
+		return respond({
+			body: { inventory },
+			status: 200,
+		})
 	} catch (caughtError) {
 		return respond({
 			body: { userMessage: userMessages.serverError },

@@ -1,25 +1,24 @@
 import { orderStatusIdToName } from '@/library/constants'
-import logger from '@/library/logger'
 import type {
 	BaseOrder,
 	BrowserOrderItem,
 	DangerousBaseUser,
-	OrderFunctionReturnType,
 	OrderItem,
 	OrderMade,
 	OrderReceived,
 	OrderStatusId,
-	OrdersFunctionReturnType,
+	OrderType,
+	OrdersType,
 	Product,
 } from '@/types'
-import { convertEmptyToUndefined } from './arrays'
+import { emptyToUndefined } from './arrays'
 
 export interface MapItemsToOrderInput {
 	order: BaseOrder
 	orderItems: OrderItem[]
 	products: Product[]
 	businessName: string
-	returnType: OrderFunctionReturnType
+	returnType: OrderType
 }
 
 // Exported for testing only
@@ -68,29 +67,33 @@ interface MapOrdersProps {
 	merchants?: DangerousBaseUser[]
 	customers?: DangerousBaseUser[]
 	products: Product[]
-	returnType: OrdersFunctionReturnType
+	returnType: OrdersType
 }
 
 export function mapOrders({ orders, orderItems, merchants, customers, products, returnType }: MapOrdersProps): {
 	ordersMade?: OrderMade[]
 	ordersReceived?: OrderReceived[]
+	errorMessage?: string
 } {
 	const ordersMadeMode = returnType === 'ordersMade'
 	const users = ordersMadeMode ? merchants : customers
 
 	if (!users || users.length === 0) {
-		logger.error(`mapOrders: ${ordersMadeMode ? 'merchants' : 'customers'} must be provided`)
-		return {}
+		return {
+			errorMessage: `mapOrders: ${ordersMadeMode ? 'merchants' : 'customers'} must be provided`,
+		}
 	}
 
 	if (ordersMadeMode && !merchants) {
-		logger.error('mapOrders: merchants must be provided if return type is ordersMade')
-		return {}
+		return {
+			errorMessage: 'mapOrders: merchants must be provided if return type is ordersMade',
+		}
 	}
 
 	if (!ordersMadeMode && !customers) {
-		logger.error('mapOrders: customers must be provided if return type is ordersReceived')
-		return {}
+		return {
+			errorMessage: 'mapOrders: customers must be provided if return type is ordersReceived',
+		}
 	}
 
 	const itemsByOrderMap = new Map()
@@ -111,11 +114,10 @@ export function mapOrders({ orders, orderItems, merchants, customers, products, 
 			const user = usersMap.get(order[userIdKey])
 
 			if (!user) {
-				logger.error(`Error: ${ordersMadeMode ? 'Merchant' : 'Customer'} with ID ${order[userIdKey]} not found for order ${order.id}`)
 				return null
 			}
 
-			const singularReturnType: OrderFunctionReturnType = returnType === 'ordersMade' ? 'orderMade' : 'orderReceived'
+			const singularReturnType: OrderType = returnType === 'ordersMade' ? 'orderMade' : 'orderReceived'
 
 			const result = mapItemsToOrder({
 				order,
@@ -130,10 +132,10 @@ export function mapOrders({ orders, orderItems, merchants, customers, products, 
 		.filter(Boolean)
 
 	if (ordersMadeMode) {
-		const ordersMade = convertEmptyToUndefined(mappedOrders as OrderMade[])
+		const ordersMade = emptyToUndefined(mappedOrders as OrderMade[])
 		return { ordersMade }
 	}
 
-	const ordersReceived = convertEmptyToUndefined(mappedOrders as OrderReceived[])
+	const ordersReceived = emptyToUndefined(mappedOrders as OrderReceived[])
 	return { ordersReceived }
 }

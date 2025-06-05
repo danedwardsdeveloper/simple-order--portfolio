@@ -1,6 +1,5 @@
 import { isDevelopment } from '@/library/environment/publicVariables'
-import logger from '@/library/logger'
-import type { LogLevel } from '@/types'
+import logger, { type LogLevel } from '@/library/logger'
 import type { HTTP_METHOD } from 'next/dist/server/web/http'
 import urlJoin from 'url-join'
 

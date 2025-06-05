@@ -1,3 +1,4 @@
+import { orderStatusNameToId } from '@/library/constants'
 import type { OrderReceived } from '@/types'
 import { describe, expect, test } from 'vitest'
 import { type MapItemsToOrderInput, mapItemsToOrder } from './mapOrders'
@@ -7,7 +8,7 @@ const validInput: MapItemsToOrderInput = {
 		id: 13,
 		customerId: 1,
 		merchantId: 2,
-		status: 'pending',
+		statusId: orderStatusNameToId.Pending,
 		requestedDeliveryDate: new Date(),
 		adminOnlyNote: 'Samantha is such an awful customer!',
 		customerNote: 'Oi Jolene, give me my damn sushi!',
@@ -33,7 +34,7 @@ const validInput: MapItemsToOrderInput = {
 			ownerId: 0,
 			description: null,
 			priceInMinorUnits: 0,
-			customVat: null,
+			customVat: 20,
 			deletedAt: null,
 		},
 	],

@@ -1,7 +1,7 @@
 import { may } from '@/library/constants'
+import { createCutOffTime } from '@/library/shared'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { givesEnoughNotice } from '.'
-import { createCutOffTime } from '../time'
 
 interface Suite {
 	suiteDescription: string

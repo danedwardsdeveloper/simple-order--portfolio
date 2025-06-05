@@ -1,50 +1,34 @@
 'use client'
-import type { VerifyTokenGETresponse } from '@/app/api/authentication/verify-token/route'
-import type { InventoryAdminGETresponse } from '@/app/api/inventory/get'
-import type { InvitationsGETresponse } from '@/app/api/invitations/route'
-import type { OrdersAdminGETresponse } from '@/app/api/orders/admin/get'
-import type { OrdersGETresponse } from '@/app/api/orders/get'
-import type { RelationshipsGETresponse } from '@/app/api/relationships/route'
-import { temporaryVat } from '@/library/constants'
-import logger from '@/library/logger'
-import { apiRequest } from '@/library/utilities/public'
-import type {
-	BrowserSafeCompositeUser,
-	BrowserSafeCustomerProfile,
-	BrowserSafeInvitationReceived,
-	BrowserSafeInvitationSent,
-	BrowserSafeMerchantProduct,
-	BrowserSafeMerchantProfile,
-	OrderMade,
-	OrderReceived,
-	UserContextType,
-} from '@/types'
+import type { VerifyTokenGETresponse } from '@/app/api/authentication/verify-token/get'
+import { apiRequestNew } from '@/library/utilities/public'
+import type { UserContextSetters, UserContextType, UserData } from '@/types'
 import { type ReactNode, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { useLoading } from './loading'
+import { useNotifications } from './notifications'
 import { useUi } from './ui'
 
 export const UserContext = createContext<UserContextType>({} as UserContextType)
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
 	const { setDataLoading } = useLoading()
-	const { setMerchantMode } = useUi()
+	const { setMerchantModeFromRoles } = useUi()
+	const { errorNotification } = useNotifications()
 	const hasCheckedToken = useRef(false)
+	const [user, setUser] = useState<UserContextType['user']>(null)
 
-	const [user, setUser] = useState<BrowserSafeCompositeUser | null>(null)
+	const [inventory, setInventory] = useState<UserContextType['inventory']>(null)
 
-	const [inventory, setInventory] = useState<BrowserSafeMerchantProduct[] | null>(null)
+	const [confirmedMerchants, setConfirmedMerchants] = useState<UserContextType['confirmedMerchants']>(null)
 
-	const [confirmedMerchants, setConfirmedMerchants] = useState<BrowserSafeMerchantProfile[] | null>(null)
+	const [confirmedCustomers, setConfirmedCustomers] = useState<UserContextType['confirmedCustomers']>(null)
 
-	const [confirmedCustomers, setConfirmedCustomers] = useState<BrowserSafeCustomerProfile[] | null>(null)
+	const [invitationsReceived, setInvitationsReceived] = useState<UserContextType['invitationsReceived']>(null)
 
-	const [invitationsReceived, setInvitationsReceived] = useState<BrowserSafeInvitationReceived[] | null>(null)
+	const [invitationsSent, setInvitationsSent] = useState<UserContextType['invitationsSent']>(null)
 
-	const [invitationsSent, setInvitationsSent] = useState<BrowserSafeInvitationSent[] | null>(null)
+	const [ordersMade, setOrdersMade] = useState<UserContextType['ordersMade']>(null)
 
-	const [ordersMade, setOrdersMade] = useState<OrderMade[] | null>(null)
-
-	const [ordersReceived, setOrdersReceived] = useState<OrderReceived[] | null>(null)
+	const [ordersReceived, setOrdersReceived] = useState<UserContextType['ordersReceived']>(null)
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <Run on mount only>
 	useEffect(() => {
@@ -52,81 +36,31 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 			setDataLoading(true)
 
 			try {
-				const { user } = await apiRequest<VerifyTokenGETresponse>({
+				const { ok, userData, userMessage } = await apiRequestNew<VerifyTokenGETresponse>({
 					basePath: '/authentication/verify-token',
 				})
 
-				if (user) {
-					setUser(user)
+				if (ok && userData) {
+					updateUserData(userData, {
+						setUser,
+						setInventory,
+						setConfirmedMerchants,
+						setConfirmedCustomers,
+						setInvitationsReceived,
+						setInvitationsSent,
+						setOrdersMade,
+						setOrdersReceived,
+					})
 
-					const basePromises = [getRelationships(), getInvitations()]
-					const customerPromises = [getOrdersMade()]
-					const merchantPromises = [getInventory(), getOrdersReceived()]
-					const bothPromises = [...customerPromises, ...merchantPromises]
+					setMerchantModeFromRoles(userData.user?.roles)
+				}
 
-					let rolePromises: Promise<void>[] = []
-
-					if (user.roles === 'customer') {
-						rolePromises = customerPromises
-						setMerchantMode(false)
-					} else if (user.roles === 'merchant') {
-						rolePromises = merchantPromises
-						setMerchantMode(true)
-					} else {
-						rolePromises = bothPromises
-					}
-
-					await Promise.all([...basePromises, ...rolePromises])
+				if (!ok) {
+					errorNotification(userMessage)
 				}
 			} finally {
 				setDataLoading(false)
 			}
-		}
-
-		async function getRelationships() {
-			const { customers, merchants } = await apiRequest<RelationshipsGETresponse>({
-				basePath: '/relationships',
-			})
-
-			setConfirmedMerchants(merchants || null)
-			setConfirmedCustomers(customers || null)
-		}
-
-		async function getInvitations() {
-			const { invitationsSent, invitationsReceived } = await apiRequest<InvitationsGETresponse>({
-				basePath: '/invitations',
-			})
-
-			setInvitationsSent(invitationsSent || null)
-			setInvitationsReceived(invitationsReceived || null)
-		}
-
-		async function getInventory() {
-			// ToDo: refactor this
-			try {
-				const { inventory } = await apiRequest<InventoryAdminGETresponse>({
-					basePath: '/inventory',
-				})
-
-				if (inventory) setInventory(inventory)
-			} catch {
-				// Log error
-				logger.error('ToDo')
-			}
-		}
-
-		async function getOrdersMade() {
-			const { ordersMade } = await apiRequest<OrdersGETresponse>({ basePath: '/orders' })
-
-			if (ordersMade) setOrdersMade(ordersMade)
-		}
-
-		async function getOrdersReceived() {
-			const { ordersReceived } = await apiRequest<OrdersAdminGETresponse>({
-				basePath: '/orders/admin',
-			})
-
-			if (ordersReceived) setOrdersReceived(ordersReceived)
 		}
 
 		if (!user && !hasCheckedToken.current) {
@@ -161,8 +95,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
 				ordersReceived,
 				setOrdersReceived,
-
-				vat: temporaryVat,
 			}}
 		>
 			{children}
@@ -170,8 +102,24 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 	)
 }
 
+/**
+ * Convenience utility to update all properties at once. Used by sign-in & verify-token
+ */
+function updateUserData(userData: UserData, setters: UserContextSetters) {
+	setters.setUser(userData.user)
+	setters.setInventory(userData.inventory)
+	setters.setConfirmedMerchants(userData.confirmedMerchants)
+	setters.setConfirmedCustomers(userData.confirmedCustomers)
+	setters.setInvitationsReceived(userData.invitationsReceived)
+	setters.setInvitationsSent(userData.invitationsSent)
+	setters.setOrdersMade(userData.ordersMade)
+	setters.setOrdersReceived(userData.ordersReceived)
+}
+
 export const useUser = () => {
 	const context = useContext(UserContext)
 	if (context === undefined) throw new Error('useUser must be used within the UserProvider')
 	return context
 }
+
+export { updateUserData }

@@ -16,7 +16,7 @@ export default function NewOrderPage({ params }: MerchantSlugParams) {
 	const resolvedParams = use(params)
 	const merchantSlug = resolvedParams.merchantSlug
 
-	const { user, confirmedMerchants, setOrdersMade, vat } = useUser()
+	const { user, confirmedMerchants, setOrdersMade } = useUser()
 	const { setDataLoading } = useLoading()
 	const { errorNotification } = useNotifications()
 
@@ -79,7 +79,6 @@ export default function NewOrderPage({ params }: MerchantSlugParams) {
 			createOrder={createOrder}
 			confirmedMerchants={confirmedMerchants}
 			setOrdersMade={setOrdersMade}
-			vat={vat}
 		/>
 	)
 }

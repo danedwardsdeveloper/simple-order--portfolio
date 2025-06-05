@@ -1,6 +1,7 @@
 import { serviceConstraints } from '@/library/constants'
 import { formatPrice, mergeClasses } from '@/library/utilities/public'
 import type { BrowserSafeMerchantProfile } from '@/types'
+import type { UiContextData } from '@/types/definitions/contexts/ui'
 import { CheckCircleIcon } from '@heroicons/react/24/outline'
 
 type Props = {
@@ -9,23 +10,18 @@ type Props = {
 	maximumOrderValueExceeded: boolean
 	totalWithoutVAT: number
 	percentageTowardsMinimumSpend: number
+	currency: UiContextData['currency']
 }
 
 export default function MinimumMaximumSpend(props: Props) {
-	const { merchantDetails, minimumSpendReached, maximumOrderValueExceeded, totalWithoutVAT, percentageTowardsMinimumSpend } = props
+	const { merchantDetails, minimumSpendReached, maximumOrderValueExceeded, totalWithoutVAT, percentageTowardsMinimumSpend, currency } =
+		props
 
 	if (maximumOrderValueExceeded) {
-		return <p className="text-red-600">This order is over our {formatPrice(serviceConstraints.maximumOrderValueInMinorUnits)} limit</p>
+		return (
+			<p className="text-red-600">This order is over our {formatPrice(serviceConstraints.maximumOrderValueInMinorUnits, currency)} limit</p>
+		)
 	}
-
-	// if (minimumSpendReached) {
-	// 	return (
-	// 		<div className="flex gap-x-2 ">
-	//
-	// 			<span>Minimum spend reached</span>
-	// 		</div>
-	// 	)
-	// }
 
 	return (
 		<div className="flex flex-col gap-y-2">
@@ -40,7 +36,7 @@ export default function MinimumMaximumSpend(props: Props) {
 						</span>
 					)}
 				</span>
-				{!minimumSpendReached && <span className="block">{formatPrice(merchantDetails.minimumSpendPence)} without VAT</span>}
+				{!minimumSpendReached && <span className="block">{formatPrice(merchantDetails.minimumSpendPence, currency)} without VAT</span>}
 			</div>
 			<div className="overflow-hidden rounded-full bg-gray-200">
 				<div
@@ -54,7 +50,7 @@ export default function MinimumMaximumSpend(props: Props) {
 				/>
 			</div>
 			{!minimumSpendReached && (
-				<span className="text-zinc-600">{formatPrice(merchantDetails.minimumSpendPence - totalWithoutVAT)} to go</span>
+				<span className="text-zinc-600">{formatPrice(merchantDetails.minimumSpendPence - totalWithoutVAT, currency)} to go</span>
 			)}
 		</div>
 	)

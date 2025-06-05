@@ -39,7 +39,6 @@ export async function apiTestRequest({
 	body,
 }: Props): Promise<NodeFetchResponse> {
 	const url = createApiUrl({
-		domain: 'development',
 		basePath,
 		segment,
 		searchParam,

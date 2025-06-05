@@ -3,7 +3,7 @@ import { database } from '@/library/database/connection'
 import { checkActiveSubscriptionOrTrial, getUserRoles } from '@/library/database/operations'
 import { invitations, relationships, users } from '@/library/database/schema'
 import { sendEmail } from '@/library/email/sendEmail'
-import { createMerchantSlug, sanitiseDangerousBaseUser, validateUuid } from '@/library/utilities/public'
+import { sanitiseDangerousBaseUser, strictSlugify, validateUuid } from '@/library/utilities/public'
 import { and, createCookieWithToken, equals, initialiseResponder } from '@/library/utilities/server'
 import type {
 	BaseUserInsertValues,
@@ -12,7 +12,7 @@ import type {
 	DangerousBaseUser,
 	Invitation,
 	InvitedCustomerBrowserInputValues,
-	RelationshipJoinRow,
+	RelationshipRecord,
 	Transaction,
 	UserMessages,
 } from '@/types'
@@ -125,7 +125,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 					message: 'transaction error creating relationships',
 					status: http409conflict,
 				}
-				const newRelationshipInsert: RelationshipJoinRow = {
+				const newRelationshipInsert: RelationshipRecord = {
 					merchantId: foundInvitation.senderUserId,
 					customerId: foundDangerousUser.id,
 				}
@@ -138,7 +138,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 				const usedAt = new Date()
 				usedAt.setUTCHours(0, 0, 0, 0)
 
-				// Transaction: Expire the invitation
+				// Transaction: Mark the invitation as used
 				txError.message = 'error expiring invitation'
 				await tx
 					.update(invitations)
@@ -161,8 +161,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 			const existingUser: BrowserSafeCompositeUser = {
 				...sanitiseDangerousBaseUser(foundDangerousUser),
 				roles: userRole,
-				subscriptionEnd,
-				trialEnd,
+				subscriptionEnd: subscriptionEnd || null,
+				trialEnd: trialEnd || null,
+				subscriptionCancelled: false, // ToDo!
 			}
 
 			return respond({
@@ -192,7 +193,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 					lastName,
 					businessName,
 					// ToDo: add multiple attempts
-					slug: createMerchantSlug(businessName),
+					slug: strictSlugify(businessName),
 					hashedPassword,
 					emailConfirmed: true,
 				}
@@ -207,7 +208,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
 				// Create relationship
 				txError.message = 'transaction error creating relationship join row'
-				const newRelationshipInsert: RelationshipJoinRow = {
+				const newRelationshipInsert: RelationshipRecord = {
 					merchantId: foundInvitation.senderUserId,
 					customerId: createdUser.id,
 				}
@@ -242,6 +243,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 			const compositeUser: BrowserSafeCompositeUser = {
 				...createdUser,
 				roles: 'customer',
+				trialEnd: null,
+				subscriptionEnd: null,
+				subscriptionCancelled: false,
 				// This is a new customer-only, so they don't have a subscription or trial but can still use the site to make orders
 			}
 

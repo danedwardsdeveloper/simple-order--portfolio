@@ -22,21 +22,21 @@ describe('Create URL', () => {
 					input: {
 						basePath: '/authentication/sign-in',
 					},
-					expected: 'http://localhost:3000/api/authentication/sign-in',
+					expected: '/api/authentication/sign-in',
 				},
 				{
 					description: 'Simple path with trailing slash',
 					input: {
 						basePath: '/authentication/sign-in/',
 					},
-					expected: 'http://localhost:3000/api/authentication/sign-in',
+					expected: '/api/authentication/sign-in',
 				},
 				{
 					description: 'Simple path with no slash',
 					input: {
 						basePath: 'authentication',
 					},
-					expected: 'http://localhost:3000/api/authentication',
+					expected: '/api/authentication',
 				},
 				{
 					description: 'With segment',
@@ -44,7 +44,7 @@ describe('Create URL', () => {
 						basePath: '/orders',
 						segment: '1',
 					},
-					expected: 'http://localhost:3000/api/orders/1',
+					expected: '/api/orders/1',
 				},
 				{
 					description: 'With segment and trailing slash',
@@ -52,7 +52,7 @@ describe('Create URL', () => {
 						basePath: '/orders/',
 						segment: '1',
 					},
-					expected: 'http://localhost:3000/api/orders/1',
+					expected: '/api/orders/1',
 				},
 				{
 					description: 'With search param',
@@ -63,7 +63,7 @@ describe('Create URL', () => {
 							value: '100',
 						},
 					},
-					expected: 'http://localhost:3000/api/orders/admin?limit=100',
+					expected: '/api/orders/admin?limit=100',
 				},
 				{
 					description: 'With search param and trailing slash',
@@ -74,7 +74,7 @@ describe('Create URL', () => {
 							value: '100',
 						},
 					},
-					expected: 'http://localhost:3000/api/orders/admin?limit=100',
+					expected: '/api/orders/admin?limit=100',
 				},
 				{
 					description: 'With search param and segment',
@@ -86,40 +86,7 @@ describe('Create URL', () => {
 							value: '100',
 						},
 					},
-					expected: 'http://localhost:3000/api/orders/admin/14?limit=100',
-				},
-			],
-		},
-		{
-			description: 'Production cases',
-			cases: [
-				{
-					description: 'Simple production URL',
-					input: {
-						domain: 'production',
-						basePath: 'verify-token',
-					},
-					expected: 'https://simple-order-management.vercel.app/api/verify-token',
-				},
-			],
-		},
-		{
-			description: 'Dynamic cases',
-			cases: [
-				{
-					description: 'Dynamic domain uses localhost',
-					input: {
-						domain: 'dynamic',
-						basePath: 'verify-token',
-					},
-					expected: 'http://localhost:3000/api/verify-token',
-				},
-				{
-					description: 'Dynamic is the default',
-					input: {
-						basePath: 'verify-token',
-					},
-					expected: 'http://localhost:3000/api/verify-token',
+					expected: '/api/orders/admin/14?limit=100',
 				},
 			],
 		},
@@ -141,5 +108,5 @@ describe('Create URL', () => {
 })
 
 /* 
-pnpm vitest tests/utilities/definitions/createApiUrl
+pnpm vitest src/library/utilities/public/definitions/createApiUrl
 */

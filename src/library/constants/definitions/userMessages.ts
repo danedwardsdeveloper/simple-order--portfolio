@@ -16,6 +16,8 @@ export const userMessages = {
 	emailAlreadyConfirmed: 'This email address has already been confirmed.',
 	cutOffTimeExceeded: `Sorry, it's too late to place this order. Please change the requested delivery date or contact the merchant directly.`,
 	holidayConflict: 'This holiday period overlaps with an existing holiday',
+	contactFormError: "Sorry, we couldn't send your message. Please try again later.",
+	authenticationError: 'Sorry, we had trouble signing you in. Please try again.',
 } as const
 
 /**

@@ -1,25 +1,33 @@
-import { serviceConstraints, websiteCopy } from '@/library/constants'
+import { ctaOptions, serviceConstraints } from '@/library/constants'
+import { mergeClasses } from '@/library/utilities/public'
+import type { PricingDetails } from '@/types'
 import { CheckIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
 
 const includedFeatures = [
-	'Stress-free',
-	'Technical support',
 	`Up to ${serviceConstraints.maximumCustomers} customers`,
 	`Up to ${serviceConstraints.maximumProducts} products`,
+	'No phone interruptions',
+	'Convenient for your customers',
 ]
 
-export default function Pricing() {
+// I'm recycling this type for convenience as it's the same as HeroSection
+export type PricingProps = { pricingDetails: PricingDetails; marginClasses: string }
+
+export default function Pricing({ pricingDetails, marginClasses }: PricingProps) {
 	return (
-		<div className="mx-auto max-w-7xl px-6 lg:px-8 lg:mt-32">
+		<div className={mergeClasses('mx-auto max-w-7xl px-6 lg:px-8', marginClasses)}>
+			{/* Header section */}
 			<div className="mx-auto max-w-4xl sm:text-center">
 				<h2 className="text-pretty text-5xl font-semibold tracking-tight text-gray-900 sm:text-balance sm:text-6xl">Simple pricing</h2>
-				<p className="mx-auto mt-6 max-w-2xl text-pretty text-lg font-medium text-gray-500 sm:text-xl/8">
-					One simple plan at £19.50 per month.
+				<p className="mx-auto mt-6 max-w-2xl text-pretty text-lg font-medium text-gray-500 sm:text-xl leading-8">
+					One simple plan at {pricingDetails.formattedFull} per month.
 					<br />
-					Start your 30-day free trial today - no credit card required.
+					Start your {serviceConstraints.trialLength}-day free trial today - no credit card required.
 				</p>
 			</div>
+
+			{/* Content box */}
 			<div className="mx-auto mt-16 max-w-2xl rounded-3xl ring-1 ring-gray-200 sm:mt-20 lg:mx-0 lg:flex lg:max-w-none">
 				<div className="p-8 sm:p-10 lg:flex-auto">
 					<h3 className="text-3xl font-semibold tracking-tight text-gray-900">Monthly membership</h3>
@@ -39,15 +47,17 @@ export default function Pricing() {
 						))}
 					</ul>
 				</div>
+
+				{/* Inset box */}
 				<div className="-mt-2 p-2 lg:mt-0 lg:w-full lg:max-w-md lg:shrink-0">
 					<div className="rounded-2xl bg-gray-50 py-10 text-center ring-1 ring-inset ring-gray-900/5 lg:flex lg:flex-col lg:justify-center lg:py-16 h-full">
 						<div className="mx-auto max-w-xs px-8">
 							<p className="mt-6 flex items-baseline justify-center gap-x-2">
-								<span className="text-5xl font-semibold tracking-tight text-gray-900">£19.50</span>
-								<span className="leading-6 font-semibold tracking-wide text-gray-600">GBP/month</span>
+								<span className="text-5xl font-semibold tracking-tight text-gray-900">{pricingDetails.formatted}</span>
+								<span className="leading-6 font-semibold tracking-wide text-gray-600">{pricingDetails.upperCaseCode}/month</span>
 							</p>
-							<Link href="/free-trial" className="mt-10 block w-full button-primary py-2 text-lg shadow-md">
-								{websiteCopy.CTAs.trial.displayText}
+							<Link href={ctaOptions.trial.href} className="mt-10 block w-full button-primary py-2 text-xl shadow-md">
+								{ctaOptions.trial.displayText}
 							</Link>
 							<p className="mt-6 text-gray-600">No credit card required</p>
 						</div>

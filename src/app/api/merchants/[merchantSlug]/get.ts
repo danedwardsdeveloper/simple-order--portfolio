@@ -2,7 +2,7 @@ import { http403forbidden, userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { checkAccess, checkRelationship, getAcceptedWeekDayIndices, getHolidays } from '@/library/database/operations'
 import { products, users } from '@/library/database/schema'
-import { convertEmptyToUndefined, getAvailableDeliveryDays } from '@/library/utilities/public'
+import { emptyToUndefined, getAvailableDeliveryDays } from '@/library/utilities/public'
 import { and, equals, initialiseResponder, isNull } from '@/library/utilities/server'
 import type { BrowserSafeCustomerProduct, UserMessages } from '@/types'
 import type { NextRequest, NextResponse } from 'next/server'
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 			})
 		}
 
-		const availableProducts = convertEmptyToUndefined(
+		const availableProducts = emptyToUndefined(
 			await database
 				.select({
 					id: products.id,
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 		const lookAheadDays = 14
 
 		const holidays = await getHolidays({
-			merchantProfile: dangerousMerchantProfile, //
+			userId: dangerousMerchantProfile.id, //
 			lookAheadDays,
 		})
 

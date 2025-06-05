@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
 export default function DemoInventoryPage() {
-	const { merchant, inventory, vat } = useDemoUser()
+	const { merchant, inventory } = useDemoUser()
 	const { addProduct, updateProduct, isUpdating, deleteProduct, isDeleting, isSubmitting } = useDemoInventory()
 
 	const { merchantMode } = useUi()
@@ -42,7 +42,7 @@ export default function DemoInventoryPage() {
 					<>
 						<InventorySizeMessage inventory={inventory} />
 						<VatToggleButton />
-						<AddInventoryForm addProduct={addProduct} inventory={inventory} vat={vat} isSubmitting={isSubmitting} />
+						<AddInventoryForm addProduct={addProduct} inventory={inventory} isSubmitting={isSubmitting} />
 					</>
 				}
 			/>

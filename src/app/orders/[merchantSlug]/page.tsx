@@ -17,7 +17,7 @@ export default function Page({ params }: MerchantSlugParams) {
 
 	if (!user) return null
 
-	// ToDo!
+	// ToDo
 	if (isProduction) return notFound()
 
 	return (

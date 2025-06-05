@@ -3,7 +3,7 @@ import { daysOfTheWeek } from '@/library/constants'
 import { mergeClasses } from '@/library/utilities/public'
 import type { SettingsContextType, WeekDayIndex } from '@/types'
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline'
-import SettingForm from './Setting'
+import SettingForm from './SettingForm'
 
 type Props = {
 	acceptedWeekDayIndices: WeekDayIndex[] | null
@@ -28,6 +28,17 @@ export default function DeliveryDaysSetting({ acceptedWeekDayIndices, saveDelive
 	return (
 		<SettingForm
 			title="Accepted delivery days"
+			helpText={
+				<>
+					<p key={1}>
+						Which days of the week you deliver or allow pickup. Customers can only select delivery dates that fall on your available days.
+					</p>
+					<p key={2}>
+						{`For example, If you don't fulfill orders on Sundays, uncheck Sunday so customers can't book deliveries that day. They will still
+						be able to place orders on Sunday though.`}
+					</p>
+				</>
+			}
 			initialValue={acceptedWeekDayIndices || []}
 			onSave={handleSave}
 			isEqual={isEqual}
@@ -69,7 +80,6 @@ export default function DeliveryDaysSetting({ acceptedWeekDayIndices, saveDelive
 												onChange(value.filter((index) => index !== sortOrder))
 											}
 										}}
-										className="col-start-1 row-start-1 appearance-none rounded border border-gray-300 bg-white checked:border-green-600 checked:bg-green-600 indeterminate:border-green-600 indeterminate:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto"
 									/>
 									<svg
 										fill="none"

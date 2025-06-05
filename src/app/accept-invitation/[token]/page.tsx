@@ -7,20 +7,17 @@ import { useUser } from '@/components/providers/user'
 import { apiRequest } from '@/library/utilities/public'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import CompleteRegistrationForm from './components/CompleteRegistrationForm'
+import CompleteRegistrationForm from './CompleteRegistrationForm'
 
 export default function AcceptInvitationPage() {
 	const { token } = useParams<{ token: string }>()
-
-	// Prevent repeat fetching in development
 	const hasCheckedInvitation = useRef(false)
-
 	const [status, setStatus] = useState<'checking' | 'please provide details' | 'error' | 'relationship exists'>('checking')
 	const [errorMessage, setErrorMessage] = useState('')
 	const [senderBusinessName, setSenderBusinessName] = useState('')
 	const { setMerchantMode } = useUi()
 	const { setUser, setConfirmedMerchants } = useUser()
-	const { createNotification } = useNotifications()
+	const { successNotification } = useNotifications()
 	const router = useRouter()
 
 	// ToDo: Make this a great experience
@@ -53,11 +50,7 @@ export default function AcceptInvitationPage() {
 					setConfirmedMerchants((prevMerchants) => [...(prevMerchants || []), senderDetails])
 				}
 
-				createNotification({
-					level: 'success',
-					title: 'Success',
-					message: `You are now a confirmed customer of ${senderDetails?.businessName}`,
-				})
+				successNotification(`You are now a confirmed customer of ${senderDetails?.businessName}`)
 				router.push('/orders')
 			}
 
