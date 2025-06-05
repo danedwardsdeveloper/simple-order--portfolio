@@ -1,6 +1,8 @@
 # Simple Order
 
-An order management website for wholesalers so they can reduce costs, save time, and eliminate phone call confusion. Work in progress.
+SAAS order management website for wholesalers.
+
+This is a clone of a private repository created for portfolio purposes. The original contains sensitive configuration files, database schemas, and other production-related code that I want to keep private for the security of my customers.
 
 ![Simple Order desktop landing page screenshot](misc/github-readme-mockup.webp)
 
