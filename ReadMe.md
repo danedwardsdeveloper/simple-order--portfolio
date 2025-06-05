@@ -2,7 +2,7 @@
 
 An order management website for wholesalers so they can reduce costs, save time, and eliminate phone call confusion. Work in progress.
 
-![Simple Order desktop landing page screenshot](https://raw.githubusercontent.com/danedwardsdeveloper/simple-order/refs/heads/main/misc/github-readme-mockup.webp)
+![Simple Order desktop landing page screenshot](misc/github-readme-mockup.webp)
 
 # Technology
 
