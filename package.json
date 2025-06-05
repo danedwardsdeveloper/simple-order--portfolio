@@ -7,7 +7,7 @@
 		"format": "biome format . --write",
 		"check": "biome check . --write --unsafe",
 		"stripe": "stripe listen --events customer.subscription.created,customer.subscription.updated,invoice.paid,invoice.payment_failed,customer.subscription.deleted --forward-to localhost:3000/api/payments/webhook",
-		"portfolio-sync": "rsync -av --exclude='.git' --exclude='node_modules' --exclude='.env*' ./ ../simple-order--portfolio/",
+		"portfolio-sync": "rsync -av --exclude='.git' --exclude='.gitignore' --exclude='node_modules' --exclude='.vercel' --exclude='.next' --exclude='drizzle/' --exclude='.env*' --exclude='src/app/api/authentication/' --exclude='src/app/api/orders/' --exclude='src/app/api/payments/' --exclude='src/library/database/' --exclude='src/library/email/' --exclude='public/images/' --exclude='src/library/stripe/' --exclude='src/library/utilities/server/' --exclude='src/library/validations/' --exclude='src/types/' ./ ../simple-order--portfolio/",
 		"build": "pnpm format && pnpm check && next build",
 		"seed": "pnpm tsx src/library/database/seed",
 		"seed:production": "NODE_ENV=production pnpm tsx src/library/database/seed",
