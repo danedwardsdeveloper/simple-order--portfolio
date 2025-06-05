@@ -12,6 +12,9 @@ This is a clone of a private repository created for portfolio purposes. The orig
 - PostgreSQL deployed with Neon
 - Drizzle type-safe SQL query builder
 - Mailgun email service
+- React-email
+- React-hook-form
+- Zod validation
 - Tailwind CSS
 
 Please see my [developer website write-up](http://danedwardsdeveloper.com/projects/simple-order) for more details.
