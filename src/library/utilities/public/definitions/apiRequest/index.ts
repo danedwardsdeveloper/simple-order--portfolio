@@ -14,9 +14,9 @@ interface Props<Body = JsonData> extends CreateApiUrlParams {
 }
 
 /**
- * @deprecated use apiRequestNew instead
+ * @deprecated use apiRequest instead
  */
-export async function apiRequest<Return, Body = Record<string, unknown>>({
+export async function apiRequestOld<Return, Body = Record<string, unknown>>({
 	basePath,
 	segment,
 	searchParam,
@@ -66,7 +66,7 @@ const verifyTokenConfig: RouteConfig = {
 }
 */
 
-export async function apiRequestNew<Return, Body = JsonData>({
+export async function apiRequest<Return, Body = JsonData>({
 	basePath,
 	segment,
 	searchParam,

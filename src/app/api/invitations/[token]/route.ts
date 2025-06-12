@@ -2,10 +2,10 @@ import { cookieDurations, cookieNames, http409conflict, http422unprocessableCont
 import { database } from '@/library/database/connection'
 import { checkActiveSubscriptionOrTrial, getUserRoles } from '@/library/database/operations'
 import { invitations, relationships, users } from '@/library/database/schema'
-import { sendEmail } from '@/library/email/sendEmail'
 import { sanitiseDangerousBaseUser, strictSlugify, validateUuid } from '@/library/utilities/public'
 import { and, createCookieWithToken, equals, initialiseResponder } from '@/library/utilities/server'
 import type {
+	ApiResponse,
 	BaseUserInsertValues,
 	BrowserSafeCompositeUser,
 	BrowserSafeMerchantProfile,
@@ -14,38 +14,52 @@ import type {
 	InvitedCustomerBrowserInputValues,
 	RelationshipRecord,
 	Transaction,
-	UserMessages,
 } from '@/types'
 import bcrypt from 'bcryptjs'
 import { cookies } from 'next/headers'
 import type { NextRequest, NextResponse } from 'next/server'
 
-export type InvitationsTokenPATCHbody = InvitedCustomerBrowserInputValues
-
-// PATCH accept an invitation (creates a relationship)
+// Main ToDo: This needs major work
+// It's doing far too many things. Needs to be split into multiple routes that work sequentially, even though that will be slower
 // Ask for more details if user is new to the site
 // Sign the user in
-// ToDo: use a discriminated union
-export interface InvitationsTokenPATCHresponse {
-	developmentMessage?: string
-	userMessage?: UserMessages
-	pleaseProvideDetails?: boolean
+
+export type InvitationsTokenPATCHbody = InvitedCustomerBrowserInputValues
+
+type Success = {
+	ok: true
 	createdUser?: BrowserSafeCompositeUser
 	existingUser?: BrowserSafeCompositeUser
 	senderDetails?: BrowserSafeMerchantProfile
 }
 
+type Failure = {
+	ok: false
+	pleaseProvideDetails?: true
+	developmentMessage: string
+	userMessage?: (typeof userMessages)['serverError' | 'unexpectedError' | 'emailConfirmationTokenInvalid' | 'relationshipExists']
+	senderDetails?: BrowserSafeMerchantProfile
+}
+
+const defaultResponse = {
+	body: { userMessage: userMessages.unexpectedError },
+	status: 400,
+}
+
+export type InvitationsTokenPATCHresponse = ApiResponse<Success, Failure>
+
 type Output = Promise<NextResponse<InvitationsTokenPATCHresponse>>
 
+// PATCH accept an invitation (creates a relationship)
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ token: string }> }): Output {
-	const respond = initialiseResponder<InvitationsTokenPATCHresponse>()
+	const respond = initialiseResponder<Success, Failure>()
 
 	const cookieStore = await cookies()
 	const token = (await params).token
 
 	if (!token) {
 		return respond({
-			status: 400,
+			...defaultResponse,
 			developmentMessage: 'Search param token missing',
 		})
 	}
@@ -66,7 +80,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
 	if (partialDetailsProvided) {
 		return respond({
-			status: 400,
+			...defaultResponse,
 			developmentMessage: 'Not enough details to create new account',
 		})
 	}
@@ -83,7 +97,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
 	if (!foundInvitation) {
 		return respond({
-			status: 400,
+			...defaultResponse,
 			developmentMessage: 'invitation row not found',
 		})
 	}
@@ -111,7 +125,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
 		if (existingRelationship) {
 			return respond({
-				body: { senderDetails: foundSenderProfile },
+				body: {
+					userMessage: userMessages.relationshipExists,
+					senderDetails: foundSenderProfile,
+				},
 				status: http409conflict,
 				developmentMessage: 'relationship exists',
 			})
@@ -220,19 +237,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 					.delete(invitations)
 					.where(and(equals(invitations.senderUserId, foundInvitation.senderUserId), equals(invitations.token, token)))
 
-				// Transaction: Send welcome email
-				// Optimisation ToDo: write a much better email
-				const emailContent = `Hello ${createdUser.firstName}, thank you for signing up to Simple Order.`
-
 				txError.message = 'transaction error sending welcome email'
-				const emailSuccess = await sendEmail({
-					recipientEmail: foundInvitation.email,
-					subject: 'Thank you for using Simple Order',
-					htmlVersion: emailContent,
-					textVersion: emailContent,
-				})
 
-				if (!emailSuccess) tx.rollback()
+				/*
+				Possibly send a welcome email
+				- Build the brand
+				- Provide onboarding information
+				- Provide a record of important details
+				- Trial end etc.
+				*/
 
 				txError = undefined
 				return { createdUser }

@@ -5,7 +5,7 @@ import UnauthorisedLinks from '@/components/UnauthorisedLinks'
 import { useNotifications } from '@/components/providers/notifications'
 import { updateUserData, useUser } from '@/components/providers/user'
 import { checkoutSearchParam, checkoutSearchParamValues, userMessages } from '@/library/constants'
-import { apiRequestNew } from '@/library/utilities/public'
+import { apiRequest } from '@/library/utilities/public'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useRef } from 'react'
 import UserInformation from '../../components/UserInformation'
@@ -42,7 +42,7 @@ export default function SettingsPage() {
 	// biome-ignore lint/correctness/useExhaustiveDependencies:
 	useEffect(() => {
 		async function refreshUser() {
-			const { userData } = await apiRequestNew<VerifyTokenGETresponse>({
+			const { userData } = await apiRequest<VerifyTokenGETresponse>({
 				basePath: '/authentication/verify-token',
 			})
 

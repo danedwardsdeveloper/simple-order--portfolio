@@ -1,6 +1,6 @@
 import { sitePaths } from '@/library/constants/definitions/sitePaths'
 import { dynamicBaseURL } from '@/library/environment/publicVariables'
-import { defaultImageWithPaths, getImagePath } from '@/library/imagesCollection'
+import { defaultImage, getImagePath } from '@/library/imagesCollection'
 import type { SitemapEntry } from '@/types'
 import type { MetadataRoute } from 'next'
 import urlJoin from 'url-join'
@@ -16,7 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 			lastModified: now,
 			changeFrequency: 'monthly',
 			priority: 1,
-			images: [defaultImageWithPaths.absolute],
+			images: [defaultImage.absolute],
 		},
 	]
 
@@ -25,7 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		lastModified: now,
 		priority: 0.9,
 		changeFrequency: 'monthly',
-		images: [defaultImageWithPaths.absolute],
+		images: [defaultImage.absolute],
 	}))
 
 	const otherEntries: SitemapEntry[] = sitePaths
@@ -35,7 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 			lastModified: now,
 			changeFrequency: 'monthly',
 			priority: 0.9,
-			images: [defaultImageWithPaths.absolute],
+			images: [defaultImage.absolute],
 		}))
 
 	const articleEntries: SitemapEntry[] = Object.values(allArticlesData).map((article) => ({

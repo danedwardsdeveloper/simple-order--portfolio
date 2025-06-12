@@ -3,7 +3,7 @@
 /**
  * List of site paths for robots.ts & sitemap.ts, excluding the home page, currency pages and individual articles pages
  */
-export const sitePaths: Array<{ path: string; hidden: boolean }> = [
+export const sitePaths: Array<{ path: string; hidden?: boolean }> = [
 	{
 		path: '/favicon.ico',
 		hidden: true,
@@ -16,10 +16,7 @@ export const sitePaths: Array<{ path: string; hidden: boolean }> = [
 		path: '/accept-invitation',
 		hidden: true,
 	},
-	{
-		path: '/articles',
-		hidden: false,
-	},
+	{ path: '/articles' },
 	{
 		path: '/checkout',
 		hidden: true,
@@ -28,18 +25,12 @@ export const sitePaths: Array<{ path: string; hidden: boolean }> = [
 		path: '/confirm',
 		hidden: true,
 	},
-	{
-		path: '/contact',
-		hidden: false,
-	},
+	{ path: '/contact' },
 	{
 		path: '/customers',
 		hidden: true,
 	},
-	{
-		path: '/create-account', // Redirected
-		hidden: false,
-	},
+	{ path: '/create-account' }, // Redirected
 	{
 		path: '/dashboard',
 		hidden: true,
@@ -48,30 +39,12 @@ export const sitePaths: Array<{ path: string; hidden: boolean }> = [
 		path: '/demo', // Not using this page at all
 		hidden: true,
 	},
-	{
-		path: '/demo/customers',
-		hidden: false,
-	},
-	{
-		path: '/demo/dashboard',
-		hidden: false,
-	},
-	{
-		path: '/demo/inventory',
-		hidden: false,
-	},
-	{
-		path: '/demo/orders',
-		hidden: false,
-	},
-	{
-		path: '/demo/settings',
-		hidden: false,
-	},
-	{
-		path: '/free-trial',
-		hidden: false,
-	},
+	{ path: '/demo/customers' },
+	{ path: '/demo/dashboard' },
+	{ path: '/demo/inventory' },
+	{ path: '/demo/orders' },
+	{ path: '/demo/settings' },
+	{ path: '/free-trial' },
 	{
 		path: '/inventory',
 		hidden: true,
@@ -84,10 +57,7 @@ export const sitePaths: Array<{ path: string; hidden: boolean }> = [
 		path: '/orders',
 		hidden: true,
 	},
-	{
-		path: '/sign-in',
-		hidden: false,
-	},
+	{ path: '/sign-in' },
 	{
 		path: '/settings',
 		hidden: true,

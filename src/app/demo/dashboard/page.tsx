@@ -5,5 +5,11 @@ import { useDemoUser } from '@/components/providers/demo/user'
 export default function DemoDashboard() {
 	const { resolvedUser, ordersReceived } = useDemoUser()
 
-	return <DashboardPageContent user={resolvedUser} ordersReceived={ordersReceived} demoMode={true} />
+	return (
+		<DashboardPageContent
+			user={resolvedUser} //
+			ordersReceived={ordersReceived}
+			demoMode={true}
+		/>
+	)
 }

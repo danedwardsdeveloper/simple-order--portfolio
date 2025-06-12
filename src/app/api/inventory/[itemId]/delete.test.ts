@@ -1,7 +1,7 @@
 import { http403forbidden } from '@/library/constants'
 import { createFreeTrial } from '@/library/database/operations'
 import type { TestUserInputValues } from '@/types'
-import { addProducts, createUser, deleteUser, initialiseTestRequestMaker } from '@tests/utilities'
+import { addProducts, createTestUser, deleteUser, initialiseTestRequestMaker } from '@tests/utilities'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 
 const makeRequest = initialiseTestRequestMaker({
@@ -25,7 +25,7 @@ describe('Delete inventory item', () => {
 	beforeAll(async () => {
 		await deleteUser(anneShirleyInputValues.email)
 
-		const { createdUser, requestCookie: createdRequestCookie } = await createUser(anneShirleyInputValues)
+		const { createdUser, validCookie: createdRequestCookie } = await createTestUser(anneShirleyInputValues)
 		validRequestCookie = createdRequestCookie
 
 		await createFreeTrial({ userId: createdUser.id })
@@ -35,6 +35,7 @@ describe('Delete inventory item', () => {
 				name: 'Raspberry cordial',
 				ownerId: createdUser.id,
 				priceInMinorUnits: 500,
+				customVat: 20,
 			},
 		])
 

@@ -5,21 +5,28 @@ import { acceptedDeliveryDays } from '@/library/database/schema'
 import { formatFirstError } from '@/library/utilities/public'
 import { equals, initialiseResponder } from '@/library/utilities/server'
 import { deliveryDaysSchema } from '@/library/validations'
-import type { UserMessages } from '@/types'
+import type { ApiResponse } from '@/types'
 import type { NextRequest, NextResponse } from 'next/server'
 import type { z } from 'zod'
 
 export type SettingsDeliveryDaysPATCHbody = z.infer<typeof deliveryDaysSchema>
 
-export type SettingsDeliveryDaysPATCHresponse = {
-	userMessage?: UserMessages
-	developmentMessage?: string
+type Success = {
+	ok: true
 }
+
+type Failure = {
+	ok: false
+	userMessage: typeof userMessages.unexpectedError | typeof userMessages.serverError | typeof userMessages.authenticationError
+	developmentMessage: string
+}
+
+export type SettingsDeliveryDaysPATCHresponse = ApiResponse<Success, Failure>
 
 type Output = Promise<NextResponse<SettingsDeliveryDaysPATCHresponse>>
 
 export async function PATCH(request: NextRequest): Output {
-	const respond = initialiseResponder<SettingsDeliveryDaysPATCHresponse>()
+	const respond = initialiseResponder<Success, Failure>()
 
 	try {
 		let rawBody: SettingsDeliveryDaysPATCHbody
@@ -27,12 +34,14 @@ export async function PATCH(request: NextRequest): Output {
 			rawBody = await request.json()
 			if (Object.keys(rawBody).length === 0) {
 				return respond({
+					body: { userMessage: userMessages.unexpectedError },
 					status: 400,
 					developmentMessage: 'body empty',
 				})
 			}
 		} catch {
 			return respond({
+				body: { userMessage: userMessages.unexpectedError },
 				status: 400,
 				developmentMessage: 'body missing',
 			})
@@ -42,6 +51,7 @@ export async function PATCH(request: NextRequest): Output {
 
 		if (!validationResult.success) {
 			return respond({
+				body: { userMessage: userMessages.unexpectedError },
 				status: 400,
 				developmentMessage: formatFirstError(validationResult.error),
 			})
@@ -55,6 +65,7 @@ export async function PATCH(request: NextRequest): Output {
 
 		if (accessDenied) {
 			return respond({
+				body: { userMessage: userMessages.authenticationError },
 				status: accessDenied.status,
 				developmentMessage: accessDenied.message,
 			})
@@ -73,7 +84,10 @@ export async function PATCH(request: NextRequest): Output {
 			)
 		})
 
-		return respond({ status: 200 })
+		return respond({
+			body: {}, //
+			status: 200,
+		})
 	} catch (caughtError) {
 		return respond({
 			body: { userMessage: userMessages.serverError },

@@ -275,20 +275,6 @@ describe('POST /api/inventory', async () => {
 	}
 })
 
-/*
-
-
-## 3. Authorization
-
--  Email not confirmed, no trial, no subscription
--  Email not confirmed, with trial
--  Email not confirmed, with subscription
--  Email confirmed, no trial, no subscription
--  Email confirmed, with trial (success case)
--  Email confirmed, with subscription (success case)
-
-*/
-
 /* 
 pnpm vitest src/app/api/inventory/POST
 */

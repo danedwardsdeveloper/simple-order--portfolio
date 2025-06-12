@@ -47,8 +47,15 @@ type SubmitButtonProps = {
 
 export function SubmitButton({ formReady, isSubmitting, content, dataTestId, classes, formId }: SubmitButtonProps) {
 	return (
-		<BaseButton type="submit" formId={formId} isDisabled={!formReady || isSubmitting} isLoading={isSubmitting} dataTestId={dataTestId}>
-			<div className={mergeClasses('min-h-7 flex justify-center', classes)}>{isSubmitting ? <Spinner colour="text-white" /> : content}</div>
+		<BaseButton
+			type="submit"
+			formId={formId}
+			isDisabled={!formReady || isSubmitting}
+			isLoading={isSubmitting}
+			dataTestId={dataTestId}
+			classes={classes}
+		>
+			<div className="min-h-7 flex justify-center">{isSubmitting ? <Spinner colour="text-white" /> : content}</div>
 		</BaseButton>
 	)
 }

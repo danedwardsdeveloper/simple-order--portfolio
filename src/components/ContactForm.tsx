@@ -145,7 +145,11 @@ export function ContactForm() {
 
 			<div className="mt-5 sm:mt-6 w-full">
 				{feedbackMessage && <p className="text-red-600 text-center mb-2">{feedbackMessage}</p>}
-				<SubmitButton formReady={isValid} isSubmitting={isSubmitting} content="Send message" />
+				<SubmitButton
+					formReady={isValid} //
+					isSubmitting={isSubmitting}
+					content="Send message"
+				/>
 			</div>
 		</form>
 	)

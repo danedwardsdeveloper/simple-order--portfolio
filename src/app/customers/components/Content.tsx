@@ -1,18 +1,16 @@
-import type { InvitationsPOSTbody } from '@/app/api/invitations/route'
+import type { InvitationsPOSTbody, InvitationsPOSTresponse } from '@/app/api/invitations/post'
 import { SignedInBreadCrumbs } from '@/components/BreadCrumbs'
 import PleaseConfirmYourEmailMessage from '@/components/PleaseConfirmYourEmailMessage'
 import TwoColumnContainer from '@/components/TwoColumnContainer'
 import UnauthorisedLinks from '@/components/UnauthorisedLinks'
-import type { BrowserSafeInvitationSent, DiscriminatedUnion, UserContextType, UserMessages } from '@/types'
+import type { UserContextType } from '@/types'
 import CustomersList from './CustomersList'
 import InviteCustomerForm from './InviteCustomerForm'
 
-export type InviteCustomerFunction = (
-	invitedEmail: InvitationsPOSTbody['invitedEmail'],
-) => Promise<DiscriminatedUnion<{ invitation: BrowserSafeInvitationSent }, { userMessage: UserMessages }>>
+// ToDo: Recycle the types from the API
+export type InviteCustomerFunction = (invitedEmail: InvitationsPOSTbody['invitedEmail']) => Promise<InvitationsPOSTresponse>
 
 export type CustomersPageContent = {
-	isSubmitting: boolean
 	inviteCustomer: InviteCustomerFunction
 	isDemo: boolean
 } & Pick<UserContextType, 'user' | 'invitationsSent' | 'setInvitationsSent' | 'confirmedCustomers'>
@@ -24,7 +22,6 @@ export default function CustomersPageContent({
 	setInvitationsSent,
 	confirmedCustomers,
 	inviteCustomer,
-	isSubmitting,
 }: CustomersPageContent) {
 	if (!user) return <UnauthorisedLinks />
 
@@ -42,10 +39,9 @@ export default function CustomersPageContent({
 				})()}
 				sideColumn={
 					<InviteCustomerForm
-						user={user}
+						user={user} //
 						isDemo={isDemo}
 						setInvitationsSent={setInvitationsSent}
-						isSubmitting={isSubmitting}
 						inviteCustomer={inviteCustomer}
 					/>
 				}

@@ -1,5 +1,5 @@
 import type { AsyncFunction } from '@/types'
-import { addProducts, createCookieString, createUser, deleteUser, initialiseTestGETRequestMaker } from '@tests/utilities'
+import { addProducts, createCookieString, createTestUser, deleteUser, initialiseTestGETRequestMaker } from '@tests/utilities'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import type { InventoryAdminGETresponse } from './get'
 
@@ -20,7 +20,7 @@ describe('Get inventory', async () => {
 	let createdUserId: number | undefined
 
 	beforeAll(async () => {
-		const { createdUser } = await createUser(lindsayLohan)
+		const { createdUser } = await createTestUser(lindsayLohan)
 		validRequestCookie = createCookieString({ userId: createdUser.id })
 		createdUserId = createdUser.id
 	})

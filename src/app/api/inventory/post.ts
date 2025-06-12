@@ -4,30 +4,42 @@ import { checkAccess } from '@/library/database/operations'
 import { products } from '@/library/database/schema'
 import { containsIllegalCharacters } from '@/library/utilities/public/definitions/allowedCharactersRegex'
 import { and, equals, initialiseResponder } from '@/library/utilities/server'
-import type { BrowserSafeMerchantProduct, ProductInsertValues, UserMessages } from '@/types'
+import type { ApiResponse, BrowserSafeMerchantProduct, ProductInsertValues } from '@/types'
 import type { NextRequest, NextResponse } from 'next/server'
 
 export type InventoryAddPOSTbody = Omit<ProductInsertValues, 'ownerId' | 'id' | 'createdAt' | 'deletedAt' | 'updatedAt'>
 
-// ToDo: remove unused responses
-export interface InventoryAddPOSTresponse {
-	developmentMessage?: string
-	userMessage?: UserMessages
-	addedProduct?: BrowserSafeMerchantProduct
+type Success = {
+	ok: true
+	addedProduct: BrowserSafeMerchantProduct
 }
+
+type Failure = {
+	ok: false
+	developmentMessage?: string
+	userMessage?: typeof userMessages.serverError | typeof userMessages.authenticationError | typeof userMessages.unexpectedError
+}
+
+// ToDo: refactor with Zod
+
+export type InventoryAddPOSTresponse = ApiResponse<Success, Failure>
 
 type Output = Promise<NextResponse<InventoryAddPOSTresponse>>
 
 // POST add an item to the inventory
 export async function POST(request: NextRequest): Output {
-	const respond = initialiseResponder<InventoryAddPOSTresponse>()
+	const respond = initialiseResponder<Success, Failure>()
 
 	let body: InventoryAddPOSTbody | undefined
 
 	try {
 		body = (await request.json()) as InventoryAddPOSTbody
 	} catch {
-		return respond({ status: 400, developmentMessage: 'Request body missing' })
+		return respond({
+			body: { userMessage: userMessages.unexpectedError },
+			status: 400,
+			developmentMessage: 'Request body missing',
+		})
 	}
 
 	try {
@@ -37,6 +49,7 @@ export async function POST(request: NextRequest): Output {
 
 		if (!name) {
 			return respond({
+				body: { userMessage: userMessages.unexpectedError },
 				status: 400,
 				developmentMessage: 'name missing',
 			})
@@ -61,6 +74,7 @@ export async function POST(request: NextRequest): Output {
 
 		if (badRequestMessage) {
 			return respond({
+				body: { userMessage: userMessages.unexpectedError },
 				status: 400,
 				developmentMessage: badRequestMessage,
 			})
@@ -74,6 +88,7 @@ export async function POST(request: NextRequest): Output {
 
 		if (accessDenied) {
 			return respond({
+				body: { userMessage: userMessages.authenticationError },
 				status: accessDenied.status,
 				developmentMessage: accessDenied.message,
 			})
@@ -86,6 +101,8 @@ export async function POST(request: NextRequest): Output {
 
 		if (existingProducts.length >= serviceConstraints.maximumProducts) {
 			return respond({
+				// The client should make it impossible for this to happen legitimately
+				body: { userMessage: userMessages.unexpectedError },
 				status: http403forbidden,
 				developmentMessage: 'too many products',
 			})
@@ -99,6 +116,8 @@ export async function POST(request: NextRequest): Output {
 
 		if (existingProduct) {
 			return respond({
+				// ToDo: this could actually happen, because of my soft delete process. I need to think about product history behaviour. Much more complicated than it seems. Wednesday 11 June, 2025.
+				body: { userMessage: userMessages.unexpectedError },
 				status: http409conflict,
 				developmentMessage: 'product name not unique',
 			})
@@ -111,14 +130,6 @@ export async function POST(request: NextRequest): Output {
 			description,
 			customVat,
 		}
-
-		// const newAddedProduct = await addProducts([{
-		// 	name,
-		// 	ownerId: userId,
-		// 	priceInMinorUnits,
-		// 	description,
-		// 	customVat,
-		// }])
 
 		const [addedProduct]: BrowserSafeMerchantProduct[] = await database.insert(products).values(insertValues).returning({
 			id: products.id,
@@ -133,6 +144,7 @@ export async function POST(request: NextRequest): Output {
 			return respond({
 				body: { userMessage: userMessages.databaseError },
 				status: http503serviceUnavailable,
+				developmentMessage: 'Database error',
 			})
 		}
 

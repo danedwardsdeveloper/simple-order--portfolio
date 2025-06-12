@@ -5,15 +5,16 @@ import { dataTestIdNames, userMessages } from '@/library/constants'
 import { type FormEvent, useState } from 'react'
 import type { CustomersPageContent } from './Content'
 
-type Props = Pick<CustomersPageContent, 'isDemo' | 'user' | 'setInvitationsSent' | 'isSubmitting' | 'inviteCustomer'>
+type Props = Pick<CustomersPageContent, 'isDemo' | 'user' | 'setInvitationsSent' | 'inviteCustomer'>
 
-export default function InviteCustomerForm({ isDemo, user, inviteCustomer, isSubmitting, setInvitationsSent }: Props) {
+export default function InviteCustomerForm({ isDemo, user, inviteCustomer, setInvitationsSent }: Props) {
 	const { successNotification, errorNotification } = useNotifications()
 	const [invitedEmail, setInvitedEmail] = useState('')
+	const [isSubmitting, setIsSubmitting] = useState(false)
 
 	if (!user || user.roles === 'customer' || !user.emailConfirmed) return null
 
-	/* ToDo: Display subscription/trial ended message
+	/* ToDo: Display subscription/trial ended message. This should be a separate component though.
 	if (!user.subscriptionEnd || !user.trialEnd) {
 		return (
 			<div className="max-w-md p-3 border-2 my-4 rounded-xl border-red-300 ">
@@ -24,33 +25,37 @@ export default function InviteCustomerForm({ isDemo, user, inviteCustomer, isSub
 	}
 	*/
 
-	// ToDo: there's a weird glitch for a split second when you submit the form
-
 	async function handleSubmit(event: FormEvent) {
 		event.preventDefault()
+		setIsSubmitting(true)
 
 		try {
-			const { userMessage, invitation } = await inviteCustomer(invitedEmail)
+			const { ok, userMessage, browserSafeInvitationRecord } = await inviteCustomer(invitedEmail)
 
-			if (invitation) {
+			if (browserSafeInvitationRecord) {
 				const phrase = isDemo ? 'Would have sent email to ' : 'Sent invitation email to '
 
 				successNotification(`${phrase}${invitedEmail}`)
 
-				setInvitationsSent((prev) => (prev ? [invitation, ...prev] : [invitation]))
+				setInvitationsSent((prev) => (prev ? [browserSafeInvitationRecord, ...prev] : [browserSafeInvitationRecord]))
 				setInvitedEmail('')
-				// Demo mode enhancement - open the token in a new tab?
 			}
 
-			// ToDo: Add error if user has already been invited
-			if (userMessage) errorNotification(userMessage)
+			if (!ok && userMessage) errorNotification(userMessage)
 		} catch {
 			errorNotification(userMessages.serverError)
+		} finally {
+			setIsSubmitting(false)
 		}
 	}
 
-	// Enhancement ToDo: validate email on the client
-	// Trim, check email isn't the user's own etc.
+	/*
+	Main ToDo:
+	- First remove email obscuring
+	- Use Zod & React-hook-form
+	- Prevent the client from sending duplicate invitations
+	- Prevent the client from inviting themselves!
+	*/
 
 	return (
 		<div data-test-id={dataTestIdNames.invite.form}>

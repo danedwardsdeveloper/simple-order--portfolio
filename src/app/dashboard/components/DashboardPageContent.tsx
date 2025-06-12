@@ -11,6 +11,7 @@ type Props = {
 } & Pick<UserData, 'user' | 'ordersReceived'>
 
 export default function DashboardPageContent(props: Props) {
+	// This might be causing indexing issues. Tuesday 10 June, 2025
 	if (!props.user) return <UnauthorisedLinks />
 
 	return (

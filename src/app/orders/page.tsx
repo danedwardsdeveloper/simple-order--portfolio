@@ -9,14 +9,19 @@ export default function OrdersPage() {
 	const { user, confirmedMerchants, ordersReceived, ordersMade, setOrdersReceived } = useUser()
 
 	const updateOrderStatus: UpdateOrderStatusFunction = async function updateOrderStatus(orderId: number, newOrderStatusId: OrderStatusId) {
-		const { updatedOrder, userMessage } = await apiRequest<OrderAdminOrderIdPATCHresponse, OrderAdminOrderIdPATCHbody>({
-			basePath: 'orders/admin',
+		const { ok, updatedOrder, userMessage, developmentMessage } = await apiRequest<
+			OrderAdminOrderIdPATCHresponse,
+			OrderAdminOrderIdPATCHbody
+		>({
+			basePath: '/orders/admin',
 			segment: orderId,
 			method: 'PATCH',
 			body: { statusId: newOrderStatusId, id: orderId },
 		})
 
-		return { updatedOrder, userMessage }
+		if (ok) return { ok, updatedOrder }
+
+		return { ok, userMessage, developmentMessage }
 	}
 
 	return (

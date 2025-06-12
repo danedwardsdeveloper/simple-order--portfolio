@@ -17,7 +17,7 @@ export default function MerchantsList({ confirmedMerchants, isDemo }: Props) {
 		<div className="bg-blue-50 p-3 mb-6 rounded-xl max-w-xl">
 			<h2>Place an order</h2>
 			{confirmedMerchants.map((merchant) => {
-				const href = `${isDemo && '/demo'}/orders/${merchant.slug}/new`
+				const href = `${isDemo ? '/demo' : ''}/orders/${merchant.slug}/new`
 
 				return (
 					<div key={merchant.slug} className="mt-4 flex gap-x-2 items-end">

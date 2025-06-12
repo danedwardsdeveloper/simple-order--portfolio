@@ -54,9 +54,13 @@ export default function CompleteRegistrationForm({ token }: { token: string }) {
 		}
 	}
 
-	// Display a welcome message with the merchant's name and an explanation. This is likely the user's first interaction with the site
-
-	// Disable the button until the form is completed properly
+	/*
+	- Style the page properly
+	- Welcome message & explanation
+	- Use Zod
+	- Disable the button until the form is completed properly
+	- Password toggle button
+	*/
 
 	return (
 		<div className="max-w-md mx-auto mt-8 p-4 border rounded-lg">

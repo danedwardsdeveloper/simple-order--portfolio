@@ -14,16 +14,14 @@ import {
 } from '@/library/database/schema'
 import logger from '@/library/logger'
 import { equals, inArray, or } from '@/library/utilities/server'
+import type { QueryRunner } from '@/types'
 
-/**
- * For testing only
- */
-export async function deleteUser(email: string): Promise<{ success: boolean }> {
+export async function deleteUser(email: string, database: QueryRunner = developmentDatabase): Promise<{ success: boolean }> {
 	// Use Zod to check email is valid first
 	try {
 		// Check user exists
 		// Don't destructure straight away or it will fail if the user is not found
-		const userToDelete = await developmentDatabase.select().from(users).where(equals(users.email, email)).limit(1)
+		const userToDelete = await database.select().from(users).where(equals(users.email, email)).limit(1)
 
 		if (!userToDelete[0]) {
 			logger.info('No user found with email: ', email)
@@ -33,7 +31,7 @@ export async function deleteUser(email: string): Promise<{ success: boolean }> {
 		const { id: idToDelete, email: emailToDelete } = userToDelete[0]
 
 		// Delete the user's data in order
-		await developmentDatabase.transaction(async (tx) => {
+		await database.transaction(async (tx) => {
 			// First, find all orders associated with this user
 			const userOrders = await tx
 				.select({ id: orders.id })
@@ -104,7 +102,7 @@ export async function deleteUser(email: string): Promise<{ success: boolean }> {
 }
 // ;(async () => {
 // 	try {
-// 		await deleteUser('samanthasbakery@gmail.com')
+// 		await deleteUser('danedwardscreative@gmail.com', productionDatabase)
 // 	} catch {
 // 		logger.error('error')
 // 	}

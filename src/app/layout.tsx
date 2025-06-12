@@ -7,12 +7,12 @@ import DemoBadge from '@/components/DemoBadge'
 import Footer from '@/components/footer'
 import Providers from '@/components/providers'
 import { ContentSplash, SiteSplash } from '@/components/splashes'
-import { defaultImageWithPaths } from '@/library/imagesCollection'
+import { defaultImage } from '@/library/imagesCollection'
 import Script from 'next/script'
 import type { ReactNode } from 'react'
 
 const metadataImageDetails = {
-	url: defaultImageWithPaths.relative,
+	url: defaultImage.absolute,
 	height: 630,
 	width: 1200,
 	alt: websiteCopy.extras.selfContainedDescription,

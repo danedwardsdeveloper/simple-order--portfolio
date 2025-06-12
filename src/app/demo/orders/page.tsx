@@ -15,6 +15,7 @@ export default function DemoOrdersPage() {
 		setOrdersMade((prev) => (prev ? prev.map((order) => (order.id === orderId ? { ...order, statusName } : order)) : null))
 
 		return {
+			ok: true,
 			updatedOrder: {
 				id: orderId,
 				statusName,

@@ -3,7 +3,7 @@ import { bareProductionDomain, productionBaseURL } from '@/library/environment/p
 import { defaultImage, imagesCollection } from '@/library/imagesCollection'
 import { createDate } from '@/library/shared'
 import { articlePath, formattedSubscriptionPrice } from '@/library/utilities/public'
-import { type ArticlesCollection, ManualArticlesCollection, articleCategories } from '@/types'
+import { ManualArticlesCollection, articleCategories } from '@/types'
 import Link from 'next/link'
 
 export const manualArticles: ManualArticlesCollection = {

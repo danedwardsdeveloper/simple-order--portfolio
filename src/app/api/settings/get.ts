@@ -1,10 +1,11 @@
 import { userMessages } from '@/library/constants'
 import { checkAccess, getAcceptedWeekDayIndices, getHolidays } from '@/library/database/operations'
-import { initialiseResponderNew } from '@/library/utilities/server'
+import { initialiseResponder } from '@/library/utilities/server'
 import type { ApiResponse, SettingsData } from '@/types'
 import type { NextRequest, NextResponse } from 'next/server'
 
 type Success = SettingsData & { ok: true }
+
 type Failure = {
 	ok: false
 	userMessage?: string
@@ -19,7 +20,7 @@ type OutputGET = Promise<NextResponse<SettingsGETresponse>>
 
 // Get information about your own settings as a merchant
 export async function GET(request: NextRequest): OutputGET {
-	const respond = initialiseResponderNew<Success, Failure>()
+	const respond = initialiseResponder<Success, Failure>()
 	try {
 		const { dangerousUser, accessDenied } = await checkAccess({
 			request,

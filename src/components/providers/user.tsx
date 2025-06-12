@@ -1,6 +1,6 @@
 'use client'
 import type { VerifyTokenGETresponse } from '@/app/api/authentication/verify-token/get'
-import { apiRequestNew } from '@/library/utilities/public'
+import { apiRequest } from '@/library/utilities/public'
 import type { UserContextSetters, UserContextType, UserData } from '@/types'
 import { type ReactNode, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { useLoading } from './loading'
@@ -36,7 +36,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 			setDataLoading(true)
 
 			try {
-				const { ok, userData, userMessage } = await apiRequestNew<VerifyTokenGETresponse>({
+				const { ok, userData, userMessage } = await apiRequest<VerifyTokenGETresponse>({
 					basePath: '/authentication/verify-token',
 				})
 

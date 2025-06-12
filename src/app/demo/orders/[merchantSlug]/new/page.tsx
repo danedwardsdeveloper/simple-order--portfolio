@@ -29,7 +29,12 @@ export default function DemoNewOrderPage({ params }: MerchantSlugParams) {
 	}, [merchantMode, router])
 
 	const createOrder: CreateOrderFunction = async (props: OrdersPOSTbody) => {
-		if (!inventory) return { userMessage: userMessages.serverError }
+		if (!inventory)
+			return {
+				ok: false,
+				userMessage: userMessages.serverError,
+				developmentMessage: '',
+			}
 
 		const hasOrders = ordersMade && ordersMade.length > 0
 		const orderId = hasOrders ? ordersMade[ordersMade.length - 1].id + 1 : orderIdStartNumber
@@ -71,7 +76,10 @@ export default function DemoNewOrderPage({ params }: MerchantSlugParams) {
 			setOrdersReceived((prev) => [createdOrder, ...(prev ?? [])])
 		}
 
-		return { createdOrder }
+		return {
+			ok: true,
+			createdOrder,
+		}
 	}
 
 	const availableDeliveryDays = getAvailableDeliveryDays({

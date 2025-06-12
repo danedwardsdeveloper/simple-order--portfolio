@@ -5,6 +5,8 @@ import Pricing from '@/components/Pricing'
 import { currencyOptions } from '@/library/constants'
 import type { ReactNode } from 'react'
 
+// Metadata is handled in page.tsx
+
 export default function Layout({ children }: { children: ReactNode }) {
 	return (
 		<>

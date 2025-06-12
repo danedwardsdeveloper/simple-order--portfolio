@@ -1,8 +1,10 @@
+import { developmentBaseURL } from '@/library/environment/publicVariables'
 import { createApiUrl } from '@/library/utilities/public'
 import type { TestRequestResponse } from '@tests/types'
 import { parseTokenCookie } from '@tests/utilities'
 import type { HTTP_METHOD } from 'next/dist/server/web/http'
 import fetch from 'node-fetch'
+import urlJoin from 'url-join'
 
 type InitialiserOptions = {
 	basePath: string
@@ -37,11 +39,13 @@ export function initialiseTestRequestMaker({ basePath, method }: InitialiserOpti
 		const headers: Record<string, string> = { 'Content-Type': 'application/json' }
 		if (options?.requestCookie) headers.Cookie = options.requestCookie
 
-		const url = createApiUrl({
+		const relativePath = createApiUrl({
 			basePath,
 			segment: options?.segment,
 			searchParam: options?.searchParam,
 		})
+
+		const url = urlJoin(developmentBaseURL, relativePath)
 
 		const response = await fetch(url, {
 			method,

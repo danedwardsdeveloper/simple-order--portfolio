@@ -1,6 +1,6 @@
 import { userMessages } from '@/library/constants'
 import { checkAccess, getInventory } from '@/library/database/operations'
-import { initialiseResponderNew } from '@/library/utilities/server'
+import { initialiseResponder } from '@/library/utilities/server'
 import type { ApiResponse, UserContextType } from '@/types'
 import type { NextRequest, NextResponse } from 'next/server'
 
@@ -19,7 +19,7 @@ export type InventoryAdminGETresponse = ApiResponse<Success, Failure>
 
 // GET all products for the signed-in merchant
 export async function GET(request: NextRequest): Promise<NextResponse<InventoryAdminGETresponse>> {
-	const respond = initialiseResponderNew<Success, Failure>()
+	const respond = initialiseResponder<Success, Failure>()
 
 	try {
 		const { dangerousUser, accessDenied } = await checkAccess({

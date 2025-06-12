@@ -1,19 +1,16 @@
 'use client'
-import type { InvitationsPOSTbody } from '@/app/api/invitations/route'
+import type { InvitationsPOSTbody } from '@/app/api/invitations/post'
 import CustomersPageContent, { type InviteCustomerFunction } from '@/app/customers/components/Content'
 import { useDemoUser } from '@/components/providers/demo/user'
 import { useUi } from '@/components/providers/ui'
 import { userMessages } from '@/library/constants'
 import { invitationExpiryDate, obfuscateEmail, subtleDelay } from '@/library/utilities/public'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 export default function DemoCustomersPage() {
 	const { merchant, invitationsSent, setInvitationsSent, confirmedCustomers } = useDemoUser()
 	const { merchantMode } = useUi()
-
-	const [isSubmitting, setIsSubmitting] = useState(false)
-
 	const router = useRouter()
 
 	useEffect(() => {
@@ -23,7 +20,6 @@ export default function DemoCustomersPage() {
 	}, [merchantMode, router])
 
 	const inviteCustomer: InviteCustomerFunction = async (invitedEmail: InvitationsPOSTbody['invitedEmail']) => {
-		setIsSubmitting(true)
 		await subtleDelay()
 
 		const invitation = {
@@ -33,10 +29,14 @@ export default function DemoCustomersPage() {
 		}
 
 		const forceError = false
+		if (forceError) {
+			return {
+				ok: false,
+				userMessage: userMessages.serverError,
+			}
+		}
 
-		setIsSubmitting(false)
-
-		return forceError ? { userMessage: userMessages.serverError } : { invitation: invitation }
+		return { ok: true, invitation }
 	}
 
 	return (
@@ -47,7 +47,6 @@ export default function DemoCustomersPage() {
 			confirmedCustomers={confirmedCustomers}
 			setInvitationsSent={setInvitationsSent}
 			inviteCustomer={inviteCustomer}
-			isSubmitting={isSubmitting}
 		/>
 	)
 }

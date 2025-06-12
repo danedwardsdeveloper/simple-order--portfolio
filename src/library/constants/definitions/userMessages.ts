@@ -12,12 +12,14 @@ export const userMessages = {
 	stripeCheckoutSuccess: 'Thank you for subscribing to SimpleOrder.co.uk!',
 	stripeCheckoutIncomplete: "Your subscription wasn't started. No payment has been taken",
 	orderCreationError: 'Sorry, something went wrong trying to create a new order. Please try again later.',
-	emailConfirmationTokenInvalid: 'ToDo',
+	emailConfirmationTokenInvalid: 'Sorry, this link appears to be broken. Please try again or contact us. ',
 	emailAlreadyConfirmed: 'This email address has already been confirmed.',
 	cutOffTimeExceeded: `Sorry, it's too late to place this order. Please change the requested delivery date or contact the merchant directly.`,
 	holidayConflict: 'This holiday period overlaps with an existing holiday',
 	contactFormError: "Sorry, we couldn't send your message. Please try again later.",
 	authenticationError: 'Sorry, we had trouble signing you in. Please try again.',
+	unexpectedError: 'Sorry, something went wrong - please try again later or contact us.', // Default error for something that shouldn't be technically possible
+	relationshipExists: "You're already a confirmed customer of this merchant.",
 } as const
 
 /**

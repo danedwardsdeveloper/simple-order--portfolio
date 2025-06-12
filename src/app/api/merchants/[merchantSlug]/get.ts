@@ -4,22 +4,28 @@ import { checkAccess, checkRelationship, getAcceptedWeekDayIndices, getHolidays 
 import { products, users } from '@/library/database/schema'
 import { emptyToUndefined, getAvailableDeliveryDays } from '@/library/utilities/public'
 import { and, equals, initialiseResponder, isNull } from '@/library/utilities/server'
-import type { BrowserSafeCustomerProduct, UserMessages } from '@/types'
+import type { ApiResponse, BrowserSafeCustomerProduct } from '@/types'
 import type { NextRequest, NextResponse } from 'next/server'
 
-export interface InventoryMerchantSlugGETresponse {
-	developmentMessage?: string
-	userMessage?: UserMessages
+type Success = {
+	ok: true
 	availableProducts?: BrowserSafeCustomerProduct[]
 	availableDeliveryDays?: Date[]
 	// The customer already has the merchantProfile because they've made the request using the slug
 }
 
+type Failure = {
+	ok: false
+	userMessage: (typeof userMessages)['authenticationError' | 'serverError' | 'unexpectedError']
+}
+
+export type InventoryMerchantSlugGETresponse = ApiResponse<Success, Failure>
+
 type Output = Promise<NextResponse<InventoryMerchantSlugGETresponse>>
 
 // Get all everything needed to make an order from a specific merchant
 export async function GET(request: NextRequest, { params }: { params: Promise<{ merchantSlug: string }> }): Output {
-	const respond = initialiseResponder<InventoryMerchantSlugGETresponse>()
+	const respond = initialiseResponder<Success, Failure>()
 	try {
 		const merchantSlug = (await params).merchantSlug
 
@@ -31,6 +37,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 		if (accessDenied) {
 			return respond({
+				body: { userMessage: userMessages.authenticationError },
 				status: accessDenied.status,
 				developmentMessage: accessDenied.message,
 			})
@@ -40,6 +47,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 		if (!dangerousMerchantProfile) {
 			return respond({
+				body: { userMessage: userMessages.unexpectedError },
 				status: 401,
 				developmentMessage: 'merchant not found',
 			})
@@ -51,6 +59,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 		if (!relationshipExists) {
 			return respond({
+				body: { userMessage: userMessages.unexpectedError },
 				status: http403forbidden,
 				developmentMessage: 'Relationship missing',
 			})
@@ -88,6 +97,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 		if (!availableDeliveryDays) {
 			return respond({
+				// ToDo: Proper message / make this scenario impossible beforehand
+				body: { userMessage: userMessages.unexpectedError },
 				status: 400,
 				developmentMessage: 'No delivery days available',
 			})

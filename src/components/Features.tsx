@@ -1,7 +1,9 @@
 import { websiteCopy } from '@/library/constants'
 import { mergeClasses } from '@/library/utilities/public'
 import { CalendarDaysIcon, ClockIcon, CreditCardIcon, PhoneXMarkIcon, TruckIcon, UserPlusIcon } from '@heroicons/react/24/solid'
+import type { Product, WithContext } from 'schema-dts'
 import SectionHeader from './SectionHeader'
+import { StructuredData } from './StructuredData'
 
 const features = [
 	{
@@ -41,8 +43,30 @@ const features = [
 const { title, subtitle, intro } = websiteCopy.features
 
 export default function Features({ marginClasses }: { marginClasses: string }) {
+	function FeaturesStructuredData() {
+		return (
+			<>
+				{features.map((feature) => (
+					<StructuredData
+						key={feature.name}
+						data={
+							{
+								'@context': 'https://schema.org',
+								'@type': 'Product',
+								name: feature.name,
+								description: feature.description,
+								category: 'Software Feature',
+							} satisfies WithContext<Product>
+						}
+					/>
+				))}
+			</>
+		)
+	}
+
 	return (
 		<div className={mergeClasses('mx-auto max-w-7xl px-6 lg:px-8', marginClasses)}>
+			<FeaturesStructuredData />
 			<SectionHeader title={title} subtitle={subtitle} intro={intro} />
 
 			<dl className="mx-auto grid max-w-2xl grid-cols-1 gap-x-6 gap-y-10 leading-7 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-x-8 lg:gap-y-16">

@@ -55,13 +55,14 @@ export default function NewOrderPage({ params }: MerchantSlugParams) {
 	}, [merchantSlug])
 
 	const createOrder: CreateOrderFunction = async (params: OrdersPOSTbody) => {
-		const { createdOrder, userMessage } = await apiRequest<OrdersPOSTresponse, OrdersPOSTbody>({
+		const { ok, createdOrder, userMessage, developmentMessage } = await apiRequest<OrdersPOSTresponse, OrdersPOSTbody>({
 			basePath: '/orders',
 			method: 'POST',
 			body: { merchantSlug: params.merchantSlug, products: params.products, requestedDeliveryDate: params.requestedDeliveryDate },
 		})
 
-		return { createdOrder, userMessage }
+		if (ok) return { ok, createdOrder }
+		return { ok, developmentMessage, userMessage }
 	}
 
 	if (!user) return <UnauthorisedLinks />

@@ -1,6 +1,6 @@
 import { userMessages } from '@/library/constants'
 import { checkAccess, getRelationshipsOld } from '@/library/database/operations'
-import { initialiseResponderNew } from '@/library/utilities/server'
+import { initialiseResponder } from '@/library/utilities/server'
 import type { ApiResponse, UserContextType, UserMessages } from '@/types'
 import type { NextRequest, NextResponse } from 'next/server'
 
@@ -17,7 +17,7 @@ export type RelationshipsGETresponse = ApiResponse<Success, Failure>
 
 // GET confirmed customers & merchants for the signed-in user
 export async function GET(request: NextRequest): Promise<NextResponse<RelationshipsGETresponse>> {
-	const respond = initialiseResponderNew<Success, Failure>()
+	const respond = initialiseResponder<Success, Failure>()
 	try {
 		const { dangerousUser, accessDenied } = await checkAccess({
 			request,

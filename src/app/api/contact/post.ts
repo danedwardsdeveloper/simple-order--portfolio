@@ -1,29 +1,37 @@
 import { userMessages } from '@/library/constants'
 import { database } from '@/library/database/connection'
 import { contactFormSubmissions } from '@/library/database/schema'
+import { renderEmail } from '@/library/email/renderEmail'
 import { sendEmail } from '@/library/email/sendEmail'
+import { ContactFormSubmissionTemplate, type ContactFormTemplateProps, contactFormSubject } from '@/library/email/templates'
 import { isDevelopment } from '@/library/environment/publicVariables'
 import { myPersonalEmail } from '@/library/environment/serverVariables'
 import logger from '@/library/logger'
 import { formatFirstError } from '@/library/utilities/public'
-import { equals, formatSimpleEmail, initialiseResponder } from '@/library/utilities/server'
+import { equals, initialiseResponder } from '@/library/utilities/server'
 import { contactFormSchema } from '@/library/validations'
-import type { ContactFormInputValues, ContactFormValues } from '@/types'
+import type { ApiResponse, ContactFormValues } from '@/types'
 import type { NextRequest, NextResponse } from 'next/server'
 
 export type ContactPOSTbody = ContactFormValues
 
-export interface ContactPOSTresponse {
-	developmentMessage?: string
-	userMessage?: typeof userMessages.contactFormError
+type Success = {
+	ok: true
 }
+
+type Failure = {
+	ok: false
+	developmentMessage: string
+	userMessage: typeof userMessages.contactFormError
+}
+
+export type ContactPOSTresponse = ApiResponse<Success, Failure>
 
 /**
  * Receives the data from <ContactForm /> and forwards it to my personal email
  */
 export async function POST(request: NextRequest): Promise<NextResponse<ContactPOSTresponse>> {
-	const respond = initialiseResponder<ContactPOSTresponse>()
-	const userMessage = userMessages.contactFormError
+	const respond = initialiseResponder<Success, Failure>()
 	let txError = undefined
 
 	try {
@@ -32,6 +40,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ContactPO
 
 		if (!result.success) {
 			return respond({
+				body: { userMessage: userMessages.contactFormError },
 				status: 400,
 				developmentMessage: formatFirstError(result.error),
 			})
@@ -41,13 +50,14 @@ export async function POST(request: NextRequest): Promise<NextResponse<ContactPO
 
 		if (honeypot) {
 			return respond({
+				body: {},
 				status: 200,
 				developmentMessage: 'Honeypot field provided. Returning false positive',
 			})
 		}
 
 		const { sentEmailSuccessfully } = await database.transaction(async (tx) => {
-			const insertValues: ContactFormInputValues = {
+			const insertValues: ContactFormValues = {
 				firstName,
 				businessName,
 				email,
@@ -63,25 +73,26 @@ export async function POST(request: NextRequest): Promise<NextResponse<ContactPO
 				logger.info('Successfully created and deleted contact form submission in development')
 			}
 
-			const { htmlVersion, textVersion } = formatSimpleEmail([
-				{ content: 'New message through Simple Order contact form', bold: true },
-				`from ${firstName}, ${email} `,
-				businessName,
-				message,
-			])
-
 			txError = 'Error sending email'
-			let sentEmailSuccessfully = false
+			const sentEmailSuccessfully = false
+
+			const emailTemplateProps: ContactFormTemplateProps = {
+				firstName,
+				businessName,
+				email,
+				message,
+			}
 
 			if (isDevelopment) {
-				sentEmailSuccessfully = true
-				logger.info(`Bypassed sending email in development. Email: ${textVersion}`)
+				const { text } = await renderEmail(ContactFormSubmissionTemplate, emailTemplateProps)
+
+				logger.info(`Bypassed sending email in development. Email: ${text}`)
 			} else {
-				sentEmailSuccessfully = await sendEmail({
-					recipientEmail: myPersonalEmail,
-					subject: 'New message: Simple Order',
-					htmlVersion,
-					textVersion,
+				await sendEmail({
+					template: ContactFormSubmissionTemplate,
+					templateProps: emailTemplateProps,
+					recipient: myPersonalEmail,
+					subject: contactFormSubject(firstName),
 				})
 			}
 
@@ -93,19 +104,20 @@ export async function POST(request: NextRequest): Promise<NextResponse<ContactPO
 
 		if (!sentEmailSuccessfully) {
 			return respond({
-				body: { userMessage },
+				body: { userMessage: userMessages.contactFormError },
 				status: 503,
 				developmentMessage: 'Failed to send email',
 			})
 		}
 
 		return respond({
+			body: {},
 			status: 200,
 			developmentMessage: 'Message sent successfully',
 		})
 	} catch (caughtError) {
 		return respond({
-			body: { userMessage },
+			body: { userMessage: userMessages.contactFormError },
 			status: 500,
 			developmentMessage: txError,
 			caughtError,
